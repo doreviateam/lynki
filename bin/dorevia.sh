@@ -83,6 +83,7 @@ Commands:
   token rotate <univers> <env> <tenant> Rotation token
   
   validate <tenant>                   Valide le manifest Phase 1 (Phase 1)
+  render <tenant> --env <env>         Génère tous les artefacts depuis manifest (Phase 1)
   
   help                                Affiche cette aide
   version                             Affiche version
@@ -152,6 +153,102 @@ cmd_validate() {
   else
     error "Manifest $tenant invalide (E02)" "$E02"
   fi
+}
+
+# Commande render (Phase 1)
+cmd_render() {
+  local tenant="${1:-}"
+  local env=""
+  
+  # Parser arguments
+  shift || true
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --env)
+        env="${2:-}"
+        shift 2 || true
+        ;;
+      *)
+        error "Option inconnue: $1 (Usage: dorevia.sh render <tenant> --env <env>) (E01)" "$E01"
+        ;;
+    esac
+  done
+  
+  if [[ -z "$tenant" ]]; then
+    error "Usage: dorevia.sh render <tenant> --env <env> (E01)" "$E01"
+  fi
+  
+  if [[ -z "$env" ]]; then
+    error "Option --env requise (Usage: dorevia.sh render <tenant> --env <env>) (E01)" "$E01"
+  fi
+  
+  validate_tenant "$tenant"
+  
+  # Vérifier manifest
+  local manifest_file="$TENANTS_DIR/$tenant/state/manifest.json"
+  if [[ ! -f "$manifest_file" ]]; then
+    error "Manifest introuvable: $manifest_file (E03)" "$E03"
+  fi
+  
+  # Vérifier jq
+  if ! command -v jq &> /dev/null; then
+    error "jq n'est pas installé. Veuillez l'installer." "$E03"
+  fi
+  
+  echo "🎨 Génération des artefacts pour tenant: $tenant, env: $env"
+  echo ""
+  
+  # Scripts de rendu
+  local render_caddyfile="$ROOT_DIR/lib/render/render_caddyfile.sh"
+  local render_platform="$ROOT_DIR/lib/render/render_platform_compose.sh"
+  local render_app="$ROOT_DIR/lib/render/render_app_compose.sh"
+  
+  # Vérifier scripts
+  if [[ ! -f "$render_caddyfile" ]]; then
+    error "Script de rendu Caddyfile introuvable: $render_caddyfile (E03)" "$E03"
+  fi
+  if [[ ! -f "$render_platform" ]]; then
+    error "Script de rendu platform introuvable: $render_platform (E03)" "$E03"
+  fi
+  if [[ ! -f "$render_app" ]]; then
+    error "Script de rendu app introuvable: $render_app (E03)" "$E03"
+  fi
+  
+  # Lire manifest
+  local manifest=$(cat "$manifest_file")
+  local universes=$(echo "$manifest" | jq -r '.universes[]')
+  
+  # 1. Générer Caddyfile
+  echo "📝 Génération Caddyfile..."
+  if "$render_caddyfile" "$tenant" "$env"; then
+    echo "✅ Caddyfile généré"
+  else
+    error "Échec génération Caddyfile (E02)" "$E02"
+  fi
+  echo ""
+  
+  # 2. Générer docker-compose.yml platform
+  echo "📝 Génération docker-compose.yml platform..."
+  if "$render_platform" "$tenant" "$env"; then
+    echo "✅ docker-compose.yml platform généré"
+  else
+    error "Échec génération docker-compose.yml platform (E02)" "$E02"
+  fi
+  echo ""
+  
+  # 3. Générer docker-compose.yml app pour chaque univers
+  for universe in $universes; do
+    echo "📝 Génération docker-compose.yml app ($universe)..."
+    if "$render_app" "$tenant" "$universe" "$env"; then
+      echo "✅ docker-compose.yml app ($universe) généré"
+    else
+      error "Échec génération docker-compose.yml app ($universe) (E02)" "$E02"
+    fi
+    echo ""
+  done
+  
+  echo "✅ Génération terminée pour tenant: $tenant, env: $env"
+  echo "📁 Fichiers générés dans: tenants/$tenant/rendered/$env/"
 }
 
 # Fonction génération docker-compose depuis template
@@ -1564,6 +1661,7 @@ main() {
     version) cmd_version ;;
     doctor) cmd_doctor ;;
     validate) cmd_validate "$@" ;;
+    render) cmd_render "$@" ;;
     gateway) cmd_gateway "$@" ;;
     platform) cmd_platform "$@" ;;
     app) cmd_app "$@" ;;

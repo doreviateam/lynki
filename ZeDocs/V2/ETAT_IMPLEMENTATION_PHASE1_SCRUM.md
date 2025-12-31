@@ -3,7 +3,7 @@
 **Version** : 1.0  
 **Dernière mise à jour** : 2025-01-29  
 **Base** : `PLAN_IMPLEMENTATION_PHASE1_SCRUM.md`  
-**Statut global** : 🟡 En cours — Sprint 1 terminé, Sprint 2 prêt
+**Statut global** : 🟡 En cours — Sprint 2 terminé, Sprint 3 prêt
 
 ---
 
@@ -15,11 +15,11 @@
 |--------|--------|--------|------------|------------|----------|
 | **Sprint 0** | ✅ Terminé | 5/5 | 100% | 2025-01-29 | 2025-01-29 |
 | **Sprint 1** | ✅ Terminé | 8/8 | 100% | 2025-01-29 | 2025-01-29 |
-| **Sprint 2** | 🟡 En cours | 10/18 | 56% | 2025-01-29 | - |
-| **Sprint 3** | ⏸️ En attente | 0/13 | 0% | - | - |
+| **Sprint 2** | ✅ Terminé | 18/18 | 100% | 2025-01-29 | 2025-01-29 |
+| **Sprint 3** | ⏳ Prêt | 0/13 | 0% | - | - |
 | **Sprint 4** | ⏸️ En attente | 0/13 | 0% | - | - |
 | **Sprint 5** | ⏸️ En attente | 0/9 | 0% | - | - |
-| **Total** | - | **23/66** | **35%** | - | - |
+| **Total** | - | **31/66** | **47%** | - | - |
 
 ### Légende des Statuts
 
@@ -202,9 +202,9 @@ lib/
 
 ## 📦 Sprint 2 : Génération déterministe (2 semaines)
 
-**Statut** : 🟡 **En cours**  
-**Dates** : 2025-01-29 -  
-**Points** : 10/18 (56%)
+**Statut** : ✅ **Terminé**  
+**Dates** : 2025-01-29 - 2025-01-29  
+**Points** : 18/18 (100%)
 
 ### User Stories
 
@@ -266,21 +266,60 @@ lib/
 
 #### US-2.3 : Moteur de rendu docker-compose.yml (app)
 
-**Statut** : ⏸️ En attente  
-**Points** : 0/5
+**Statut** : ✅ **Complété**  
+**Points** : 5/5
+
+**Critères d'acceptation** :
+- [x] Template docker-compose.yml app créé (génération directe depuis manifest)
+- [x] Génération depuis manifest (tenant, univers, env, units app)
+- [x] Variables depuis manifest (images, secrets_refs)
+- [x] Génération idempotente (mêmes inputs ⇒ mêmes outputs)
+- [x] Sortie dans `tenants/<tenant>/rendered/<env>/<univers>/docker-compose.yml`
+- [ ] Tests unitaires (à faire)
+
+**Tâches techniques** :
+- [x] Créer script de génération (`lib/render/render_app_compose.sh`)
+- [x] Implémenter fonction `render_app_compose(tenant, univers, env)`
+- [x] Variables depuis manifest (images, units app)
+- [x] Génération idempotente
+- [ ] Tests unitaires
+
+**Livrables** :
+- ✅ `lib/render/render_app_compose.sh` : Script de génération
+- ✅ docker-compose.yml app générés pour `core` (odoo lab/stinger/prod) et `dido` (odoo lab)
+- ✅ Génération depuis manifest (images, units app)
 
 ---
 
 #### US-2.4 : Commande `render` fonctionnelle
 
-**Statut** : ⏸️ En attente  
-**Points** : 0/3
+**Statut** : ✅ **Complété**  
+**Points** : 3/3
+
+**Critères d'acceptation** :
+- [x] Commande `dorevia.sh render <tenant> --env <env>` implémentée
+- [x] Génération Caddyfile
+- [x] Génération docker-compose.yml (platform + app)
+- [x] Génération idempotente (mêmes inputs ⇒ mêmes outputs)
+- [x] Sortie dans `rendered/<env>/`
+- [ ] Tests unitaires (à faire)
+
+**Tâches techniques** :
+- [x] Implémenter `cmd_render()` dans `dorevia.sh`
+- [x] Orchestrer génération (Caddyfile + compose)
+- [x] Gestion erreurs
+- [ ] Tests unitaires
+
+**Livrables** :
+- ✅ Commande `dorevia.sh render <tenant> --env <env>` fonctionnelle
+- ✅ Testée sur `core` (lab, stinger) et `dido` (lab)
+- ✅ Génération idempotente validée
 
 ---
 
 ## 📦 Sprint 3 : Refactor CLI (2 semaines)
 
-**Statut** : ⏸️ **En attente** (dépend de Sprint 2)  
+**Statut** : ⏳ **Prêt** (Sprint 2 terminé)  
 **Dates** : -  
 **Points** : 0/13 (0%)
 
@@ -447,6 +486,9 @@ Le tenant **`core`** est le tenant de référence interne Dorevia, utilisé comm
 | 2025-01-29 | Sprint 2 | 🟡 Démarré | Sprint 2 : Génération déterministe |
 | 2025-01-29 | Sprint 2 | ✅ US-2.1 | Moteur de rendu Caddyfile complété |
 | 2025-01-29 | Sprint 2 | ✅ US-2.2 | Moteur de rendu docker-compose.yml (platform) complété |
+| 2025-01-29 | Sprint 2 | ✅ US-2.3 | Moteur de rendu docker-compose.yml (app) complété |
+| 2025-01-29 | Sprint 2 | ✅ US-2.4 | Commande render fonctionnelle complétée |
+| 2025-01-29 | Sprint 2 | ✅ Terminé | Sprint 2 complété (18/18 points) |
 
 ---
 
