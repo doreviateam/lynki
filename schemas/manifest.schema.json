@@ -1,0 +1,155 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dorevia.plateform/schemas/manifest.schema.json",
+  "title": "Dorevia Platform Manifest Schema",
+  "description": "Schéma de validation pour les manifests Phase 1 - Configuration déclarative complète",
+  "type": "object",
+  "required": [
+    "tenant_id",
+    "universes",
+    "environments",
+    "domain_mode",
+    "units"
+  ],
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "Identifiant du tenant (slug technique DNS)",
+      "pattern": "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$",
+      "examples": ["core", "dido", "rozas"]
+    },
+    "universes": {
+      "type": "array",
+      "description": "Liste des univers fonctionnels activés",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "enum": ["odoo", "pos", "sylius"]
+      },
+      "uniqueItems": true,
+      "examples": [["odoo"], ["odoo", "pos"]]
+    },
+    "environments": {
+      "type": "array",
+      "description": "Liste des environnements activés",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "enum": ["lab", "stinger", "prod"]
+      },
+      "uniqueItems": true,
+      "examples": [["lab", "stinger"], ["lab", "stinger", "prod"]]
+    },
+    "domain_mode": {
+      "type": "string",
+      "description": "Mode de domaine (Phase 1: saas uniquement)",
+      "enum": ["saas"],
+      "default": "saas"
+    },
+    "units": {
+      "type": "object",
+      "description": "Liste des units techniques à déployer par catégorie",
+      "required": ["platform"],
+      "properties": {
+        "platform": {
+          "type": "array",
+          "description": "Units de la plateforme (services partagés)",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": ["dvig", "vault", "postgres"]
+          },
+          "uniqueItems": true,
+          "examples": [["dvig", "vault", "postgres"]]
+        },
+        "odoo": {
+          "type": "array",
+          "description": "Units pour l'univers odoo",
+          "items": {
+            "type": "string",
+            "enum": ["odoo", "postgres"]
+          },
+          "uniqueItems": true,
+          "examples": [["odoo", "postgres"]]
+        },
+        "pos": {
+          "type": "array",
+          "description": "Units pour l'univers pos",
+          "items": {
+            "type": "string",
+            "enum": ["pos", "postgres"]
+          },
+          "uniqueItems": true
+        },
+        "sylius": {
+          "type": "array",
+          "description": "Units pour l'univers sylius",
+          "items": {
+            "type": "string",
+            "enum": ["sylius", "postgres"]
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "secrets_refs": {
+      "type": "object",
+      "description": "Références vers les secrets (chemins/variables), sans secrets en clair",
+      "properties": {
+        "dvig_tokens": {
+          "type": "string",
+          "description": "Chemin vers le fichier de tokens DVIG",
+          "pattern": "^tenants/[^/]+/secrets/.+\\.ya?ml$",
+          "examples": ["tenants/core/secrets/dvig.tokens.yml"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "images": {
+      "type": "object",
+      "description": "Versions d'images Docker utilisées",
+      "properties": {
+        "dvig": {
+          "type": "string",
+          "description": "Image Docker DVIG",
+          "pattern": "^[^:]+:[^:]+$",
+          "examples": ["dorevia/dvig:0.1.2-auth"]
+        },
+        "vault": {
+          "type": "string",
+          "description": "Image Docker Vault",
+          "pattern": "^[^:]+:[^:]+$",
+          "examples": ["dorevia/vault:v1.3.0"]
+        },
+        "odoo": {
+          "type": "string",
+          "description": "Image Docker Odoo",
+          "pattern": "^[^:]+:[^:]+$",
+          "examples": ["odoo:18.0"]
+        },
+        "postgres": {
+          "type": "string",
+          "description": "Image Docker PostgreSQL",
+          "pattern": "^[^:]+:[^:]+$",
+          "examples": ["postgres:16"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "created_at": {
+      "type": "string",
+      "description": "Date de création du manifest (ISO 8601)",
+      "format": "date-time",
+      "examples": ["2025-01-28T00:00:00Z"]
+    },
+    "version": {
+      "type": "string",
+      "description": "Version du manifest",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "examples": ["1.0", "1.0.0"]
+    }
+  },
+  "additionalProperties": false
+}
+

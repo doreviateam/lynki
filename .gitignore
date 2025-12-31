@@ -1,0 +1,100 @@
+# Secrets - JAMAIS dans Git
+tenants/*/secrets/
+**/secrets/
+*.key
+*.pem
+*.cert
+*.token
+token_*_brut.txt
+tokens_*.yml
+!tokens.yml.template
+!tokens.example.yml
+
+# Rendered files (générés depuis manifest)
+tenants/*/rendered/
+rendered/
+
+# Volumes Docker
+**/pgdata/
+**/storage/
+**/ledger/
+**/audit/
+**/backups/
+
+# Logs
+*.log
+logs/
+**/logs/
+
+# Environment variables
+.env
+.env.local
+.env.*
+!*.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go (pour Vault)
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# State files (optionnel - selon stratégie)
+# tenants/*/state/manifest.json
