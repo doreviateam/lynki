@@ -1,0 +1,24 @@
+{
+  email admin@doreviateam.com
+}
+
+{{#UNIVERSES}}
+# {{UNIVERSE}} - Environnements (tenant {{TENANT}})
+{{#ENVIRONMENTS}}
+{{UNIVERSE}}.{{ENV}}.{{TENANT}}.doreviateam.com {
+  reverse_proxy {{UNIVERSE}}_{{ENV}}_{{TENANT}}:8069
+}
+{{/ENVIRONMENTS}}
+{{/UNIVERSES}}
+
+# Services partagés (tenant {{TENANT}})
+{{#ENVIRONMENTS}}
+dvig.{{ENV}}.{{TENANT}}.doreviateam.com {
+  reverse_proxy dvig-{{TENANT}}:8080
+}
+
+vault.{{ENV}}.{{TENANT}}.doreviateam.com {
+  reverse_proxy vault-{{TENANT}}:8080
+}
+{{/ENVIRONMENTS}}
+
