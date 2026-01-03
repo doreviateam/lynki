@@ -1,0 +1,57 @@
+# Docker Compose PROD - DVIG P1 Auth/Token
+# ⚠️ IMPORTANT : Même image que STINGER (dorevia/dvig:0.1.2-auth)
+# PROD = config, pas version
+
+services:
+  dvig:
+    image: dorevia/dvig:0.1.2-auth  # ⚠️ Même image que STINGER
+    container_name: dvig-prod
+    restart: unless-stopped
+    ports:
+      - "8080:8080"  # Adapter selon infrastructure
+    
+    environment:
+      # Auth
+      - DVIG_AUTH_ENABLED=1
+      - DVIG_TOKENS_FILE=/etc/dvig/tokens.yml
+      - DVIG_TOKENS_RELOAD_INTERVAL=60
+      - DVIG_TOKENS_RELOAD_ON_SIGHUP=1
+      
+      # API
+      - DVIG_HOST=0.0.0.0
+      - DVIG_PORT=8080
+      
+      # Docs (désactivés en PROD)
+      - DVIG_DOCS_ENABLED=0
+      - DVIG_OPENAPI_ENABLED=0
+      
+      # Health
+      - DVIG_HEALTH_PROTECTED=0  # Adapter selon besoins sécurité
+      
+      # Logs (format PROD - JSON obligatoire)
+      - DVIG_LOG_FORMAT=json
+      - DVIG_LOG_LEVEL=info
+    
+    volumes:
+      # Volume tokens (read-only)
+      - /etc/dvig/tokens.yml:/etc/dvig/tokens.yml:ro
+      # Logs
+      - /var/log/dvig:/var/log/dvig
+    
+    networks:
+      - dorevia-network
+    
+    healthcheck:
+      # Healthcheck amélioré (selon préconisations)
+      test: ["CMD", "sh", "-lc", "wget -qO- http://127.0.0.1:8080/health >/dev/null || curl -f http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 40s
+
+networks:
+  dorevia-network:
+    external: true
+    # Si réseau n'existe pas, créer avec :
+    # docker network create dorevia-network
+

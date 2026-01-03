@@ -1,0 +1,38 @@
+version: 1
+# Tokens DVIG - Tenant CORE (conforme Clarification Contractuelle)
+# Règle : tenant DVIG DOIT correspondre exactement au tenant DNS
+# Format source : univers.env.tenant (ex: odoo.lab.core)
+# Généré le 2025-01-28
+
+tokens:
+  # Token LAB
+  - id: "tok_lab_core_001"
+    token_hash: "sha256:d6870f8cd4cf49037af0bd20eaff61d152021189290e200839d73b611c3cc695"
+    tenant: "core"
+    univers: "odoo"
+    status: "active"
+    created_at: "2025-01-28T00:00:00Z"
+    comment: "LAB - odoo.lab.core (tenant DNS: core)"
+  
+  # Token STINGER
+  - id: "tok_stinger_core_001"
+    token_hash: "sha256:b90840cf4b57552d9583b57ee3ffd52c4a257b5694a2621fbf4ff14667314bfe"
+    tenant: "core"
+    univers: "odoo"
+    status: "active"
+    created_at: "2025-01-28T00:00:00Z"
+    comment: "STINGER - odoo.stinger.core (tenant DNS: core)"
+  
+  # Token PROD
+  - id: "tok_prod_core_001"
+    token_hash: "sha256:7386db21e1f92a27ccbab9cb169e1c0bd0e45f1b22fc21e12b100fa6bef51208"
+    tenant: "core"
+    univers: "odoo"
+    status: "active"
+    created_at: "2025-01-28T00:00:00Z"
+    comment: "PROD - odoo.prod.core (tenant DNS: core)"
+
+# Règles contractuelles :
+# - Les tokens LAB/STINGER/PROD sont distincts et non interchangeables
+# - Un token LAB ne doit jamais produire une preuve PROD
+# - Le tenant DVIG ≡ tenant DNS ≡ tenant Vault

@@ -1,0 +1,4 @@
+"""
+Routes FastAPI pour DVIG
+"""
+

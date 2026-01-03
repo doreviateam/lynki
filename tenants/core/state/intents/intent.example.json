@@ -1,0 +1,24 @@
+{
+  "version": "2.0",
+  "tenant_id": "core",
+  "environment": "lab",
+  "created_at": "2025-01-29T12:00:00Z",
+  "created_by": "operator@doreviateam.com",
+  "intention": {
+    "universes": ["odoo"],
+    "mode": "saas",
+    "domains": {
+      "canonical": "doreviateam.com",
+      "aliases": []
+    },
+    "preflight": {
+      "enabled": true,
+      "install_controlled": false
+    }
+  },
+  "metadata": {
+    "notes": "Exemple d'intention pour Lab",
+    "tags": ["example", "lab"]
+  }
+}
+

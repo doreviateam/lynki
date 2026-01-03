@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: odoo
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    volumes:
+      - db_lab_data:/var/lib/postgresql/data
+
+  odoo:
+    image: odoo:18.0
+    depends_on:
+      - db
+    ports:
+      - "18069:8069"
+    volumes:
+      # Sources OCA (read-only)
+      - /opt/dorevia-plateform/sources/oca:/mnt/oca:ro
+
+      # Extra-addons flatten (symlinks)
+      - oca_extra_addons:/mnt/extra-addons
+
+      # Addons métier
+      - ./custom-addons:/mnt/custom-addons
+
+      # Config Odoo LAB
+      - ./conf/odoo.lab.conf:/etc/odoo/odoo.conf:ro
+
+      # Filestore
+      - odoo_lab_data:/var/lib/odoo
+    command: ["odoo", "-c", "/etc/odoo/odoo.conf"]
+
+volumes:
+  db_lab_data:
+  odoo_lab_data:
+  oca_extra_addons:
+  conf_odoo_lab:
+  

@@ -42,9 +42,111 @@
     },
     "domain_mode": {
       "type": "string",
-      "description": "Mode de domaine (Phase 1: saas uniquement)",
-      "enum": ["saas"],
+      "description": "Mode de domaine (Phase 3: saas, client, hybrid)",
+      "enum": ["saas", "client", "hybrid"],
       "default": "saas"
+    },
+    "domains": {
+      "type": "object",
+      "description": "Configuration domaines (Phase 3: domaines clients et alias)",
+      "properties": {
+        "canonical": {
+          "type": "string",
+          "description": "Domaine canonique (selon mode: doreviateam.com ou domaine client)",
+          "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$",
+          "examples": ["doreviateam.com", "rozas.gp"]
+        },
+        "aliases": {
+          "type": "object",
+          "description": "Alias DNS par scope (global ou par service)",
+          "properties": {
+            "global": {
+              "type": "array",
+              "description": "Alias global (tous les services)",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"
+              },
+              "uniqueItems": true,
+              "examples": [["erp.rozas.gp"]]
+            },
+            "odoo": {
+              "type": "array",
+              "description": "Alias pour service Odoo",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"
+              },
+              "uniqueItems": true,
+              "examples": [["erp.rozas.gp", "crm.rozas.gp"]]
+            },
+            "dvig": {
+              "type": "array",
+              "description": "Alias pour service DVIG",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"
+              },
+              "uniqueItems": true,
+              "examples": [["api.rozas.gp", "auth.rozas.gp"]]
+            },
+            "vault": {
+              "type": "array",
+              "description": "Alias pour service Vault",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"
+              },
+              "uniqueItems": true,
+              "examples": [["docs.rozas.gp"]]
+            }
+          },
+          "additionalProperties": false
+        },
+        "fallback": {
+          "type": "boolean",
+          "description": "Conserver domaine Dorevia en fallback (obligatoire si mode client)",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "prod": {
+      "type": "object",
+      "description": "Configuration production (Phase 3: serveur client)",
+      "properties": {
+        "target": {
+          "type": "string",
+          "description": "Cible de déploiement PROD",
+          "enum": ["doreviateam", "client", "hybrid", "unknown"],
+          "default": "unknown"
+        },
+        "server_name": {
+          "type": "string",
+          "description": "Nom du serveur client (si target=client ou hybrid)",
+          "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+          "examples": ["ionos-rozas"]
+        },
+        "public_ip": {
+          "type": "string",
+          "description": "IP publique du serveur client",
+          "pattern": "^([0-9]{1,3}\\.){3}[0-9]{1,3}$",
+          "examples": ["192.168.1.100"]
+        },
+        "base_domain": {
+          "type": "string",
+          "description": "Domaine de base pour PROD (si différent du domaine canonique)",
+          "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$",
+          "examples": ["rozas.gp"]
+        },
+        "dns_managed_by": {
+          "type": "string",
+          "description": "Qui gère le DNS (doreviateam ou client)",
+          "enum": ["doreviateam", "client"],
+          "default": "doreviateam"
+        }
+      },
+      "additionalProperties": false
     },
     "units": {
       "type": "object",

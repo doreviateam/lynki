@@ -10,7 +10,21 @@
     "stinger",
     "prod"
   ],
-  "domain_mode": "saas",
+  "domain_mode": "client",
+  "domains": {
+    "canonical": "rozas.gp",
+    "aliases": {
+      "global": ["erp.rozas.gp"],
+      "odoo": ["erp.rozas.gp", "crm.rozas.gp"]
+    },
+    "fallback": true
+  },
+  "prod": {
+    "target": "client",
+    "server_name": "ionos-rozas",
+    "public_ip": "85.215.206.213",
+    "dns_managed_by": "client"
+  },
   "units": {
     "platform": [
       "dvig",

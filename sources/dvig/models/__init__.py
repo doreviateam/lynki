@@ -1,0 +1,2 @@
+"""Modèles Pydantic pour DVIG"""
+

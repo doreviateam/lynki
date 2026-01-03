@@ -1,0 +1,99 @@
+/* Dorevia Vault POS Payment Views - Styles Premium */
+
+/* Bandeau synthèse */
+.dorevia_vault_band {
+    padding: 16px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* Cartes */
+.dorevia_card {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 12px;
+    padding: 20px;
+    background: #fff;
+    min-height: 280px;
+    transition: box-shadow 0.2s ease;
+}
+
+.dorevia_card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+
+.dorevia_card__title {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 16px;
+    color: #495057;
+}
+
+.dorevia_card--success {
+    background: rgba(40,167,69,.08);
+    border-color: rgba(40,167,69,.2);
+}
+
+.dorevia_card--success .dorevia_card__title {
+    color: #155724;
+}
+
+.dorevia_card--info {
+    background: rgba(13,110,253,.08);
+    border-color: rgba(13,110,253,.2);
+}
+
+.dorevia_card--info .dorevia_card__title {
+    color: #0c5460;
+}
+
+/* Key-Value pairs */
+.dorevia_kv {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 0;
+    border-top: 1px dashed rgba(0,0,0,.08);
+}
+
+.dorevia_kv:first-of-type {
+    border-top: none;
+}
+
+.dorevia_kv__k {
+    color: rgba(0,0,0,.55);
+    font-size: 13px;
+}
+
+.dorevia_kv__v {
+    font-weight: 500;
+    text-align: right;
+}
+
+/* Audit technique */
+.dorevia_audit {
+    padding: 20px;
+    background-color: #fff3cd;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .dorevia_vault_band {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 12px;
+    }
+    
+    .dorevia_card {
+        margin-bottom: 16px;
+        min-height: auto;
+    }
+}
+

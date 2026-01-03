@@ -1,0 +1,181 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dorevia.plateform/schemas/intent.schema.json",
+  "title": "Dorevia Platform - Configuration Intention v2.0",
+  "description": "Schéma JSON Schema pour valider les configurations intention capturées via CLI prompt",
+  "type": "object",
+  "required": [
+    "version",
+    "tenant_id",
+    "environment",
+    "created_at",
+    "intention"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Version du format de configuration intention",
+      "enum": ["2.0"],
+      "default": "2.0"
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "Identifiant du tenant (slug DNS)",
+      "pattern": "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$",
+      "examples": ["core", "dido", "rozas"]
+    },
+    "environment": {
+      "type": "string",
+      "description": "Environnement cible",
+      "enum": ["lab", "stinger", "prod"],
+      "examples": ["lab", "stinger", "prod"]
+    },
+    "created_at": {
+      "type": "string",
+      "description": "Date/heure de création de l'intention (ISO 8601)",
+      "format": "date-time",
+      "examples": ["2025-01-29T12:00:00Z"]
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Identifiant de l'opérateur ayant créé l'intention",
+      "format": "email",
+      "examples": ["operator@doreviateam.com"]
+    },
+    "intention": {
+      "type": "object",
+      "description": "Configuration de l'intention capturée",
+      "required": [
+        "universes",
+        "mode"
+      ],
+      "properties": {
+        "universes": {
+          "type": "array",
+          "description": "Liste des univers activés",
+          "items": {
+            "type": "string",
+            "enum": ["odoo", "pos", "sylius"]
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "examples": [["odoo"], ["odoo", "pos"]]
+        },
+        "mode": {
+          "type": "string",
+          "description": "Mode de production",
+          "enum": ["saas", "client", "hybrid"],
+          "examples": ["saas", "client", "hybrid"]
+        },
+        "domains": {
+          "type": "object",
+          "description": "Configuration des domaines",
+          "required": [
+            "canonical"
+          ],
+          "properties": {
+            "canonical": {
+              "type": "string",
+              "description": "Domaine canonique",
+              "format": "hostname",
+              "examples": ["doreviateam.com", "client.com"]
+            },
+            "aliases": {
+              "type": "array",
+              "description": "Liste des alias (optionnel)",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "service": {
+                    "type": "string",
+                    "description": "Service concerné (odoo, dvig, vault, ou 'global')",
+                    "enum": ["odoo", "dvig", "vault", "global"],
+                    "examples": ["odoo", "global"]
+                  },
+                  "hostname": {
+                    "type": "string",
+                    "description": "Hostname alias",
+                    "format": "hostname",
+                    "examples": ["erp.client.com", "api.client.com"]
+                  }
+                },
+                "required": ["service", "hostname"]
+              },
+              "default": []
+            },
+            "fallback": {
+              "type": "string",
+              "description": "Domaine fallback (Phase 3: obligatoire en mode Client, optionnel en mode SaaS)",
+              "format": "hostname",
+              "examples": ["doreviateam.com"]
+            }
+          }
+        },
+        "preflight": {
+          "type": "object",
+          "description": "Configuration du préflight",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Activer le préflight",
+              "default": true
+            },
+            "install_controlled": {
+              "type": "boolean",
+              "description": "Autoriser l'installation contrôlée des prérequis manquants",
+              "default": false
+            }
+          },
+          "default": {
+            "enabled": true,
+            "install_controlled": false
+          }
+        },
+        "server": {
+          "type": "object",
+          "description": "Configuration serveur (si mode client ou hybrid)",
+          "properties": {
+            "target": {
+              "type": "string",
+              "description": "Cible de déploiement",
+              "enum": ["doreviateam", "client", "hybrid"],
+              "examples": ["doreviateam", "client"]
+            },
+            "public_ip": {
+              "type": "string",
+              "description": "IP publique du serveur (si serveur client)",
+              "format": "ipv4",
+              "examples": ["192.0.2.1"]
+            },
+            "ssh_user": {
+              "type": "string",
+              "description": "Utilisateur SSH pour accès serveur",
+              "examples": ["ubuntu", "admin"]
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Métadonnées additionnelles",
+      "properties": {
+        "notes": {
+          "type": "string",
+          "description": "Notes additionnelles sur l'intention",
+          "examples": ["Déploiement initial", "Migration depuis ancien serveur"]
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags pour classification",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["production", "client"], ["migration"]]
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
+

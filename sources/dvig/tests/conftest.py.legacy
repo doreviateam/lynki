@@ -1,0 +1,91 @@
+"""
+Configuration pytest pour les tests DVIG
+Fixtures communes
+"""
+import sys
+from pathlib import Path
+
+# Ajouter le répertoire sources/dvig au PYTHONPATH
+dvig_path = Path(__file__).parent.parent
+sys.path.insert(0, str(dvig_path))
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+from main import app
+from storage.database import Base, get_db
+
+# Base de données de test (SQLite en mémoire)
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+@pytest.fixture
+def db_session():
+    """Session de base de données pour les tests"""
+    Base.metadata.create_all(bind=engine)
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+    Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture
+def client(db_session):
+    """Client FastAPI pour les tests"""
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+    
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def sample_token():
+    """Token de test"""
+    return "test_token_123456789012345678901234567890"
+
+
+@pytest.fixture
+def sample_payload():
+    """Payload d'ingestion de test"""
+    from datetime import datetime, timezone
+    
+    # Utiliser un timestamp actuel pour éviter les erreurs de validation temporelle
+    now = datetime.now(timezone.utc)
+    
+    return {
+        "source": {
+            "unit": "odoo",  # SPEC v1.5.1 : unit au lieu de application
+            "tenant": "test_tenant",
+            "env": "lab",
+            "component": "account.move",
+            "connector": "dorevia-vault-connector",
+            "version": "1.0.0"
+        },
+        "event": {
+            "type": "invoice.posted",
+            "id": "EVT-TEST-001",
+            "occurred_at": now.isoformat()  # Timestamp actuel pour éviter erreur 500
+        },
+        "data": {
+            "invoice_id": "INV-001",
+            "amount": 1000.00,
+            "currency": "EUR"
+        }
+    }
+

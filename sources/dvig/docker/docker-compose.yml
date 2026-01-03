@@ -1,0 +1,103 @@
+# Docker Compose - Services Partagés (CORE Tenant)
+# SPEC CORE Tenant v1.0
+# Services : DVIG + Vault (partagés pour LAB/STINGER/PROD)
+#
+# IMPORTANT: Tokens runtime = tenants/<tenant>/secrets/dvig.tokens.yml (source de vérité unique)
+# Le fichier sources/dvig/conf/tokens.yml est un template/exemple uniquement
+
+version: '3.8'
+
+services:
+  # DVIG - Service partagé
+  dvig:
+    image: dorevia/dvig:0.1.2-auth
+    container_name: dvig-core
+    restart: unless-stopped
+    networks:
+      - dorevia-network
+    environment:
+      # Auth
+      - DVIG_AUTH_ENABLED=1
+      - DVIG_TOKENS_FILE=/etc/dvig/tokens.yml
+      - DVIG_TOKENS_RELOAD_INTERVAL=60
+      - DVIG_TOKENS_RELOAD_ON_SIGHUP=1
+      
+      # API
+      - DVIG_HOST=0.0.0.0
+      - DVIG_PORT=8080
+      
+      # Docs (désactivés en production)
+      - DVIG_DOCS_ENABLED=0
+      - DVIG_OPENAPI_ENABLED=0
+      
+      # Health
+      - DVIG_HEALTH_PROTECTED=0
+      
+      # Logs (format JSON pour production)
+      - DVIG_LOG_FORMAT=json
+      - DVIG_LOG_LEVEL=info
+      
+      # Vault (si nécessaire)
+      - VAULT_URL=http://vault-core:8080
+      - VAULT_API_KEY=${VAULT_API_KEY:-}
+    volumes:
+      # Tokens (read-only) - Source de vérité unique: tenants/<tenant>/secrets/dvig.tokens.yml
+      - ${ROOT_DIR}/tenants/core/secrets/dvig.tokens.yml:/etc/dvig/tokens.yml:ro
+      # Logs (optionnel)
+      - dvig_logs:/var/log/dvig
+    healthcheck:
+      test: ["CMD", "sh", "-lc", "wget -qO- http://127.0.0.1:8080/health >/dev/null || curl -f http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 40s
+    # Pas de port exposé sur hôte (routage via Caddy uniquement)
+
+  # Vault - Service partagé
+  vault:
+    image: dorevia/vault:v1.3.0  # ⚠️ Version taggée (pas latest) - CORE partagé
+    container_name: vault-core
+    restart: unless-stopped
+    networks:
+      - dorevia-network
+    environment:
+      - DATABASE_URL=postgres://vault:${VAULT_DB_PASSWORD:-vault_password}@vault-db:5432/dorevia_vault
+      - PORT=8080
+    depends_on:
+      - vault-db
+    healthcheck:
+      test: ["CMD", "sh", "-lc", "wget -qO- http://127.0.0.1:8080/health >/dev/null || curl -f http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 40s
+    # Pas de port exposé sur hôte (routage via Caddy uniquement)
+
+  # Vault Database - PostgreSQL
+  vault-db:
+    image: postgres:16
+    container_name: vault-db-core
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=vault
+      - POSTGRES_PASSWORD=${VAULT_DB_PASSWORD:-vault_password}
+      - POSTGRES_DB=dorevia_vault
+    volumes:
+      - vault_db_data:/var/lib/postgresql/data
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vault"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  vault_db_data:
+    name: vault_db_core_data
+  dvig_logs:
+    name: dvig_logs_core
+
+networks:
+  dorevia-network:
+    external: true

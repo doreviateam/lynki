@@ -81,8 +81,16 @@ validate_manifest() {
   if [[ -z "$domain_mode" ]]; then
     error "Champ obligatoire manquant: domain_mode"
   fi
+  if [[ ! "$domain_mode" =~ ^(saas|client|hybrid)$ ]]; then
+    error "domain_mode invalide (doit être: saas, client ou hybrid): $domain_mode"
+  fi
+  
+  # Vérification domains (Phase 3)
   if [[ "$domain_mode" != "saas" ]]; then
-    error "domain_mode invalide (Phase 1: saas uniquement): $domain_mode"
+    local domains=$(jq -r '.domains // {}' "$manifest_file")
+    if [[ "$domains" == "{}" ]]; then
+      warn "Mode $domain_mode activé mais structure 'domains' manquante (Phase 3)"
+    fi
   fi
   
   # Vérification units

@@ -1,0 +1,13 @@
+version: 1
+# Tokens DVIG PROD - Ne jamais commiter les tokens bruts
+# Généré le 2025-01-28
+# ⚠️ IMPORTANT : Ne jamais stocker token brut dans les documents
+
+tokens:
+  - id: "tok_prod_odoo_01"
+    token_hash: "sha256:5bb4268ddce47c903d47f1e897ed6ba27fc95ad9f78dec68409a54c609ac2dea"
+    tenant: "prod"
+    univers: "odoo"
+    status: "active"
+    created_at: "2025-12-28T00:54:53.225435+00:00"
+    comment: "PROD - Token initial"

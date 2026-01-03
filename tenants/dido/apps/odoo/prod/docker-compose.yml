@@ -1,0 +1,60 @@
+# Docker Compose - Odoo odoo prod dido
+# Template généré automatiquement par dorevia.sh
+# Source attendue: odoo.prod.dido
+# DB name: odoo_prod_dido
+# Compose project: dorevia_odoo_prod_dido
+
+services:
+  db:
+    image: postgres:16
+    container_name: odoo_db_prod_dido
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: odoo
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    volumes:
+      - odoo_prod_dido_db:/var/lib/postgresql/data
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  odoo:
+    image: odoo:18.0  # ⚠️ Version taggée (pas latest)
+    container_name: odoo_prod_dido
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - dorevia-network
+    volumes:
+      # Sources OCA (read-only)
+      - /opt/dorevia-plateform/sources/oca:/mnt/oca:ro
+      # Extra-addons flatten (symlinks)
+      - oca_extra_addons:/mnt/extra-addons
+      # Addons métier
+      - /opt/dorevia-plateform/units/odoo/custom-addons:/mnt/custom-addons
+      # Config Odoo
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
+      # Filestore
+      - odoo_prod_dido_data:/var/lib/odoo
+    command: ["sh", "-c", "/mnt/custom-addons/bin/oca_flatten.sh && odoo -c /etc/odoo/odoo.conf"]
+    # Pas de port exposé (routage via Caddy uniquement)
+
+volumes:
+  odoo_prod_dido_db:
+    name: odoo_prod_dido_db
+  odoo_prod_dido_data:
+    name: odoo_prod_dido_data
+  oca_extra_addons:
+    name: oca_extra_addons
+
+networks:
+  dorevia-network:
+    external: true
+

@@ -1,0 +1,108 @@
+# Docker Compose - Services Partagés (Platform)
+# Template généré automatiquement par dorevia.sh
+# Tenant: rozas
+
+services:
+  # DVIG - Service partagé
+  dvig:
+    image: dorevia/dvig:0.1.2-auth
+    container_name: dvig-rozas
+    restart: unless-stopped
+    networks:
+      - dorevia-network
+    environment:
+      # Auth
+      - DVIG_AUTH_ENABLED=1
+      - DVIG_TOKENS_FILE=/etc/dvig/tokens.yml
+      - DVIG_TOKENS_RELOAD_INTERVAL=60
+      - DVIG_TOKENS_RELOAD_ON_SIGHUP=1
+      
+      # API
+      - DVIG_HOST=0.0.0.0
+      - DVIG_PORT=8080
+      
+      # Docs (désactivés en production)
+      - DVIG_DOCS_ENABLED=0
+      - DVIG_OPENAPI_ENABLED=0
+      
+      # Health
+      - DVIG_HEALTH_PROTECTED=0
+      
+      # Logs (format JSON pour production)
+      - DVIG_LOG_FORMAT=json
+      - DVIG_LOG_LEVEL=info
+      
+      # Vault
+      - VAULT_URL=http://vault-rozas:8080
+      - VAULT_API_KEY=${VAULT_API_KEY:-}
+    volumes:
+      # Tokens (read-only) - Source de vérité unique: tenants/<tenant>/secrets/dvig.tokens.yml
+      - /opt/dorevia-plateform/tenants/rozas/secrets/dvig.tokens.yml:/etc/dvig/tokens.yml:ro
+      # Logs (optionnel)
+      - dvig_logs_rozas:/var/log/dvig
+    healthcheck:
+      test: ["CMD", "sh", "-lc", "wget -qO- http://127.0.0.1:8080/health >/dev/null || curl -f http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 40s
+
+  # Vault - Service partagé
+  vault:
+    image: dorevia/vault:v1.3.0  # Version taggée (CORE partagé)
+    container_name: vault-rozas
+    restart: unless-stopped
+    networks:
+      - dorevia-network
+    environment:
+      - DATABASE_URL=postgres://vault:${VAULT_DB_PASSWORD:-vault_password}@vault-db-rozas:5432/dorevia_vault
+      - PORT=8080
+    volumes:
+      # Volumes persistants pour stockage Vault (Phase 6 - Ops Hardening)
+      - vault_storage_rozas:/opt/dorevia-vault/storage
+      - vault_ledger_rozas:/opt/dorevia-vault/ledger
+      - vault_audit_rozas:/opt/dorevia-vault/audit
+    depends_on:
+      - vault-db
+    healthcheck:
+      test: ["CMD", "sh", "-lc", "wget -qO- http://127.0.0.1:8080/health >/dev/null || curl -f http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 40s
+
+  # Vault Database - PostgreSQL
+  vault-db:
+    image: postgres:16
+    container_name: vault-db-rozas
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=vault
+      - POSTGRES_PASSWORD=${VAULT_DB_PASSWORD:-vault_password}
+      - POSTGRES_DB=dorevia_vault
+    volumes:
+      - vault_db_data_rozas:/var/lib/postgresql/data
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vault"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  vault_db_data_rozas:
+    name: vault_db_rozas_data
+  vault_storage_rozas:
+    name: vault_storage_rozas
+  vault_ledger_rozas:
+    name: vault_ledger_rozas
+  vault_audit_rozas:
+    name: vault_audit_rozas
+  dvig_logs_rozas:
+    name: dvig_logs_rozas
+
+networks:
+  dorevia-network:
+    external: true
+

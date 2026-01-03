@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue formulaire POS Payment avec onglet Vault -->
+    <record id="view_pos_payment_form_inherit_vault" model="ir.ui.view">
+        <field name="name">pos.payment.form.inherit.vault</field>
+        <field name="model">pos.payment</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Vault" name="vault">
+                    <!-- Bandeau synthèse -->
+                    <div class="dorevia_vault_band" 
+                         style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i class="fa fa-lock" style="color: #6c757d; margin-right: 8px;"/>
+                            <strong style="font-size: 16px; color: #495057;">DOREVIA VAULT</strong>
+                            <field name="vault_evidence_state" 
+                                   widget="badge"
+                                   decoration-success="vault_evidence_state == 'sealed'"
+                                   decoration-info="vault_evidence_state == 'pending'"
+                                   decoration-warning="vault_evidence_state == 'processing'"
+                                   decoration-danger="vault_evidence_state == 'error'"
+                                   options="{'text_map': {
+                                       'sealed': '✅ Scellé',
+                                       'pending': '⏳ En attente',
+                                       'processing': '🔄 En cours',
+                                       'error': '❌ Erreur'
+                                   }}"/>
+                        </div>
+                        <div style="font-size: 13px; color: #6c757d; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span attrs="{'invisible': [('company_id', '=', False)]}">
+                                <field name="company_id" readonly="1"/>
+                            </span>
+                            <span attrs="{'invisible': [('company_id', '=', False)]}">•</span>
+                            <span>Tenant: <field name="vault_tenant" readonly="1"/></span>
+                            <span>•</span>
+                            <span>Scellé: <field name="vault_date" readonly="1"/></span>
+                        </div>
+                    </div>
+
+                    <!-- 3 cartes alignées -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                        <!-- Carte 1 : Conformité -->
+                        <div style="border: 1px solid rgba(0,0,0,.08); border-radius: 12px; padding: 20px; background: #fff; min-height: 280px;">
+                            <div style="font-weight: 600; font-size: 16px; margin-bottom: 16px; color: #495057;">
+                                Conformité
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; gap: 10px; padding: 12px 0; border-top: 1px dashed rgba(0,0,0,.08);">
+                                <div style="color: rgba(0,0,0,.55); font-size: 13px;">État</div>
+                                <div style="font-weight: 500;">
+                                    <field name="vault_evidence_state" 
+                                           widget="badge"
+                                           decoration-success="vault_evidence_state == 'sealed'"
+                                           decoration-info="vault_evidence_state == 'pending'"
+                                           decoration-warning="vault_evidence_state == 'processing'"
+                                           decoration-danger="vault_evidence_state == 'error'"
+                                           options="{'text_map': {
+                                               'sealed': '✅ Conforme',
+                                               'pending': '⏳ En attente',
+                                               'processing': '🔄 En cours',
+                                               'error': '❌ Erreur'
+                                           }}"/>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; gap: 10px; padding: 12px 0; border-top: 1px dashed rgba(0,0,0,.08);">
+                                <div style="color: rgba(0,0,0,.55); font-size: 13px;">Date</div>
+                                <div style="font-weight: 500;">
+                                    <field name="vault_date" readonly="1"/>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; gap: 10px; padding: 12px 0; border-top: 1px dashed rgba(0,0,0,.08);">
+                                <div style="color: rgba(0,0,0,.55); font-size: 13px;">Société</div>
+                                <div style="font-weight: 500; text-align: right;">
+                                    <field name="company_id" readonly="1"/>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; gap: 10px; padding: 12px 0; border-top: 1px dashed rgba(0,0,0,.08);">
+                                <div style="color: rgba(0,0,0,.55); font-size: 13px;">Tenant</div>
+                                <div style="font-weight: 500; text-align: right;">
+                                    <field name="vault_tenant" readonly="1"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Carte 2 : Preuve -->
+                        <div style="border: 1px solid rgba(40,167,69,.2); border-radius: 12px; padding: 20px; background: rgba(40,167,69,.08); min-height: 280px;">
+                            <div style="font-weight: 600; font-size: 16px; margin-bottom: 16px; color: #155724;">
+                                Preuve
+                            </div>
+                            
+                            <div style="color: #666; margin-bottom: 16px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa fa-shield" style="color: #28a745;"/>
+                                <span>Preuve disponible</span>
+                            </div>
+                            
+                            <button type="object" 
+                                    name="action_open_proof" 
+                                    class="btn btn-primary"
+                                    style="width: 100%; padding: 12px 24px; font-size: 14px; border-radius: 6px; margin-bottom: 12px;"
+                                    attrs="{'invisible': [('vault_proof_url', '=', False)]}">
+                                <i class="fa fa-external-link" style="margin-right: 8px;"/>
+                                Ouvrir la preuve
+                            </button>
+                            
+                            <div style="display: flex; gap: 8px;">
+                                <button type="object" 
+                                        name="copy_proof_link" 
+                                        class="btn btn-light btn-sm"
+                                        title="Copier le lien de preuve"
+                                        style="flex: 1; padding: 8px 12px; border-radius: 6px;"
+                                        attrs="{'invisible': [('vault_proof_url', '=', False)]}">
+                                    <i class="fa fa-copy" style="margin-right: 4px;"/>
+                                    Copier
+                                </button>
+                                <button type="object" 
+                                        name="action_download_proof" 
+                                        class="btn btn-light btn-sm"
+                                        title="Télécharger la preuve"
+                                        style="flex: 1; padding: 8px 12px; border-radius: 6px;"
+                                        attrs="{'invisible': [('vault_proof_url', '=', False)]}">
+                                    <i class="fa fa-download" style="margin-right: 4px;"/>
+                                    Télécharger
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Carte 3 : Chaînage -->
+                        <div style="border: 1px solid rgba(13,110,253,.2); border-radius: 12px; padding: 20px; background: rgba(13,110,253,.08); min-height: 280px;">
+                            <div style="font-weight: 600; font-size: 16px; margin-bottom: 16px; color: #0c5460;">
+                                Chaînage cryptographique
+                            </div>
+                            
+                            <div style="color: #666; margin-bottom: 16px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa fa-link" style="color: #17a2b8;"/>
+                                <span>Garantie d'intégrité</span>
+                            </div>
+                            
+                            <div style="font-size: 12px; margin-bottom: 12px; font-family: monospace; color: #495057; word-break: break-all;"
+                                 attrs="{'invisible': [('vault_ledger_hash', '=', False)]}">
+                                <div style="margin-bottom: 8px; color: rgba(0,0,0,.55); font-size: 11px;">Ledger Hash</div>
+                                <field name="vault_ledger_hash" readonly="1" 
+                                       style="font-family: monospace; font-size: 11px;"/>
+                            </div>
+                            
+                            <div style="font-size: 12px; margin-bottom: 12px; font-family: monospace; color: #495057; word-break: break-all;"
+                                 attrs="{'invisible': [('vault_hash_prev', '=', False)]}">
+                                <div style="margin-bottom: 8px; color: rgba(0,0,0,.55); font-size: 11px;">Hash précédent</div>
+                                <field name="vault_hash_prev" readonly="1"
+                                       style="font-family: monospace; font-size: 11px;"/>
+                            </div>
+                            
+                            <button type="object" 
+                                    name="action_focus_audit" 
+                                    class="btn btn-outline-secondary btn-sm"
+                                    style="width: 100%; padding: 8px 16px; border-radius: 6px; font-size: 13px; margin-top: 8px;">
+                                <i class="fa fa-chevron-down" style="margin-right: 4px;"/>
+                                Voir le détail
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Audit technique (accordéon) -->
+                    <div style="margin-top: 24px;">
+                        <group string="Audit technique" 
+                               style="padding: 20px; background-color: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;"
+                               attrs="{'invisible': [('show_vault_audit', '=', False)]}">
+                            <div style="margin-bottom: 16px;">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block; color: #495057;">
+                                    Vault ID
+                                </label>
+                                <field name="vault_id" readonly="1" style="font-family: monospace; font-size: 12px;"/>
+                            </div>
+                            
+                            <div style="margin-bottom: 16px;"
+                                 attrs="{'invisible': [('vault_request_id', '=', False)]}">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block; color: #495057;">
+                                    Request ID
+                                </label>
+                                <field name="vault_request_id" readonly="1" 
+                                       style="font-family: monospace; font-size: 12px;"/>
+                            </div>
+                            
+                            <div style="margin-bottom: 16px;"
+                                 attrs="{'invisible': [('vault_hash_sha256', '=', False)]}">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block; color: #495057;">
+                                    Hash SHA-256
+                                </label>
+                                <field name="vault_hash_sha256" readonly="1" 
+                                       style="font-family: monospace; font-size: 12px;"/>
+                            </div>
+                            
+                            <div style="margin-bottom: 16px;"
+                                 attrs="{'invisible': [('vault_ledger_hash', '=', False)]}">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block; color: #495057;">
+                                    Ledger Hash
+                                </label>
+                                <field name="vault_ledger_hash" readonly="1" 
+                                       style="font-family: monospace; font-size: 12px;"/>
+                            </div>
+                            
+                            <div style="margin-bottom: 16px;"
+                                 attrs="{'invisible': [('vault_evidence_jws', '=', False)]}">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block; color: #495057;">
+                                    JWS (Evidence)
+                                </label>
+                                <field name="vault_evidence_jws" readonly="1" widget="text"
+                                       style="font-family: monospace; font-size: 11px;"/>
+                            </div>
+                            
+                            <div style="margin-bottom: 16px;"
+                                 attrs="{'invisible': [('vault_last_error', '=', False)]}">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block; color: #495057;">
+                                    Dernière erreur
+                                </label>
+                                <field name="vault_last_error" readonly="1" widget="text"
+                                       style="color: #dc3545;"/>
+                            </div>
+                        </group>
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+

@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+pydantic
+pyyaml>=6.0
+structlog>=23.1.0
+click>=8.0.0

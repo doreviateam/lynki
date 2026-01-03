@@ -1,0 +1,120 @@
+{
+  email admin@doreviateam.com
+}
+
+
+# Tenant: core - Environment: lab
+
+
+# odoo - Environnements (tenant core)
+odoo.lab.core.doreviateam.com {
+  reverse_proxy odoo_lab_core:8069
+}
+
+# Services partagés (tenant core) - 1 par tenant
+dvig.core.doreviateam.com {
+  reverse_proxy dvig-core:8080
+}
+
+vault.core.doreviateam.com {
+  reverse_proxy vault-core:8080
+}
+# Tenant: core - Environment: prod
+
+
+# odoo - Environnements (tenant core)
+odoo.prod.core.doreviateam.com {
+  reverse_proxy odoo_prod_core:8069
+}
+
+# Services partagés (tenant core) - 1 par tenant
+
+# Tenant: core - Environment: stinger
+
+
+# odoo - Environnements (tenant core)
+odoo.stinger.core.doreviateam.com {
+  reverse_proxy odoo_stinger_core:8069
+}
+
+# Services partagés (tenant core) - 1 par tenant
+
+# Tenant: dido - Environment: lab
+
+
+# odoo - Environnements (tenant dido)
+odoo.lab.dido.doreviateam.com {
+  reverse_proxy odoo_lab_dido:8069
+}
+
+# Services partagés (tenant dido) - 1 par tenant
+dvig.dido.doreviateam.com {
+  reverse_proxy dvig-dido:8080
+}
+
+vault.dido.doreviateam.com {
+  reverse_proxy vault-dido:8080
+}
+# Tenant: dido - Environment: prod
+
+
+# odoo - Environnements (tenant dido)
+odoo.prod.dido.doreviateam.com {
+  reverse_proxy odoo_prod_dido:8069
+}
+
+# Services partagés (tenant dido) - 1 par tenant
+
+# Tenant: dido - Environment: stinger
+
+
+# odoo - Environnements (tenant dido)
+odoo.stinger.dido.doreviateam.com {
+  reverse_proxy odoo_stinger_dido:8069
+}
+
+# Services partagés (tenant dido) - 1 par tenant
+
+# Tenant: rozas - Environment: lab
+
+
+# odoo - Environnements (tenant rozas)
+odoo.lab.rozas.doreviateam.com {
+  reverse_proxy odoo_lab_rozas:8069
+}
+
+# Services partagés (tenant rozas) - 1 par tenant
+dvig.rozas.doreviateam.com {
+  reverse_proxy dvig-rozas:8080
+}
+
+vault.rozas.doreviateam.com {
+  reverse_proxy vault-rozas:8080
+}
+# Tenant: rozas - Environment: prod
+
+
+# odoo - Environnements (tenant rozas)
+[1;33mWARN: [0mCollision alias détectée: erp.rozas.gp (ignoré)
+odoo.prod.rozas.rozas.gp,erp.rozas.gp,crm.rozas.gp,odoo.prod.rozas.doreviateam.com {
+  reverse_proxy odoo_prod_rozas:8069
+}
+
+# Services partagés (tenant rozas) - 1 par tenant
+dvig.rozas.rozas.gp,erp.rozas.gp,dvig.rozas.doreviateam.com {
+  reverse_proxy dvig-rozas:8080
+}
+
+vault.rozas.rozas.gp,erp.rozas.gp,vault.rozas.doreviateam.com {
+  reverse_proxy vault-rozas:8080
+}
+# Tenant: rozas - Environment: stinger
+
+
+# odoo - Environnements (tenant rozas)
+odoo.stinger.rozas.doreviateam.com {
+  reverse_proxy odoo_stinger_rozas:8069
+}
+
+# Services partagés (tenant rozas) - 1 par tenant
+

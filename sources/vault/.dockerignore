@@ -1,0 +1,53 @@
+# .dockerignore pour Dorevia Vault
+# Sprint 4 - US-4.1
+
+# Répertoires de données
+pgdata/
+storage/
+ledger/
+audit/
+backups/
+*.log
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# Scripts de déploiement
+*.sh
+DEPLOIEMENT_*.md
+CONFIGURATION_*.md
+GUIDE_*.md
+SOLUTION_*.md
+CLARIFICATION_*.md
+
+# Fichiers de configuration locaux
+.env
+.env.*
+
+# Tests
+tests/
+*_test.go
+
+# Binaires
+vault
+bin/
+
+# Prometheus / Alertmanager
+prometheus/
+alertmanager/
+
+# Clés (ne jamais inclure dans l'image)
+keys/
+*.pem
+*.key
+
+# Fichiers temporaires
+*.tmp
+*.swp
+*~
+

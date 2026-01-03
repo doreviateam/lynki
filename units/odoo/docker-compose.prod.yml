@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: odoo
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    volumes:
+      - db_prod_data:/var/lib/postgresql/data
+
+  odoo:
+    image: odoo:18.0
+    depends_on:
+      - db
+    ports:
+      - "38069:8069"
+    volumes:
+      - ./custom-addons:/mnt/custom-addons
+      - ./conf/odoo.prod.conf:/etc/odoo/odoo.conf:ro
+      - ../../sources/oca:/mnt/extra-addons:ro
+      - odoo_prod_data:/var/lib/odoo
+    command: ["odoo", "-c", "/etc/odoo/odoo.conf"]
+
+volumes:
+  db_prod_data:
+  odoo_prod_data:

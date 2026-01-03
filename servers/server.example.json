@@ -1,0 +1,23 @@
+{
+  "server_name": "ionos-rozas",
+  "description": "Serveur client IONOS pour tenant rozas",
+  "public_ip": "192.168.1.100",
+  "ssh": {
+    "user": "dorevia",
+    "key_path": "~/.ssh/id_rsa_rozas",
+    "port": 22
+  },
+  "domains": {
+    "canonical": "rozas.gp",
+    "dns_managed_by": "client"
+  },
+  "requirements": {
+    "docker": true,
+    "docker_compose": true,
+    "ports": [22, 80, 443],
+    "min_disk_gb": 50
+  },
+  "created_at": "2026-01-02T00:00:00Z",
+  "version": "1.0"
+}
+

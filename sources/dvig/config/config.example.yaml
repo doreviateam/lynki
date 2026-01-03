@@ -1,0 +1,30 @@
+# Configuration DVIG - Exemple
+# Sprint 3 - US-3.1
+#
+# À copier vers config.yaml et adapter selon l'environnement
+# ⚠️  Ne jamais commiter config.yaml (ajouté à .gitignore)
+
+# Configuration Vault
+vault:
+  url: "http://vault:9090"
+  api_key: "CHANGE_ME"
+  timeout: 30
+
+# Configuration DVIG
+dvig:
+  host: "0.0.0.0"
+  port: 8080
+  log_level: "info"  # debug, info, warning, error
+
+# Multi-Tenant (US-3.4)
+tenant:
+  validation: true
+  header: "X-Tenant-ID"
+  allowed_tenants: []  # Liste vide = tous les tenants autorisés
+
+# Storage / Bufferisation
+storage:
+  retry_max_attempts: 3
+  retry_backoff: 1.0  # secondes
+  dead_letter_queue: true
+
