@@ -168,9 +168,21 @@ AUTH_APIKEY_ENABLED=true                 # Pour API Keys
 - ✅ `state` : État du document (`posted`, `paid`, `done`, etc.)
 - ✅ `file` : Contenu du fichier encodé en base64 (SANS préfixe `data:application/pdf;base64,`)
 
+**Champs obligatoires pour `account.move` (SPEC 1)** :
+- ✅ `meta.move_type` : Type de mouvement (`out_invoice`, `in_invoice`, `out_refund`, `in_refund`)
+- ✅ `meta.tenant` : Identifiant du tenant (non vide)
+
 **Champs optionnels** :
 - `pdp_required` : Booléen indiquant si le document nécessite un dispatch PDP
 - `meta` : Objet JSON avec métadonnées supplémentaires
+- `meta.number` : Numéro de facture
+- `meta.invoice_date` : Date de facture (format ISO 8601)
+- `meta.total_ht` : Montant HT (traçabilité uniquement)
+- `meta.total_ttc` : Montant TTC (traçabilité uniquement)
+- `meta.currency` : Code devise (ISO 4217)
+- `meta.seller_vat` : Numéro TVA vendeur
+- `meta.buyer_vat` : Numéro TVA acheteur
+- `meta.correlation_id` : ID de corrélation
 
 **Format du hash SHA256** :
 - ❌ **Le hash SHA256 n'est PAS requis dans le payload**
@@ -280,10 +292,41 @@ Si un document avec le même hash SHA256 existe déjà, l'API retourne :
 
 **Exemples de réponses d'erreur** :
 
-**400 Bad Request** :
+**400 Bad Request — Champ manquant** :
 ```json
 {
   "error": "Missing required field: source"
+}
+```
+
+**400 Bad Request — Validation account.move (SPEC 1)** :
+```json
+{
+  "error": "validation failed: model must be 'account.move', got 'pos.order'"
+}
+```
+
+```json
+{
+  "error": "validation failed: state must be 'posted', got 'draft'"
+}
+```
+
+```json
+{
+  "error": "validation failed: meta.move_type must be one of [out_invoice, in_invoice, out_refund, in_refund], got 'invalid'"
+}
+```
+
+```json
+{
+  "error": "validation failed: source 'purchase' does not match move_type 'out_invoice' (expected source: 'sales')"
+}
+```
+
+```json
+{
+  "error": "validation failed: meta.tenant must be a non-empty string"
 }
 ```
 
@@ -547,6 +590,212 @@ class DoreviaVaultConnector(models.Model):
         except requests.exceptions.RequestException as e:
             raise Exception(f'Erreur de connexion: {str(e)}')
 ```
+
+---
+
+## 🔍 Validations account.move (SPEC 1)
+
+### Règle de Vaulting
+
+Un objet `account.move` est vaulté **si et seulement si** :
+- ✅ `model == "account.move"`
+- ✅ `state == "posted"`
+- ✅ `meta.move_type` ∈ `{"out_invoice", "in_invoice", "out_refund", "in_refund"}`
+- ✅ Mapping `source` ↔ `move_type` cohérent
+- ✅ `meta.tenant` présent et non vide
+
+### Ordre de Validation (Fail-Fast)
+
+Les validations sont appliquées dans l'ordre suivant (retour 400 immédiat à la première erreur) :
+
+1. **Validation du modèle** : `model == "account.move"`
+   - ❌ Rejeté si `model != "account.move"`
+   - Message : `"validation failed: model must be 'account.move', got '<model>'"`
+
+2. **Validation de l'état** : `state == "posted"`
+   - ❌ Rejeté si `state != "posted"` (ex: `draft`, `cancel`, `paid`, etc.)
+   - Message : `"validation failed: state must be 'posted', got '<state>'"`
+
+3. **Validation du move_type** : `meta.move_type` dans liste autorisée
+   - ✅ Types acceptés : `out_invoice`, `in_invoice`, `out_refund`, `in_refund`
+   - ❌ Rejeté si `move_type` absent, vide, ou invalide
+   - Message : `"validation failed: meta.move_type must be one of [out_invoice, in_invoice, out_refund, in_refund], got '<move_type>'"`
+
+4. **Validation du mapping source ↔ move_type** :
+   - ✅ `move_type ∈ {"out_invoice", "out_refund"}` → `source = "sales"`
+   - ✅ `move_type ∈ {"in_invoice", "in_refund"}` → `source = "purchase"`
+   - ❌ Rejeté si mapping incohérent
+   - Message : `"validation failed: source '<source>' does not match move_type '<move_type>' (expected source: '<expected>')"`
+
+5. **Validation du tenant** : `meta.tenant` non vide
+   - ❌ Rejeté si `meta.tenant` absent, vide, ou non-string
+   - Message : `"validation failed: meta.tenant must be a non-empty string"`
+
+### Exemples de Payloads Valides
+
+**Facture de vente (out_invoice)** :
+```json
+{
+  "source": "sales",
+  "model": "account.move",
+  "odoo_id": 12345,
+  "state": "posted",
+  "file": "base64_encoded_pdf",
+  "meta": {
+    "move_type": "out_invoice",
+    "tenant": "laplatine",
+    "number": "FAC2026-001",
+    "invoice_date": "2026-01-15",
+    "total_ht": 1000.00,
+    "total_ttc": 1200.00,
+    "currency": "EUR",
+    "seller_vat": "FR12345678901",
+    "buyer_vat": "FR98765432109"
+  }
+}
+```
+
+**Facture d'achat (in_invoice)** :
+```json
+{
+  "source": "purchase",
+  "model": "account.move",
+  "odoo_id": 12346,
+  "state": "posted",
+  "file": "base64_encoded_pdf",
+  "meta": {
+    "move_type": "in_invoice",
+    "tenant": "laplatine",
+    "number": "FAC2026-002",
+    "invoice_date": "2026-01-15"
+  }
+}
+```
+
+**Avoir de vente (out_refund)** :
+```json
+{
+  "source": "sales",
+  "model": "account.move",
+  "odoo_id": 12347,
+  "state": "posted",
+  "file": "base64_encoded_pdf",
+  "meta": {
+    "move_type": "out_refund",
+    "tenant": "laplatine"
+  }
+}
+```
+
+**Avoir d'achat (in_refund)** :
+```json
+{
+  "source": "purchase",
+  "model": "account.move",
+  "odoo_id": 12348,
+  "state": "posted",
+  "file": "base64_encoded_pdf",
+  "meta": {
+    "move_type": "in_refund",
+    "tenant": "laplatine"
+  }
+}
+```
+
+### Exemples de Payloads Invalides
+
+**❌ État invalide (draft)** :
+```json
+{
+  "source": "sales",
+  "model": "account.move",
+  "odoo_id": 12345,
+  "state": "draft",  // ❌ Doit être "posted"
+  "file": "base64_encoded_pdf",
+  "meta": {
+    "move_type": "out_invoice",
+    "tenant": "laplatine"
+  }
+}
+```
+**Réponse** : `400 Bad Request` - `"validation failed: state must be 'posted', got 'draft'"`
+
+**❌ move_type invalide** :
+```json
+{
+  "source": "sales",
+  "model": "account.move",
+  "odoo_id": 12345,
+  "state": "posted",
+  "file": "base64_encoded_pdf",
+  "meta": {
+    "move_type": "invalid",  // ❌ Doit être out_invoice, in_invoice, out_refund, ou in_refund
+    "tenant": "laplatine"
+  }
+}
+```
+**Réponse** : `400 Bad Request` - `"validation failed: meta.move_type must be one of [out_invoice, in_invoice, out_refund, in_refund], got 'invalid'"`
+
+**❌ Mapping source/move_type incohérent** :
+```json
+{
+  "source": "purchase",  // ❌ Doit être "sales" pour out_invoice
+  "model": "account.move",
+  "odoo_id": 12345,
+  "state": "posted",
+  "file": "base64_encoded_pdf",
+  "meta": {
+    "move_type": "out_invoice",
+    "tenant": "laplatine"
+  }
+}
+```
+**Réponse** : `400 Bad Request` - `"validation failed: source 'purchase' does not match move_type 'out_invoice' (expected source: 'sales')"`
+
+**❌ Tenant manquant** :
+```json
+{
+  "source": "sales",
+  "model": "account.move",
+  "odoo_id": 12345,
+  "state": "posted",
+  "file": "base64_encoded_pdf",
+  "meta": {
+    "move_type": "out_invoice"
+    // ❌ tenant manquant
+  }
+}
+```
+**Réponse** : `400 Bad Request` - `"validation failed: meta.tenant must be a non-empty string"`
+
+### Idempotence (tenant, sha256)
+
+Si un document avec le même `(tenant, sha256)` existe déjà :
+- ✅ Retour **200 OK** (au lieu de 201 Created)
+- ✅ Message : `"Document already exists"`
+- ✅ Retourne les informations du document existant
+
+**Exemple de réponse idempotente** :
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "sha256_hex": "abc123def456...",
+  "created_at": "2026-01-15T09:00:00Z",
+  "evidence_jws": "eyJhbGciOiJSUzI1NiIs...",
+  "ledger_hash": "def456abc123...",
+  "message": "Document already exists"
+}
+```
+
+### Conformité Factur-X (Étiquetage)
+
+Le Vault **constate et étiquette** la conformité Factur-X (ne génère jamais) :
+
+- ✅ **`compliant`** : Factur-X présent dans le PDF
+- ⚠️ **`non_compliant_2026`** : B2B probable (buyer_vat + seller_vat) mais Factur-X absent
+- ℹ️ **`out_of_scope`** : B2C ou non qualifié
+
+Les champs `compliance_status` et `facturx_present` sont stockés en base de données.
 
 ---
 

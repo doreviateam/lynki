@@ -75,6 +75,12 @@ type Config struct {
 
 	// ✅ SÉCURITÉ : CORS Configuration (Phase 3)
 	CORSAllowedOrigins string `env:"CORS_ALLOWED_ORIGINS" envDefault:"*"` // Origines autorisées (séparées par virgule, * pour toutes)
+
+	// SPEC 2 - Constat Monthly Job Configuration
+	ConstatJobEnabled bool   `env:"CONSTAT_JOB_ENABLED" envDefault:"false"` // Activer le job mensuel de génération de constats
+	CoreURL           string `env:"CORE_URL" envDefault:""`                 // URL de l'API Odoo CORE
+	CoreToken         string `env:"CORE_TOKEN" envDefault:""`               // Token d'authentification pour Odoo CORE
+	VaultID           string `env:"VAULT_ID" envDefault:""`                 // Identifiant de l'instance Vault
 }
 
 // Load charge la configuration depuis les variables d'environnement

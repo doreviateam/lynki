@@ -9,7 +9,10 @@ services:
       - db_lab_data:/var/lib/postgresql/data
 
   odoo:
-    image: odoo:18.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: odoo:18.0-dorevia
     depends_on:
       - db
     ports:
