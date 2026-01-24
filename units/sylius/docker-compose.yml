@@ -1,0 +1,112 @@
+# Docker Compose - Landing Page Dorevia-Vault (Sylius)
+# Version: 1.4 (Fix Volume Mounts)
+# Environnement: LAB
+# Tenant: core
+
+services:
+  # PostgreSQL Database
+  postgres-core:
+    image: postgres:16
+    container_name: sylius_lab_core_postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-sylius}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-sylius_password}
+      - POSTGRES_DB=${POSTGRES_DB:-sylius_db}
+    volumes:
+      - sylius_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sylius}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # PHP-FPM (Sylius/Symfony)
+  php-fpm-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sylius_lab_core_php-fpm
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    environment:
+      - APP_ENV=${APP_ENV:-prod}
+      - APP_DEBUG=${APP_DEBUG:-0}
+      - DEPLOY_ENV=${DEPLOY_ENV:-lab}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-sylius}:${POSTGRES_PASSWORD:-sylius_password}@postgres-core:5432/${POSTGRES_DB:-sylius_db}
+      - ODOO_URL=${ODOO_URL:-https://odoo.lab.core.doreviateam.com}
+      - ODOO_DB=${ODOO_DB:-odoo_db}
+      - ODOO_API_USER=${ODOO_API_USER:-sylius_api_user}
+      - ODOO_API_PASSWORD=${ODOO_API_PASSWORD:-secure_password}
+      - ODOO_TEAM_ID=${ODOO_TEAM_ID:-1}
+      - ODOO_USER_ID=${ODOO_USER_ID:-1}
+    depends_on:
+      postgres-core:
+        condition: service_healthy
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Nginx (Reverse Proxy)
+  nginx-core:
+    image: nginx:alpine
+    container_name: sylius_lab_core_nginx
+    restart: unless-stopped
+    environment:
+      - PHP_FPM_HOST=php-fpm-core
+    volumes:
+      - ./default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./public:/var/www/html/public:ro
+      - ./templates:/var/www/html/templates:ro
+    depends_on:
+      - php-fpm-core
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  # CRON
+  cron-core:
+    image: php:8.2-fpm-alpine
+    container_name: sylius_lab_core_cron
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    environment:
+      - APP_ENV=${APP_ENV:-prod}
+      - APP_DEBUG=${APP_DEBUG:-0}
+      - DEPLOY_ENV=${DEPLOY_ENV:-lab}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-sylius}:${POSTGRES_PASSWORD:-sylius_password}@postgres-core:5432/${POSTGRES_DB:-sylius_db}
+    depends_on:
+      - postgres-core
+      - php-fpm-core
+    networks:
+      - dorevia-network
+    command: >
+      sh -c "
+        echo '0 2 * * * cd /var/www/html && php bin/console app:cleanup-leads >> /proc/1/fd/1 2>&1' | crontab - &&
+        crond -f -l 2
+      "
+
+volumes:
+  sylius_postgres_data:
+    name: sylius_lab_core_postgres_data
+
+networks:
+  dorevia-network:
+    external: true

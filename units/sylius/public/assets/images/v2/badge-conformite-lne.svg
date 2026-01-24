@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Outer Frame -->
+  <path d="M 100 20 L 170 60 L 170 140 L 100 180 L 30 140 L 30 60 Z" fill="#0F172A" stroke="#5B7CFA" stroke-width="1.5"/>
+  
+  <!-- Text Content -->
+  <text x="100" y="85" text-anchor="middle" fill="#E5E7EB" font-family="sans-serif" font-size="14" font-weight="700">LNE 2026</text>
+  <text x="100" y="105" text-anchor="middle" fill="#E5E7EB" font-family="sans-serif" font-size="14" font-weight="700">NF525</text>
+  
+  <!-- Status Pill -->
+  <rect x="55" y="130" width="90" height="24" rx="12" fill="rgba(91,124,250,0.1)" stroke="#5B7CFA" stroke-width="1"/>
+  <text x="100" y="146" text-anchor="middle" fill="#5B7CFA" font-family="sans-serif" font-size="10" font-weight="800">CERTIFIABLE</text>
+</svg>
