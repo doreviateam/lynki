@@ -1,0 +1,28 @@
+# Docker Compose - ui stinger sarl-la-platine
+# Généré automatiquement depuis manifest Phase 1
+# Source attendue: ui.stinger.sarl-la-platine
+# DB name: ui_stinger_sarl-la-platine
+# Compose project: dorevia_ui_stinger_sarl-la-platine
+
+services:
+  linky:
+    image: dorevia/linky:v1.18-pos-sessions
+    container_name: linky_stinger_sarl-la-platine
+    restart: unless-stopped
+    environment:
+      DIVA_URL: ${DIVA_URL:-http://diva:8010}
+      VAULT_URL: ${VAULT_URL:-http://vault-core-stinger:8080}
+      TENANT_ID: sarl-la-platine
+      TZ: ${TZ:-Europe/Paris}
+      DVIG_URL: http://dvig-core-stinger:8080
+      DVIG_INTERNAL_TOKEN: ${DVIG_INTERNAL_TOKEN:-}
+      COMPANY_DISPLAY_NAMES: "{\"odoo:1\":\"SARL La Platine\",\"odoo:2\":\"Sweet Manihot\"}"
+    networks:
+      - dorevia-network
+    # Port 3000 en interne (routage via Caddy)
+
+volumes: {}
+
+networks:
+  dorevia-network:
+    external: true

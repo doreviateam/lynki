@@ -90,9 +90,10 @@ RÈGLES :
 5. Évite les qualificatifs non chiffrés ("élevé", "faible", "important", "significatif"). Préfère les ratios.
 6. Vocabulaire : "représente", "s'élève à", "soit X % du CA", "dépasse", "écart de", "non rapproché", "absence de".
 7. Ton : factuel, sobre, analytique. Aucun conseil, aucune recommandation, aucune injonction.
-8. La trésorerie est l'indicateur central. Les autres cartes (business, taxes, remboursements, POS) sont des inducteurs qui expliquent la position de trésorerie. Structure ton analyse autour de cette hiérarchie.`
+8. La trésorerie est l'indicateur central. Les autres cartes (business, taxes, remboursements, POS) sont des inducteurs qui expliquent la position de trésorerie. Structure ton analyse autour de cette hiérarchie.
+9. Points de vente (POS) : si les insights POS détaillent sessions, panier moyen, mix paiements ou écarts de caisse, intègre-les comme inducteur de trésorerie. Signale les écarts de caisse et les sessions non scellées comme points à vérifier.`
 
-func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string, focusCardDetails map[string]interface{}) (models.Flash, error) {
+func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string, focusCardDetails map[string]interface{}, dashboardDetails map[string]interface{}) (models.Flash, error) {
 	effective := cards
 	if focusCard != "" {
 		for _, card := range cards {
@@ -111,7 +112,7 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 		}
 	}
 
-	userPrompt := c.buildUserPrompt(ctx, effective, focusCard, focusCardDetails)
+	userPrompt := c.buildUserPrompt(ctx, effective, focusCard, focusCardDetails, dashboardDetails)
 
 	payload := map[string]interface{}{
 		"model": "mistral",
@@ -188,7 +189,7 @@ func fmtPct(v float64) string  { return fmt.Sprintf("%.1f%%", v) }
 func fmtEUR(v float64) string  { return fmt.Sprintf("%.0f €", v) }
 func absVal(v float64) float64 { return math.Abs(v) }
 
-func computeInsights(cards []models.Card) []string {
+func computeInsights(cards []models.Card, details map[string]interface{}) []string {
 	var insights []string
 
 	cash, hasCash := cardVal(cards, "cash")
@@ -242,7 +243,55 @@ func computeInsights(cards []models.Card) []string {
 		}
 	}
 
-	if hasPOS && hasBiz && biz != 0 {
+	// --- POS sessions enrichis ---
+	posDetails := extractPosDetails(details)
+	if posDetails != nil && posDetails.totalSessions > 0 {
+		if hasBiz && biz != 0 {
+			ratio := (pos / absVal(biz)) * 100
+			insights = append(insights, fmt.Sprintf(
+				"Inducteur POS: %d sessions, %d tickets, %s de ventes soit %s du CA",
+				posDetails.totalSessions, posDetails.totalTickets, fmtEUR(pos), fmtPct(ratio)))
+		} else if hasPOS && pos > 0 {
+			insights = append(insights, fmt.Sprintf(
+				"Inducteur POS: %d sessions, %d tickets, %s de ventes",
+				posDetails.totalSessions, posDetails.totalTickets, fmtEUR(pos)))
+		}
+
+		if posDetails.totalSessions > 0 && posDetails.totalTickets > 0 {
+			avgBasket := pos / float64(posDetails.totalTickets)
+			insights = append(insights, fmt.Sprintf("POS panier moyen: %s (%d tickets sur %d sessions)",
+				fmtEUR(avgBasket), posDetails.totalTickets, posDetails.totalSessions))
+		}
+
+		totalPayments := posDetails.cashTotal + posDetails.cardTotal
+		if totalPayments > 0 {
+			cashPct := (posDetails.cashTotal / totalPayments) * 100
+			cardPct := (posDetails.cardTotal / totalPayments) * 100
+			insights = append(insights, fmt.Sprintf("POS mix paiements: espèces %s (%s), carte %s (%s)",
+				fmtEUR(posDetails.cashTotal), fmtPct(cashPct), fmtEUR(posDetails.cardTotal), fmtPct(cardPct)))
+		}
+
+		if posDetails.anomalySessions > 0 {
+			insights = append(insights, fmt.Sprintf(
+				"POS ALERTE: %d session(s) avec écart de caisse, écart cumulé %s",
+				posDetails.anomalySessions, fmtEUR(absVal(posDetails.totalDifference))))
+		}
+
+		sealingRate := float64(posDetails.sealedSessions) / float64(posDetails.totalSessions) * 100
+		if sealingRate < 100 {
+			insights = append(insights, fmt.Sprintf(
+				"POS conformité: %d/%d sessions scellées (%s) — %d en attente",
+				posDetails.sealedSessions, posDetails.totalSessions, fmtPct(sealingRate), posDetails.pendingSessions))
+		}
+
+		if len(posDetails.shops) > 1 {
+			var parts []string
+			for _, shop := range posDetails.shops {
+				parts = append(parts, fmt.Sprintf("%s: %s (%d sessions)", shop.shopID, fmtEUR(shop.totalSales), shop.sessionsCount))
+			}
+			insights = append(insights, fmt.Sprintf("POS répartition: %s", strings.Join(parts, " | ")))
+		}
+	} else if hasPOS && hasBiz && biz != 0 {
 		ratio := (pos / absVal(biz)) * 100
 		insights = append(insights, fmt.Sprintf("POS: %s soit %s du CA", fmtEUR(pos), fmtPct(ratio)))
 	}
@@ -254,7 +303,97 @@ func computeInsights(cards []models.Card) []string {
 	return insights
 }
 
-func (c *Client) buildUserPrompt(ctx models.Context, cards []models.Card, focusCard string, focusCardDetails map[string]interface{}) string {
+type posDetailsData struct {
+	totalSessions   int
+	sealedSessions  int
+	pendingSessions int
+	totalTickets    int
+	cashTotal       float64
+	cardTotal       float64
+	totalDifference float64
+	anomalySessions int
+	shops           []posShopData
+}
+
+type posShopData struct {
+	shopID        string
+	sessionsCount int
+	totalSales    float64
+}
+
+func extractPosDetails(details map[string]interface{}) *posDetailsData {
+	if details == nil {
+		return nil
+	}
+	raw, ok := details["pos_shops"]
+	if !ok || raw == nil {
+		return nil
+	}
+	m, ok := raw.(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	d := &posDetailsData{}
+	d.totalSessions = toInt(m["total_sessions"])
+	d.sealedSessions = toInt(m["sealed_sessions"])
+	d.pendingSessions = toInt(m["pending_sessions"])
+	d.totalTickets = toInt(m["total_tickets"])
+	d.cashTotal = toFloat(m["cash_total"])
+	d.cardTotal = toFloat(m["card_total"])
+	d.totalDifference = toFloat(m["total_difference"])
+	d.anomalySessions = toInt(m["anomaly_sessions"])
+
+	if shopsRaw, ok := m["shops"]; ok {
+		if shops, ok := shopsRaw.([]interface{}); ok {
+			for _, s := range shops {
+				if sm, ok := s.(map[string]interface{}); ok {
+					d.shops = append(d.shops, posShopData{
+						shopID:        toString(sm["shop_id"]),
+						sessionsCount: toInt(sm["sessions_count"]),
+						totalSales:    toFloat(sm["total_sales"]),
+					})
+				}
+			}
+		}
+	}
+	return d
+}
+
+func toInt(v interface{}) int {
+	switch n := v.(type) {
+	case float64:
+		return int(n)
+	case int:
+		return n
+	case json.Number:
+		i, _ := n.Int64()
+		return int(i)
+	}
+	return 0
+}
+
+func toFloat(v interface{}) float64 {
+	switch n := v.(type) {
+	case float64:
+		return n
+	case int:
+		return float64(n)
+	case json.Number:
+		f, _ := n.Float64()
+		return f
+	}
+	return 0
+}
+
+func toString(v interface{}) string {
+	if s, ok := v.(string); ok {
+		return s
+	}
+	return ""
+}
+
+func (c *Client) buildUserPrompt(ctx models.Context, cards []models.Card, focusCard string, focusCardDetails map[string]interface{}, dashboardDetails map[string]interface{}) string {
 	mode := "cockpit"
 	if focusCard != "" {
 		mode = "card"
@@ -293,7 +432,7 @@ func (c *Client) buildUserPrompt(ctx models.Context, cards []models.Card, focusC
 	}
 
 	if mode == "cockpit" {
-		payload.Insights = computeInsights(cards)
+		payload.Insights = computeInsights(cards, dashboardDetails)
 	}
 
 	if mode == "card" && len(focusCardDetails) > 0 {

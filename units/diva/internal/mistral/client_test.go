@@ -48,7 +48,7 @@ var emptyAssocCards = []models.Card{
 // --- Story 7: computeInsights ---
 
 func TestComputeInsights_LaPlatine(t *testing.T) {
-	insights := computeInsights(laPlatineCards)
+	insights := computeInsights(laPlatineCards, nil)
 	if len(insights) == 0 {
 		t.Fatal("La Platine doit produire des insights")
 	}
@@ -116,7 +116,7 @@ func TestComputeInsights_LaPlatine(t *testing.T) {
 }
 
 func TestComputeInsights_SweetManihot(t *testing.T) {
-	insights := computeInsights(sweetManihotCards)
+	insights := computeInsights(sweetManihotCards, nil)
 
 	for _, ins := range insights {
 		if strings.Contains(ins, "POINT DOMINANT") {
@@ -129,7 +129,7 @@ func TestComputeInsights_SweetManihot(t *testing.T) {
 }
 
 func TestComputeInsights_EmptyAssoc(t *testing.T) {
-	insights := computeInsights(emptyAssocCards)
+	insights := computeInsights(emptyAssocCards, nil)
 
 	for _, ins := range insights {
 		if strings.Contains(ins, "POINT DOMINANT") {
@@ -376,6 +376,133 @@ func TestContextHashScopeIsolation(t *testing.T) {
 
 	if string(globalJSON) == string(companyJSON) {
 		t.Error("Hash payloads scope global (company_id=0) et société (company_id=1) ne doivent PAS être identiques")
+	}
+}
+
+// --- POS sessions enrichis ---
+
+var laPlatinePosDetails = map[string]interface{}{
+	"pos_shops": map[string]interface{}{
+		"total_sessions":   float64(7),
+		"sealed_sessions":  float64(7),
+		"pending_sessions": float64(0),
+		"total_tickets":    float64(8),
+		"cash_total":       float64(0),
+		"card_total":       float64(4213.20),
+		"total_difference": float64(0),
+		"anomaly_sessions": float64(0),
+		"shops": []interface{}{
+			map[string]interface{}{"shop_id": "Comptoir La Platine", "sessions_count": float64(3), "total_sales": float64(2668.80)},
+			map[string]interface{}{"shop_id": "Sweet Manihot", "sessions_count": float64(4), "total_sales": float64(1544.40)},
+		},
+	},
+}
+
+func TestComputeInsights_LaPlatineWithPOS(t *testing.T) {
+	insights := computeInsights(laPlatineCards, laPlatinePosDetails)
+
+	hasInducteurPOS := false
+	hasPanierMoyen := false
+	hasMixPaiements := false
+	hasRepartition := false
+	for _, ins := range insights {
+		if strings.Contains(ins, "Inducteur POS") && strings.Contains(ins, "7 sessions") {
+			hasInducteurPOS = true
+		}
+		if strings.Contains(ins, "panier moyen") {
+			hasPanierMoyen = true
+		}
+		if strings.Contains(ins, "mix paiements") {
+			hasMixPaiements = true
+		}
+		if strings.Contains(ins, "répartition") && strings.Contains(ins, "Comptoir La Platine") {
+			hasRepartition = true
+		}
+	}
+
+	if !hasInducteurPOS {
+		t.Error("Manque insight 'Inducteur POS' avec sessions")
+	}
+	if !hasPanierMoyen {
+		t.Error("Manque insight panier moyen POS")
+	}
+	if !hasMixPaiements {
+		t.Error("Manque insight mix paiements POS")
+	}
+	if !hasRepartition {
+		t.Error("Manque insight répartition POS par point de vente")
+	}
+}
+
+func TestComputeInsights_POS_AnomalyAlert(t *testing.T) {
+	details := map[string]interface{}{
+		"pos_shops": map[string]interface{}{
+			"total_sessions":   float64(5),
+			"sealed_sessions":  float64(4),
+			"pending_sessions": float64(1),
+			"total_tickets":    float64(10),
+			"cash_total":       float64(500),
+			"card_total":       float64(1500),
+			"total_difference": float64(-15.30),
+			"anomaly_sessions": float64(2),
+			"shops":            []interface{}{},
+		},
+	}
+	cards := []models.Card{
+		{Key: "pos_shops", Value: ptr(2000), Unit: "EUR"},
+		{Key: "business", Value: ptr(10000), Unit: "EUR"},
+		{Key: "cash", Value: ptr(5000), Unit: "EUR"},
+		{Key: "taxes", Value: ptr(1000), Unit: "EUR"},
+		{Key: "refunds", Value: ptr(0), Unit: "EUR"},
+		{Key: "treasury_validated_pct", Value: ptr(50), Unit: "%"},
+	}
+
+	insights := computeInsights(cards, details)
+
+	hasAlerte := false
+	hasConformite := false
+	for _, ins := range insights {
+		if strings.Contains(ins, "ALERTE") && strings.Contains(ins, "écart de caisse") {
+			hasAlerte = true
+		}
+		if strings.Contains(ins, "conformité") && strings.Contains(ins, "4/5") {
+			hasConformite = true
+		}
+	}
+
+	if !hasAlerte {
+		t.Error("Manque alerte écart de caisse POS")
+	}
+	if !hasConformite {
+		t.Error("Manque insight conformité POS (4/5 scellées)")
+	}
+}
+
+func TestExtractPosDetails_Nil(t *testing.T) {
+	if extractPosDetails(nil) != nil {
+		t.Error("extractPosDetails(nil) devrait retourner nil")
+	}
+	if extractPosDetails(map[string]interface{}{}) != nil {
+		t.Error("extractPosDetails({}) devrait retourner nil")
+	}
+}
+
+func TestExtractPosDetails_Valid(t *testing.T) {
+	d := extractPosDetails(laPlatinePosDetails)
+	if d == nil {
+		t.Fatal("extractPosDetails devrait retourner des données")
+	}
+	if d.totalSessions != 7 {
+		t.Errorf("totalSessions = %d, want 7", d.totalSessions)
+	}
+	if d.sealedSessions != 7 {
+		t.Errorf("sealedSessions = %d, want 7", d.sealedSessions)
+	}
+	if d.totalTickets != 8 {
+		t.Errorf("totalTickets = %d, want 8", d.totalTickets)
+	}
+	if len(d.shops) != 2 {
+		t.Errorf("shops count = %d, want 2", len(d.shops))
 	}
 }
 
