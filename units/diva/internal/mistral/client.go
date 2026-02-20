@@ -91,7 +91,8 @@ RÈGLES :
 6. Vocabulaire : "représente", "s'élève à", "soit X % du CA", "dépasse", "écart de", "non rapproché", "absence de".
 7. Ton : factuel, sobre, analytique. Aucun conseil, aucune recommandation, aucune injonction.
 8. La trésorerie est l'indicateur central. Les autres cartes (business, taxes, remboursements, POS) sont des inducteurs qui expliquent la position de trésorerie. Structure ton analyse autour de cette hiérarchie.
-9. Points de vente (POS) : si les insights POS détaillent sessions, panier moyen, mix paiements ou écarts de caisse, intègre-les comme inducteur de trésorerie. Signale les écarts de caisse et les sessions non scellées comme points à vérifier.`
+9. Activité commerciale totale = Business (facturation) + POS (ventes en magasin). Ne dis JAMAIS "aucune activité commerciale" si le POS affiche des ventes. Si Business = 0 et POS > 0, le CA provient exclusivement du canal POS.
+10. Points de vente (POS) : si les insights POS détaillent sessions, panier moyen, mix paiements ou écarts de caisse, intègre-les comme inducteur de trésorerie. Signale les écarts de caisse et les sessions non scellées comme points à vérifier.`
 
 func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string, focusCardDetails map[string]interface{}, dashboardDetails map[string]interface{}) (models.Flash, error) {
 	effective := cards
@@ -221,16 +222,28 @@ func computeInsights(cards []models.Card, details map[string]interface{}) []stri
 			fmtEUR(taxes), fmtPct(ratio)))
 	}
 
-	if hasCash && hasBiz {
-		spread := cash - biz
+	totalCA := biz
+	if hasPOS && pos > 0 {
+		totalCA += pos
+	}
+	hasTotalCA := hasBiz || (hasPOS && pos > 0)
+
+	if hasBiz && biz == 0 && hasPOS && pos > 0 {
+		insights = append(insights, fmt.Sprintf(
+			"Activité commerciale: aucune facturation classique, le CA provient exclusivement du POS (%s)",
+			fmtEUR(pos)))
+	}
+
+	if hasCash && hasTotalCA {
+		spread := cash - totalCA
 		if spread > 0 {
 			insights = append(insights, fmt.Sprintf(
-				"Écart trésorerie/activité: le solde de trésorerie (%s) dépasse l'activité commerciale (%s) de %s",
-				fmtEUR(cash), fmtEUR(biz), fmtEUR(spread)))
+				"Écart trésorerie/activité: le solde de trésorerie (%s) dépasse l'activité commerciale totale (%s) de %s",
+				fmtEUR(cash), fmtEUR(totalCA), fmtEUR(spread)))
 		} else if spread < 0 {
 			insights = append(insights, fmt.Sprintf(
-				"Écart trésorerie/activité: l'activité commerciale (%s) dépasse le solde de trésorerie (%s) de %s",
-				fmtEUR(biz), fmtEUR(cash), fmtEUR(absVal(spread))))
+				"Écart trésorerie/activité: l'activité commerciale totale (%s) dépasse le solde de trésorerie (%s) de %s",
+				fmtEUR(totalCA), fmtEUR(cash), fmtEUR(absVal(spread))))
 		}
 	}
 

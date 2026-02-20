@@ -273,7 +273,46 @@ Mistral fonctionne mais la marge est limitée.
 
 ------------------------------------------------------------------------
 
-## 8. PROCHAINES ÉTAPES POSSIBLES
+## 8. CORRECTION : ACTIVITÉ COMMERCIALE = BUSINESS + POS (2026-02-20)
+
+### 8.1 Problème constaté
+
+Sur Sweet Manihot (Business = 0 €, POS = 4 213 €, Cash = 1 440 €),
+Mistral affichait : *"Aucune activité commerciale enregistrée sur la
+période"*. Le POS (seule source de CA) était ignoré dans la définition
+d'activité commerciale.
+
+**Cause racine :**
+- `computeInsights` utilisait uniquement la carte "Business" pour
+  calculer l'activité commerciale et l'écart trésorerie/activité.
+- Le `systemPrompt` ne précisait pas que POS = activité commerciale.
+- Le runner DIVA pointait vers `linky_lab` (ancien container sans
+  `_details.pos_shops`) au lieu de `linky_stinger` (v1.18-pos-sessions).
+
+### 8.2 Corrections appliquées
+
+| Fichier | Modification |
+|---------|-------------|
+| `client.go` — `computeInsights` | `totalCA = Business + POS`. Nouvel insight "CA provient exclusivement du POS" quand Business = 0 et POS > 0 |
+| `client.go` — `systemPrompt` | Nouvelle Rule 9 : "Activité commerciale totale = Business + POS. Ne dis JAMAIS 'aucune activité commerciale' si POS > 0" |
+| `client.go` — `systemPrompt` | Ancienne Rule 9 (POS details) renumérotée en Rule 10 |
+| `client_test.go` | Fixture `sweetManihotCards` corrigée (cash=1440). Tests `TestComputeInsights_SweetManihot` enrichis : vérifie "exclusivement du POS" et "activité commerciale totale" |
+| `units/diva/.env` | `LINKY_URL` corrigé : `linky_stinger_sarl-la-platine` (non tracké git) |
+
+### 8.3 Résultat vérifié en production
+
+**Avant** : "Aucune activité commerciale enregistrée sur la période."
+
+**Après** (Sweet Manihot, exercice à date 2026) :
+- *"Activité commerciale totale représente 4213 €, entièrement provenant du POS"*
+- *"Trésorerie validée est nulle malgré un solde de cash de 1440 €"*
+- *"Position nette de trésorerie post-taxes s'élève à 1440 €"*
+
+18/18 tests unitaires passent.
+
+------------------------------------------------------------------------
+
+## 9. PROCHAINES ÉTAPES POSSIBLES
 
 - [ ] Filtrer `pos-sessions` par `company_id` dans Linky
 - [ ] Exploiter `pos_z` quand disponible
@@ -283,4 +322,4 @@ Mistral fonctionne mais la marge est limitée.
 
 ------------------------------------------------------------------------
 
-*Rapport généré le 2026-02-20 — Dorevia DIVA v1.3.1 + POS Sessions.*
+*Rapport mis à jour le 2026-02-20 — Dorevia DIVA v1.3.1 + POS Sessions + fix totalCA.*

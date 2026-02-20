@@ -25,7 +25,7 @@ var laPlatineCards = []models.Card{
 
 var sweetManihotCards = []models.Card{
 	{Key: "treasury_validated_pct", Label: "Trésorerie validée", Value: ptr(0), Unit: "%", Formatted: "0 %"},
-	{Key: "cash", Label: "Cash", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €"},
+	{Key: "cash", Label: "Cash", Value: ptr(1440), Unit: "EUR", Formatted: "+ 1 440,00 €"},
 	{Key: "business", Label: "Business", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €"},
 	{Key: "taxes", Label: "Taxes", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €"},
 	{Key: "credit_notes", Label: "Notes de crédit", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €"},
@@ -118,13 +118,28 @@ func TestComputeInsights_LaPlatine(t *testing.T) {
 func TestComputeInsights_SweetManihot(t *testing.T) {
 	insights := computeInsights(sweetManihotCards, nil)
 
+	hasActiviteExclusivePOS := false
+	hasEcartCA := false
 	for _, ins := range insights {
-		if strings.Contains(ins, "POINT DOMINANT") {
-			t.Error("Sweet Manihot (cash=0) ne devrait pas avoir de POINT DOMINANT")
+		if strings.Contains(ins, "POINT DOMINANT") && !strings.Contains(ins, "cash") {
+			t.Error("Sweet Manihot ne devrait POINT DOMINANT que si cash>0")
 		}
 		if strings.Contains(ins, "note de crédit") {
 			t.Error("credit_notes insight ne devrait pas apparaître (business=0, sous seuil 100k)")
 		}
+		if strings.Contains(ins, "exclusivement du POS") {
+			hasActiviteExclusivePOS = true
+		}
+		if strings.Contains(ins, "activité commerciale totale") {
+			hasEcartCA = true
+		}
+	}
+
+	if !hasActiviteExclusivePOS {
+		t.Error("Manque insight 'CA provient exclusivement du POS' quand business=0 et POS>0")
+	}
+	if !hasEcartCA {
+		t.Error("Manque insight 'Écart trésorerie/activité' avec totalCA incluant POS")
 	}
 }
 
