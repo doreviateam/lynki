@@ -61,4 +61,5 @@ type Flash struct {
 	WhatISee   []string `json:"what_i_see"`
 	ToCheck    []string `json:"to_check"`
 	Confidence string   `json:"confidence"`
+	Degraded   bool     `json:"degraded,omitempty"`
 }

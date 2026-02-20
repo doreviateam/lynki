@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/http"
 	"os"
@@ -114,6 +115,8 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 	}
 
 	userPrompt := c.buildUserPrompt(ctx, effective, focusCard, focusCardDetails, dashboardDetails)
+	promptChars := utf8.RuneCountInString(userPrompt) + utf8.RuneCountInString(systemPrompt)
+	genStart := time.Now()
 
 	payload := map[string]interface{}{
 		"model": "mistral",
@@ -135,19 +138,42 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 	}
 	req.Header.Set("Content-Type", "application/json")
 
+	isCockpit := focusCard == ""
+
+	logDegraded := func(reason string) {
+		slog.Warn("event=diva_gen", "gen", "degraded", "reason", reason,
+			"prompt_chars", promptChars, "llm_latency_ms", time.Since(genStart).Milliseconds())
+	}
+
 	resp, err := c.client.Do(req)
 	if err != nil {
 		if isTimeout(err) {
+			if isCockpit {
+				logDegraded("mistral_timeout")
+				return degradedFlash(cards, dashboardDetails), nil
+			}
 			return models.Flash{}, ErrMistralTimeout
+		}
+		if isCockpit {
+			logDegraded("mistral_unavailable")
+			return degradedFlash(cards, dashboardDetails), nil
 		}
 		return models.Flash{}, ErrMistralUnavailable
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusRequestTimeout || resp.StatusCode == http.StatusGatewayTimeout {
+		if isCockpit {
+			logDegraded("mistral_gateway_timeout")
+			return degradedFlash(cards, dashboardDetails), nil
+		}
 		return models.Flash{}, ErrMistralTimeout
 	}
 	if resp.StatusCode != http.StatusOK {
+		if isCockpit {
+			logDegraded(fmt.Sprintf("mistral_http_%d", resp.StatusCode))
+			return degradedFlash(cards, dashboardDetails), nil
+		}
 		return models.Flash{}, ErrMistralUnavailable
 	}
 
@@ -159,13 +185,36 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 		} `json:"choices"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&chatResp); err != nil {
+		if isCockpit {
+			logDegraded("bad_json_decode")
+			return degradedFlash(cards, dashboardDetails), nil
+		}
 		return fallbackFlash(), err
 	}
 	if len(chatResp.Choices) == 0 {
+		if isCockpit {
+			logDegraded("empty_choices")
+			return degradedFlash(cards, dashboardDetails), nil
+		}
 		return fallbackFlash(), nil
 	}
 
-	return parseFlash(chatResp.Choices[0].Message.Content, effective)
+	outputContent := chatResp.Choices[0].Message.Content
+	flash, parseErr := parseFlash(outputContent, effective)
+	latencyMs := time.Since(genStart).Milliseconds()
+
+	if isCockpit && flash.Headline == "Lecture DIVA temporairement indisponible." {
+		logDegraded("llm_output_rejected")
+		return degradedFlash(cards, dashboardDetails), nil
+	}
+
+	slog.Info("event=diva_gen", "gen", "called",
+		"prompt_chars", promptChars,
+		"output_chars", utf8.RuneCountInString(outputContent),
+		"llm_latency_ms", latencyMs,
+		"degraded", flash.Degraded)
+
+	return flash, parseErr
 }
 
 // userPromptPayload — structure JSON envoyée à l'IA (mode cockpit ou card).
@@ -445,7 +494,11 @@ func (c *Client) buildUserPrompt(ctx models.Context, cards []models.Card, focusC
 	}
 
 	if mode == "cockpit" {
-		payload.Insights = computeInsights(cards, dashboardDetails)
+		insights := computeInsights(cards, dashboardDetails)
+		if len(insights) > 10 {
+			insights = insights[:10]
+		}
+		payload.Insights = insights
 	}
 
 	if mode == "card" && len(focusCardDetails) > 0 {
@@ -586,6 +639,8 @@ func textLength(raw flashRaw) int {
 	return n
 }
 
+const maxFlashTotalChars = 600
+
 func validateAndBuildFlash(raw flashRaw, cards []models.Card) (models.Flash, error) {
 	conf := computeConfidence(cards)
 	if textLength(raw) < dynamicMinLength(cards) {
@@ -607,6 +662,9 @@ func validateAndBuildFlash(raw flashRaw, cards []models.Card) (models.Flash, err
 	if len(raw.ToCheck) > 2 {
 		raw.ToCheck = raw.ToCheck[:2]
 	}
+	for textLength(raw) > maxFlashTotalChars && len(raw.WhatISee) > 1 {
+		raw.WhatISee = raw.WhatISee[:len(raw.WhatISee)-1]
+	}
 	return models.Flash{
 		Headline:   sanitizeHeadline(raw.Headline),
 		WhatISee:   raw.WhatISee,
@@ -619,6 +677,8 @@ var leadingOrphanPunct = regexp.MustCompile(`^\s*[,;]\s*`)
 
 var metaNotePattern = regexp.MustCompile(`(?i)\s*\([^)]*(?:note\s*:|accordance|given rules|did not mention|instruction|constraint)[^)]*\)\s*`)
 
+const maxHeadlineChars = 140
+
 func sanitizeHeadline(s string) string {
 	s = metaNotePattern.ReplaceAllString(s, " ")
 	for _, re := range dateRangePatterns {
@@ -626,7 +686,18 @@ func sanitizeHeadline(s string) string {
 	}
 	s = strings.TrimSpace(s)
 	s = leadingOrphanPunct.ReplaceAllString(s, "")
-	return strings.TrimSpace(strings.TrimSuffix(s, ","))
+	s = strings.TrimSpace(strings.TrimSuffix(s, ","))
+	if runes := []rune(s); len(runes) > maxHeadlineChars {
+		cut := maxHeadlineChars - 3
+		for cut > 0 && runes[cut] != ' ' {
+			cut--
+		}
+		if cut == 0 {
+			cut = maxHeadlineChars - 3
+		}
+		s = string(runes[:cut]) + "..."
+	}
+	return s
 }
 
 func fallbackFlash() models.Flash {
@@ -635,5 +706,46 @@ func fallbackFlash() models.Flash {
 		WhatISee:   []string{},
 		ToCheck:    []string{},
 		Confidence: "low",
+	}
+}
+
+func degradedFlash(cards []models.Card, details map[string]interface{}) models.Flash {
+	insights := computeInsights(cards, details)
+	if len(insights) == 0 {
+		f := noDataFlash()
+		f.Degraded = true
+		return f
+	}
+
+	headline := insights[0]
+	if strings.HasPrefix(headline, "POINT DOMINANT: ") {
+		headline = strings.TrimPrefix(headline, "POINT DOMINANT: ")
+	}
+	headline = sanitizeHeadline(headline)
+
+	maxBody := 3
+	if len(insights) < maxBody {
+		maxBody = len(insights)
+	}
+	whatISee := make([]string, maxBody)
+	copy(whatISee, insights[:maxBody])
+
+	var toCheck []string
+	for _, ins := range insights {
+		if len(toCheck) >= 2 {
+			break
+		}
+		low := strings.ToLower(ins)
+		if strings.Contains(low, "alerte") || strings.Contains(low, "conformité") || strings.Contains(low, "absence") {
+			toCheck = append(toCheck, ins)
+		}
+	}
+
+	return models.Flash{
+		Headline:   headline,
+		WhatISee:   whatISee,
+		ToCheck:    toCheck,
+		Confidence: computeConfidence(cards),
+		Degraded:   true,
 	}
 }

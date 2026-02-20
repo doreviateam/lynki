@@ -312,14 +312,104 @@ d'activité commerciale.
 
 ------------------------------------------------------------------------
 
-## 9. PROCHAINES ÉTAPES POSSIBLES
+## 9. DIVA v1.4 "COMPUTE DISCIPLINE" (2026-02-20)
+
+Implémentation de la spec `SPEC_DIVA_v1.4_Compute_Discipline.md`
+(amendée avant implémentation pour éviter les régressions v1.3).
+
+### 9.1 Story A — Hash v2 (POS agrégats dans le hash)
+
+`hashinput/build.go` : le `payloadHash` inclut désormais les agrégats
+POS (`total_sessions`, `sealed_sessions`, `pending_sessions`,
+`total_tickets`, `cash_total`, `card_total`, `total_difference`,
+`anomaly_sessions`, shops triés par `shop_id`). Schema passé de
+`hash_input.v1` à `hash_input.v2`.
+
+**Impact** : changement de hash → régénération one-shot de tous les
+contextes au premier tick. Acceptable (le runner gère ce cas).
+
+5 nouveaux tests : `POSIncluded`, `NoPOS_NoAggregates`,
+`StableWithSameData`, `POSChangeChangesHash`, `ShopOrderStable`.
+
+### 9.2 Story B — No-change → No-gen : SKIP
+
+Déjà implémenté dans `generate.go` (`CheckInsightFresh` → 204).
+Confirmé en prod : les logs affichent `state=fresh` quand le hash
+est identique. Aucune modification nécessaire.
+
+### 9.3 Story C — Rédaction courte (limites amendées)
+
+| Contrainte | Spec originale | Amendé | Raison |
+|---|---|---|---|
+| headline max | 120 | **140 chars** | La Platine POS fait ~130 |
+| flash total | 450 | **600 chars** | Sweet Manihot POS atteint ~500 |
+| insights prompt | 8 | **10** | La Platine+POS produit 12 insights |
+
+- `sanitizeHeadline` : troncature à 140 chars sur limite de mot + `...`
+- `validateAndBuildFlash` : si flash > 600 chars, retire `what_i_see`
+  par la fin jusqu'à conformité
+- `buildUserPrompt` : cap insights à 10
+
+2 nouveaux tests : `SanitizeHeadline_Truncation`,
+`ValidateAndBuildFlash_MaxFlashLength`.
+
+### 9.4 Story D — Degraded mode enrichi
+
+Nouveau `degradedFlash(cards, details)` remplace `fallbackFlash()` en
+mode cockpit. Au lieu de "Lecture DIVA temporairement indisponible."
+(vide), le mode dégradé produit un flash **déterministe** basé sur
+`computeInsights` :
+
+- headline = POINT DOMINANT ou premier insight
+- what_i_see = 3 premiers insights
+- to_check = insights contenant "ALERTE", "conformité", "absence"
+- `"degraded": true` dans le JSON (marqueur pour l'UI)
+
+Points d'interception dans `Chat()` :
+- Timeout/unavailable Mistral → degraded (cockpit uniquement)
+- JSON invalide / choices vides → degraded
+- Output rejeté (forbidden terms, english, trop court) → degraded
+
+3 nouveaux tests : `DegradedFlash_LaPlatine`, `_SweetManihot`, `_Empty`.
+
+### 9.5 Story E — POS prompt discipline : DÉJÀ CORRECT
+
+En cockpit, `dashboardDetails` passe uniquement par `computeInsights`
+(qui n'utilise que les agrégats). Le payload prompt (`userPromptPayload`)
+n'inclut jamais `_details` en cockpit. Les sessions individuelles ne
+sont jamais envoyées au LLM.
+
+### 9.6 Observabilité
+
+Logs structurés `slog` dans `Chat()` :
+
+```
+event=diva_gen gen=called prompt_chars=4277 output_chars=558 llm_latency_ms=29685 degraded=false
+event=diva_gen gen=degraded reason=mistral_timeout prompt_chars=4058 llm_latency_ms=120000
+```
+
+Vérifié en prod : 5 générations loguées avec `gen=called`, 0 degraded.
+
+### 9.7 Bilan tests
+
+| Package | Tests | Résultat |
+|---------|-------|----------|
+| `hashinput` | 13 (dont 5 nouveaux) | PASS |
+| `mistral` | 23 (dont 5 nouveaux) | PASS |
+| Total | **36** | **0 régression** |
+
+------------------------------------------------------------------------
+
+## 10. PROCHAINES ÉTAPES POSSIBLES
 
 - [ ] Filtrer `pos-sessions` par `company_id` dans Linky
 - [ ] Exploiter `pos_z` quand disponible
 - [ ] Ajouter `pos_shops` dans `keyCards` pour influencer `confidence`
 - [ ] Insights temporels POS (tendances, pics d'activité)
 - [ ] Optimisation mémoire Mistral (modèle Q3 ou inference en batch)
+- [ ] Indicateur UI pour `degraded: true`
+- [ ] KPI `diva_hash_hit_ratio` via endpoint `/health`
 
 ------------------------------------------------------------------------
 
-*Rapport mis à jour le 2026-02-20 — Dorevia DIVA v1.3.1 + POS Sessions + fix totalCA.*
+*Rapport mis à jour le 2026-02-20 — DIVA v1.4 Compute Discipline.*

@@ -521,6 +521,99 @@ func TestExtractPosDetails_Valid(t *testing.T) {
 	}
 }
 
+// --- Story D: degraded mode ---
+
+func TestDegradedFlash_LaPlatine(t *testing.T) {
+	flash := degradedFlash(laPlatineCards, nil)
+	if !flash.Degraded {
+		t.Error("degradedFlash doit avoir Degraded=true")
+	}
+	if flash.Headline == "" {
+		t.Error("headline ne doit pas être vide")
+	}
+	if flash.Headline == "Lecture DIVA temporairement indisponible." {
+		t.Error("degradedFlash ne doit pas retourner le fallback vide")
+	}
+	if len(flash.WhatISee) == 0 || len(flash.WhatISee) > 3 {
+		t.Errorf("what_i_see doit avoir 1-3 éléments, got %d", len(flash.WhatISee))
+	}
+	if len(flash.ToCheck) > 2 {
+		t.Errorf("to_check max 2, got %d", len(flash.ToCheck))
+	}
+	if flash.Confidence != "medium" {
+		t.Errorf("confidence = %q, want medium (La Platine treasury=0)", flash.Confidence)
+	}
+}
+
+func TestDegradedFlash_SweetManihot(t *testing.T) {
+	flash := degradedFlash(sweetManihotCards, laPlatinePosDetails)
+	if !flash.Degraded {
+		t.Error("degradedFlash doit avoir Degraded=true")
+	}
+	if flash.Headline == "" || flash.Headline == "Lecture DIVA temporairement indisponible." {
+		t.Errorf("headline invalide: %q", flash.Headline)
+	}
+	hasExclusivePOS := false
+	for _, s := range flash.WhatISee {
+		if strings.Contains(s, "POS") || strings.Contains(s, "exclusivement") {
+			hasExclusivePOS = true
+		}
+	}
+	if !hasExclusivePOS {
+		t.Error("degradedFlash Sweet Manihot devrait mentionner POS dans what_i_see")
+	}
+}
+
+func TestDegradedFlash_Empty(t *testing.T) {
+	flash := degradedFlash(emptyAssocCards, nil)
+	if !flash.Degraded {
+		t.Error("degradedFlash doit avoir Degraded=true")
+	}
+	if flash.Confidence != "medium" && flash.Confidence != "low" {
+		t.Errorf("empty degraded confidence = %q, want medium ou low", flash.Confidence)
+	}
+}
+
+func TestSanitizeHeadline_Truncation(t *testing.T) {
+	long := strings.Repeat("Trésorerie ", 20)
+	result := sanitizeHeadline(long)
+	if len([]rune(result)) > 140 {
+		t.Errorf("headline devrait être ≤ 140 runes, got %d", len([]rune(result)))
+	}
+	if !strings.HasSuffix(result, "...") {
+		t.Error("headline tronqué devrait finir par ...")
+	}
+}
+
+func TestValidateAndBuildFlash_MaxFlashLength(t *testing.T) {
+	raw := flashRaw{
+		Headline: "Synthèse financière détaillée pour cette période.",
+		WhatISee: []string{
+			"Les taxes représentent 18,9 % du CA sur la période en cours, ce qui pèse sur la trésorerie.",
+			"Le solde de trésorerie dépasse l'activité commerciale de 238 204 €, ce qui indique un non rapprochement.",
+			"Les remboursements représentent 0,1 % du CA, ce qui reste une part marginale à surveiller.",
+			"Le volume de POS s'élève à 4 213 € soit 0,4 % du CA global de l'entreprise sur la période.",
+			"La position nette de trésorerie post-taxes est de 1 192 570 € pour la période considérée.",
+		},
+		ToCheck:    []string{"Rapprochement bancaire non effectué.", "Z de caisse non renseigné."},
+		Confidence: "medium",
+	}
+	flash, err := validateAndBuildFlash(raw, laPlatineCards)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	total := len([]rune(flash.Headline))
+	for _, s := range flash.WhatISee {
+		total += len([]rune(s))
+	}
+	for _, s := range flash.ToCheck {
+		total += len([]rune(s))
+	}
+	if total > 600 {
+		t.Errorf("flash total = %d chars, devrait être ≤ 600", total)
+	}
+}
+
 // --- helpers ---
 
 func assertFlashStructure(t *testing.T, flash models.Flash, cards []models.Card) {
