@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- CRON #1 — Envoi DVIG asynchrone (SPEC v1.1) -->
+    <!-- NOTE: Intervalle réduit à 1 minute pour accélérer les tests -->
+    <record id="ir_cron_vault_send_dvig" model="ir.cron">
+        <field name="name">Vault Send DVIG (SPEC v1.1)</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_vault_send_dvig()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+    </record>
+    
+    <!-- CRON #2 — Récupération preuve (SPEC v1.1) -->
+    <!-- NOTE: Intervalle réduit à 1 minute pour accélérer les tests -->
+    <record id="ir_cron_vault_fetch_proof" model="ir.cron">
+        <field name="name">Vault Fetch Proof (SPEC v1.1)</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_vault_fetch_proof()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+    </record>
+    
+    <!-- CRON Métriques — Calcul quotidien (SPEC v1.1) -->
+    <record id="ir_cron_vault_metrics" model="ir.cron">
+        <field name="name">Vault Metrics (SPEC v1.1)</field>
+        <field name="model_id" ref="dorevia_vault_connector.model_dorevia_vault_metric"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_compute_metrics()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+    </record>
+    
+    <!-- CRON Reconciler — Rattrapage pending_proof/failed_soft (Addendum v1.1.1-add1) -->
+    <record id="ir_cron_vault_reconciler" model="ir.cron">
+        <field name="name">Vault Reconciler (Addendum v1.1.1-add1)</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_vault_reconciler()</field>
+        <field name="interval_number">3</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+    </record>
+    
+    <!-- CRON Reconciler failed_hard → todo lorsque no_abandon (exigence : aucune facture posted non vaultée) -->
+    <record id="ir_cron_vault_reconciler_failed_hard" model="ir.cron">
+        <field name="name">Vault Reconciler failed_hard (no_abandon)</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_vault_reconciler_failed_hard()</field>
+        <field name="interval_number">15</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+    </record>
+
+    <!-- CRON Paiements — Rattrapage envoi Vault (SPEC PAYMENTS v1.1, card Linky Décaissements/Encaissements) -->
+    <record id="ir_cron_vault_send_payments" model="ir.cron">
+        <field name="name">Vault Send Payments (rattrapage)</field>
+        <field name="model_id" ref="account.model_account_payment"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_vault_send_payments()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+    </record>
+</odoo>

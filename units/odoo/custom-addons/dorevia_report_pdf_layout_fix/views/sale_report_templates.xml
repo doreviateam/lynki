@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+        🔒 CRITÈRE DE VÉRITÉ (non négociable) :
+        Le PDF utilise toute la largeur SI ET SEULEMENT SI le bloc des totaux
+        utilise col-12 en PDF (au lieu de col-6).
+        
+        Solution : XPath qui cible le div par son contenu (table o_total_table)
+        plutôt que par sa position ou ses attributs
+    -->
+    
+    <!-- 
+        Fix PDF Sale : bloc totaux trop étroit (col-6)
+        S'applique à : Devis, Commandes, Pro Forma
+        Template : sale.report_saleorder_document
+        
+        Approche : Cibler le div qui contient la table o_total_table
+    -->
+    <template id="sale_report_totals_pdf_fullwidth"
+              inherit_id="sale.report_saleorder_document"
+              priority="150">
+        <!-- 
+            XPath : cibler le div qui contient la table o_total_table
+            C'est plus fiable que de cibler par position ou attribut
+        -->
+        <xpath expr="//div[@id='total']//div[.//table[@class='o_total_table']]" position="replace">
+            <div t-attf-class="#{'col-12' if report_type != 'html' else 'col-sm-7 col-md-6'} ms-auto"
+                 t-att-style="#{'width: 100% !important; max-width: 100% !important; margin-left: 0 !important; margin-right: 0 !important;' if report_type != 'html' else ''}">
+                <table class="o_total_table table table-borderless">
+                    <!-- Tax totals -->
+                    <t t-call="sale.document_tax_totals">
+                        <t t-set="tax_totals" t-value="doc.tax_totals"/>
+                        <t t-set="currency" t-value="doc.currency_id"/>
+                    </t>
+                </table>
+            </div>
+        </xpath>
+    </template>
+</odoo>

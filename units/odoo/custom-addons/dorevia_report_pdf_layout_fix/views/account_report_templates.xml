@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+        🔒 CRITÈRE DE VÉRITÉ (non négociable) :
+        Le PDF utilise toute la largeur SI ET SEULEMENT SI le bloc des totaux
+        utilise col-12 en PDF (au lieu de col-6).
+        
+        Solution : Modifier la classe CSS du bloc des totaux pour utiliser col-12 en PDF
+        uniquement, sans impacter les vues HTML.
+    -->
+    
+    <!-- 
+        Fix PDF Account : bloc totaux trop étroit (col-6)
+        S'applique à : Factures
+        Template : account.report_invoice_document
+    -->
+    <template id="account_report_totals_pdf_fullwidth"
+              inherit_id="account.report_invoice_document"
+              priority="99">
+        <!-- Cibler le div des totaux par son attribut t-attf-class -->
+        <xpath expr="//div[@name='total']/div[@t-attf-class]" position="attributes">
+            <attribute name="t-attf-class">
+                #{'col-12' if report_type != 'html' else 'col-sm-7 col-md-6'} ms-auto
+            </attribute>
+        </xpath>
+    </template>
+</odoo>
+

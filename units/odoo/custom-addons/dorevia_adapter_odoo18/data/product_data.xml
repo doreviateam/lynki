@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Produit synthétique pour factures Vault Replay — SPEC ERP Reconnect §4.7 -->
+    <record id="product_product_vault_synth" model="product.template">
+        <field name="name">Vente HT (Vault)</field>
+        <field name="type">service</field>
+        <field name="list_price">0.0</field>
+    </record>
+</odoo>

@@ -1,0 +1,6 @@
+# Dépendances Python pour le module dorevia_billing_core
+# Installation : pip install -r requirements.txt
+
+PyJWT>=2.8.0
+requests>=2.31.0
+

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+        Menu minimal pour référencer l'icône du module.
+        Pour les modules avec application=False, l'icône doit être référencée via web_icon dans un menu.
+        Ce menu n'est pas visible dans l'interface car il n'a pas d'action parent.
+    -->
+    <menuitem id="menu_dorevia_posted_lock_root"
+              name="Dorevia Posted Lock"
+              web_icon="dorevia_posted_lock,static/description/icon.png"
+              sequence="100"/>
+</odoo>
+

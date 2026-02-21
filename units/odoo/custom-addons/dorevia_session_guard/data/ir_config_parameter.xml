@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Vide par défaut pour dev/localhost : navigateur scope auto -->
+        <record id="ir_config_parameter_cookie_domain" model="ir.config_parameter">
+            <field name="key">dorevia_session_guard.cookie_domain</field>
+            <field name="value"></field>
+        </record>
+        <!-- Whitelist URLs Linky (JSON array) - spec §6.7 -->
+        <record id="ir_config_parameter_linky_urls" model="ir.config_parameter">
+            <field name="key">dorevia_session_guard.linky_urls</field>
+            <field name="value">["https://ui.stinger.sarl-la-platine.doreviateam.com","https://ui.lab.sarl-la-platine.doreviateam.com"]</field>
+        </record>
+    </data>
+</odoo>

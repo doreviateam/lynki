@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Admin Odoo ajouté par défaut au groupe Linky Users (noupdate=0 pour s'appliquer aux upgrades) -->
+    <data noupdate="0">
+        <record id="group_linky_users" model="res.groups">
+            <field name="users" eval="[(4, ref('base.user_admin'))]"/>
+        </record>
+    </data>
+</odoo>

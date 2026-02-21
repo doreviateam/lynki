@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue liste des constats -->
+    <record id="view_dorevia_constat_tree" model="ir.ui.view">
+        <field name="name">dorevia.constat.tree</field>
+        <field name="model">dorevia.constat</field>
+        <field name="arch" type="xml">
+            <list string="Constats" decoration-info="state == 'validated'" decoration-warning="state == 'validated_with_warning'">
+                <field name="constat_id"/>
+                <field name="tenant_id"/>
+                <field name="period"/>
+                <field name="generated_at"/>
+                <field name="received_at"/>
+                <field name="volumes_out_invoice"/>
+                <field name="volumes_in_invoice"/>
+                <field name="total_volumes"/>
+                <field name="contract_id"/>
+                <field name="invoice_id"/>
+                <field name="invoice_status"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vue formulaire des constats -->
+    <record id="view_dorevia_constat_form" model="ir.ui.view">
+        <field name="name">dorevia.constat.form</field>
+        <field name="model">dorevia.constat</field>
+        <field name="arch" type="xml">
+            <form string="Constat">
+                <header>
+                    <button name="action_generate_invoice" string="Générer la facture" type="object"
+                            class="btn-primary" invisible="invoice_status != 'pending'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,validated,invoiced"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="constat_id"/>
+                            <field name="tenant_id"/>
+                            <field name="period"/>
+                            <field name="contract_id"/>
+                        </group>
+                        <group>
+                            <field name="generated_at"/>
+                            <field name="received_at"/>
+                            <field name="vault_id"/>
+                            <field name="invoice_id" readonly="invoice_id != False"/>
+                            <field name="invoice_status"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Volumes">
+                            <group>
+                                <group string="Volumes constatés">
+                                    <field name="volumes_out_invoice"/>
+                                    <field name="volumes_in_invoice"/>
+                                    <field name="volumes_out_refund"/>
+                                    <field name="volumes_in_refund"/>
+                                    <field name="total_volumes"/>
+                                </group>
+                                <group string="Conformité Factur-X">
+                                    <field name="compliance_compliant"/>
+                                    <field name="compliance_non_compliant_2026"/>
+                                    <field name="compliance_out_of_scope"/>
+                                    <field name="total_compliance"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Preuves cryptographiques">
+                            <group>
+                                <field name="proofs_jws" widget="text"/>
+                                <field name="proofs_ledger_hash"/>
+                                <field name="proofs_documents_count"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vue recherche des constats -->
+    <record id="view_dorevia_constat_search" model="ir.ui.view">
+        <field name="name">dorevia.constat.search</field>
+        <field name="model">dorevia.constat</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher un constat">
+                <field name="constat_id"/>
+                <field name="tenant_id"/>
+                <field name="period"/>
+                <field name="vault_id"/>
+                <filter string="En attente" name="pending" domain="[('invoice_status', '=', 'pending')]"/>
+                <filter string="Facturé" name="invoiced" domain="[('invoice_status', '=', 'invoiced')]"/>
+                <filter string="Validé" name="validated" domain="[('state', '=', 'validated')]"/>
+                <filter string="Avertissement" name="warning" domain="[('state', '=', 'validated_with_warning')]"/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Tenant" name="group_tenant" context="{'group_by': 'tenant_id'}"/>
+                    <filter string="Période" name="group_period" context="{'group_by': 'period'}"/>
+                    <filter string="Statut facturation" name="group_invoice_status" context="{'group_by': 'invoice_status'}"/>
+                    <filter string="État" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action pour ouvrir la liste des constats -->
+    <record id="action_dorevia_constat" model="ir.actions.act_window">
+        <field name="name">Constats</field>
+        <field name="res_model">dorevia.constat</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créer un constat
+            </p>
+            <p>
+                Les constats sont reçus automatiquement depuis le Vault via l'API REST.
+            </p>
+        </field>
+    </record>
+</odoo>
+

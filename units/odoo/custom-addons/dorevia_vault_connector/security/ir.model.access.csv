@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_account_move_dorevia_vault_connector,account.move.dorevia.vault.connector,account.model_account_move,base.group_user,1,1,1,1
+access_dorevia_vault_metric,dorevia.vault.metric,model_dorevia_vault_metric,base.group_user,1,0,0,0
+access_dorevia_vault_metric_manager,dorevia.vault.metric.manager,model_dorevia_vault_metric,base.group_system,1,1,1,1
+access_dorevia_dvig_service,dorevia.dvig.service,model_dorevia_dvig_service,base.group_system,1,1,1,1

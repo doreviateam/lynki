@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dorevia_constat_user,dorevia.constat.user,model_dorevia_constat,base.group_user,1,1,1,1
+access_dorevia_contract_user,dorevia.contract.user,model_dorevia_contract,base.group_user,1,1,1,1
+access_dorevia_pricing_rule_user,dorevia.pricing.rule.user,model_dorevia_pricing_rule,base.group_user,1,1,1,1
+

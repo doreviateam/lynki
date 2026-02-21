@@ -1,0 +1,32 @@
+/* 
+ * Fix PDF Layout : Force la largeur du bloc des totaux à 100% en PDF
+ * S'applique uniquement aux PDF (pas aux vues HTML)
+ */
+
+/* Forcer la largeur du conteneur parent */
+div[name="so_total_summary"] {
+    width: 100% !important;
+}
+
+/* Forcer la largeur de la row */
+div#total.row {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Forcer la largeur du div enfant (col-12) */
+div#total > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    flex: 0 0 100% !important;
+}
+
+/* Forcer la largeur de la table */
+div#total table.o_total_table {
+    width: 100% !important;
+}

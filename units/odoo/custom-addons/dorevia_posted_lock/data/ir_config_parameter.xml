@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Paramètre : Activer/désactiver le verrouillage -->
+        <record id="ir_config_parameter_dorevia_posted_lock_enabled" model="ir.config_parameter">
+            <field name="key">dorevia_posted_lock.enabled</field>
+            <field name="value">True</field>
+        </record>
+
+        <!-- Paramètre : Autoriser chatter/attachments sur factures posted -->
+        <record id="ir_config_parameter_dorevia_posted_lock_allow_chatter" model="ir.config_parameter">
+            <field name="key">dorevia_posted_lock.allow_chatter</field>
+            <field name="value">True</field>
+        </record>
+
+        <!-- Paramètre : Appliquer le verrouillage aux entries (journal_entry) -->
+        <record id="ir_config_parameter_dorevia_posted_lock_apply_to_entries" model="ir.config_parameter">
+            <field name="key">dorevia_posted_lock.apply_to_entries</field>
+            <field name="value">False</field>
+        </record>
+
+        <!-- Paramètre : Autoriser button_draft() sur factures posted -->
+        <record id="ir_config_parameter_dorevia_posted_lock_allow_draft" model="ir.config_parameter">
+            <field name="key">dorevia_posted_lock.allow_draft</field>
+            <field name="value">False</field>
+        </record>
+    </data>
+</odoo>
+

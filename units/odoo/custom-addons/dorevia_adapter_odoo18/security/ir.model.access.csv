@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_replay_mapping_system,dorevia.replay.mapping.system,model_dorevia_replay_mapping,base.group_system,1,1,1,1

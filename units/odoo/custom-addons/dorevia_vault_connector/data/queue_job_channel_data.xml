@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Canal queue_job dédié au vaulting (trigger_worker + fetch_proof) -->
+    <record id="channel_dorevia_vault" model="queue.job.channel">
+        <field name="name">dorevia_vault</field>
+        <field name="parent_id" ref="queue_job.channel_root"/>
+    </record>
+</odoo>

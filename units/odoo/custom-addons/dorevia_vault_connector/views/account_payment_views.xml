@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue formulaire Paiements : bloc Sécurité du paiement (aligné factures) -->
+    <record id="view_account_payment_form_dorevia_vault" model="ir.ui.view">
+        <field name="name">account.payment.form.dorevia.vault</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <!-- Masquer "Remettre en brouillon" si paiement en cours ou réglé (SPEC §9.2) -->
+            <xpath expr="//button[@name='action_draft']" position="attributes">
+                <attribute name="invisible">state in ('in_process', 'paid')</attribute>
+            </xpath>
+            <!-- Onglet "Sécurisation" dans le notebook (à côté de Facture, Pièce comptable) -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Sécurisation" name="dorevia_vault">
+                    <group string="Sécurité du paiement" col="2">
+                    <!-- Message brouillon : visible uniquement en état brouillon -->
+                    <div colspan="2" invisible="state != 'draft'" style="margin-bottom: 12px; padding: 12px; background-color: #f8f9fa; border-radius: 4px;">
+                        <strong>Validez le paiement</strong> pour l'envoyer au coffre-fort numérique après validation.
+                    </div>
+                    <!-- En-tête : visible dès que le paiement est validé (tout état sauf brouillon) -->
+                    <div colspan="2" style="margin-bottom: 16px;" invisible="state == 'draft'">
+                        <h4 style="margin-bottom: 8px;">Sécurité du paiement</h4>
+                        <div style="margin-bottom: 12px;">
+                            <!-- Statut non encore défini : paiement jamais envoyé à Vault -->
+                            <div invisible="dorevia_vault_status" style="margin-bottom: 8px;">
+                                <span style="color: #6c757d; font-size: 1.2em;">&#128260;</span>
+                                <strong> À protéger</strong> — Ce paiement n'a pas encore été envoyé au coffre-fort. Cliquez sur « Rafraîchir la preuve » pour l'envoyer.
+                            </div>
+                            <div invisible="dorevia_vault_status != 'vaulted'" style="margin-bottom: 4px;">
+                                <span style="color: #28a745; font-size: 1.2em;">&#128994;</span>
+                                <strong> Paiement protégé</strong> — Preuve validée par le coffre-fort numérique
+                            </div>
+                            <div invisible="dorevia_vault_status not in ('todo', 'pending_proof')" style="margin-bottom: 4px;">
+                                <span style="color: #ffc107; font-size: 1.2em;">&#128992;</span>
+                                <strong> En cours de sécurisation</strong> — Traitement en cours
+                            </div>
+                            <div invisible="dorevia_vault_status not in ('failed_soft', 'failed_hard')" style="margin-bottom: 4px;">
+                                <span style="color: #dc3545; font-size: 1.2em;">&#128308;</span>
+                                <strong> Problème de sécurisation</strong> — Action requise
+                            </div>
+                        </div>
+                        <div invisible="dorevia_vault_status != 'vaulted'"
+                             style="padding: 12px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px; margin-top: 8px;">
+                            <p style="margin: 0;">
+                                Ce paiement a été <strong>scellé numériquement</strong>.<br/>
+                                Toute modification ultérieure serait détectée.
+                            </p>
+                        </div>
+                    </div>
+                    <field name="dorevia_vault_status"
+                           readonly="1"
+                           widget="badge"
+                           decoration-success="dorevia_vault_status == 'vaulted'"
+                           decoration-warning="dorevia_vault_status in ('todo', 'pending_proof', 'failed_soft')"
+                           decoration-danger="dorevia_vault_status == 'failed_hard'"
+                           invisible="dorevia_vault_status == False"/>
+                    <div invisible="dorevia_vault_status != 'vaulted'" colspan="2" style="margin-top: 12px; margin-bottom: 8px; padding: 8px; background-color: #f8f9fa; border-radius: 4px;">
+                        <strong>Document protégé</strong><br/>
+                        <span style="font-size: 0.9em;">
+                            Numéro : <field name="name" readonly="1" nolabel="1" style="display: inline;"/>
+                        </span>
+                    </div>
+                    <div invisible="dorevia_vault_status != 'vaulted'" colspan="2" style="margin-top: 12px; margin-bottom: 12px;">
+                        <button name="action_download_payment_attestation"
+                                type="object"
+                                string="Télécharger l'attestation"
+                                class="btn-primary"
+                                help="Télécharge l'attestation cryptographique de sécurisation du paiement"/>
+                        <button name="action_open_vault_proof"
+                                type="object"
+                                string="Voir la preuve"
+                                class="btn-secondary"
+                                help="Ouvre la preuve au format v1.1 sur Vault"/>
+                    </div>
+                    <div invisible="state == 'draft' or dorevia_vault_status in ('vaulted', 'failed_hard')" colspan="2" style="margin-top: 8px;">
+                        <button name="action_refresh_vault_proof"
+                                type="object"
+                                string="Rafraîchir la preuve"
+                                class="btn-primary"
+                                help="Envoie ou relance l'envoi du paiement vers le coffre-fort Vault"/>
+                    </div>
+                    <field name="dorevia_vault_date"
+                           readonly="1"
+                           invisible="dorevia_vault_status != 'vaulted'"
+                           placeholder="Non disponible"
+                           string="Date de sécurisation"/>
+                    <field name="dorevia_vault_id"
+                           readonly="1"
+                           invisible="dorevia_vault_status != 'vaulted'"
+                           placeholder="Non disponible"
+                           string="Référence de preuve"/>
+                    <field name="dorevia_vault_sha256"
+                           readonly="1"
+                           invisible="dorevia_vault_status != 'vaulted'"
+                           placeholder="Non disponible"
+                           widget="text"
+                           string="Empreinte numérique"/>
+                    <field name="dorevia_vault_ledger_hash"
+                           readonly="1"
+                           invisible="dorevia_vault_status != 'vaulted'"
+                           placeholder="Non disponible"
+                           widget="text"
+                           string="Journal de preuve"/>
+                    <field name="dorevia_vault_evidence_jws"
+                           readonly="1"
+                           invisible="dorevia_vault_status != 'vaulted'"
+                           placeholder="Non disponible"
+                           widget="text"
+                           nolabel="1"
+                           colspan="2"
+                           string="Attestation cryptographique"/>
+                    <!-- Bloc Factures soldées (SPEC v1.0 §9.3) : montant + factures si champs disponibles (reconciled_* selon modules) -->
+                    <group string="Factures soldées"
+                           invisible="state != 'posted'"
+                           col="2">
+                        <field name="amount" readonly="1" string="Montant total"/>
+                        <field name="currency_id" readonly="1" widget="many2one"/>
+                    </group>
+                    <!-- Détails techniques (admin) -->
+                    <group string="Détails techniques (audit)"
+                           groups="base.group_system"
+                           invisible="dorevia_vault_status == False"
+                           col="2"
+                           collapsible="1">
+                        <field name="dorevia_vault_last_try_at" readonly="1"/>
+                        <field name="dorevia_vault_attempt_count" readonly="1"/>
+                        <field name="dorevia_vault_next_retry_at" readonly="1"/>
+                        <field name="dorevia_vault_idempotency_key" readonly="1" widget="text" string="Clé unique"/>
+                        <field name="dorevia_vault_last_error" readonly="1" widget="text" nolabel="1" colspan="2"/>
+                    </group>
+                </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

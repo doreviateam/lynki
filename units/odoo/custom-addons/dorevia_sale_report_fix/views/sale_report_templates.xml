@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+        🔒 CRITÈRE DE VÉRITÉ (non négociable) :
+        Le layout société est appliqué SI ET SEULEMENT SI la vue QWeb finale contient :
+        <t t-call="web.external_layout">
+        
+        Solution FINALE : On modifie report_saleorder_raw pour envelopper l'appel à 
+        report_saleorder_document dans external_layout.
+        
+        Cette approche garantit que external_layout est TOUJOURS présent, même si
+        report_saleorder_document ne l'utilise pas (ou si un autre module l'a retiré).
+        
+        Si report_saleorder_document utilise déjà external_layout, cela créera un double
+        layout, mais au moins le layout sera présent et visible.
+    -->
+    
+    <!-- 
+        Solution : On modifie report_saleorder_raw pour envelopper l'appel à 
+        report_saleorder_document dans external_layout.
+        Priorité 99 pour s'assurer que cette modification s'applique après les autres.
+    -->
+    <template id="report_saleorder_raw" inherit_id="sale.report_saleorder_raw" priority="99">
+        <!-- 
+            On remplace l'appel à sale.report_saleorder_document pour l'envelopper
+            dans external_layout. On utilise un xpath qui trouve l'élément dans la boucle foreach.
+        -->
+        <xpath expr="//t[@t-call='sale.report_saleorder_document']" position="replace">
+            <t t-call="web.external_layout">
+                <t t-call="sale.report_saleorder_document" t-lang="doc.partner_id.lang"/>
+            </t>
+        </xpath>
+    </template>
+</odoo>

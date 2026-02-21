@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Définition du modèle dorevia.vault.metric pour référence dans CRON -->
+    <record id="model_dorevia_vault_metric" model="ir.model">
+        <field name="name">dorevia.vault.metric</field>
+        <field name="model">dorevia.vault.metric</field>
+    </record>
+</odoo>

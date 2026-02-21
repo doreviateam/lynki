@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================ -->
+    <!-- Vue formulaire : Extension Dorevia Vault   -->
+    <!-- SPEC v1.1 - Vaulting automatique            -->
+    <!-- ============================================ -->
+    <record id="view_move_form_dorevia_vault_connector" model="ir.ui.view">
+        <field name="name">account.move.form.dorevia.vault.connector</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <!-- Bloc Dorevia Vault dans l'onglet "Autres informations" -->
+            <xpath expr="//page[@name='other_info']" position="inside">
+                <!-- Conteneur pour afficher les deux blocs côte à côte -->
+                <group invisible="move_type not in ['out_invoice', 'in_invoice', 'out_refund', 'in_refund']"
+                       col="2">
+                    
+                    <!-- ============================================ -->
+                    <!-- Bloc 1 : Sécurité de la facture             -->
+                    <!-- SPEC UX v1.1.1 - En-tête structuré          -->
+                    <!-- ============================================ -->
+                    <group string="🔐 Sécurité de la facture" 
+                           col="2">
+                        
+                        <!-- En-tête structuré avec statuts visuels (SPEC UX v1.1.1) -->
+                        <div colspan="2" style="margin-bottom: 16px;">
+                            <h4 style="margin-bottom: 8px;">🔐 Sécurité de la facture</h4>
+                            
+                            <!-- Statuts visuels -->
+                            <div style="margin-bottom: 12px;">
+                                <div invisible="dorevia_vault_status != 'vaulted'" style="margin-bottom: 4px;">
+                                    <span style="color: #28a745; font-size: 1.2em;">🟢</span>
+                                    <strong> Facture protégée</strong> — Preuve validée par le coffre-fort numérique
+                                </div>
+                                <div invisible="dorevia_vault_status not in ('todo', 'pending_proof')" style="margin-bottom: 4px;">
+                                    <span style="color: #ffc107; font-size: 1.2em;">🟠</span>
+                                    <strong> En cours de sécurisation</strong> — Traitement en cours
+                                </div>
+                                <div invisible="dorevia_vault_status not in ('todo', 'pending_proof', 'failed_soft')" style="margin-bottom: 8px;">
+                                    <button name="action_securiser_maintenant" type="object" string="Sécuriser maintenant" class="btn-primary" 
+                                            help="Lance la sécurisation immédiatement (sans attendre le traitement en arrière-plan)"/>
+                                </div>
+                                <div invisible="dorevia_vault_status not in ('failed_soft', 'failed_hard')" style="margin-bottom: 4px;">
+                                    <span style="color: #dc3545; font-size: 1.2em;">🔴</span>
+                                    <strong> Problème de sécurisation</strong> — Action requise
+                                </div>
+                            </div>
+                            
+                            <!-- Texte explicatif (visible uniquement si vaulted) -->
+                            <div invisible="dorevia_vault_status != 'vaulted'" 
+                                 style="padding: 12px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px; margin-top: 8px;">
+                                <p style="margin: 0;">
+                                    Cette facture a été <strong>scellée numériquement</strong>.<br/>
+                                    Toute modification ultérieure serait détectée.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Statut de protection (badge) -->
+                        <field name="dorevia_vault_status" 
+                               readonly="1" 
+                               widget="badge" 
+                               decoration-success="dorevia_vault_status == 'vaulted'"
+                               decoration-warning="dorevia_vault_status in ('todo', 'pending_proof', 'failed_soft')"
+                               decoration-danger="dorevia_vault_status == 'failed_hard'"
+                               invisible="dorevia_vault_status == False"/>
+                        
+                        <!-- Document protégé (SPEC UX v1.1.1) -->
+                        <div invisible="dorevia_vault_status != 'vaulted'" colspan="2" style="margin-top: 12px; margin-bottom: 8px; padding: 8px; background-color: #f8f9fa; border-radius: 4px;">
+                            <strong>📄 Document protégé</strong><br/>
+                            <span style="font-size: 0.9em;">
+                                Type : <field name="move_type" readonly="1" nolabel="1" widget="selection" style="display: inline;"/>
+                                <br/>
+                                Numéro : <field name="name" readonly="1" nolabel="1" style="display: inline;"/>
+                            </span>
+                        </div>
+                        
+                        <!-- Actions utilisateur (SPEC UX v1.1.1) -->
+                        <div invisible="dorevia_vault_status != 'vaulted'" colspan="2" style="margin-top: 12px; margin-bottom: 12px;">
+                            <button name="action_download_attestation" 
+                                    type="object" 
+                                    string="📄 Télécharger l'attestation" 
+                                    class="btn-primary"
+                                    help="Télécharge l'attestation cryptographique de sécurisation de la facture"/>
+                        </div>
+                        
+                        <!-- Informations de preuve (affichées uniquement si vaulted) -->
+                        <!-- SPEC UX v1.1.1 : Infobulles pédagogiques -->
+                        <field name="dorevia_vault_date" 
+                               readonly="1" 
+                               invisible="dorevia_vault_status != 'vaulted'"
+                               placeholder="Non disponible"
+                               string="📅 Date de sécurisation"
+                               help="Date et heure de sécurisation de la facture (scellement numérique)"/>
+                        
+                        <field name="dorevia_vault_id" 
+                               readonly="1" 
+                               invisible="dorevia_vault_status != 'vaulted'"
+                               placeholder="Non disponible"
+                               string="🧾 Référence de preuve"
+                               help="Identifiant unique de la preuve dans le coffre-fort numérique"/>
+                        
+                        <field name="dorevia_vault_sha256" 
+                               readonly="1" 
+                               invisible="dorevia_vault_status != 'vaulted'"
+                               placeholder="Non disponible"
+                               widget="text"
+                               string="🔍 Empreinte numérique"
+                               help="Comparable à une empreinte digitale, unique pour chaque document. Permet de vérifier l'intégrité du document."/>
+                        
+                        <field name="dorevia_vault_ledger_hash" 
+                               readonly="1" 
+                               invisible="dorevia_vault_status != 'vaulted'"
+                               placeholder="Non disponible"
+                               widget="text"
+                               string="📚 Journal de preuve"
+                               help="Historique infalsifiable utilisable en cas de contrôle. Preuve de traçabilité dans le journal de preuve."/>
+                        
+                        <!-- Attestation cryptographique (SPEC UX v1.1.1) -->
+                        <field name="dorevia_vault_evidence_jws" 
+                               readonly="1" 
+                               invisible="dorevia_vault_status != 'vaulted'"
+                               placeholder="Non disponible"
+                               widget="text"
+                               nolabel="1"
+                               colspan="2"
+                               string="Attestation cryptographique"
+                               help="Attestation de sécurité générée lors du scellement de la facture. Preuve technique signée par Dorevia (support / audit). Cette valeur est une signature numérique (JWT) générée lors de la sécurisation de la facture. Elle permet de vérifier la date de scellement, l'empreinte numérique du document, et l'identité du signataire (Dorevia). Ce champ est principalement destiné au support et à l'audit. Il n'est pas nécessaire à l'usage quotidien."/>
+                    </group>
+                    
+                    <!-- ============================================ -->
+                    <!-- Bloc 2 : Détails techniques (repliable)     -->
+                    <!-- (Visible uniquement pour les administrateurs) -->
+                    <!-- SPEC UX v1.1.1 - Bloc repliable              -->
+                    <!-- ============================================ -->
+                    <group string="⚙️ Détails techniques (audit)" 
+                           groups="base.group_system"
+                           invisible="dorevia_vault_status == False"
+                           col="2"
+                           collapsible="1">
+                        <!-- Informations de timing -->
+                        <field name="dorevia_vault_last_try_at" readonly="1"/>
+                        <field name="dorevia_vault_attempt_count" readonly="1"/>
+                        <field name="dorevia_vault_next_retry_at" readonly="1"/>
+                        
+                        <!-- Identifiants techniques -->
+                        <field name="dorevia_dvig_event_id" 
+                               readonly="1"
+                               string="Référence technique"/>
+                        <field name="dorevia_vault_idempotency_key" 
+                               readonly="1" 
+                               widget="text"
+                               string="Clé unique"/>
+                        
+                        <!-- Erreurs éventuelles -->
+                        <field name="dorevia_vault_last_error" 
+                               readonly="1" 
+                               widget="text" 
+                               nolabel="1" 
+                               colspan="2"/>
+                        
+                        <!-- Boutons debug (SPEC v1.1.0) -->
+                        <div colspan="2" style="margin-top: 12px;">
+                            <!-- Addendum v1.1.1-add1 : Outils de diagnostic désactivés en PROD -->
+                            <!-- Note : Ces boutons sont des outils de diagnostic uniquement, réservés à l'administrateur en environnements non-PROD. -->
+                            <!-- Ils sont désactivés en production et n'interviennent jamais dans le processus de vaulting, qui reste 100% automatisé. -->
+                            <button name="action_refresh_vault_proof" 
+                                    type="object" 
+                                    string="🔄 Refresh Proof Now" 
+                                    class="btn-secondary"
+                                    invisible="dorevia_vault_status not in ('pending_proof', 'failed_soft') or not dorevia_debug_enabled"
+                                    help="Outil de diagnostic : Déclenche immédiatement la récupération de la preuve depuis Vault (réservé à l'administrateur, désactivé en PROD)"/>
+                            
+                            <button name="action_trigger_dvig_worker" 
+                                    type="object" 
+                                    string="⚡ Trigger DVIG Worker Now" 
+                                    class="btn-secondary"
+                                    invisible="dorevia_vault_status not in ('todo', 'pending_proof', 'failed_soft') or not dorevia_debug_enabled"
+                                    help="Outil de diagnostic : Déclenche immédiatement le worker DVIG pour traiter l'outbox (réservé à l'administrateur, désactivé en PROD)"/>
+                        </div>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

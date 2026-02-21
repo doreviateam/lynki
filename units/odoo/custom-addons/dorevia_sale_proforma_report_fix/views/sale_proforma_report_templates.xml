@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+        🔒 CRITÈRE DE VÉRITÉ (non négociable) :
+        Le PDF pro forma utilise toute la largeur SI ET SEULEMENT SI le bloc des totaux
+        utilise col-12 en PDF (au lieu de col-6).
+        
+        Diagnostic v1.1 :
+        - external_layout est déjà présent dans sale.report_saleorder_document
+        - Le problème vient de la largeur du bloc des totaux (col-6 = 50% au lieu de col-12 = 100%)
+        - Solution : modifier la classe CSS conditionnellement pour les pro forma PDF
+    -->
+    
+    <!-- 
+        Fix PDF Pro Forma : bloc totaux trop étroit (col-6)
+        On modifie la classe CSS du bloc des totaux pour utiliser col-12 en PDF
+        uniquement pour les factures pro forma, sans impacter les devis/commandes/HTML.
+    -->
+    <template id="sale_report_saleorder_document_proforma_totals_fullwidth"
+              inherit_id="sale.report_saleorder_document"
+              priority="99">
+        <xpath expr="//div[@name='total']/div[@t-attf-class]" position="attributes">
+            <attribute name="t-attf-class">
+                #{'col-12' if (report_type != 'html' and is_pro_forma)
+                  else ('col-6' if report_type != 'html' else 'col-sm-7 col-md-6')} ms-auto
+            </attribute>
+        </xpath>
+    </template>
+</odoo>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue formulaire : Ajouter champ dorevia_vaulted et désactiver button_draft -->
+    <record id="view_move_form_dorevia_posted_lock" model="ir.ui.view">
+        <field name="name">account.move.form.dorevia.posted.lock</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <!-- NOTE: Champ dorevia_vaulted supprimé de la vue - remplacé par dorevia_vault_connector (SPEC v1.1) -->
+            <!-- Le champ reste en base de données pour rétrocompatibilité et est mis à jour automatiquement -->
+            <!-- Les informations de vault sont maintenant dans la section "Dorevia Vault (SPEC v1.1)" dans l'onglet "Autres informations" -->
+            
+            <!-- NOTE: Section "Dorevia Vault" supprimée - remplacée par dorevia_vault_connector (SPEC v1.1) -->
+            <!-- Les informations de vault sont maintenant gérées par le module dorevia_vault_connector -->
+            
+            <!-- Désactiver le bouton "Remettre en brouillon" quand posted et verrouillage activé -->
+            <!-- 
+                Note: On masque le bouton pour les factures/avoirs posted.
+                Le paramètre allow_draft est géré au niveau métier (button_draft() override).
+                Si allow_draft=True, le bouton reste visible mais button_draft() sera autorisé.
+            -->
+            <xpath expr="//button[@name='button_draft']" position="attributes">
+                <attribute name="invisible">state == 'posted' and move_type in ['out_invoice', 'in_invoice', 'out_refund', 'in_refund']</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+

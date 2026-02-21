@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menu principal Dorevia Billing -->
+    <menuitem id="menu_dorevia_billing_root"
+              name="Dorevia Billing"
+              web_icon="dorevia_billing_core,static/description/icon.png"
+              sequence="100"/>
+
+    <!-- Menu Constats -->
+    <menuitem id="menu_dorevia_constat"
+              name="Constats"
+              parent="menu_dorevia_billing_root"
+              action="action_dorevia_constat"
+              sequence="10"/>
+
+    <!-- Menu Contrats -->
+    <menuitem id="menu_dorevia_contract"
+              name="Contrats"
+              parent="menu_dorevia_billing_root"
+              action="action_dorevia_contract"
+              sequence="20"/>
+
+    <!-- Menu Règles tarifaires -->
+    <menuitem id="menu_dorevia_pricing_rule"
+              name="Règles tarifaires"
+              parent="menu_dorevia_billing_root"
+              action="action_dorevia_pricing_rule"
+              sequence="30"/>
+</odoo>
+
