@@ -49,9 +49,9 @@ La card **Points de vente** (Responsable Région) v1.1 est **implémentée et d�
 | Fichier | Modifications |
 |---------|---------------|
 | `units/dorevia-linky/components/DashboardWithFilters.tsx` | `posPeriod` = today quand `viewMode === "pos_shops"` |
-| `units/dorevia-linky/components/PosShopsView.tsx` | Verdict, hiérarchie, unsealed, `formatSessionTime`, tickets comptés, panier moyen |
-| `tenants/sarl-la-platine/apps/ui/stinger/docker-compose.yml` | Image `dorevia/linky:pos-responsable-region-v1.1` |
-| `tenants/sarl-la-platine/apps/ui/lab/docker-compose.yml` | Image `dorevia/linky:pos-responsable-region-v1.1` |
+| `units/dorevia-linky/components/PosShopsView.tsx` | Verdict, hiérarchie, unsealed, `formatSessionTime`, tickets comptés, CA moyen par session, Ticket moyen |
+| `tenants/sarl-la-platine/apps/ui/stinger/docker-compose.yml` | Image `dorevia/linky:pos-ca-ticket-moyen` |
+| `tenants/sarl-la-platine/apps/ui/lab/docker-compose.yml` | Image `dorevia/linky:pos-ca-ticket-moyen` |
 
 ---
 
@@ -59,8 +59,8 @@ La card **Points de vente** (Responsable Région) v1.1 est **implémentée et d�
 
 | Environnement | Image | Statut |
 |---------------|-------|--------|
-| stinger | `dorevia/linky:pos-responsable-region-v1.1` | Déployé |
-| lab | `dorevia/linky:pos-responsable-region-v1.1` | Déployé |
+| stinger | `dorevia/linky:pos-ca-ticket-moyen` | Déployé |
+| lab | `dorevia/linky:pos-ca-ticket-moyen` | Déployé |
 
 ---
 
