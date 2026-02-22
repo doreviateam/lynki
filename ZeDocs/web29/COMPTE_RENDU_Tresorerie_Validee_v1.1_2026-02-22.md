@@ -59,6 +59,7 @@
 | `units/dorevia-linky/app/api/treasury/route.ts` | Appel bank-reconciliation-health, champs agrégats |
 | `units/dorevia-linky/components/TreasuryCardWithPolling.tsx` | Verdict, phrase, métriques, CTAs |
 | `sources/vault/internal/server/replay.go` | Enregistrement route bank-reconciliation-health |
+| `sources/vault/internal/handlers/bank_reconciliation_health.go` | Champ `oldest_unreconciled_date` (transmission Odoo → Linky) |
 
 ---
 
@@ -78,6 +79,12 @@ Si ces champs sont absents, le front affiche « — » pour les métriques conce
 ## 5. Variable d’environnement
 
 `NEXT_PUBLIC_ODOO_URL` — URL de base Odoo pour les CTAs (ex. `https://odoo.stinger.xxx.doreviateam.com/odoo`).
+
+**Build Linky** (URL personnalisable via --build-arg) :
+```bash
+cd units/dorevia-linky
+docker build --build-arg NEXT_PUBLIC_ODOO_URL="https://odoo.stinger.sarl-la-platine.doreviateam.com/odoo" -t dorevia/linky:tresorerie-v1.1 .
+```
 
 ---
 

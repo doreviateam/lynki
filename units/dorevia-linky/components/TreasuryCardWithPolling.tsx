@@ -131,7 +131,7 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
         ? "Aucun rapprochement effectué sur la période sélectionnée."
         : "Rapprochement partiel. Montants non validés présents.";
 
-  const showCTAs = unreconciled > 0 && rateRounded !== 100;
+  const showCTAs = unreconciled > 0;
 
   useEffect(() => {
     if (
