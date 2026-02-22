@@ -46,7 +46,7 @@
   - Journaux concernés : N ou —
   - Dernier relevé importé : JJ/MM/AAAA ou JJ/MM/AAAA HH:MM ou —
 
-- **CTAs** (si `unreconciled > 0` et `fiabilité ≠ 100 %`) :
+- **CTAs** (si `unreconciled > 0`) :
   - « Rapprocher maintenant » → Odoo `/web#model=account.bank.statement.line`
   - « Importer relevés » → Odoo `/web#model=account.bank.statement`
 
@@ -83,12 +83,19 @@ Si ces champs sont absents, le front affiche « — » pour les métriques conce
 **Build Linky** (URL personnalisable via --build-arg) :
 ```bash
 cd units/dorevia-linky
-docker build --build-arg NEXT_PUBLIC_ODOO_URL="https://odoo.stinger.sarl-la-platine.doreviateam.com/odoo" -t dorevia/linky:tresorerie-v1.1 .
+docker build --build-arg NEXT_PUBLIC_ODOO_URL="https://odoo.stinger.sarl-la-platine.doreviateam.com/odoo" -t dorevia/linky:tresorerie-v1.2 .
 ```
 
 ---
 
 ## 6. Déploiement
 
-- **Linky** : rebuilder l’image Next.js
-- **Vault** : rebuilder l’image Go pour inclure la route `bank-reconciliation-health`
+| Environnement | Image | Statut (2026-02-22) |
+|---------------|-------|---------------------|
+| Vault core-stinger | `dorevia/vault:tresorerie-v1.2` | Déployé |
+| Linky stinger | `dorevia/linky:tresorerie-v1.2` | Déployé |
+| Linky lab | `dorevia/linky:tresorerie-v1.2` | Déployé |
+
+**Build :**
+- Linky : `docker build --build-arg NEXT_PUBLIC_ODOO_URL="…" -t dorevia/linky:tresorerie-v1.2 .`
+- Vault : `docker build -t dorevia/vault:tresorerie-v1.2 .`

@@ -6,7 +6,7 @@
 
 services:
   linky:
-    image: dorevia/linky:pos-ca-ticket-moyen
+    image: dorevia/linky:tresorerie-v1.2
     container_name: linky_stinger_sarl-la-platine
     restart: unless-stopped
     environment:
