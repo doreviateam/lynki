@@ -93,18 +93,18 @@ RÈGLES :
 7. Ton : factuel, sobre, analytique. Aucun conseil, aucune recommandation, aucune injonction.
 8. La trésorerie est l'indicateur central. Les autres cartes (business, taxes, remboursements, POS) sont des inducteurs qui expliquent la position de trésorerie. Structure ton analyse autour de cette hiérarchie.
 9. Activité commerciale totale = Business (facturation) + POS (ventes en magasin). Ne dis JAMAIS "aucune activité commerciale" si le POS affiche des ventes. Si Business = 0 et POS > 0, le CA provient exclusivement du canal POS.
-10. Points de vente (POS) : si les insights POS détaillent sessions, panier moyen, mix paiements ou écarts de caisse, intègre-les comme inducteur de trésorerie. Signale les écarts de caisse et les sessions non scellées comme points à vérifier.
+10. Points de vente (POS) : si les insights POS détaillent sessions, panier moyen, mix paiements ou écarts de caisse, intègre-les comme inducteur de trésorerie. Signale les écarts de caisse et les N sessions non scellées comme points à vérifier.
 11. Chaque carte contient un champ "status" (neutral/ok/watch/alert) et "status_reason" calculés par le système de gouvernance. Priorise les cartes en "watch" ou "alert" dans ta synthèse. Le headline doit refléter le point de gouvernance le plus critique. Si un insight GOUVERNANCE est présent, intègre-le dans ton analyse. Ne contredis jamais un statut de gouvernance.
 
 OUTPUT RULES (strict order) — Cockpit v1.1 :
 1. headline : 1 phrase, trésorerie dominante.
-2. what_i_see : premières 2–4 lignes = inducteurs uniquement ; dernière ligne = synthèse statuts compacts uniquement, format strict "Label status • Label status • …" (ex. "Business OK • Taxes watch • POS scellé ✓"). Sans phrase, sans verbe, sans explication — statuts seulement.
+2. what_i_see : premières 2–4 lignes = inducteurs uniquement ; dernière ligne = synthèse statuts compacts uniquement, format strict "Label status • Label status • …" (ex. "Business OK • Taxes watch • POS 7 scellé ✓"). Sans phrase, sans verbe, sans explication — statuts seulement.
 3. to_check : énoncés vérifiables uniquement.
 
 Règles sémantiques 12–16 :
 12. Si data_completeness.bank_health_metrics = "absent", mentionner "Données de rapprochement bancaire non disponibles" dans what_i_see ou to_check. Ne pas extrapoler.
 13. Z de caisse : si Z = null ou "—", mentionner uniquement si POS actif. Si Z incohérent, en faire un inducteur. Sinon ignorer.
-14. Si POS > 0 et 100 % scellé, inclure "POS scellé ✓" dans la synthèse (headline ou dernière ligne what_i_see).
+14. Si POS > 0 et 100 %% scellé, inclure "POS N scellé ✓" (N = nb sessions scellées) dans la synthèse (headline ou dernière ligne what_i_see).
 15. data_completeness = "complete" signifie données disponibles, pas discipline bonne. Pour évaluer la discipline : unreconciled_lines_count, reconciliation_rate, last_statement_import_date. Ne pas confondre.
 16. Si Trésorerie = 0 % validée ET flux opérationnels présents (Business, POS ou Cash), signaler : "flux opérationnels sans validation bancaire" — formulation chirurgicale, sans redondance.
 17. Quand les flux (cash, business, POS) sont modestes (< 10k€), proportionner le discours sur la discipline : signaler l'écart sans dramatiser comme pour des millions.`
@@ -427,6 +427,8 @@ func computeInsights(cards []models.Card, details map[string]interface{}) []stri
 			insights = append(insights, fmt.Sprintf(
 				"POS conformité: %d/%d sessions scellées (%s) — %d en attente",
 				posDetails.sealedSessions, posDetails.totalSessions, fmtPct(sealingRate), posDetails.pendingSessions))
+		} else if posDetails.sealedSessions > 0 {
+			insights = append(insights, fmt.Sprintf("POS conformité: %d sessions scellées (100 %%)", posDetails.sealedSessions))
 		}
 
 		if len(posDetails.shops) > 1 {

@@ -248,7 +248,7 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
         <span className="text-[var(--text-secondary)]">•</span>
         <span>{totalSessions} session{totalSessions > 1 ? "s" : ""} remontée{totalSessions > 1 ? "s" : ""}</span>
         <span className="text-[var(--text-secondary)]">•</span>
-        <span className="text-[var(--positive)]">✓ {totalSealed} sécurisée{totalSealed > 1 ? "s" : ""}</span>
+        <span className="text-[var(--positive)]">✓ {totalSealed} scellée{totalSealed > 1 ? "s" : ""}</span>
         {unsealedSessions > 0 && (
           <>
             <span className="text-[var(--text-secondary)]">•</span>
@@ -303,7 +303,7 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm">
                     <span>{shop.total_sessions} session{shop.total_sessions > 1 ? "s" : ""}</span>
-                    <span className="text-[var(--positive)]">✔ {shop.sealed_sessions} sécurisée{shop.sealed_sessions > 1 ? "s" : ""}</span>
+                    <span className="text-[var(--positive)]">✔ {shop.sealed_sessions} scellée{shop.sealed_sessions > 1 ? "s" : ""}</span>
                     {shopUnsealed > 0 && (
                       <span className="text-amber-600 dark:text-amber-400">
                         ⚠ {shopUnsealed} non scellée{shopUnsealed > 1 ? "s" : ""}
@@ -338,7 +338,7 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
                       series2={[]}
                       total1={total1}
                       total2={0}
-                      label1="Ventes scellées"
+                      label1={`Ventes scellées (${shop.sealed_sessions})`}
                       label2="Ventes en attente"
                       granularity={chartGranularity}
                       chartType={chartType}
@@ -374,7 +374,7 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
                         <div className="mt-3 border-t border-[var(--border)] pt-3">
                           <div className="space-y-1 text-sm font-semibold text-[var(--text-secondary)] mb-4">
                             <div>{shop.total_sessions} session{shop.total_sessions > 1 ? "s" : ""} • {shop.total_tickets} ticket{shop.total_tickets > 1 ? "s" : ""} compté{shop.total_tickets > 1 ? "s" : ""}</div>
-                            <div className="text-[var(--positive)]">✓ {shop.sealed_sessions} sécurisée{shop.sealed_sessions > 1 ? "s" : ""}</div>
+                            <div className="text-[var(--positive)]">✓ {shop.sealed_sessions} scellée{shop.sealed_sessions > 1 ? "s" : ""}</div>
                             {shopUnsealed > 0 && (
                               <div className="text-amber-600 dark:text-amber-400">{shopUnsealed} non scellée{shopUnsealed > 1 ? "s" : ""}</div>
                             )}
