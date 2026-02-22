@@ -93,7 +93,8 @@ RÈGLES :
 7. Ton : factuel, sobre, analytique. Aucun conseil, aucune recommandation, aucune injonction.
 8. La trésorerie est l'indicateur central. Les autres cartes (business, taxes, remboursements, POS) sont des inducteurs qui expliquent la position de trésorerie. Structure ton analyse autour de cette hiérarchie.
 9. Activité commerciale totale = Business (facturation) + POS (ventes en magasin). Ne dis JAMAIS "aucune activité commerciale" si le POS affiche des ventes. Si Business = 0 et POS > 0, le CA provient exclusivement du canal POS.
-10. Points de vente (POS) : si les insights POS détaillent sessions, panier moyen, mix paiements ou écarts de caisse, intègre-les comme inducteur de trésorerie. Signale les écarts de caisse et les sessions non scellées comme points à vérifier.`
+10. Points de vente (POS) : si les insights POS détaillent sessions, panier moyen, mix paiements ou écarts de caisse, intègre-les comme inducteur de trésorerie. Signale les écarts de caisse et les sessions non scellées comme points à vérifier.
+11. Chaque carte contient un champ "status" (neutral/ok/watch/alert) et "status_reason" calculés par le système de gouvernance. Priorise les cartes en "watch" ou "alert" dans ta synthèse. Le headline doit refléter le point de gouvernance le plus critique. Si un insight GOUVERNANCE est présent, intègre-le dans ton analyse. Ne contredis jamais un statut de gouvernance.`
 
 func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string, focusCardDetails map[string]interface{}, dashboardDetails map[string]interface{}) (models.Flash, error) {
 	effective := cards
@@ -109,7 +110,9 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 		biz, hasBiz := cardVal(cards, "business")
 		cash, hasCash := cardVal(cards, "cash")
 		taxes, hasTaxes := cardVal(cards, "taxes")
-		if (!hasBiz || biz == 0) && (!hasCash || cash == 0) && (!hasTaxes || taxes == 0) {
+		pos, hasPOS := cardVal(cards, "pos_shops")
+		// Pas de données analysables si toutes les cartes métier clés sont absentes ou à zéro
+		if (!hasBiz || biz == 0) && (!hasCash || cash == 0) && (!hasTaxes || taxes == 0) && (!hasPOS || pos == 0) {
 			return noDataFlash(), nil
 		}
 	}
@@ -125,7 +128,7 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 			{"role": "user", "content": userPrompt},
 		},
 		"temperature":       0.45,
-		"max_tokens":        650,
+		"max_tokens":        1024,
 		"top_p":             0.9,
 		"frequency_penalty": 0.3,
 		"presence_penalty":  0.1,
@@ -203,6 +206,11 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 	flash, parseErr := parseFlash(outputContent, effective)
 	latencyMs := time.Since(genStart).Milliseconds()
 
+	// Cockpit : enrichir le flash si Mistral a retourné un JSON tronqué (what_i_see/to_check vides)
+	if isCockpit && (len(flash.WhatISee) == 0 || len(flash.ToCheck) == 0) && dashboardDetails != nil {
+		flash = enrichFlashWithInsights(flash, effective, dashboardDetails)
+	}
+
 	if isCockpit && flash.Headline == "Lecture DIVA temporairement indisponible." {
 		logDegraded("llm_output_rejected")
 		return degradedFlash(cards, dashboardDetails), nil
@@ -235,8 +243,40 @@ func cardVal(cards []models.Card, key string) (float64, bool) {
 	return 0, false
 }
 
-func fmtPct(v float64) string  { return fmt.Sprintf("%.1f%%", v) }
-func fmtEUR(v float64) string  { return fmt.Sprintf("%.0f €", v) }
+func cardStatus(cards []models.Card, key string) (status, reason string) {
+	for _, c := range cards {
+		if c.Key == key {
+			return c.Status, c.StatusReason
+		}
+	}
+	return "", ""
+}
+
+func fmtPct(v float64) string { return fmt.Sprintf("%.1f%%", v) }
+
+func fmtEUR(v float64) string {
+	abs := math.Abs(v)
+	intPart := int64(math.Floor(abs))
+	decPart := int64(math.Round((abs - float64(intPart)) * 100))
+	s := fmt.Sprintf("%d", intPart)
+	// Séparateur de milliers = espace (norme française)
+	var b strings.Builder
+	for i, c := range s {
+		if i > 0 && (len(s)-i)%3 == 0 {
+			b.WriteByte(' ')
+		}
+		b.WriteRune(c)
+	}
+	formatted := b.String()
+	if v < 0 {
+		formatted = "-" + formatted
+	}
+	if decPart > 0 {
+		return formatted + "," + fmt.Sprintf("%02d", decPart) + " €"
+	}
+	return formatted + " €"
+}
+
 func absVal(v float64) float64 { return math.Abs(v) }
 
 func computeInsights(cards []models.Card, details map[string]interface{}) []string {
@@ -362,6 +402,36 @@ func computeInsights(cards []models.Card, details map[string]interface{}) []stri
 		insights = append(insights, fmt.Sprintf("Aucune note de crédit émise sur la période malgré un volume d'activité de %s", fmtEUR(biz)))
 	}
 
+	// --- AR by Partner (Encours & Retard) — 1 insight max (SPEC S4.2) ---
+	arDetails := extractARDetails(details)
+	if arDetails != nil && arDetails.overdueAmount > 0 {
+		msg := fmt.Sprintf("AR à risque: %s en retard sur %d partenaire(s)",
+			fmtEUR(arDetails.overdueAmount), arDetails.overdueCount)
+		if arDetails.topPartnerName != "" {
+			msg += fmt.Sprintf(", principal débiteur %s (%s)", arDetails.topPartnerName, fmtEUR(arDetails.topOverdueAmount))
+		}
+		msg += "."
+		insights = append(insights, msg)
+	}
+
+	// Synthèse de gouvernance — statuts déterministes transmis par Linky
+	var watchCards []string
+	var alertCards []string
+	for _, c := range cards {
+		switch c.Status {
+		case "watch":
+			watchCards = append(watchCards, fmt.Sprintf("%s (%s)", c.Label, c.StatusReason))
+		case "alert":
+			alertCards = append(alertCards, fmt.Sprintf("%s (%s)", c.Label, c.StatusReason))
+		}
+	}
+	if len(alertCards) > 0 {
+		insights = append(insights, fmt.Sprintf("GOUVERNANCE CRITIQUE: %s", strings.Join(alertCards, " | ")))
+	}
+	if len(watchCards) > 0 {
+		insights = append(insights, fmt.Sprintf("GOUVERNANCE — points d'attention: %s", strings.Join(watchCards, " | ")))
+	}
+
 	return insights
 }
 
@@ -422,6 +492,61 @@ func extractPosDetails(details map[string]interface{}) *posDetailsData {
 	return d
 }
 
+type arDetailsData struct {
+	openAmount       float64
+	overdueAmount    float64
+	overdueCount     int
+	topPartnerName   string
+	topOverdueAmount float64
+}
+
+func extractARDetails(details map[string]interface{}) *arDetailsData {
+	if details == nil {
+		return nil
+	}
+	bus, ok := details["business"].(map[string]interface{})
+	if !ok || bus == nil {
+		return nil
+	}
+	ar, ok := bus["ar_by_partner"].(map[string]interface{})
+	if !ok || ar == nil {
+		return nil
+	}
+	totals, ok := ar["totals"].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	d := &arDetailsData{}
+	d.openAmount = toFloat(totals["open_amount"])
+	d.overdueAmount = toFloat(totals["overdue_amount"])
+	if d.overdueAmount <= 0 {
+		return d
+	}
+	partnersRaw, ok := ar["partners"].([]interface{})
+	if !ok {
+		return d
+	}
+	// Compter partenaires en retard et garder le plus gros
+	for _, p := range partnersRaw {
+		pm, ok := p.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		ov := toFloat(pm["overdue_amount"])
+		if ov > 0 {
+			d.overdueCount++
+			if ov > d.topOverdueAmount {
+				d.topOverdueAmount = ov
+				d.topPartnerName = toString(pm["partner_name"])
+				if d.topPartnerName == "" {
+					d.topPartnerName = toString(pm["partner_id"])
+				}
+			}
+		}
+	}
+	return d
+}
+
 func toInt(v interface{}) int {
 	switch n := v.(type) {
 	case float64:
@@ -466,15 +591,19 @@ func (c *Client) buildUserPrompt(ctx models.Context, cards []models.Card, focusC
 		scope = fmt.Sprintf("analyse société spécifique (id=%d)", ctx.CompanyID)
 	}
 
+	ctxMap := map[string]interface{}{
+		"tenant":     ctx.Tenant,
+		"scope":      scope,
+		"date_start": ctx.DateStart,
+		"date_end":   ctx.DateEnd,
+		"currency":   ctx.Currency,
+	}
+	if ctx.PartnerName != "" {
+		ctxMap["partner_name"] = ctx.PartnerName
+	}
 	payload := userPromptPayload{
 		Mode: mode,
-		Context: map[string]interface{}{
-			"tenant":     ctx.Tenant,
-			"scope":      scope,
-			"date_start": ctx.DateStart,
-			"date_end":   ctx.DateEnd,
-			"currency":   ctx.Currency,
-		},
+		Context: ctxMap,
 		Cards: make([]map[string]interface{}, 0, len(cards)),
 	}
 
@@ -489,6 +618,10 @@ func (c *Client) buildUserPrompt(ctx models.Context, cards []models.Card, focusC
 			m["value"] = *card.Value
 		} else {
 			m["value"] = nil
+		}
+		if card.Status != "" {
+			m["status"] = card.Status
+			m["status_reason"] = card.StatusReason
 		}
 		payload.Cards = append(payload.Cards, m)
 	}
@@ -521,6 +654,18 @@ func (c *Client) buildInstruction(mode, focusCard string) string {
 	return "Mode: cockpit. Analyse globale à partir des données et insights pré-calculés. JSON strict."
 }
 
+// isHeadlineJSONGarbage — évite de renvoyer ou persister un headline contenant du JSON brut ({, ", etc.)
+func isHeadlineJSONGarbage(s string) bool {
+	s = strings.TrimSpace(s)
+	if s == "" || s == "{" || s == "}" || s == `"` {
+		return true
+	}
+	if strings.HasPrefix(s, "{") || strings.HasPrefix(s, `"`) {
+		return true
+	}
+	return false
+}
+
 func parseFlash(content string, cards []models.Card) (models.Flash, error) {
 	content = strings.TrimSpace(content)
 	if content == "" {
@@ -535,13 +680,33 @@ func parseFlash(content string, cards []models.Card) (models.Flash, error) {
 		}
 	}
 
+	// JSON tronqué : tenter de récupérer le headline via regex
+	if strings.HasPrefix(strings.TrimSpace(content), "{") {
+		if hl := extractHeadlineFromTruncatedJSON(content); hl != "" {
+			san := sanitizeHeadline(hl)
+			if isHeadlineJSONGarbage(san) {
+				return fallbackFlash(), nil
+			}
+			return models.Flash{
+				Headline:   san,
+				WhatISee:   []string{},
+				ToCheck:    []string{},
+				Confidence: computeConfidence(cards),
+			}, nil
+		}
+	}
+
 	headline := strings.TrimSpace(content)
 	if len(headline) > 1200 {
 		headline = headline[:1197] + "..."
 	}
 	if headline != "" && !forbiddenTerms.MatchString(headline) && !englishDetect.MatchString(headline) {
+		san := sanitizeHeadline(headline)
+		if isHeadlineJSONGarbage(san) {
+			return fallbackFlash(), nil
+		}
 		return models.Flash{
-			Headline:   sanitizeHeadline(headline),
+			Headline:   san,
 			WhatISee:   []string{},
 			ToCheck:    []string{},
 			Confidence: computeConfidence(cards),
@@ -549,6 +714,18 @@ func parseFlash(content string, cards []models.Card) (models.Flash, error) {
 	}
 
 	return fallbackFlash(), nil
+}
+
+var headlineExtract = regexp.MustCompile(`"headline"\s*:\s*"((?:[^"\\]|\\.)*)"`)
+
+func extractHeadlineFromTruncatedJSON(s string) string {
+	m := headlineExtract.FindStringSubmatch(s)
+	if len(m) < 2 {
+		return ""
+	}
+	hl := strings.ReplaceAll(m[1], `\"`, `"`)
+	hl = strings.ReplaceAll(hl, `\\`, `\`)
+	return strings.TrimSpace(hl)
 }
 
 func extractJSON(s string) string {
@@ -642,6 +819,9 @@ func textLength(raw flashRaw) int {
 const maxFlashTotalChars = 600
 
 func validateAndBuildFlash(raw flashRaw, cards []models.Card) (models.Flash, error) {
+	if isHeadlineJSONGarbage(raw.Headline) {
+		return fallbackFlash(), nil
+	}
 	conf := computeConfidence(cards)
 	if textLength(raw) < dynamicMinLength(cards) {
 		return fallbackFlash(), nil
@@ -665,8 +845,12 @@ func validateAndBuildFlash(raw flashRaw, cards []models.Card) (models.Flash, err
 	for textLength(raw) > maxFlashTotalChars && len(raw.WhatISee) > 1 {
 		raw.WhatISee = raw.WhatISee[:len(raw.WhatISee)-1]
 	}
+	headline := sanitizeHeadline(raw.Headline)
+	if headline == "" || isHeadlineJSONGarbage(headline) {
+		return fallbackFlash(), nil
+	}
 	return models.Flash{
-		Headline:   sanitizeHeadline(raw.Headline),
+		Headline:   headline,
 		WhatISee:   raw.WhatISee,
 		ToCheck:    raw.ToCheck,
 		Confidence: conf,
@@ -687,6 +871,9 @@ func sanitizeHeadline(s string) string {
 	s = strings.TrimSpace(s)
 	s = leadingOrphanPunct.ReplaceAllString(s, "")
 	s = strings.TrimSpace(strings.TrimSuffix(s, ","))
+	if isHeadlineJSONGarbage(s) {
+		return ""
+	}
 	if runes := []rune(s); len(runes) > maxHeadlineChars {
 		cut := maxHeadlineChars - 3
 		for cut > 0 && runes[cut] != ' ' {
@@ -707,6 +894,53 @@ func fallbackFlash() models.Flash {
 		ToCheck:    []string{},
 		Confidence: "low",
 	}
+}
+
+// enrichFlashWithInsights complète what_i_see et to_check à partir de computeInsights
+// quand Mistral a retourné un JSON tronqué (headline seul). Ne modifie pas le headline.
+func enrichFlashWithInsights(flash models.Flash, cards []models.Card, details map[string]interface{}) models.Flash {
+	insights := computeInsights(cards, details)
+	if len(insights) == 0 {
+		return flash
+	}
+	if len(flash.WhatISee) == 0 {
+		var items []string
+		for _, ins := range insights {
+			if strings.HasPrefix(ins, "POINT DOMINANT:") {
+				continue
+			}
+			if strings.HasPrefix(ins, "GOUVERNANCE — points d'attention: ") {
+				parts := strings.Split(strings.TrimPrefix(ins, "GOUVERNANCE — points d'attention: "), " | ")
+				for _, p := range parts {
+					p = strings.TrimSpace(p)
+					if p != "" {
+						items = append(items, "• "+p)
+					}
+				}
+				continue
+			}
+			if strings.HasPrefix(ins, "GOUVERNANCE CRITIQUE:") {
+				continue
+			}
+			items = append(items, ins)
+			if len(items) >= 5 {
+				break
+			}
+		}
+		flash.WhatISee = items
+	}
+	if len(flash.ToCheck) == 0 {
+		for _, ins := range insights {
+			if len(flash.ToCheck) >= 2 {
+				break
+			}
+			low := strings.ToLower(ins)
+			if strings.Contains(low, "alerte") || strings.Contains(low, "conformité") || strings.Contains(low, "absence") || strings.Contains(low, "gouvernance") {
+				flash.ToCheck = append(flash.ToCheck, ins)
+			}
+		}
+	}
+	return flash
 }
 
 func degradedFlash(cards []models.Card, details map[string]interface{}) models.Flash {
