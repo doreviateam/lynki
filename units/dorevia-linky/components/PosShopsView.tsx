@@ -22,6 +22,7 @@ interface PosSessionItem {
   opened_at: string;
   closed_at: string;
   total_sales: number;
+  total_tickets?: number;
   cash_total?: number;
   card_total?: number;
   difference?: number;
@@ -41,6 +42,7 @@ interface PosShopAggregation {
   sealed_sessions: number;
   pending_sessions: number;
   total_sales: number;
+  total_tickets: number;
 }
 
 interface CompanyItem {
@@ -109,9 +111,9 @@ function aggregateByShop(items: PosSessionItem[]): PosShopAggregation[] {
     if (cur) {
       cur.total_sessions += 1;
       cur.total_sales += item.total_sales;
+      cur.total_tickets += item.total_tickets ?? 0;
       if (item.vault_status === "sealed") cur.sealed_sessions += 1;
       else if (item.vault_status === "pending") cur.pending_sessions += 1;
-      // failed / missing : ni sealed ni pending
     } else {
       byShop.set(shopId, {
         shop_id: shopId,
@@ -119,6 +121,7 @@ function aggregateByShop(items: PosSessionItem[]): PosShopAggregation[] {
         sealed_sessions: item.vault_status === "sealed" ? 1 : 0,
         pending_sessions: item.vault_status === "pending" ? 1 : 0,
         total_sales: item.total_sales,
+        total_tickets: item.total_tickets ?? 0,
       });
     }
   }
@@ -201,12 +204,14 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
     );
   }
 
-  const shops = aggregateByShop(data?.items ?? []);
+  const items = data?.items ?? [];
+  const shops = aggregateByShop(items);
   const totalSessions = data?.total_sessions ?? 0;
   const totalSealed = data?.sealed_sessions ?? 0;
   const unsealedSessions = Math.max(0, totalSessions - totalSealed);
   const verdict = unsealedSessions > 0 ? "WARNING" : "OK";
   const totalSales = shops.reduce((s, shop) => s + shop.total_sales, 0);
+  const totalTickets = items.reduce((acc, i) => acc + (i.total_tickets ?? 0), 0);
 
   return (
     <section
@@ -251,10 +256,18 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
           </>
         )}
       </div>
-      <div className="mb-2 text-sm font-medium text-[var(--text-secondary)]">
-        <span>Panier moyen global : </span>
-        <span className="tabular-nums text-[var(--text)]">
-          {totalSessions > 0 ? `${formatNumber(totalSales / totalSessions, { minFraction: 2, maxFraction: 2 })} €` : "—"}
+      <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1 text-sm font-medium text-[var(--text-secondary)]">
+        <span>
+          CA moyen par session :{" "}
+          <span className="tabular-nums text-[var(--text)]">
+            {totalSessions > 0 ? `${formatNumber(totalSales / totalSessions, { minFraction: 2, maxFraction: 2 })} €` : "—"}
+          </span>
+        </span>
+        <span>
+          Ticket moyen :{" "}
+          <span className="tabular-nums text-[var(--text)]">
+            {totalTickets > 0 ? `${formatNumber(totalSales / totalTickets, { minFraction: 2, maxFraction: 2 })} €` : "—"}
+          </span>
         </span>
       </div>
       {shops.length > 0 && (
@@ -360,16 +373,23 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
                       {isDetailExpanded && (
                         <div className="mt-3 border-t border-[var(--border)] pt-3">
                           <div className="space-y-1 text-sm font-semibold text-[var(--text-secondary)] mb-4">
-                            <div>{shop.total_sessions} ticket{shop.total_sessions > 1 ? "s" : ""} compté{shop.total_sessions > 1 ? "s" : ""}</div>
+                            <div>{shop.total_sessions} session{shop.total_sessions > 1 ? "s" : ""} • {shop.total_tickets} ticket{shop.total_tickets > 1 ? "s" : ""} compté{shop.total_tickets > 1 ? "s" : ""}</div>
                             <div className="text-[var(--positive)]">✓ {shop.sealed_sessions} sécurisée{shop.sealed_sessions > 1 ? "s" : ""}</div>
                             {shopUnsealed > 0 && (
                               <div className="text-amber-600 dark:text-amber-400">{shopUnsealed} non scellée{shopUnsealed > 1 ? "s" : ""}</div>
                             )}
-                            {shop.total_sessions > 0 && (
-                              <div className="tabular-nums font-medium text-[var(--text)]">
-                                Panier moyen : {formatNumber(shop.total_sales / shop.total_sessions, { minFraction: 2, maxFraction: 2 })} €
-                              </div>
-                            )}
+                            <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+                              {shop.total_sessions > 0 && (
+                                <span className="tabular-nums font-medium text-[var(--text)]">
+                                  CA moyen par session : {formatNumber(shop.total_sales / shop.total_sessions, { minFraction: 2, maxFraction: 2 })} €
+                                </span>
+                              )}
+                              {shop.total_tickets > 0 && (
+                                <span className="tabular-nums font-medium text-[var(--text)]">
+                                  Ticket moyen : {formatNumber(shop.total_sales / shop.total_tickets, { minFraction: 2, maxFraction: 2 })} €
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <ul className="divide-y divide-[var(--border)]">
                             {sortedSessions.map((item) => (
