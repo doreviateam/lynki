@@ -13,25 +13,25 @@ func ptr(v float64) *float64 { return &v }
 // --- Fixtures ---
 
 var laPlatineCards = []models.Card{
-	{Key: "treasury_validated_pct", Label: "Trésorerie validée", Value: ptr(0), Unit: "%", Formatted: "0 %"},
-	{Key: "cash", Label: "Cash", Value: ptr(1400952.21), Unit: "EUR", Formatted: "+ 1 400 952,21 €"},
-	{Key: "business", Label: "Business", Value: ptr(1162748.10), Unit: "EUR", Formatted: "+ 1 162 748,10 €"},
-	{Key: "taxes", Label: "Taxes", Value: ptr(231097.31), Unit: "EUR", Formatted: "+ 231 097,31 €"},
-	{Key: "credit_notes", Label: "Notes de crédit", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €"},
-	{Key: "refunds", Label: "Remboursements", Value: ptr(-1686.84), Unit: "EUR", Formatted: "− 1 686,84 €"},
-	{Key: "pos_shops", Label: "POS magasins", Value: ptr(4213.20), Unit: "EUR", Formatted: "4 213,20 €"},
-	{Key: "pos_z", Label: "Z de caisse", Value: nil, Unit: "EUR", Formatted: "—"},
+	{Key: "treasury_validated_pct", Label: "Trésorerie validée", Value: ptr(0), Unit: "%", Formatted: "0 %", Status: "watch", StatusReason: "Trésorerie non validée (0 %)"},
+	{Key: "cash", Label: "Cash", Value: ptr(1400952.21), Unit: "EUR", Formatted: "+ 1 400 952,21 €", Status: "watch", StatusReason: "Cash non validé (trésorerie insuffisante)"},
+	{Key: "business", Label: "Business", Value: ptr(1162748.10), Unit: "EUR", Formatted: "+ 1 162 748,10 €", Status: "ok", StatusReason: "Facturation active"},
+	{Key: "taxes", Label: "Taxes", Value: ptr(231097.31), Unit: "EUR", Formatted: "+ 231 097,31 €", Status: "watch", StatusReason: "Poids fiscal à surveiller (trésorerie < 80 %)"},
+	{Key: "credit_notes", Label: "Notes de crédit", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €", Status: "neutral", StatusReason: "Aucune note de crédit"},
+	{Key: "refunds", Label: "Remboursements", Value: ptr(-1686.84), Unit: "EUR", Formatted: "− 1 686,84 €", Status: "watch", StatusReason: "Remboursements à surveiller (0.1 %)"},
+	{Key: "pos_shops", Label: "POS magasins", Value: ptr(4213.20), Unit: "EUR", Formatted: "4 213,20 €", Status: "ok", StatusReason: "POS conforme (7 sessions scellées)"},
+	{Key: "pos_z", Label: "Z de caisse", Value: nil, Unit: "EUR", Formatted: "—", Status: "neutral", StatusReason: "Z de caisse non renseigné"},
 }
 
 var sweetManihotCards = []models.Card{
-	{Key: "treasury_validated_pct", Label: "Trésorerie validée", Value: ptr(0), Unit: "%", Formatted: "0 %"},
-	{Key: "cash", Label: "Cash", Value: ptr(1440), Unit: "EUR", Formatted: "+ 1 440,00 €"},
-	{Key: "business", Label: "Business", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €"},
-	{Key: "taxes", Label: "Taxes", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €"},
-	{Key: "credit_notes", Label: "Notes de crédit", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €"},
-	{Key: "refunds", Label: "Remboursements", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €"},
-	{Key: "pos_shops", Label: "POS magasins", Value: ptr(4213.20), Unit: "EUR", Formatted: "4 213,20 €"},
-	{Key: "pos_z", Label: "Z de caisse", Value: nil, Unit: "EUR", Formatted: "—"},
+	{Key: "treasury_validated_pct", Label: "Trésorerie validée", Value: ptr(0), Unit: "%", Formatted: "0 %", Status: "watch", StatusReason: "Trésorerie non validée (0 %)"},
+	{Key: "cash", Label: "Cash", Value: ptr(1440), Unit: "EUR", Formatted: "+ 1 440,00 €", Status: "watch", StatusReason: "Cash non validé (trésorerie insuffisante)"},
+	{Key: "business", Label: "Business", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €", Status: "neutral", StatusReason: "CA exclusivement POS"},
+	{Key: "taxes", Label: "Taxes", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €", Status: "neutral", StatusReason: "Pas de charge fiscale"},
+	{Key: "credit_notes", Label: "Notes de crédit", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €", Status: "neutral", StatusReason: "Aucune note de crédit"},
+	{Key: "refunds", Label: "Remboursements", Value: ptr(0), Unit: "EUR", Formatted: "+ 0,00 €", Status: "neutral", StatusReason: "Aucun remboursement"},
+	{Key: "pos_shops", Label: "POS magasins", Value: ptr(4213.20), Unit: "EUR", Formatted: "4 213,20 €", Status: "ok", StatusReason: "POS conforme (4 sessions scellées)"},
+	{Key: "pos_z", Label: "Z de caisse", Value: nil, Unit: "EUR", Formatted: "—", Status: "neutral", StatusReason: "Z de caisse non renseigné"},
 }
 
 var emptyAssocCards = []models.Card{
@@ -72,7 +72,7 @@ func TestComputeInsights_LaPlatine(t *testing.T) {
 		if strings.Contains(ins, "Écart trésorerie/activité") {
 			hasCashVsBiz = true
 		}
-		if strings.Contains(ins, "Remboursements") {
+		if strings.HasPrefix(ins, "Remboursements:") {
 			hasRefunds = true
 			if !strings.Contains(ins, "part marginale") {
 				t.Error("Refunds 0.1% du CA devrait être 'part marginale'")
@@ -151,6 +151,119 @@ func TestComputeInsights_EmptyAssoc(t *testing.T) {
 			t.Error("Association vide ne devrait pas avoir de POINT DOMINANT")
 		}
 	}
+}
+
+// --- Cockpit v1.1 — Règle 16 : discipline insight uniquement si flux opérationnels présents ---
+
+func TestComputeInsights_Rule16_NoFlux(t *testing.T) {
+	// Trésorerie 0 % mais aucun flux (cash=0, business=0, pos=0) → pas d'insight discipline
+	cards := []models.Card{
+		{Key: "treasury_validated_pct", Label: "Trésorerie validée", Value: ptr(0), Unit: "%", Formatted: "0 %"},
+		{Key: "cash", Label: "Cash", Value: ptr(0), Unit: "EUR", Formatted: "0 €"},
+		{Key: "business", Label: "Business", Value: ptr(0), Unit: "EUR", Formatted: "0 €"},
+		{Key: "pos_shops", Label: "POS magasins", Value: ptr(0), Unit: "EUR", Formatted: "0 €"},
+	}
+	insights := computeInsights(cards, nil)
+	for _, ins := range insights {
+		if strings.Contains(ins, "trésorerie validée à 0%") && strings.Contains(ins, "flux") {
+			t.Errorf("Règle 16 : pas d'insight discipline quand flux absents ; reçu: %q", ins)
+		}
+	}
+}
+
+func TestComputeInsights_Rule16_WithFlux(t *testing.T) {
+	// Trésorerie 0 % + cash > 0 → insight discipline obligatoire
+	cards := []models.Card{
+		{Key: "treasury_validated_pct", Label: "Trésorerie validée", Value: ptr(0), Unit: "%", Formatted: "0 %"},
+		{Key: "cash", Label: "Cash", Value: ptr(10000), Unit: "EUR", Formatted: "10 000 €"},
+		{Key: "business", Label: "Business", Value: ptr(0), Unit: "EUR", Formatted: "0 €"},
+		{Key: "pos_shops", Label: "POS magasins", Value: ptr(0), Unit: "EUR", Formatted: "0 €"},
+	}
+	insights := computeInsights(cards, nil)
+	hasDiscipline := false
+	for _, ins := range insights {
+		if strings.Contains(ins, "POINT DOMINANT") && (strings.Contains(ins, "validation bancaire") || strings.Contains(ins, "discipline")) {
+			hasDiscipline = true
+			break
+		}
+	}
+	if !hasDiscipline {
+		t.Error("Règle 16 : insight discipline requis quand Tréso 0% et flux (cash) présent")
+	}
+}
+
+// --- Cockpit v1.1 — buildUserPrompt data_completeness ---
+
+func TestBuildUserPrompt_DataCompleteness(t *testing.T) {
+	cli := NewClient()
+	ctx := models.Context{Tenant: "test", CompanyID: 0, DateStart: "2025-01-01", DateEnd: "2025-01-31", Currency: "EUR"}
+	cards := []models.Card{
+		{Key: "treasury_validated_pct", Label: "Trésorerie", Value: ptr(0), Unit: "%", Formatted: "0 %"},
+		{Key: "cash", Label: "Cash", Value: ptr(1000), Unit: "EUR", Formatted: "1 000 €"},
+	}
+
+	extractPayload := func(prompt string) map[string]interface{} {
+		parts := strings.SplitN(prompt, "\n\n", 2)
+		if len(parts) < 2 {
+			return nil
+		}
+		var out map[string]interface{}
+		if err := json.Unmarshal([]byte(parts[1]), &out); err != nil {
+			return nil
+		}
+		return out
+	}
+
+	t.Run("absent par défaut", func(t *testing.T) {
+		prompt := cli.buildUserPrompt(ctx, cards, "", nil, nil)
+		pl := extractPayload(prompt)
+		if pl == nil {
+			t.Fatal("buildUserPrompt: payload non parseable")
+		}
+		dc, ok := pl["data_completeness"].(map[string]interface{})
+		if !ok || dc == nil {
+			t.Fatal("data_completeness absent ou invalide quand dashboardDetails nil")
+		}
+		if bhm, _ := dc["bank_health_metrics"].(string); bhm != "absent" {
+			t.Errorf("bank_health_metrics = %q, veut 'absent' (défaut)", bhm)
+		}
+	})
+
+	t.Run("transmis via map", func(t *testing.T) {
+		details := map[string]interface{}{
+			"data_completeness": map[string]interface{}{"bank_health_metrics": "complete"},
+		}
+		prompt := cli.buildUserPrompt(ctx, cards, "", nil, details)
+		pl := extractPayload(prompt)
+		if pl == nil {
+			t.Fatal("buildUserPrompt: payload non parseable")
+		}
+		dc, ok := pl["data_completeness"].(map[string]interface{})
+		if !ok || dc == nil {
+			t.Fatal("data_completeness absent")
+		}
+		if bhm, _ := dc["bank_health_metrics"].(string); bhm != "complete" {
+			t.Errorf("bank_health_metrics = %q, veut 'complete'", bhm)
+		}
+	})
+
+	t.Run("transmis via DataCompleteness", func(t *testing.T) {
+		details := map[string]interface{}{
+			"data_completeness": &models.DataCompleteness{BankHealthMetrics: "partial"},
+		}
+		prompt := cli.buildUserPrompt(ctx, cards, "", nil, details)
+		pl := extractPayload(prompt)
+		if pl == nil {
+			t.Fatal("buildUserPrompt: payload non parseable")
+		}
+		dc, ok := pl["data_completeness"].(map[string]interface{})
+		if !ok || dc == nil {
+			t.Fatal("data_completeness absent")
+		}
+		if bhm, _ := dc["bank_health_metrics"].(string); bhm != "partial" {
+			t.Errorf("bank_health_metrics = %q, veut 'partial'", bhm)
+		}
+	})
 }
 
 // --- Story 7: dynamicMinLength ---
@@ -246,6 +359,21 @@ func TestValidateAndBuildFlash_ForbiddenTerms(t *testing.T) {
 	flash, _ := validateAndBuildFlash(raw, laPlatineCards)
 	if flash.Headline != "Lecture DIVA temporairement indisponible." {
 		t.Error("Forbidden term 'Vous devez' should trigger fallback")
+	}
+}
+
+func TestValidateAndBuildFlash_JSONGarbage(t *testing.T) {
+	for _, rawHeadline := range []string{`{`, `"`, `{"headline":`, `{ "headline"`} {
+		raw := flashRaw{
+			Headline:   rawHeadline,
+			WhatISee:   []string{"Position nette: 100k €"},
+			ToCheck:    []string{},
+			Confidence: "medium",
+		}
+		flash, _ := validateAndBuildFlash(raw, laPlatineCards)
+		if flash.Headline != "Lecture DIVA temporairement indisponible." {
+			t.Errorf("JSON garbage %q should trigger fallback, got headline %q", rawHeadline, flash.Headline)
+		}
 	}
 }
 
@@ -649,5 +777,83 @@ func assertFlashStructure(t *testing.T, flash models.Flash, cards []models.Card)
 
 	if englishDetect.MatchString(allText) {
 		t.Error("Flash contient du texte détecté comme anglais")
+	}
+}
+
+// --- Gouvernance insights ---
+
+func TestComputeInsights_GovernanceLaPlatine(t *testing.T) {
+	insights := computeInsights(laPlatineCards, nil)
+	hasGovernance := false
+	for _, ins := range insights {
+		if strings.Contains(ins, "GOUVERNANCE") {
+			hasGovernance = true
+			if !strings.Contains(ins, "Trésorerie validée") {
+				t.Error("L'insight de gouvernance La Platine doit mentionner Trésorerie validée")
+			}
+			if !strings.Contains(ins, "Cash") {
+				t.Error("L'insight de gouvernance La Platine doit mentionner Cash")
+			}
+			break
+		}
+	}
+	if !hasGovernance {
+		t.Error("La Platine avec 4 cartes watch doit produire un insight GOUVERNANCE")
+	}
+}
+
+func TestComputeInsights_GovernanceSweetManihot(t *testing.T) {
+	insights := computeInsights(sweetManihotCards, nil)
+	hasGovernance := false
+	for _, ins := range insights {
+		if strings.Contains(ins, "GOUVERNANCE") {
+			hasGovernance = true
+			if !strings.Contains(ins, "Trésorerie validée") {
+				t.Error("L'insight de gouvernance Sweet Manihot doit mentionner Trésorerie validée")
+			}
+			break
+		}
+	}
+	if !hasGovernance {
+		t.Error("Sweet Manihot avec 2 cartes watch doit produire un insight GOUVERNANCE")
+	}
+}
+
+func TestComputeInsights_NoGovernanceWhenAllOk(t *testing.T) {
+	allOkCards := []models.Card{
+		{Key: "treasury_validated_pct", Label: "Trésorerie validée", Value: ptr(95), Unit: "%", Status: "ok", StatusReason: "Trésorerie validée à 95 %"},
+		{Key: "cash", Label: "Cash", Value: ptr(50000), Unit: "EUR", Status: "ok", StatusReason: "Cash validé"},
+		{Key: "business", Label: "Business", Value: ptr(100000), Unit: "EUR", Status: "ok", StatusReason: "Facturation active"},
+		{Key: "taxes", Label: "Taxes", Value: ptr(20000), Unit: "EUR", Status: "ok", StatusReason: "Charges fiscales couvertes"},
+		{Key: "credit_notes", Label: "Notes de crédit", Value: ptr(0), Unit: "EUR", Status: "neutral", StatusReason: "Aucune note de crédit"},
+		{Key: "refunds", Label: "Remboursements", Value: ptr(-500), Unit: "EUR", Status: "ok", StatusReason: "Remboursements marginaux (0.5 %)"},
+		{Key: "pos_shops", Label: "POS magasins", Value: ptr(10000), Unit: "EUR", Status: "ok", StatusReason: "POS conforme"},
+		{Key: "pos_z", Label: "Z de caisse", Value: nil, Unit: "EUR", Status: "neutral", StatusReason: "Z de caisse non renseigné"},
+	}
+	insights := computeInsights(allOkCards, nil)
+	for _, ins := range insights {
+		if strings.Contains(ins, "GOUVERNANCE") {
+			t.Error("Aucun insight GOUVERNANCE ne doit apparaître quand toutes les cartes sont ok/neutral")
+		}
+	}
+}
+
+func TestCardStatus_Helper(t *testing.T) {
+	status, reason := cardStatus(laPlatineCards, "treasury_validated_pct")
+	if status != "watch" {
+		t.Errorf("expected watch, got %s", status)
+	}
+	if reason == "" {
+		t.Error("expected non-empty reason")
+	}
+
+	status, _ = cardStatus(laPlatineCards, "business")
+	if status != "ok" {
+		t.Errorf("expected ok, got %s", status)
+	}
+
+	status, _ = cardStatus(laPlatineCards, "nonexistent")
+	if status != "" {
+		t.Errorf("expected empty status for unknown card, got %s", status)
 	}
 }

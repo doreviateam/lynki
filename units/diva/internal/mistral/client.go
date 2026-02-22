@@ -85,7 +85,7 @@ FORMAT : réponds uniquement par un objet JSON valide, sans balises markdown, sa
 
 RÈGLES :
 1. headline : reformule l'insight "POINT DOMINANT" s'il existe. Synthèse experte, pas de listing.
-2. what_i_see : 3-5 phrases analytiques. Reformule les insights pré-calculés avec des ratios. Ne recopie pas.
+2. what_i_see : 3-5 phrases analytiques. Reformule les insights pré-calculés avec des ratios. Ne recopie pas. Ne jamais répéter textuellement le headline — chaque ligne doit apporter une information distincte.
 3. to_check : max 2. Signale uniquement des écarts, absences ou incohérences factuelles. Jamais de conseil ni prescription.
 4. Ne déduis rien au-delà des données transmises. Ne calcule AUCUN ratio toi-même. Utilise UNIQUEMENT les ratios fournis dans le champ "insights".
 5. Évite les qualificatifs non chiffrés ("élevé", "faible", "important", "significatif"). Préfère les ratios.
@@ -94,7 +94,20 @@ RÈGLES :
 8. La trésorerie est l'indicateur central. Les autres cartes (business, taxes, remboursements, POS) sont des inducteurs qui expliquent la position de trésorerie. Structure ton analyse autour de cette hiérarchie.
 9. Activité commerciale totale = Business (facturation) + POS (ventes en magasin). Ne dis JAMAIS "aucune activité commerciale" si le POS affiche des ventes. Si Business = 0 et POS > 0, le CA provient exclusivement du canal POS.
 10. Points de vente (POS) : si les insights POS détaillent sessions, panier moyen, mix paiements ou écarts de caisse, intègre-les comme inducteur de trésorerie. Signale les écarts de caisse et les sessions non scellées comme points à vérifier.
-11. Chaque carte contient un champ "status" (neutral/ok/watch/alert) et "status_reason" calculés par le système de gouvernance. Priorise les cartes en "watch" ou "alert" dans ta synthèse. Le headline doit refléter le point de gouvernance le plus critique. Si un insight GOUVERNANCE est présent, intègre-le dans ton analyse. Ne contredis jamais un statut de gouvernance.`
+11. Chaque carte contient un champ "status" (neutral/ok/watch/alert) et "status_reason" calculés par le système de gouvernance. Priorise les cartes en "watch" ou "alert" dans ta synthèse. Le headline doit refléter le point de gouvernance le plus critique. Si un insight GOUVERNANCE est présent, intègre-le dans ton analyse. Ne contredis jamais un statut de gouvernance.
+
+OUTPUT RULES (strict order) — Cockpit v1.1 :
+1. headline : 1 phrase, trésorerie dominante.
+2. what_i_see : premières 2–4 lignes = inducteurs uniquement ; dernière ligne = synthèse statuts compacts uniquement, format strict "Label status • Label status • …" (ex. "Business OK • Taxes watch • POS scellé ✓"). Sans phrase, sans verbe, sans explication — statuts seulement.
+3. to_check : énoncés vérifiables uniquement.
+
+Règles sémantiques 12–16 :
+12. Si data_completeness.bank_health_metrics = "absent", mentionner "Données de rapprochement bancaire non disponibles" dans what_i_see ou to_check. Ne pas extrapoler.
+13. Z de caisse : si Z = null ou "—", mentionner uniquement si POS actif. Si Z incohérent, en faire un inducteur. Sinon ignorer.
+14. Si POS > 0 et 100 % scellé, inclure "POS scellé ✓" dans la synthèse (headline ou dernière ligne what_i_see).
+15. data_completeness = "complete" signifie données disponibles, pas discipline bonne. Pour évaluer la discipline : unreconciled_lines_count, reconciliation_rate, last_statement_import_date. Ne pas confondre.
+16. Si Trésorerie = 0 % validée ET flux opérationnels présents (Business, POS ou Cash), signaler : "flux opérationnels sans validation bancaire" — formulation chirurgicale, sans redondance.
+17. Quand les flux (cash, business, POS) sont modestes (< 10k€), proportionner le discours sur la discipline : signaler l'écart sans dramatiser comme pour des millions.`
 
 func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string, focusCardDetails map[string]interface{}, dashboardDetails map[string]interface{}) (models.Flash, error) {
 	effective := cards
@@ -227,11 +240,12 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 
 // userPromptPayload — structure JSON envoyée à l'IA (mode cockpit ou card).
 type userPromptPayload struct {
-	Mode     string                   `json:"mode"`
-	Context  map[string]interface{}   `json:"context"`
-	Cards    []map[string]interface{} `json:"cards"`
-	Insights []string                 `json:"insights,omitempty"`
-	Details  map[string]interface{}   `json:"details,omitempty"`
+	Mode             string                   `json:"mode"`
+	Context          map[string]interface{}   `json:"context"`
+	Cards            []map[string]interface{} `json:"cards"`
+	Insights         []string                 `json:"insights,omitempty"`
+	Details          map[string]interface{}   `json:"details,omitempty"`
+	DataCompleteness map[string]interface{}   `json:"data_completeness,omitempty"` // Cockpit v1.1 — bank_health_metrics
 }
 
 func cardVal(cards []models.Card, key string) (float64, bool) {
@@ -290,10 +304,39 @@ func computeInsights(cards []models.Card, details map[string]interface{}) []stri
 	creditNotes, hasCreditNotes := cardVal(cards, "credit_notes")
 	pos, hasPOS := cardVal(cards, "pos_shops")
 
-	if hasTreasury && treasury == 0 && hasCash && cash > 0 {
-		insights = append(insights, fmt.Sprintf(
-			"POINT DOMINANT: trésorerie validée à 0%% alors que le cash s'élève à %s — absence de rapprochement bancaire ou de validation comptable sur la période",
-			fmtEUR(cash)))
+	// Règle 16 — Incohérence discipline : Trésorerie 0 %% + flux opérationnels = signal gouvernance
+	// Règle 17 — Nuance d'échelle : flux modeste (< 10k€) → formulation proportionnée
+	hasOperationalFlux := (hasCash && cash != 0) || (hasBiz && biz != 0) || (hasPOS && pos > 0)
+	totalFlux := absVal(cash)
+	if hasBiz {
+		totalFlux += absVal(biz)
+	}
+	if hasPOS && pos > 0 {
+		totalFlux += pos
+	}
+	fluxModeste := totalFlux > 0 && totalFlux < 10000
+
+	if hasTreasury && treasury == 0 && hasOperationalFlux {
+		// Formulation chirurgicale — règle 16
+		if fluxModeste {
+			if hasCash && cash > 0 {
+				insights = append(insights, fmt.Sprintf("POINT DOMINANT: cash modeste (%s) sans validation bancaire — rapprochement à effectuer", fmtEUR(cash)))
+			} else if hasPOS && pos > 0 {
+				insights = append(insights, fmt.Sprintf("POINT DOMINANT: POS %s sans validation bancaire — flux modeste, rapprochement à effectuer", fmtEUR(pos)))
+			} else if hasBiz && biz != 0 {
+				insights = append(insights, fmt.Sprintf("POINT DOMINANT: CA %s sans validation bancaire — flux modeste", fmtEUR(absVal(biz))))
+			}
+		} else {
+			msg := "POINT DOMINANT: flux opérationnels sans validation bancaire"
+			if hasCash && cash > 0 {
+				msg = fmt.Sprintf("POINT DOMINANT: cash %s — flux opérationnels sans validation bancaire", fmtEUR(cash))
+			} else if hasBiz && biz != 0 {
+				msg = fmt.Sprintf("POINT DOMINANT: CA %s — flux opérationnels sans validation bancaire", fmtEUR(absVal(biz)))
+			} else if hasPOS && pos > 0 {
+				msg = fmt.Sprintf("POINT DOMINANT: POS %s — flux opérationnels sans validation bancaire", fmtEUR(pos))
+			}
+			insights = append(insights, msg)
+		}
 	}
 
 	if hasCash && hasTaxes {
@@ -632,6 +675,14 @@ func (c *Client) buildUserPrompt(ctx models.Context, cards []models.Card, focusC
 			insights = insights[:10]
 		}
 		payload.Insights = insights
+		// data_completeness — Cockpit v1.1 (bank_health_metrics: absent/partial/complete)
+		if dc, ok := dashboardDetails["data_completeness"].(map[string]interface{}); ok && dc != nil {
+			payload.DataCompleteness = dc
+		} else if dc, ok := dashboardDetails["data_completeness"].(*models.DataCompleteness); ok && dc != nil {
+			payload.DataCompleteness = map[string]interface{}{"bank_health_metrics": dc.BankHealthMetrics}
+		} else if payload.DataCompleteness == nil {
+			payload.DataCompleteness = map[string]interface{}{"bank_health_metrics": "absent"}
+		}
 	}
 
 	if mode == "card" && len(focusCardDetails) > 0 {
