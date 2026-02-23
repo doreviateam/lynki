@@ -6,7 +6,7 @@
 services:
   # DVIG - Service partagé (API + Worker Outbox)
   dvig:
-    image: dorevia/dvig:0.1.7
+    image: dorevia/dvig:0.1.8-trace-observability
     container_name: dvig-core-stinger
     restart: unless-stopped
     networks:
@@ -63,7 +63,7 @@ services:
 
   # Vault - Store de preuves + agrégations (sales, purchases, payments-in/out, adjustments SPEC_DOREVIA_ADJUSTMENTS_v1.0)
   vault:
-    image: dorevia/vault:tresorerie-v1.2
+    image: dorevia/vault:vaulting-routes
     container_name: vault-core-stinger
     restart: unless-stopped
     networks:

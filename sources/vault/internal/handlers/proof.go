@@ -2,15 +2,19 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/doreviateam/dorevia-vault/internal/crypto"
+	"github.com/doreviateam/dorevia-vault/internal/middleware"
 	"github.com/doreviateam/dorevia-vault/internal/models"
 	"github.com/doreviateam/dorevia-vault/internal/storage"
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog"
 )
 
-// ProofResponse représente la réponse standardisée pour les preuves
+// ProofResponse représente la réponse standardisée pour les preuves (format v1.0)
 type ProofResponse struct {
 	ID          string  `json:"id"`
 	Hash        string  `json:"hash"`
@@ -21,6 +25,51 @@ type ProofResponse struct {
 	Status      string  `json:"status"`
 	SourceModel *string `json:"source_model,omitempty"`
 	SourceID    *string `json:"source_id,omitempty"`
+}
+
+// ProofResponseV11 représente le format de preuve v1.1 (amendements NF525 / LNE 2026).
+// Référence : ZeDocs/web12/AMENDEMENTS_FORMAT_PREUVE_DOREVIA_VAULT_v1.1.md
+// — Séparation hashes / proof.attestation_jws ; canonicalization ; verification ; ledger ; event ; status.
+type ProofResponseV11 struct {
+	ID              string                 `json:"id"`
+	Canonicalization string               `json:"canonicalization,omitempty"` // ex: "internal_v1"
+	Hashes          ProofHashesV11         `json:"hashes"`
+	Proof           ProofBlockV11         `json:"proof"`
+	Ledger          *ProofLedgerV11        `json:"ledger,omitempty"`
+	Verification    *ProofVerificationV11  `json:"verification,omitempty"`
+	Event           ProofEventV11          `json:"event"`
+	Status          string                 `json:"status"`
+}
+
+type ProofHashesV11 struct {
+	PayloadSHA256 string  `json:"payload_sha256"`
+	PdfSHA256     *string `json:"pdf_sha256,omitempty"`
+}
+
+type ProofBlockV11 struct {
+	ProofID            string  `json:"proof_id"`
+	SealedAt           string  `json:"sealed_at"`
+	AttestationJWS     *string `json:"attestation_jws,omitempty"`
+	SignatureAlg      string  `json:"signature_alg"`
+	KeyID              string  `json:"key_id"`
+	ProofFormatVersion string  `json:"proof_format_version"`
+}
+
+type ProofLedgerV11 struct {
+	Seq      int64   `json:"seq"`
+	Hash     string  `json:"hash"`
+	PrevHash *string `json:"prev_hash,omitempty"`
+}
+
+type ProofVerificationV11 struct {
+	JWKSUri               string `json:"jwks_uri"`
+	PublicKeyFingerprint  string `json:"public_key_fingerprint,omitempty"`
+}
+
+type ProofEventV11 struct {
+	Source         string  `json:"source"`
+	SourceEventID  *string `json:"source_event_id,omitempty"`
+	IdempotencyKey *string `json:"idempotency_key,omitempty"`
 }
 
 // BulkProofRequest représente une requête bulk
@@ -88,6 +137,97 @@ func buildProofResponse(doc *models.Document, db *storage.DB) ProofResponse {
 	}
 }
 
+// extractSourceEventID extrait event_id du payload JSON (format DVIG / spec v1.1)
+func extractSourceEventID(payloadJSON []byte) *string {
+	if len(payloadJSON) == 0 {
+		return nil
+	}
+	var m map[string]interface{}
+	if err := json.Unmarshal(payloadJSON, &m); err != nil {
+		return nil
+	}
+	if v, ok := m["event_id"]; ok {
+		if s, ok := v.(string); ok {
+			return &s
+		}
+	}
+	return nil
+}
+
+// buildProofResponseV11 construit la réponse preuve au format v1.1 (amendements NF525 / LNE 2026)
+func buildProofResponseV11(doc *models.Document, db *storage.DB, jwsService *crypto.Service, baseURL string) ProofResponseV11 {
+	status := "verified"
+	if doc.EvidenceJWS == nil {
+		status = "pending"
+	}
+
+	hashes := ProofHashesV11{PayloadSHA256: doc.SHA256Hex}
+	// PdfSHA256 optionnel : à remplir si le modèle Document gagne un champ pdf_sha256_hex
+
+	proof := ProofBlockV11{
+		ProofID:            doc.ID.String(),
+		SealedAt:           doc.CreatedAt.Format(time.RFC3339),
+		AttestationJWS:     doc.EvidenceJWS,
+		SignatureAlg:       "RS256",
+		KeyID:              "",
+		ProofFormatVersion: "1.1",
+	}
+	if jwsService != nil {
+		proof.KeyID = jwsService.GetKID()
+	}
+
+	var ledger *ProofLedgerV11
+	if db != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		ledgerEntry, err := db.GetLedgerEntryByDocumentID(ctx, doc.ID.String())
+		if err == nil && ledgerEntry != nil {
+			ledger = &ProofLedgerV11{
+				Seq:      ledgerEntry.Seq,
+				Hash:     ledgerEntry.Hash,
+				PrevHash: ledgerEntry.PrevHash,
+			}
+		}
+	}
+
+	var verification *ProofVerificationV11
+	if jwsService != nil && baseURL != "" {
+		v := ProofVerificationV11{JWKSUri: baseURL + "/jwks.json"}
+		if fp, err := jwsService.PublicKeyFingerprint(); err == nil {
+			v.PublicKeyFingerprint = fp
+		}
+		verification = &v
+	}
+
+	source := "odoo"
+	if doc.OdooModel != nil {
+		source = *doc.OdooModel
+	}
+	event := ProofEventV11{
+		Source:         source,
+		IdempotencyKey: doc.IdempotencyKey,
+	}
+	event.SourceEventID = extractSourceEventID(doc.PayloadJSON)
+	if event.SourceEventID == nil && doc.OdooID != nil {
+		idStr := fmt.Sprintf("%d", *doc.OdooID)
+		event.SourceEventID = &idStr
+	}
+	if event.SourceEventID == nil && doc.SourceIDText != nil {
+		event.SourceEventID = doc.SourceIDText
+	}
+
+	return ProofResponseV11{
+		ID:               doc.ID.String(),
+		Canonicalization: "internal_v1",
+		Hashes:           hashes,
+		Proof:            proof,
+		Ledger:           ledger,
+		Verification:     verification,
+		Event:            event,
+		Status:           status,
+	}
+}
+
 // mapTypeToSourceModel mappe le type de requête vers source_model
 func mapTypeToSourceModel(proofType string) string {
 	mapping := map[string]string{
@@ -100,16 +240,23 @@ func mapTypeToSourceModel(proofType string) string {
 	return mapping[proofType]
 }
 
-// GetProofAccountMove récupère la preuve d'une facture par ID Odoo
-func GetProofAccountMove(db *storage.DB) fiber.Handler {
+// GetProofAccountMove récupère la preuve d'une facture par ID Odoo.
+// Si query ?format=1.1 : retourne ProofResponseV11 (amendements NF525 / LNE 2026).
+func GetProofAccountMove(db *storage.DB, jwsService *crypto.Service, log *zerolog.Logger) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		start := time.Now()
+		traceID := middleware.GetTraceID(c)
+		tenant := c.Get("X-Tenant")
+		modelIn := "account_move"
+		modelNormalized := "account.move"
+		odooID := c.Params("id")
+
 		if db == nil {
 			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
 				"error": "Database not configured",
 			})
 		}
 
-		odooID := c.Params("id")
 		if odooID == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Missing id parameter",
@@ -120,25 +267,74 @@ func GetProofAccountMove(db *storage.DB) fiber.Handler {
 		defer cancel()
 
 		doc, err := db.GetDocumentBySourceID(ctx, "account.move", odooID)
+		durationMs := int(time.Since(start).Milliseconds())
+
 		if err != nil {
+			if log != nil {
+				log.Info().
+					Str("trace_id", traceID).
+					Str("trace_id_source", middleware.GetTraceIDSource(c)).
+					Str("tenant", tenant).
+					Str("tenant_source", middleware.GetTenantSource(c)).
+					Str("model_in", modelIn).
+					Str("model_normalized", modelNormalized).
+					Str("odoo_id", odooID).
+					Bool("found", false).
+					Int("duration_ms", durationMs).
+					Err(err).
+					Msg("vault_proof_lookup_error")
+			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to retrieve proof",
+				"error":  "Failed to retrieve proof",
+				"detail": err.Error(),
 			})
 		}
 
 		if doc == nil {
+			if log != nil {
+				log.Info().
+					Str("trace_id", traceID).
+					Str("trace_id_source", middleware.GetTraceIDSource(c)).
+					Str("tenant", tenant).
+					Str("tenant_source", middleware.GetTenantSource(c)).
+					Str("model_in", modelIn).
+					Str("model_normalized", modelNormalized).
+					Str("odoo_id", odooID).
+					Bool("found", false).
+					Int("duration_ms", durationMs).
+					Msg("vault_proof_lookup_not_found")
+			}
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": "Proof not found",
 			})
 		}
 
-		proof := buildProofResponse(doc, db)
-		return c.JSON(proof)
+		if log != nil {
+			log.Info().
+				Str("trace_id", traceID).
+				Str("trace_id_source", middleware.GetTraceIDSource(c)).
+				Str("tenant", tenant).
+				Str("tenant_source", middleware.GetTenantSource(c)).
+				Str("model_in", modelIn).
+				Str("model_normalized", modelNormalized).
+				Str("odoo_id", odooID).
+				Bool("found", true).
+				Str("document_id", doc.ID.String()).
+				Int("duration_ms", durationMs).
+				Msg("vault_proof_lookup_ok")
+		}
+
+		if c.Query("format") == "1.1" {
+			baseURL := c.Protocol() + "://" + c.Hostname()
+			return c.JSON(buildProofResponseV11(doc, db, jwsService, baseURL))
+		}
+		return c.JSON(buildProofResponse(doc, db))
 	}
 }
 
-// GetProofAccountPayment récupère la preuve d'un paiement par ID Odoo
-func GetProofAccountPayment(db *storage.DB) fiber.Handler {
+// GetProofAccountPayment récupère la preuve d'un paiement par ID Odoo.
+// ?format=1.1 : retourne ProofResponseV11.
+func GetProofAccountPayment(db *storage.DB, jwsService *crypto.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		if db == nil {
 			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
@@ -169,13 +365,17 @@ func GetProofAccountPayment(db *storage.DB) fiber.Handler {
 			})
 		}
 
-		proof := buildProofResponse(doc, db)
-		return c.JSON(proof)
+		if c.Query("format") == "1.1" {
+			baseURL := c.Protocol() + "://" + c.Hostname()
+			return c.JSON(buildProofResponseV11(doc, db, jwsService, baseURL))
+		}
+		return c.JSON(buildProofResponse(doc, db))
 	}
 }
 
-// GetProofPosOrder récupère la preuve d'un ticket POS par ID Odoo
-func GetProofPosOrder(db *storage.DB) fiber.Handler {
+// GetProofPosOrder récupère la preuve d'un ticket POS par ID Odoo.
+// ?format=1.1 : retourne ProofResponseV11.
+func GetProofPosOrder(db *storage.DB, jwsService *crypto.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		if db == nil {
 			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
@@ -206,13 +406,17 @@ func GetProofPosOrder(db *storage.DB) fiber.Handler {
 			})
 		}
 
-		proof := buildProofResponse(doc, db)
-		return c.JSON(proof)
+		if c.Query("format") == "1.1" {
+			baseURL := c.Protocol() + "://" + c.Hostname()
+			return c.JSON(buildProofResponseV11(doc, db, jwsService, baseURL))
+		}
+		return c.JSON(buildProofResponse(doc, db))
 	}
 }
 
-// GetProofPosPayment récupère la preuve d'un paiement POS par ID Odoo
-func GetProofPosPayment(db *storage.DB) fiber.Handler {
+// GetProofPosPayment récupère la preuve d'un paiement POS par ID Odoo.
+// ?format=1.1 : retourne ProofResponseV11.
+func GetProofPosPayment(db *storage.DB, jwsService *crypto.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		if db == nil {
 			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
@@ -243,8 +447,11 @@ func GetProofPosPayment(db *storage.DB) fiber.Handler {
 			})
 		}
 
-		proof := buildProofResponse(doc, db)
-		return c.JSON(proof)
+		if c.Query("format") == "1.1" {
+			baseURL := c.Protocol() + "://" + c.Hostname()
+			return c.JSON(buildProofResponseV11(doc, db, jwsService, baseURL))
+		}
+		return c.JSON(buildProofResponse(doc, db))
 	}
 }
 
@@ -325,6 +532,46 @@ func GetProofsBulk(db *storage.DB) fiber.Handler {
 		return c.JSON(BulkProofResponse{
 			Results: results,
 		})
+	}
+}
+
+// GetProofEvent récupère la preuve d'un événement par event_id DVIG.
+// ?format=1.1 : retourne ProofResponseV11.
+func GetProofEvent(db *storage.DB, jwsService *crypto.Service) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		if db == nil {
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+				"error": "Database not configured",
+			})
+		}
+
+		eventID := c.Params("event_id")
+		if eventID == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Missing event_id parameter",
+			})
+		}
+
+		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
+		defer cancel()
+
+		doc, err := db.GetDocumentByEventID(ctx, eventID)
+		if err != nil {
+			if err.Error() == "document not found" {
+				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+					"error": "Proof not found for event_id",
+				})
+			}
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to retrieve proof",
+			})
+		}
+
+		if c.Query("format") == "1.1" {
+			baseURL := c.Protocol() + "://" + c.Hostname()
+			return c.JSON(buildProofResponseV11(doc, db, jwsService, baseURL))
+		}
+		return c.JSON(buildProofResponse(doc, db))
 	}
 }
 
