@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/doreviateam/dorevia-vault/internal/audit"
+	"github.com/google/uuid"
 	"github.com/doreviateam/dorevia-vault/internal/config"
 	"github.com/doreviateam/dorevia-vault/internal/crypto"
 	"github.com/doreviateam/dorevia-vault/internal/ledger"
@@ -63,7 +64,7 @@ func InvoicesHandler(db *storage.DB, storageDir string, jwsService *crypto.Servi
 			)
 		}
 
-		// Validation des champs obligatoires
+		// Validation des champs obligatoires de base
 		if payload.Source == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Missing required field: source",
@@ -77,6 +78,19 @@ func InvoicesHandler(db *storage.DB, storageDir string, jwsService *crypto.Servi
 		if payload.File == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Missing required field: file",
+			})
+		}
+
+		// SPEC 1 : Validation account.move posted (fail-fast)
+		if err := validateAccountMovePayload(&payload); err != nil {
+			log.Warn().
+				Err(err).
+				Str("model", payload.Model).
+				Str("state", payload.State).
+				Str("source", payload.Source).
+				Msg("Account move validation failed")
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
 			})
 		}
 
@@ -150,6 +164,9 @@ func InvoicesHandler(db *storage.DB, storageDir string, jwsService *crypto.Servi
 			}
 		}
 
+		// SPEC 1 - US-2.1 : Détection conformité Factur-X 2026
+		complianceStatus, facturXPresent := detectFacturXCompliance(facturXResult, payload.Meta, log)
+
 		// Extraire le nom de fichier depuis meta ou utiliser un nom par défaut
 		filename := "document.pdf"
 		if payload.Meta != nil {
@@ -166,8 +183,9 @@ func InvoicesHandler(db *storage.DB, storageDir string, jwsService *crypto.Servi
 			})
 		}
 
-		// Construire le document
+		// Construire le document (ID obligatoire — évite duplicate key sur documents_pkey)
 		doc := &models.Document{
+			ID:          uuid.New(),
 			Filename:    filename,
 			ContentType: "application/pdf", // Par défaut, peut être amélioré avec détection MIME
 			SizeBytes:   int64(len(fileContent)),
@@ -198,6 +216,19 @@ func InvoicesHandler(db *storage.DB, storageDir string, jwsService *crypto.Servi
 			doc.Tenant = &tenant
 		}
 
+		// SPEC 1 : Extraire et stocker move_type depuis meta
+		if payload.Meta != nil {
+			if moveTypeRaw, ok := payload.Meta["move_type"]; ok {
+				if moveType, ok := moveTypeRaw.(string); ok && moveType != "" {
+					doc.MoveType = &moveType
+				}
+			}
+		}
+
+		// SPEC 1 - US-2.1 : Stocker compliance_status et facturx_present
+		doc.ComplianceStatus = &complianceStatus
+		doc.FacturXPresent = &facturXPresent
+
 		// Extraire les métadonnées facture
 		// Priorité : métadonnées Factur-X validées > métadonnées payload
 		if facturXResult != nil && facturXResult.Metadata != nil {
@@ -211,30 +242,66 @@ func InvoicesHandler(db *storage.DB, storageDir string, jwsService *crypto.Servi
 			doc.Currency = &meta.Currency
 			doc.SellerVAT = &meta.SellerVAT
 			doc.BuyerVAT = &meta.BuyerVAT
-		} else if payload.Meta != nil {
-			// Fallback vers métadonnées payload si Factur-X non disponible
-			if number, ok := payload.Meta["number"].(string); ok {
-				doc.InvoiceNumber = &number
+			if meta.BuyerName != "" {
+				doc.PartnerName = &meta.BuyerName
 			}
-			if dateStr, ok := payload.Meta["invoice_date"].(string); ok {
-				if date, err := time.Parse("2006-01-02", dateStr); err == nil {
-					doc.InvoiceDate = &date
+		}
+		// Fallback vers métadonnées payload si Factur-X non disponible
+		if payload.Meta != nil {
+			// Fallback partner_name depuis DVIG si non fourni par Factur-X
+			if doc.PartnerName == nil {
+				if partnerName, ok := payload.Meta["partner_name"].(string); ok && partnerName != "" {
+					doc.PartnerName = &partnerName
 				}
 			}
-			if totalHT, ok := payload.Meta["total_ht"].(float64); ok {
-				doc.TotalHT = &totalHT
+			// Fallback autres champs facture uniquement si Factur-X non disponible
+			if facturXResult == nil || facturXResult.Metadata == nil {
+				if number, ok := payload.Meta["number"].(string); ok {
+					doc.InvoiceNumber = &number
+				}
+				if dateStr, ok := payload.Meta["invoice_date"].(string); ok {
+					if date, err := time.Parse("2006-01-02", dateStr); err == nil {
+						doc.InvoiceDate = &date
+					}
+				}
+				if totalHT, ok := payload.Meta["total_ht"].(float64); ok {
+					doc.TotalHT = &totalHT
+				}
+				if totalTTC, ok := payload.Meta["total_ttc"].(float64); ok {
+					doc.TotalTTC = &totalTTC
+				}
+				if currency, ok := payload.Meta["currency"].(string); ok {
+					doc.Currency = &currency
+				}
+				if sellerVAT, ok := payload.Meta["seller_vat"].(string); ok {
+					doc.SellerVAT = &sellerVAT
+				}
+				if buyerVAT, ok := payload.Meta["buyer_vat"].(string); ok {
+					doc.BuyerVAT = &buyerVAT
+				}
 			}
-			if totalTTC, ok := payload.Meta["total_ttc"].(float64); ok {
-				doc.TotalTTC = &totalTTC
+			// AR by Partner (SPEC v1.0.3) — amount_residual, invoice_date_due, partner_id
+			if amountRes, ok := payload.Meta["amount_residual"].(float64); ok {
+				doc.AmountResidual = &amountRes
 			}
-			if currency, ok := payload.Meta["currency"].(string); ok {
-				doc.Currency = &currency
+			if dueStr, ok := payload.Meta["invoice_date_due"].(string); ok && dueStr != "" {
+				if due, err := time.Parse("2006-01-02", dueStr); err == nil {
+					doc.InvoiceDateDue = &due
+				}
 			}
-			if sellerVAT, ok := payload.Meta["seller_vat"].(string); ok {
-				doc.SellerVAT = &sellerVAT
-			}
-			if buyerVAT, ok := payload.Meta["buyer_vat"].(string); ok {
-				doc.BuyerVAT = &buyerVAT
+			if partnerIDRaw, ok := payload.Meta["partner_id"]; ok && partnerIDRaw != nil {
+				switch v := partnerIDRaw.(type) {
+				case float64:
+					pid := fmt.Sprintf("%.0f", v)
+					doc.PartnerID = &pid
+				case int:
+					pid := fmt.Sprintf("%d", v)
+					doc.PartnerID = &pid
+				case string:
+					if v != "" {
+						doc.PartnerID = &v
+					}
+				}
 			}
 		}
 
@@ -430,6 +497,148 @@ func InvoicesHandler(db *storage.DB, storageDir string, jwsService *crypto.Servi
 			LedgerHash:  doc.LedgerHash,
 		})
 	}
+}
+
+// detectFacturXCompliance détecte la conformité Factur-X selon la politique 2026
+// Retourne (compliance_status, facturx_present)
+// compliance_status peut être : "compliant", "non_compliant_2026", "out_of_scope"
+func detectFacturXCompliance(facturXResult *validation.ValidationResult, meta map[string]interface{}, log *zerolog.Logger) (string, bool) {
+	// Détecter si Factur-X est présent
+	facturXPresent := facturXResult != nil && facturXResult.Valid
+
+	// Détecter B2B probable : buyer_vat ET seller_vat présents
+	// Priorité : métadonnées Factur-X > métadonnées payload
+	var buyerVAT, sellerVAT string
+	hasBuyerVAT := false
+	hasSellerVAT := false
+
+	if facturXResult != nil && facturXResult.Metadata != nil {
+		// Utiliser les métadonnées extraites de Factur-X
+		if facturXResult.Metadata.BuyerVAT != "" {
+			buyerVAT = facturXResult.Metadata.BuyerVAT
+			hasBuyerVAT = true
+		}
+		if facturXResult.Metadata.SellerVAT != "" {
+			sellerVAT = facturXResult.Metadata.SellerVAT
+			hasSellerVAT = true
+		}
+	}
+
+	// Fallback vers métadonnées payload si non disponibles dans Factur-X
+	if !hasBuyerVAT && meta != nil {
+		if bv, ok := meta["buyer_vat"].(string); ok && bv != "" {
+			buyerVAT = bv
+			hasBuyerVAT = true
+		}
+	}
+	if !hasSellerVAT && meta != nil {
+		if sv, ok := meta["seller_vat"].(string); ok && sv != "" {
+			sellerVAT = sv
+			hasSellerVAT = true
+		}
+	}
+
+	// Calculer compliance_status
+	var complianceStatus string
+	if facturXPresent {
+		// Factur-X présent → compliant
+		complianceStatus = "compliant"
+		log.Info().
+			Str("compliance_status", complianceStatus).
+			Bool("facturx_present", facturXPresent).
+			Msg("Factur-X compliant document detected")
+	} else if hasBuyerVAT && hasSellerVAT {
+		// B2B probable (buyer_vat + seller_vat) mais Factur-X absent → non_compliant_2026
+		complianceStatus = "non_compliant_2026"
+		log.Warn().
+			Str("compliance_status", complianceStatus).
+			Bool("facturx_present", facturXPresent).
+			Str("buyer_vat", buyerVAT).
+			Str("seller_vat", sellerVAT).
+			Msg("B2B probable document without Factur-X detected (non-compliant 2026)")
+	} else {
+		// B2C / non qualifié → out_of_scope
+		complianceStatus = "out_of_scope"
+		log.Debug().
+			Str("compliance_status", complianceStatus).
+			Bool("facturx_present", facturXPresent).
+			Msg("Document out of scope for Factur-X compliance (B2C or unqualified)")
+	}
+
+	return complianceStatus, facturXPresent
+}
+
+// validateAccountMovePayload valide un payload account.move selon SPEC 1
+// Retourne une erreur si la validation échoue (fail-fast)
+// Ordre de validation :
+// 1. model == "account.move"
+// 2. state == "posted"
+// 3. meta.move_type dans liste autorisée
+// 4. mapping source ↔ move_type cohérent
+// 5. meta.tenant non vide
+func validateAccountMovePayload(payload *InvoicePayload) error {
+	// Validation 1 : model == "account.move"
+	if payload.Model != "account.move" {
+		return fmt.Errorf("validation failed: model must be 'account.move', got '%s'", payload.Model)
+	}
+
+	// Validation 2 : state == "posted"
+	if payload.State != "posted" {
+		return fmt.Errorf("validation failed: state must be 'posted', got '%s'", payload.State)
+	}
+
+	// Validation 3 : meta.move_type dans liste autorisée
+	if payload.Meta == nil {
+		return fmt.Errorf("validation failed: meta is required for account.move")
+	}
+
+	moveTypeRaw, ok := payload.Meta["move_type"]
+	if !ok {
+		return fmt.Errorf("validation failed: meta.move_type is required")
+	}
+
+	moveType, ok := moveTypeRaw.(string)
+	if !ok || moveType == "" {
+		return fmt.Errorf("validation failed: meta.move_type must be a non-empty string")
+	}
+
+	allowedMoveTypes := map[string]bool{
+		"out_invoice": true,
+		"in_invoice":  true,
+		"out_refund":  true,
+		"in_refund":   true,
+	}
+
+	if !allowedMoveTypes[moveType] {
+		return fmt.Errorf("validation failed: meta.move_type must be one of [out_invoice, in_invoice, out_refund, in_refund], got '%s'", moveType)
+	}
+
+	// Validation 4 : mapping source ↔ move_type cohérent
+	// move_type ∈ {"out_invoice","out_refund"} → source = "sales"
+	// move_type ∈ {"in_invoice","in_refund"} → source = "purchase"
+	expectedSource := ""
+	if moveType == "out_invoice" || moveType == "out_refund" {
+		expectedSource = "sales"
+	} else if moveType == "in_invoice" || moveType == "in_refund" {
+		expectedSource = "purchase"
+	}
+
+	if payload.Source != expectedSource {
+		return fmt.Errorf("validation failed: source '%s' does not match move_type '%s' (expected source: '%s')", payload.Source, moveType, expectedSource)
+	}
+
+	// Validation 5 : meta.tenant non vide
+	tenantRaw, ok := payload.Meta["tenant"]
+	if !ok {
+		return fmt.Errorf("validation failed: meta.tenant is required")
+	}
+
+	tenant, ok := tenantRaw.(string)
+	if !ok || tenant == "" {
+		return fmt.Errorf("validation failed: meta.tenant must be a non-empty string")
+	}
+
+	return nil
 }
 
 // GetInvoice gère GET /api/v1/invoices -> 405 Method Not Allowed

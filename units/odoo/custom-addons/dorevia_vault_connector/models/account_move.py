@@ -11,6 +11,7 @@ import hashlib
 import json
 import logging
 import random
+import uuid
 import requests
 from datetime import datetime, timedelta
 
@@ -329,8 +330,19 @@ class AccountMove(models.Model):
                 )
                 move._check_abandon_thresholds()
 
+        # Déclencher le worker DVIG pour traiter l'outbox immédiatement (évite d'attendre
+        # le scheduler DVIG 30s). Essentiel quand queue_job n'est pas utilisé ou en retry.
+        try:
+            self.env['dorevia.dvig.service'].trigger_worker(limit=50)
+        except Exception as e:
+            _logger.warning(
+                "vault_cron_trigger_worker_error (non bloquant) error=%s", e
+            )
+
     def _build_dvig_payload(self, source):
-        """Construit le payload pour l'API DVIG (endpoint /ingest)."""
+        """Construit le payload pour l'API DVIG (endpoint /ingest).
+        Inclut amount_residual et invoice_date_due pour AR by Partner (SPEC v1.0).
+        """
         return {
             'source': source,
             'event_type': 'invoice.posted',
@@ -349,6 +361,8 @@ class AccountMove(models.Model):
                 'currency': self.currency_id.name,
                 'date': str(self.date),
                 'invoice_date': str(self.invoice_date) if self.invoice_date else None,
+                'invoice_date_due': str(self.invoice_date_due) if self.invoice_date_due else None,
+                'amount_residual': float(self.amount_residual) if self.amount_residual else None,
             },
         }
 
@@ -392,11 +406,28 @@ class AccountMove(models.Model):
 
         Vault expose GET /api/v1/proof/account_move/:odoo_id qui retourne :
         {id, hash, ledger, prev_hash, timestamp, jws, status, source_model, source_id}
+        Envoie X-Trace-Id pour traçabilité bout en bout.
         """
+        trace_id = str(uuid.uuid4())
+        icp = self.env['ir.config_parameter'].sudo()
+        tenant = icp.get_param('dorevia.tenant', '') or icp.get_param('dorevia.dvig.source', '')
+        if not tenant and self.company_id:
+            tenant = str(self.company_id.id)
+        headers = {'X-Trace-Id': trace_id}
+        if tenant:
+            headers['X-Tenant'] = tenant
+
         resp = requests.get(
             f"{vault_url}/api/v1/proof/account_move/{self.id}",
+            headers=headers,
             timeout=15,
         )
+        result = 'not_found' if resp.status_code == 404 else ('protected' if resp.status_code == 200 else 'error')
+        _logger.info(
+            "vault_proof_fetch move_id=%s tenant=%s vault_url=%s trace_id=%s http_status=%s result=%s",
+            self.id, tenant or 'N/A', vault_url, trace_id, resp.status_code, result,
+        )
+
         if resp.status_code == 404:
             return
         resp.raise_for_status()
@@ -490,10 +521,11 @@ class AccountMove(models.Model):
     # ── Jobs queue_job ────────────────────────────────────────
 
     def _job_send_to_dvig(self):
-        """Job queue_job : envoi vers DVIG + trigger worker + chaînage fetch_proof.
+        """Job queue_job : envoi vers DVIG + trigger synchrone + fetch immédiat.
 
-        Flux complet (SPEC v1.1.0, latence < 15s) :
-        action_post → todo → [ce job] → pending_proof → [fetch_proof] → vaulted
+        Flux complet (objectif < 10 s) :
+        action_post → todo → [ce job] → pending_proof → trigger_worker synchrone
+        → fetch_proof immédiat → vaulted
         """
         self.ensure_one()
         if self.dorevia_vault_status not in ('todo', 'failed_soft'):
@@ -533,25 +565,23 @@ class AccountMove(models.Model):
             "vault_job_send_dvig_ok move_id=%s event_id=%s", self.id, event_id
         )
 
+        # Appel synchrone : garantit que le document est en Vault avant le fetch
+        # (objectif < 10 s de bout en bout)
         dvig_service = self.env['dorevia.dvig.service']
-        if hasattr(dvig_service, 'with_delay'):
-            db_name = self.env.cr.dbname
-            tenant = icp.get_param('dorevia.tenant', 'default')
-            try:
-                dvig_service.with_delay(
-                    channel='dorevia_vault',
-                    identity_key=f"dvig_trigger:{db_name}:{tenant}",
-                ).trigger_worker()
-            except Exception:
-                pass
+        dvig_service.trigger_worker(limit=50)
 
-        if hasattr(self, 'with_delay'):
+        # Fetch immédiat : document prêt après trigger synchrone
+        vault_url = icp.get_param('dorevia.vault.url', '')
+        if vault_url:
+            self._fetch_and_apply_proof(vault_url)
+        # Fallback async si pas vaulted (réseau lent, 404)
+        if self.dorevia_vault_status == 'pending_proof' and hasattr(self, 'with_delay'):
             db_name = self.env.cr.dbname
             try:
                 self.with_delay(
                     channel='dorevia_vault',
                     identity_key=f"proof:{db_name}:{self.id}:r0",
-                    eta=15,
+                    eta=2,
                 )._job_fetch_proof(retry_count=0)
             except Exception:
                 pass
@@ -571,7 +601,7 @@ class AccountMove(models.Model):
         if self.dorevia_vault_status == 'pending_proof' and retry_count < 3:
             if hasattr(self, 'with_delay'):
                 db_name = self.env.cr.dbname
-                delay = [10, 20, 30][retry_count]
+                delay = [2, 4, 6][retry_count]
                 try:
                     self.with_delay(
                         channel='dorevia_vault',
@@ -584,39 +614,91 @@ class AccountMove(models.Model):
     # ── Actions UI ────────────────────────────────────────────
 
     def action_securiser_maintenant(self):
-        """Bouton 'Sécuriser maintenant' — lance le vaulting immédiat."""
+        """Bouton 'Sécuriser maintenant' — envoi DVIG + trigger worker + fetch proof (effet immédiat)."""
         self.ensure_one()
+        _logger.info("vault_securiser_maintenant called move_id=%s status=%s", self.id, self.dorevia_vault_status)
         icp = self.env['ir.config_parameter'].sudo()
         dvig_url = icp.get_param('dorevia.dvig.url', '')
         dvig_token = icp.get_param('dorevia.dvig.token', '')
         dvig_source = icp.get_param('dorevia.dvig.source', '')
+        vault_url = icp.get_param('dorevia.vault.url', '')
         if not dvig_url or not dvig_token:
             raise UserError(_("Configuration DVIG manquante."))
+        if self.dorevia_vault_status not in ('todo', 'pending_proof', 'failed_soft'):
+            raise UserError(_("Cette facture n'est pas éligible (statut: %s).") % (self.dorevia_vault_status or _('N/A')))
         try:
-            payload = self._build_dvig_payload(dvig_source)
-            resp = requests.post(
-                f"{dvig_url}/ingest",
-                json=payload,
-                headers={
-                    'Authorization': f'Bearer {dvig_token}',
-                    'Content-Type': 'application/json',
+            if self.dorevia_vault_status in ('todo', 'failed_soft'):
+                payload = self._build_dvig_payload(dvig_source)
+                resp = requests.post(
+                    f"{dvig_url}/ingest",
+                    json=payload,
+                    headers={
+                        'Authorization': f'Bearer {dvig_token}',
+                        'Content-Type': 'application/json',
+                    },
+                    timeout=30,
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                event_id = data.get('event_id', '')
+                self.with_context(
+                    dorevia_skip_posted_hook=True, skip_posted_lock=True
+                ).write({
+                    'dorevia_vault_status': 'pending_proof',
+                    'dorevia_dvig_event_id': event_id,
+                    'dorevia_vault_attempt_count': self.dorevia_vault_attempt_count + 1,
+                    'dorevia_vault_last_try_at': fields.Datetime.now(),
+                    'dorevia_vault_last_error': False,
+                })
+            dvig_service = self.env['dorevia.dvig.service']
+            dvig_service.trigger_worker(limit=50)
+            if vault_url:
+                import time
+                for _attempt in range(4):
+                    time.sleep(2)
+                    self._fetch_and_apply_proof(vault_url)
+                    self.invalidate_recordset()
+                    if self.dorevia_vault_status == 'vaulted':
+                        break
+            if self.dorevia_vault_status != 'vaulted':
+                self.with_context(
+                    dorevia_skip_posted_hook=True, skip_posted_lock=True
+                ).write({
+                    'dorevia_vault_attempt_count': self.dorevia_vault_attempt_count + 1,
+                    'dorevia_vault_last_try_at': fields.Datetime.now(),
+                })
+                self.invalidate_recordset()
+            if self.dorevia_vault_status == 'vaulted':
+                msg = _("Facture protégée.")
+                notif_type = 'success'
+            else:
+                msg = _(
+                    "Sécurisation lancée. La preuve n'est pas encore dans le coffre-fort — "
+                    "le statut peut rester « En attente » quelques minutes."
+                )
+                notif_type = 'warning'
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _("Sécurisation"),
+                    'message': msg,
+                    'type': notif_type,
+                    'sticky': False,
+                    'next': {
+                        'type': 'ir.actions.act_window',
+                        'name': _('Facture'),
+                        'res_model': 'account.move',
+                        'res_id': self.id,
+                        'view_mode': 'form',
+                        'views': [(False, 'form')],
+                        'target': 'current',
+                    },
                 },
-                timeout=30,
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            event_id = data.get('event_id', '')
-            self.with_context(
-                dorevia_skip_posted_hook=True, skip_posted_lock=True
-            ).write({
-                'dorevia_vault_status': 'pending_proof',
-                'dorevia_dvig_event_id': event_id,
-                'dorevia_vault_attempt_count': self.dorevia_vault_attempt_count + 1,
-                'dorevia_vault_last_try_at': fields.Datetime.now(),
-            })
+            }
         except Exception as e:
             raise UserError(_(
-                "Erreur lors de l'envoi vers le coffre-fort : %s"
+                "Erreur lors de la sécurisation : %s"
             ) % str(e))
 
     def action_refresh_vault_proof(self):
