@@ -1,0 +1,29 @@
+# Symfony / Sylius
+/.env
+/.env.local
+/.env.local.php
+/.env.*.local
+/vendor/
+/var/
+/public/bundles/
+/public/build/
+.phpunit.result.cache
+/phpunit.xml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.env.local
+docker-compose.override.yml
+
+# Logs
+*.log

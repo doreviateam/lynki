@@ -3,9 +3,11 @@ Worker asynchrone pour traiter les événements de l'outbox
 SPEC DVIG → Vault Forwarding v1.2
 
 Routage par event_type :
-  - invoice.posted  → POST /api/v1/events   (format générique)
-  - payment.posted  → POST /api/v1/payments  (format spécialisé Vault Payments)
-  - *               → POST /api/v1/events   (fallback)
+  - invoice.posted           → POST /api/v1/invoices
+  - payment.posted           → POST /api/v1/payments
+  - bank.move.reconciled     → POST /api/v1/bank-reconciliation/events (SPEC RECONCIL)
+  - bank.move.unreconciled   → POST /api/v1/bank-reconciliation/events
+  - *                        → POST /api/v1/events (fallback)
 
 Observabilité : trace_id propagé via X-Trace-Id, logs structurés.
 """
@@ -138,6 +140,7 @@ def format_vault_payload_invoices(event: OutboxEvent) -> dict:
             "tenant": event.tenant,
             "correlation_id": str(event.event_id),
             "idempotency_key": event.idempotency_key,
+            "company_id": _extract_partner_id(data.get('company_id')) or 1,  # SPEC Company v1.1
             "invoice_number": data.get('name', ''),
             "number": data.get('name', ''),  # Alias pour Vault InvoicesHandler
             "partner_name": data.get('partner_name', ''),
@@ -153,6 +156,91 @@ def format_vault_payload_invoices(event: OutboxEvent) -> dict:
             "invoice_date": data.get('invoice_date', ''),
             "invoice_date_due": data.get('invoice_date_due'),
         },
+    }
+
+
+def format_vault_payload_bank_reconciliation(event: OutboxEvent) -> dict:
+    """Format pour POST /api/v1/bank-reconciliation/events (SPEC RECONCIL — projection).
+
+    Payload attendu : tenant, event_type, move_id, amount, occurred_at, idempotency.event_id.
+    """
+    payload = event.payload
+    data = payload.get('data', {})
+    event_type = payload.get('event_type', 'bank.move.reconciled')
+
+    # move_id : move_line_id ou move_id ou id
+    move_id = data.get('move_id') or data.get('move_line_id') or data.get('id') or 0
+    if isinstance(move_id, list):
+        move_id = move_id[0] if move_id else 0
+    move_id = int(move_id)
+
+    amount = float(data.get('amount', 0))
+    occurred_at = payload.get('timestamp') or data.get('occurred_at') or datetime.now(timezone.utc).isoformat()
+
+    # account_id, company_id optionnels
+    account_id = data.get('account_id')
+    if isinstance(account_id, list):
+        account_id = account_id[0] if account_id else None
+    if account_id is not None:
+        account_id = int(account_id)
+
+    company_id = data.get('company_id')
+    if isinstance(company_id, list):
+        company_id = company_id[0] if company_id else None
+    if company_id is not None:
+        company_id = int(company_id)
+
+    result = {
+        "tenant": event.tenant,
+        "event_type": event_type,
+        "move_id": move_id,
+        "amount": amount,
+        "occurred_at": occurred_at,
+        "idempotency": {"event_id": event.idempotency_key or event.event_id},
+    }
+    if account_id is not None:
+        result["account_id"] = account_id
+    if company_id is not None:
+        result["company_id"] = company_id
+    if data.get('currency'):
+        result["currency"] = data.get('currency')
+
+    return result
+
+
+def format_vault_payload_bank_reconciliation_confirmation(event: OutboxEvent) -> dict | None:
+    """Format pour POST /api/v1/bank-reconciliation/confirmation-events (SPEC Confirmation Bancaire v1.3).
+
+    Retourne None si impacted_documents vide (événement non éligible à la confirmation).
+    """
+    payload = event.payload
+    data = payload.get('data', {})
+    impacted = data.get('impacted_documents') or []
+    if not impacted:
+        return None
+
+    event_type = payload.get('event_type', 'bank.move.reconciled')
+    bank_statement_line_id = int(
+        data.get('bank_statement_line_id') or data.get('move_line_id') or data.get('move_id') or 0
+    )
+    occurred_at = payload.get('timestamp') or data.get('occurred_at') or datetime.now(timezone.utc).isoformat()
+    idempotency_key = payload.get('idempotency_key') or event.idempotency_key or event.event_id
+
+    impacted_filtered = [
+        {"odoo_model": d.get("odoo_model", ""), "odoo_id": int(d.get("odoo_id", 0)), "amount_abs": float(d.get("amount_abs", 0))}
+        for d in impacted
+        if d.get("odoo_model") and d.get("odoo_id")
+    ]
+    if not impacted_filtered:
+        return None
+
+    return {
+        "tenant": event.tenant,
+        "event_type": event_type,
+        "bank_statement_line_id": bank_statement_line_id,
+        "impacted_documents": impacted_filtered,
+        "occurred_at": occurred_at,
+        "idempotency_key": idempotency_key,
     }
 
 
@@ -264,6 +352,13 @@ def _resolve_vault_endpoint(event: OutboxEvent) -> tuple[str, dict, dict]:
         log.debug("route_invoice", event_id=event.event_id, url=url)
         return url, payload, extra_headers
 
+    if event_type in ('bank.move.reconciled', 'bank.move.unreconciled'):
+        url = f"{vault_base}/api/v1/bank-reconciliation/events"
+        payload = format_vault_payload_bank_reconciliation(event)
+        extra_headers = {"X-Tenant": event.tenant}
+        log.debug("route_bank_reconciliation", event_id=event.event_id, event_type=event_type, url=url)
+        return url, payload, extra_headers
+
     url = f"{vault_base}/api/v1/events"
     payload = format_vault_payload_events(event)
     extra_headers = {"X-Tenant": event.tenant}
@@ -354,6 +449,33 @@ async def forward_to_vault(event: OutboxEvent) -> Tuple[dict, str]:
             )
             response.raise_for_status()
 
+        # Confirmation Bancaire v1.3 : second POST vers confirmation si impacted_documents
+        event_type = event.payload.get('event_type', '')
+        if event_type in ('bank.move.reconciled', 'bank.move.unreconciled'):
+            conf_payload = format_vault_payload_bank_reconciliation_confirmation(event)
+            if conf_payload:
+                vault_base = f"http://{settings.vault_host}:{settings.vault_port}"
+                conf_url = f"{vault_base}/api/v1/bank-reconciliation/confirmation-events"
+                conf_headers = {"X-Tenant": event.tenant}
+                headers_conf = {**headers, **conf_headers}
+                resp_conf = await client.post(
+                    conf_url,
+                    json=conf_payload,
+                    timeout=settings.vault_timeout,
+                    headers=headers_conf,
+                )
+                if resp_conf.status_code >= 400:
+                    body_raw = resp_conf.text or ""
+                    log.warning(
+                        "vault_confirmation_non2xx",
+                        event_id=event.event_id,
+                        conf_url=conf_url,
+                        http_status=resp_conf.status_code,
+                        body=body_raw[:BODY_TRUNCATE_LEN],
+                    )
+                    resp_conf.raise_for_status()
+                log.debug("vault_confirmation_ok", event_id=event.event_id)
+
         log.info(
             "vault_forward_ok",
             msg_code="vault_forward_ok",
@@ -428,6 +550,10 @@ def _patch_vault_odoo_id(db: Session, event: OutboxEvent, vault_doc_id: Optional
         log.debug("patch_vault_odoo_id", vault_doc_id=vault_doc_id, odoo_id=odoo_id)
     except Exception as e:
         log.warning("patch_vault_odoo_id_error", vault_doc_id=vault_doc_id, error=str(e))
+        try:
+            db.rollback()  # Éviter Session aborted — documents est dans Vault DB, pas DVIG DB
+        except Exception:
+            pass
 
 
 # ── Process ────────────────────────────────────────────────────

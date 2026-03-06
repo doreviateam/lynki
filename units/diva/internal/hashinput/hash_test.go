@@ -114,7 +114,7 @@ func TestBuildHashInput_Cockpit(t *testing.T) {
 }
 
 func TestComputeContextKey_Format(t *testing.T) {
-	key := ComputeContextKey("sarl-la-platine", 1, "2026-01-01", "2026-02-18")
+	key := ComputeContextKey("sarl-la-platine", 1, "2026-01-01", "2026-02-18", "")
 	expected := "cockpit:sarl-la-platine:1:2026-01-01:2026-02-18"
 	if key != expected {
 		t.Errorf("context_key = %q, want %q", key, expected)
@@ -122,8 +122,16 @@ func TestComputeContextKey_Format(t *testing.T) {
 }
 
 func TestComputeContextKey_CompanyZero(t *testing.T) {
-	key := ComputeContextKey("sarl-la-platine", 0, "2026-01-01", "2026-02-18")
+	key := ComputeContextKey("sarl-la-platine", 0, "2026-01-01", "2026-02-18", "")
 	expected := "cockpit:sarl-la-platine:0:2026-01-01:2026-02-18"
+	if key != expected {
+		t.Errorf("context_key = %q, want %q", key, expected)
+	}
+}
+
+func TestComputeContextKey_WithPartner(t *testing.T) {
+	key := ComputeContextKey("sarl-la-platine", 0, "2026-01-01", "2026-02-18", "Client Dupont")
+	expected := "cockpit:sarl-la-platine:0:2026-01-01:2026-02-18:Client Dupont"
 	if key != expected {
 		t.Errorf("context_key = %q, want %q", key, expected)
 	}
@@ -198,6 +206,39 @@ func TestHashV2_ShopOrderStable(t *testing.T) {
 	h2, _ := ComputePayloadHash(req2)
 	if h1 != h2 {
 		t.Errorf("hash devrait être identique quel que soit l'ordre des shops: %s vs %s", h1, h2)
+	}
+}
+
+func TestHashV3_StatusChangeChangesHash(t *testing.T) {
+	req1 := makeCockpitRequest()
+	req1.Dashboard.Cards[0].Status = "watch"
+
+	req2 := makeCockpitRequest()
+	req2.Dashboard.Cards[0].Status = "ok"
+
+	h1, _ := ComputePayloadHash(req1)
+	h2, _ := ComputePayloadHash(req2)
+	if h1 == h2 {
+		t.Error("hash identique malgré changement de statut treasury watch→ok")
+	}
+}
+
+func TestHashV3_StatusIncludedInCards(t *testing.T) {
+	req := makeCockpitRequest()
+	req.Dashboard.Cards[0].Status = "watch"
+
+	hi, err := BuildHashInput(req)
+	if err != nil {
+		t.Fatalf("BuildHashInput: %v", err)
+	}
+	cards := hi["cards"].(map[string]interface{})
+	treasury := cards["treasury_validated_pct"].(map[string]interface{})
+	if treasury["status"] != "watch" {
+		t.Errorf("treasury status = %v, want watch", treasury["status"])
+	}
+
+	if hi["schema"] != "dorevia.diva.hash_input.v3" {
+		t.Errorf("schema = %v, want dorevia.diva.hash_input.v3", hi["schema"])
 	}
 }
 

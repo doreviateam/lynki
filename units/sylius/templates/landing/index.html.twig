@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dorevia-Vault — Coffre-fort numérique | Conformité fiscale PME | Facturation électronique</title>
+    <meta name="description" content="Sécurisez vos factures. Prouvez votre conformité. Dormez tranquille. Dorevia-Vault génère automatiquement des preuves cryptographiques opposables pour tous vos documents financiers.">
+    <meta name="keywords" content="coffre-fort numérique, conformité fiscale PME, facturation électronique, archivage légal facture, Odoo conformité fiscale, preuve comptable">
+    
+    {# SEO LAB - noindex #}
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- ===== All CSS files ===== -->
+    <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/animate.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/lineicons.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/ud-styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/status-cards.css') }}" />
+    <style>
+        .form-message {
+            display: none;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-message.alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+            display: block;
+        }
+        .form-message.alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #dc2626;
+            display: block;
+        }
+        
+        /* Progress Bar */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.05);
+            z-index: 9999;
+        }
+        .scroll-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3056d3, #10b981);
+            width: 0%;
+            transition: width 0.1s ease-out;
+        }
+        
+        /* CTA Flottant */
+        .floating-cta {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            animation: slideInUp 0.3s ease-out;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+        .floating-cta.visible {
+            display: block;
+        }
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Preuve sociale */
+        .social-proof {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        .social-proof-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            color: #212b36;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Styles pour les champs de formulaire modernes */
+        .modern-input:focus {
+            outline: none !important;
+            border-color: var(--primary-color) !important;
+            background: white !important;
+            box-shadow: 0 0 0 4px rgba(48, 86, 211, 0.1) !important;
+            transform: translateY(-2px);
+        }
+        
+        .modern-input:hover {
+            border-color: #cbd5e1 !important;
+            background: white !important;
+        }
+        
+        /* Animation pour les champs optionnels */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Animation pour le bouton submit */
+        #submit-button:hover div {
+            left: 100%;
+        }
+        
+        /* Animation spinner */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Validation visuelle des champs */
+        .modern-input:valid:not(:placeholder-shown) {
+            border-color: #10b981 !important;
+            background: #f0fdf4 !important;
+        }
+        
+        .modern-input:valid:not(:placeholder-shown)::after {
+            content: "✓";
+            position: absolute;
+            right: 16px;
+            color: #10b981;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="scroll-progress" id="scroll-progress">
+        <div class="scroll-progress-bar" id="scroll-progress-bar"></div>
+    </div>
+    
+    <!-- ====== Header Start ====== -->
+    <header class="ud-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <nav class="navbar navbar-expand-lg">
+                        <a class="navbar-brand" href="#home">
+                            <span class="navbar-brand-text" style="font-size: 1.5rem; font-weight: 800; color: var(--primary-color);">Dorevia-Vault</span>
+                        </a>
+                        <button class="navbar-toggler">
+                            <span class="toggler-icon"></span>
+                            <span class="toggler-icon"></span>
+                            <span class="toggler-icon"></span>
+                        </button>
+
+                        <div class="navbar-collapse">
+                            <ul id="nav" class="navbar-nav mx-auto">
+                                <li class="nav-item">
+                                    <a class="ud-menu-scroll" href="#home">Accueil</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="ud-menu-scroll" href="#features">Fonctionnalités</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="ud-menu-scroll" href="#how-it-works">Comment ça marche</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="ud-menu-scroll" href="#pricing">Tarifs</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="ud-menu-scroll" href="#contact">Contact</a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="navbar-btn d-none d-sm-inline-block">
+                            <a href="#contact" class="ud-main-btn ud-white-btn">Demander une démo</a>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- ====== Header End ====== -->
+
+    <!-- ====== Hero Start ====== -->
+    <section class="ud-hero" id="home">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-hero-content wow fadeInUp" data-wow-delay=".2s">
+                        <span class="tag" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 0.5rem 1rem; border-radius: 2rem; margin-bottom: 1rem; display: inline-block;">
+                            🇫🇷 Infrastructure souveraine
+                        </span>
+                        <h1 class="ud-hero-title" style="color: white;">
+                            Sécurisez votre facturation et votre POS.
+                        </h1>
+                        <h2 class="ud-hero-subtitle" style="color: rgba(255, 255, 255, 0.95); font-size: clamp(1.25rem, 2vw, 1.5rem); font-weight: 500; margin-bottom: 1.5rem; line-height: 1.6;">
+                            Dorevia‑Vault aligne votre système comptable<br>
+                            et votre caisse avec les exigences de traçabilité attendues par l'administration française.
+                        </h2>
+                        <p class="ud-hero-desc" style="color: rgba(255, 255, 255, 0.9); font-size: clamp(1rem, 1.2vw, 1.125rem); line-height: 1.7;">
+                            Chaque facture et chaque encaissement sont horodatés, scellés<br>
+                            et conservés de manière inaltérable.<br>
+                            Vous disposez d'une preuve exploitable en cas de contrôle.
+                        </p>
+                        <p class="hero-signature" style="color: rgba(255, 255, 255, 0.95); font-size: clamp(1.1rem, 1.4vw, 1.3rem); font-weight: 700; margin: 1.5rem 0; letter-spacing: 0.05em;">
+                            Valider · Sceller · Prouver
+                        </p>
+                        <ul class="ud-hero-buttons">
+                            <li>
+                                <a href="#contact" class="ud-main-btn ud-white-btn">
+                                    ➡️ Demander une démo
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#pricing" class="ud-main-btn ud-link-btn" style="color: white;">
+                                    ➡️ Calculer mon coût <i class="lni lni-arrow-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                        <p class="hero-micro-reassurance" style="color: rgba(255, 255, 255, 0.72); margin-top: 1rem; font-size: clamp(0.85rem, 0.95vw, 0.9rem); text-align: center;">
+                            Démonstration personnalisée · Sans engagement
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ====== Hero End ====== -->
+
+    <!-- ====== Status Cards Start ====== -->
+    <section class="status-cards-container" id="status-cards">
+        <div class="status-cards-wrapper">
+            <div class="status-cards-title">
+                <h2>Le parcours de preuve financière</h2>
+                <p>Comprenez en quelques secondes comment vos factures deviennent des preuves opposables</p>
+            </div>
+            
+            <div class="status-cards-grid">
+                <!-- Carte 1 - Valider -->
+                <div class="status-card" data-status="validated">
+                    <button class="status-card-summary" 
+                            type="button"
+                            data-card-toggle
+                            aria-expanded="false"
+                            aria-controls="status-detail-validated">
+                        <span class="status-card-badge" aria-hidden="true">1</span>
+                        <div class="status-card-icon" aria-hidden="true">🟢</div>
+                        <h3 class="status-card-title">Valider</h3>
+                        <p class="status-card-subtitle">Votre facture est confirmée</p>
+                        <p class="status-card-kicker">depuis votre ERP</p>
+                    </button>
+                    
+                    <button class="status-card-close" 
+                            type="button"
+                            aria-label="Fermer la carte Valider">
+                        ✕
+                    </button>
+                    
+                    <div class="status-card-detail" 
+                         id="status-detail-validated" 
+                         role="region" 
+                         aria-label="Détails du statut Valider"
+                         hidden>
+                        <div class="status-card-detail-content">
+                            <ul>
+                                <li>Facture validée dans l'ERP</li>
+                                <li>Paiement reçu</li>
+                                <li>Écriture comptable postée</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carte 2 - Sceller -->
+                <div class="status-card" data-status="sealed">
+                    <button class="status-card-summary" 
+                            type="button"
+                            data-card-toggle
+                            aria-expanded="false"
+                            aria-controls="status-detail-sealed">
+                        <span class="status-card-badge" aria-hidden="true">2</span>
+                        <div class="status-card-icon" aria-hidden="true">🔒</div>
+                        <h3 class="status-card-title">Sceller</h3>
+                        <p class="status-card-subtitle">Votre facture est figée</p>
+                        <p class="status-card-kicker">dans Dorevia-Vault</p>
+                    </button>
+                    
+                    <button class="status-card-close" 
+                            type="button"
+                            aria-label="Fermer la carte Sceller">
+                        ✕
+                    </button>
+                    
+                    <div class="status-card-detail" 
+                         id="status-detail-sealed" 
+                         role="region" 
+                         aria-label="Détails du statut Sceller"
+                         hidden>
+                        <div class="status-card-detail-content">
+                            <ul>
+                                <li>Capture événementielle</li>
+                                <li>Empreinte cryptographique (hash)</li>
+                                <li>Horodatage certifié</li>
+                                <li>Journal immuable</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carte 3 - Prouver -->
+                <div class="status-card" data-status="verifiable">
+                    <button class="status-card-summary" 
+                            type="button"
+                            data-card-toggle
+                            aria-expanded="false"
+                            aria-controls="status-detail-verifiable">
+                        <span class="status-card-badge" aria-hidden="true">3</span>
+                        <div class="status-card-icon" aria-hidden="true">✅</div>
+                        <h3 class="status-card-title">Prouver</h3>
+                        <p class="status-card-subtitle">Une preuve est disponible</p>
+                        <p class="status-card-kicker">à tout moment</p>
+                    </button>
+                    
+                    <button class="status-card-close" 
+                            type="button"
+                            aria-label="Fermer la carte Prouver">
+                        ✕
+                    </button>
+                    
+                    <div class="status-card-detail" 
+                         id="status-detail-verifiable" 
+                         role="region" 
+                         aria-label="Détails du statut Prouver"
+                         hidden>
+                        <div class="status-card-detail-content">
+                            <ul>
+                                <li>Preuve exploitable</li>
+                                <li>Vérification indépendante</li>
+                                <li>Utilisable en cas de contrôle</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ====== Status Cards End ====== -->
+
+    <!-- ====== Features Start ====== -->
+    <section id="features" class="ud-features">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-section-title">
+                        <span>Bénéfices</span>
+                        <h2>Pourquoi choisir Dorevia-Vault ?</h2>
+                        <p>
+                            Dorevia-Vault n'est pas une GED. C'est une <strong>machine à produire de la preuve.</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".1s">
+                        <div class="ud-feature-icon">
+                            <i class="lni lni-shield"></i>
+                        </div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Conformité fiscale</h3>
+                            <p class="ud-feature-desc">
+                                Préparation aux contrôles fiscaux avec preuves opposables
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".15s">
+                        <div class="ud-feature-icon">
+                            <i class="lni lni-lock"></i>
+                        </div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Protection juridique</h3>
+                            <p class="ud-feature-desc">
+                                Preuves cryptographiques immuables et vérifiables
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".2s">
+                        <div class="ud-feature-icon">
+                            <i class="lni lni-zip"></i>
+                        </div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Zéro friction</h3>
+                            <p class="ud-feature-desc">
+                                Aucune action manuelle, processus automatique
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".25s">
+                        <div class="ud-feature-icon">
+                            <i class="lni lni-world"></i>
+                        </div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Données souveraines</h3>
+                            <p class="ud-feature-desc">
+                                Hébergement France/UE, indépendance GAFAM
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".3s">
+                        <div class="ud-feature-icon">
+                            <i class="lni lni-plug"></i>
+                        </div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">ERP agnostique</h3>
+                            <p class="ud-feature-desc">
+                                Compatible avec tous les ERP, pas seulement Odoo
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".35s">
+                        <div class="ud-feature-icon">
+                            <i class="lni lni-list"></i>
+                        </div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Historique traçable</h3>
+                            <p class="ud-feature-desc">
+                                Ledger immuable pour traçabilité complète
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ====== Features End ====== -->
+
+    <!-- ====== User Journey Start ====== -->
+    <section id="how-it-works" class="ud-about" style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 50%); padding: 120px 0;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-section-title mx-auto text-center" style="margin-bottom: 4rem;">
+                        <span class="tag" style="display: inline-block; padding: 8px 20px; background: linear-gradient(135deg, rgba(48, 86, 211, 0.1) 0%, rgba(23, 158, 238, 0.1) 100%); border-radius: 50px; color: var(--primary-color); font-weight: 600; font-size: 14px; margin-bottom: 1.5rem;">Parcours utilisateur</span>
+                        <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1.5rem; color: #1e293b;">Comment ça marche ?</h2>
+                        <div style="max-width: 700px; margin: 0 auto; padding: 1.5rem; background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%); border-radius: 16px; border-left: 4px solid var(--primary-color);">
+                            <p style="font-size: 1.1rem; color: #0c4a6e; margin: 0; line-height: 1.6;">
+                                <strong>Vous continuez à travailler normalement.</strong><br>
+                                Nous sécurisons tout en arrière-plan.<br>
+                                Vous obtenez une preuve légale.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    {# Timeline horizontale avec les 3 étapes #}
+                    <div style="position: relative; padding: 2rem 0;">
+                        {# Ligne de timeline horizontale #}
+                        <div style="position: absolute; top: 80px; left: 10%; right: 10%; height: 4px; background: linear-gradient(90deg, #667eea 0%, #10b981 50%, #f59e0b 100%); border-radius: 2px; z-index: 0;"></div>
+
+                        <div class="row g-4" style="position: relative; z-index: 1;">
+                            {# Étape 1 #}
+                            <div class="col-lg-4 col-md-6">
+                                <div class="step-card wow fadeInUp" data-wow-delay=".1s" style="position: relative; padding: 2.5rem; background: white; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); transition: all 0.3s ease; border-top: 4px solid #667eea; height: 100%; display: flex; flex-direction: column;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';">
+                                    {# Point de timeline #}
+                                    <div style="position: absolute; top: -32px; left: 50%; transform: translateX(-50%); width: 64px; height: 64px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); border: 6px solid white; font-size: 32px; z-index: 2;">
+                                        🧾
+                                    </div>
+                                    <div style="flex: 1; display: flex; flex-direction: column;">
+                                        <div style="text-align: center; margin-bottom: 1.5rem; margin-top: 1rem;">
+                                            <span style="display: inline-block; padding: 6px 16px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-radius: 50px; color: #667eea; font-weight: 700; font-size: 14px;">Étape 1</span>
+                                        </div>
+                                        <h3 style="font-size: 1.5rem; font-weight: 800; color: #667eea; margin-bottom: 0.75rem; text-align: center;">Vous facturez normalement</h3>
+                                        <p style="font-size: 1rem; color: #64748b; margin-bottom: 1.5rem; font-weight: 600; text-align: center;">Vous continuez à travailler comme avant</p>
+                                        <div style="margin-bottom: 1.5rem; flex-grow: 1;">
+                                            <p style="font-size: 0.95rem; color: #475569; line-height: 1.7; margin-bottom: 0.75rem; text-align: center;">Dans Odoo, comme aujourd'hui.</p>
+                                            <p style="font-size: 0.95rem; color: #475569; line-height: 1.7; margin-bottom: 0.75rem; text-align: center;">Validation humaine.</p>
+                                            <p style="font-size: 0.95rem; color: #475569; line-height: 1.7; text-align: center;">Aucun changement de process.</p>
+                                        </div>
+                                        <div style="display: flex; justify-content: center; margin-top: auto;">
+                                            <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f1f5f9; border-radius: 50px; font-size: 14px; font-weight: 600; color: #475569;">
+                                                <span>🧑‍💼</span>
+                                                <span>Zéro formation nécessaire</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Étape 2 #}
+                            <div class="col-lg-4 col-md-6">
+                                <div class="step-card wow fadeInUp" data-wow-delay=".2s" style="position: relative; padding: 2.5rem; background: white; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); transition: all 0.3s ease; border-top: 4px solid #10b981; height: 100%; display: flex; flex-direction: column;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';">
+                                    {# Point de timeline #}
+                                    <div style="position: absolute; top: -32px; left: 50%; transform: translateX(-50%); width: 64px; height: 64px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); border: 6px solid white; font-size: 32px; z-index: 2;">
+                                        ⚙️
+                                    </div>
+                                    <div style="flex: 1; display: flex; flex-direction: column;">
+                                        <div style="text-align: center; margin-bottom: 1.5rem; margin-top: 1rem;">
+                                            <span style="display: inline-block; padding: 6px 16px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); border-radius: 50px; color: #10b981; font-weight: 700; font-size: 14px;">Étape 2</span>
+                                        </div>
+                                        <h3 style="font-size: 1.5rem; font-weight: 800; color: #10b981; margin-bottom: 0.75rem; text-align: center;">Nous sécurisons automatiquement</h3>
+                                        <p style="font-size: 1rem; color: #64748b; margin-bottom: 1.5rem; font-weight: 600; text-align: center;">Tout est capturé en arrière-plan</p>
+                                        <div style="margin-bottom: 1.5rem; flex-grow: 1;">
+                                            <p style="font-size: 0.95rem; color: #475569; line-height: 1.7; margin-bottom: 0.75rem; text-align: center;">Dès qu'une facture est validée,</p>
+                                            <p style="font-size: 0.95rem; color: #475569; line-height: 1.7; margin-bottom: 1rem; text-align: center;">Dorevia capture automatiquement l'événement.</p>
+                                            <div style="padding: 1rem; background: #f0fdf4; border-radius: 12px; border-left: 3px solid #10b981;">
+                                                <ul style="list-style: none; padding: 0; margin: 0;">
+                                                    <li style="font-size: 0.9rem; color: #065f46; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="color: #10b981; font-weight: bold;">✓</span>
+                                                        <span>Aucun clic supplémentaire</span>
+                                                    </li>
+                                                    <li style="font-size: 0.9rem; color: #065f46; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="color: #10b981; font-weight: bold;">✓</span>
+                                                        <span>Aucune manipulation</span>
+                                                    </li>
+                                                    <li style="font-size: 0.9rem; color: #065f46; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="color: #10b981; font-weight: bold;">✓</span>
+                                                        <span>Zéro risque d'oubli</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Étape 3 #}
+                            <div class="col-lg-4 col-md-6">
+                                <div class="step-card wow fadeInUp" data-wow-delay=".3s" style="position: relative; padding: 2.5rem; background: white; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); transition: all 0.3s ease; border-top: 4px solid #f59e0b; height: 100%; display: flex; flex-direction: column;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';">
+                                    {# Point de timeline #}
+                                    <div style="position: absolute; top: -32px; left: 50%; transform: translateX(-50%); width: 64px; height: 64px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); border: 6px solid white; font-size: 32px; z-index: 2;">
+                                        🔐
+                                    </div>
+                                    <div style="flex: 1; display: flex; flex-direction: column;">
+                                        <div style="text-align: center; margin-bottom: 1.5rem; margin-top: 1rem;">
+                                            <span style="display: inline-block; padding: 6px 16px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); border-radius: 50px; color: #f59e0b; font-weight: 700; font-size: 14px;">Étape 3</span>
+                                        </div>
+                                        <h3 style="font-size: 1.5rem; font-weight: 800; color: #f59e0b; margin-bottom: 0.75rem; text-align: center;">Vous obtenez une preuve légale</h3>
+                                        <p style="font-size: 1rem; color: #64748b; margin-bottom: 1.5rem; font-weight: 600; text-align: center;">Une preuve opposable en cas de contrôle</p>
+                                        <div style="margin-bottom: 1.5rem; flex-grow: 1;">
+                                            <p style="font-size: 0.95rem; color: #475569; line-height: 1.7; margin-bottom: 1rem; text-align: center;">Chaque facture est :</p>
+                                            <div style="padding: 1rem; background: #fffbeb; border-radius: 12px; border-left: 3px solid #f59e0b;">
+                                                <ul style="list-style: none; padding: 0; margin: 0;">
+                                                    <li style="font-size: 0.9rem; color: #92400e; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="color: #f59e0b; font-weight: bold;">•</span>
+                                                        <span>horodatée</span>
+                                                    </li>
+                                                    <li style="font-size: 0.9rem; color: #92400e; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="color: #f59e0b; font-weight: bold;">•</span>
+                                                        <span>scellée cryptographiquement</span>
+                                                    </li>
+                                                    <li style="font-size: 0.9rem; color: #92400e; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="color: #f59e0b; font-weight: bold;">•</span>
+                                                        <span>inscrite dans un registre immuable</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; justify-content: center; margin-top: auto;">
+                                            <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #fef3c7; border-radius: 50px; font-size: 14px; font-weight: 600; color: #92400e;">
+                                                <span>⚖️</span>
+                                                <span>Conforme exigences fiscales</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ====== User Journey End ====== -->
+
+    <!-- ====== Pricing Start ====== -->
+    <section id="pricing" class="ud-pricing">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-section-title mx-auto text-center">
+                        <span>Tarification</span>
+                        <h2>Modèle MRR transparent</h2>
+                        <p>
+                            Abonnement mensuel + usage par preuve générée. Sans engagement, facturation mensuelle.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 align-items-stretch justify-content-center" style="margin-top: 3rem;">
+                <!-- STARTER - 30€/mois -->
+                <div class="col-lg-4 col-md-6 col-sm-10">
+                    <div class="ud-single-pricing first-item wow fadeInUp" data-wow-delay=".15s">
+                        <span class="ud-popular-tag">⭐ Le plus choisi</span>
+                        <div class="ud-pricing-header">
+                            <h3>STARTER</h3>
+                            <h4>30 €<span style="font-size: 20px; font-weight: 500; color: #94a3b8;">/mois</span></h4>
+                        </div>
+                        <div class="ud-pricing-body">
+                            <ul>
+                                <li>Jusqu'à <strong>500 factures / mois</strong></li>
+                                <li>Preuve cryptographique certifiée</li>
+                                <li>Ledger immuable</li>
+                                <li>Horodatage légal</li>
+                                <li>Support email</li>
+                                <li>API basique</li>
+                                <li>Portail de consultation des preuves</li>
+                            </ul>
+                            <div style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed rgba(0,0,0,0.1);">
+                                <p style="font-size: 13px; color: #64748b; margin-bottom: 8px; font-weight: 600;">
+                                    Usage supplémentaire
+                                </p>
+                                <p style="font-size: 14px; color: #1e293b; margin: 0;">
+                                    <strong style="color: var(--primary-color);">+ 0,15 €</strong> / facture au-delà de 500 / mois
+                                </p>
+                            </div>
+                        </div>
+                        <div class="ud-pricing-footer">
+                            <p style="font-size: 13px; color: #64748b; margin-bottom: 20px; font-style: italic; padding: 12px; background: #f1f5f9; border-radius: 8px;">
+                                💳 Comparable au prix d'une location de TPE
+                            </p>
+                            <a href="#contact" class="ud-main-btn ud-border-btn">Commencer maintenant</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BUSINESS - 80€/mois -->
+                <div class="col-lg-4 col-md-6 col-sm-10">
+                    <div class="ud-single-pricing active wow fadeInUp" data-wow-delay=".1s">
+                        <span class="ud-popular-tag" style="background: rgba(255, 255, 255, 0.95); border: 2px solid rgba(255, 255, 255, 0.3);">👍 Recommandé</span>
+                        <div class="ud-pricing-header">
+                            <h3 style="color: rgba(255, 255, 255, 0.9);">BUSINESS</h3>
+                            <h4 style="color: white;">80 €<span style="font-size: 20px; font-weight: 500; color: rgba(255, 255, 255, 0.8);">/mois</span></h4>
+                        </div>
+                        <div class="ud-pricing-body">
+                            <ul>
+                                <li>Jusqu'à <strong>1500 factures / mois</strong></li>
+                                <li>Tout Starter</li>
+                                <li>Réconciliation automatique</li>
+                                <li>Support prioritaire</li>
+                                <li>API avancée</li>
+                                <li>Exports comptables</li>
+                                <li>Tableaux de suivi</li>
+                            </ul>
+                            <div style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed rgba(255,255,255,0.3);">
+                                <p style="font-size: 13px; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">
+                                    Usage supplémentaire
+                                </p>
+                                <p style="font-size: 14px; color: white; margin: 0;">
+                                    <strong style="color: rgba(255, 255, 255, 1);">+ 0,12 €</strong> / facture au-delà de 1500 / mois
+                                </p>
+                            </div>
+                        </div>
+                        <div class="ud-pricing-footer" style="border-top: 1px solid rgba(255,255,255,0.2);">
+                            <a href="#contact" class="ud-main-btn ud-white-btn">Essayer gratuitement</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCALE - 150€/mois -->
+                <div class="col-lg-4 col-md-6 col-sm-10">
+                    <div class="ud-single-pricing last-item wow fadeInUp" data-wow-delay=".15s">
+                        <span class="ud-popular-tag">🚀 Pour les équipes</span>
+                        <div class="ud-pricing-header">
+                            <h3>SCALE</h3>
+                            <h4>150 €<span style="font-size: 20px; font-weight: 500; color: #94a3b8;">/mois</span></h4>
+                        </div>
+                        <div class="ud-pricing-body">
+                            <ul>
+                                <li>Jusqu'à <strong>5000 factures / mois</strong></li>
+                                <li>Tout Business</li>
+                                <li>Reporting avancé</li>
+                                <li>Support dédié</li>
+                                <li>Formation incluse</li>
+                                <li>SLA (99,9% - réponse &lt; 24h)</li>
+                                <li>Accès fonctionnalités bêta</li>
+                            </ul>
+                            <div style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed rgba(0,0,0,0.1);">
+                                <p style="font-size: 13px; color: #64748b; margin-bottom: 8px; font-weight: 600;">
+                                    Usage supplémentaire
+                                </p>
+                                <p style="font-size: 14px; color: #1e293b; margin: 0;">
+                                    <strong style="color: var(--primary-color);">+ 0,10 €</strong> / facture au-delà de 5000 / mois
+                                </p>
+                            </div>
+                        </div>
+                        <div class="ud-pricing-footer">
+                            <p style="font-size: 12px; color: #64748b; margin-bottom: 16px; padding: 10px; background: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 4px;">
+                                <strong style="color: #92400e;">💼 +5000 factures</strong> → Offre Enterprise sur devis
+                            </p>
+                            <a href="#contact" class="ud-main-btn ud-border-btn">Nous contacter</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Exemple de calcul -->
+            <div class="row" style="margin-top: 3rem;">
+                <div class="col-lg-10 mx-auto">
+                    <div style="padding: 2rem; background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%); border-radius: 16px; border: 2px solid #bfdbfe; box-shadow: 0 4px 6px rgba(14, 165, 233, 0.1);">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+                            <div style="width: 48px; height: 48px; background: #0ea5e9; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                💡
+                            </div>
+                            <h5 style="color: #0369a1; margin: 0; font-size: 1.25rem; font-weight: 700;">Exemple de calcul</h5>
+                        </div>
+                        <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);">
+                            <p style="color: #0c4a6e; margin-bottom: 1rem; font-weight: 600; font-size: 1.1rem;">
+                                📊 750 factures / mois avec <strong style="color: var(--primary-color);">STARTER</strong> :
+                            </p>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; text-align: left;">
+                                <div style="padding: 1rem; background: #f1f5f9; border-radius: 8px;">
+                                    <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 600;">Base</p>
+                                    <p style="font-size: 1.1rem; color: #1e293b; margin: 0; font-weight: 700;">30,00 €</p>
+                                    <p style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">500 factures incluses</p>
+                                </div>
+                                <div style="padding: 1rem; background: #fef3c7; border-radius: 8px;">
+                                    <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 600;">Supplément</p>
+                                    <p style="font-size: 1.1rem; color: #1e293b; margin: 0; font-weight: 700;">37,50 €</p>
+                                    <p style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">250 × 0,15 €</p>
+                                </div>
+                                <div style="padding: 1rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px; color: white;">
+                                    <p style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.9); margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 600;">Total</p>
+                                    <p style="font-size: 1.5rem; color: white; margin: 0; font-weight: 800;">67,50 €</p>
+                                    <p style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.9); margin-top: 0.25rem;">par mois</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mentions obligatoires -->
+            <div class="row" style="margin-top: 3rem;">
+                <div class="col-lg-12">
+                    <div style="padding: 2.5rem; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border-radius: 16px; border: 2px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+                        <h4 style="margin-bottom: 2rem; color: #1e293b; text-align: center; font-weight: 700; font-size: 1.5rem;">
+                            ✨ Garanties et flexibilité
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                            <div style="padding: 1.5rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 24px;">
+                                    ✓
+                                </div>
+                                <p style="margin-bottom: 0.5rem; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Sans engagement</p>
+                                <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">Annulation à tout moment, sans frais</p>
+                            </div>
+                            <div style="padding: 1.5rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 24px;">
+                                    💳
+                                </div>
+                                <p style="margin-bottom: 0.5rem; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Facturation mensuelle</p>
+                                <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">Paiement par CB ou virement bancaire</p>
+                            </div>
+                            <div style="padding: 1.5rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 24px;">
+                                    🔄
+                                </div>
+                                <p style="margin-bottom: 0.5rem; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Upgrade / downgrade libre</p>
+                                <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">Changement d'offre à tout moment</p>
+                            </div>
+                            <div style="padding: 1.5rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 24px;">
+                                    🔍
+                                </div>
+                                <p style="margin-bottom: 0.5rem; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Pas de frais cachés</p>
+                                <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">Tarification 100% transparente</p>
+                            </div>
+                        </div>
+                        <div style="padding: 1.5rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; border-left: 4px solid #f59e0b; margin-top: 1.5rem;">
+                            <p style="font-size: 0.95rem; color: #92400e; margin: 0; line-height: 1.6;">
+                                <strong style="font-weight: 700;">🎁 Programme Early Adopters :</strong> Les clients ayant souscrit à l'ancienne offre Early (49 €) sont automatiquement migrés vers <strong>STARTER à 30 €</strong>. 
+                                <br><em style="font-size: 0.875rem;">Tarif early adopter garanti jusqu'au 31/03/2026</em>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ====== Pricing End ====== -->
+
+    <!-- ====== Contact/Form Start ====== -->
+    <section id="contact" class="ud-contact" style="background: linear-gradient(180deg, #f8fafc 0%, #ffffff 50%); position: relative; overflow: hidden;">
+        {# Éléments décoratifs de fond #}
+        <div style="position: absolute; top: -100px; right: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(48, 86, 211, 0.1) 0%, transparent 70%); border-radius: 50%; z-index: 0;"></div>
+        <div style="position: absolute; bottom: -150px; left: -150px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%); border-radius: 50%; z-index: 0;"></div>
+        
+        <div class="container" style="position: relative; z-index: 1;">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-section-title mx-auto text-center">
+                        <span style="display: inline-block; padding: 8px 20px; background: linear-gradient(135deg, rgba(48, 86, 211, 0.1) 0%, rgba(23, 158, 238, 0.1) 100%); border-radius: 50px; color: var(--primary-color); font-weight: 600; font-size: 14px; margin-bottom: 1.5rem;">Contact</span>
+                        <h2 style="font-size: 3rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(135deg, #3056d3 0%, #179bee 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Devenir early adopter</h2>
+                        <p style="font-size: 1.2rem; color: #64748b; max-width: 600px; margin: 0 auto;">
+                            Rejoignez le programme early adopters et bénéficiez d'un accès anticipé à Dorevia-Vault
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 3rem;">
+                <div class="col-lg-10 col-xl-9 mx-auto">
+                    <div class="ud-contact-form-wrapper wow fadeInUp" data-wow-delay=".2s" style="box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05); border-radius: 24px; background: white; padding: 0; overflow: hidden; position: relative;">
+                        {# Header avec dégradé #}
+                        <div style="background: linear-gradient(135deg, #3056d3 0%, #179bee 100%); padding: 2.5rem; text-align: center; position: relative;">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg width=\"100\" height=\"100\" xmlns=\"http://www.w3.org/2000/svg\"><defs><pattern id=\"grid\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\"><path d=\"M 20 0 L 0 0 0 20\" fill=\"none\" stroke=\"rgba(255,255,255,0.05)\" stroke-width=\"1\"/></pattern></defs><rect width=\"100\" height=\"100\" fill=\"url(%23grid)\"/></svg>'); opacity: 0.3;"></div>
+                            <div style="position: relative; z-index: 1;">
+                                <div style="width: 80px; height: 80px; background: rgba(255, 255, 255, 0.2); border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; backdrop-filter: blur(10px); border: 2px solid rgba(255, 255, 255, 0.3);">
+                                    <span style="font-size: 40px;">🚀</span>
+                                </div>
+                                <h3 style="color: white; font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem;">Rejoignez l'aventure</h3>
+                                <p style="color: rgba(255, 255, 255, 0.9); font-size: 1rem; margin: 0;">Accès prioritaire • Support dédié • Tarifs préférentiels</p>
+                            </div>
+                        </div>
+
+                        <div class="ud-contact-form" style="padding: 3rem;">
+                            <div class="form-message" id="form-message"></div>
+                            
+                            {{ form_start(form, {'attr': {'id': 'lead-form', 'action': path('lead_submit'), 'class': 'ud-contact-form'}}) }}
+                                
+                                {# Bloc 1 - Informations essentielles (visibles) #}
+                                <div style="margin-bottom: 2.5rem;">
+                                    <div class="ud-form-group" style="margin-bottom: 2rem;">
+                                        <label for="{{ form.email.vars.id }}" style="display: block; font-weight: 600; font-size: 14px; color: #1e293b; margin-bottom: 0.75rem;">
+                                            {{ form_label(form.email) }}
+                                        </label>
+                                        <div style="position: relative;">
+                                            <div style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 18px; z-index: 1;">✉️</div>
+                                            {{ form_widget(form.email, {'attr': {'class': 'ud-form-control modern-input', 'style': 'padding: 16px 16px 16px 50px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f8fafc; width: 100%;'}}) }}
+                                        </div>
+                                        {{ form_errors(form.email) }}
+                                    </div>
+
+                                    <div class="ud-form-group" style="margin-bottom: 2rem;">
+                                        <label for="{{ form.role.vars.id }}" style="display: block; font-weight: 600; font-size: 14px; color: #1e293b; margin-bottom: 0.75rem;">
+                                            {{ form_label(form.role) }}
+                                        </label>
+                                        <div style="position: relative;">
+                                            <div style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 18px; z-index: 1;">👤</div>
+                                            {{ form_widget(form.role, {'attr': {'class': 'ud-form-control modern-input', 'id': 'lead_role', 'style': 'padding: 16px 16px 16px 50px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f8fafc; appearance: none; background-image: url(\"data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23334155\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E\"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; width: 100%;'}}) }}
+                                        </div>
+                                        {{ form_errors(form.role) }}
+                                    </div>
+                                </div>
+
+                                {# Bloc 2 - Informations entreprise (replié par défaut) #}
+                                <div class="ud-form-group" id="show-company-wrapper" style="text-align: center; margin-bottom: 2rem;">
+                                    <button type="button" id="show-company" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: transparent; border: 2px dashed #cbd5e1; border-radius: 12px; color: #64748b; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#3056d3'; this.style.color='#3056d3'; this.style.background='#f8fafc';" onmouseout="this.style.borderColor='#cbd5e1'; this.style.color='#64748b'; this.style.background='transparent';">
+                                        <span style="font-size: 18px;">➕</span>
+                                        <span>Informations entreprise (optionnel)</span>
+                                    </button>
+                                </div>
+
+                                <div id="company-fields" style="display: none; animation: slideDown 0.3s ease-out;">
+                                    <div class="ud-form-group" style="margin-bottom: 2rem;">
+                                        <label for="{{ form.companyName.vars.id }}" style="display: block; font-weight: 600; font-size: 14px; color: #1e293b; margin-bottom: 0.75rem;">
+                                            {{ form_label(form.companyName) }}
+                                        </label>
+                                        {{ form_widget(form.companyName, {'attr': {'class': 'ud-form-control modern-input', 'style': 'padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f8fafc; width: 100%;'}}) }}
+                                        {{ form_errors(form.companyName) }}
+                                    </div>
+
+                                    <div class="ud-form-group" style="margin-bottom: 2rem;">
+                                        <label for="{{ form.fiscalCountry.vars.id }}" style="display: block; font-weight: 600; font-size: 14px; color: #1e293b; margin-bottom: 0.75rem;">
+                                            {{ form_label(form.fiscalCountry) }}
+                                        </label>
+                                        <div style="position: relative;">
+                                            {{ form_widget(form.fiscalCountry, {'attr': {'class': 'ud-form-control modern-input', 'id': 'lead_fiscalCountry', 'style': 'padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f8fafc; appearance: none; background-image: url(\"data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23334155\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E\"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; width: 100%;'}}) }}
+                                        </div>
+                                        {{ form_errors(form.fiscalCountry) }}
+                                    </div>
+
+                                    <div class="ud-form-group" id="siret-field-wrapper" style="margin-bottom: 2rem; display: none;">
+                                        <label for="{{ form.siret.vars.id }}" style="display: block; font-weight: 600; font-size: 14px; color: #1e293b; margin-bottom: 0.5rem;">
+                                            {{ form_label(form.siret) }} <span style="color: #94a3b8; font-weight: normal; font-size: 12px;">(optionnel)</span>
+                                        </label>
+                                        <p style="font-size: 12px; color: #64748b; margin-bottom: 0.75rem;">14 chiffres — uniquement pour les entreprises françaises</p>
+                                        <div style="position: relative;">
+                                            {{ form_widget(form.siret, {'attr': {'class': 'ud-form-control modern-input', 'id': 'lead_siret', 'style': 'padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f8fafc; width: 100%;', 'maxlength': '14', 'pattern': '[0-9]{14}'}}) }}
+                                        </div>
+                                        {{ form_errors(form.siret) }}
+                                    </div>
+                                </div>
+
+                                {{ form_widget(form.website) }}
+                                {{ form_rest(form) }}
+
+                                {# Bloc 3 - Bouton CTA #}
+                                <div class="ud-form-group" style="margin-top: 2.5rem;">
+                                    <button type="submit" class="ud-main-btn" id="submit-button" style="width: 100%; padding: 20px; background: linear-gradient(135deg, #3056d3 0%, #179bee 100%); border: none; border-radius: 16px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(48, 86, 211, 0.3); position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 40px rgba(48, 86, 211, 0.4)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 10px 30px rgba(48, 86, 211, 0.3)';">
+                                        <span style="position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 10px;">
+                                            <span style="font-size: 24px;">🚀</span>
+                                            <span>Rejoindre l'aventure</span>
+                                        </span>
+                                        <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s ease;"></div>
+                                    </button>
+                                </div>
+
+                                {# Bloc 4 - Rassurance #}
+                                <div style="margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: center;">
+                                        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                            <span style="font-size: 24px;">🔒</span>
+                                            <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">Données sécurisées</span>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                            <span style="font-size: 24px;">📜</span>
+                                            <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">Conforme RGPD</span>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                            <span style="font-size: 24px;">✉️</span>
+                                            <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">Réponse sous 48h</span>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                            <span style="font-size: 24px;">❌</span>
+                                            <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">Aucun spam</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {{ form_end(form) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ====== Contact/Form End ====== -->
+
+    <!-- ====== Footer Start ====== -->
+    <footer class="ud-footer wow fadeInUp" data-wow-delay=".15s">
+        <div class="shape shape-1">
+            <img src="{{ asset('assets/images/footer/shape-1.svg') }}" alt="" aria-hidden="true" />
+        </div>
+        <div class="shape shape-2">
+            <img src="{{ asset('assets/images/footer/shape-2.svg') }}" alt="" aria-hidden="true" />
+        </div>
+        <div class="shape shape-3">
+            <img src="{{ asset('assets/images/footer/shape-3.svg') }}" alt="" aria-hidden="true" />
+        </div>
+        <div class="ud-footer-widgets">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <div class="ud-widget">
+                            <a href="#home" class="ud-footer-logo">
+                                <span style="font-size: 1.5rem; font-weight: 800; color: white;">Dorevia-Vault</span>
+                            </a>
+                            <p class="ud-widget-desc">
+                                Infrastructure de preuve souveraine
+                            </p>
+                            <p style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.8);">
+                                🇫🇷 Hébergement France/UE • Indépendance GAFAM • Conformité RGPD
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-lg-2 col-md-6 col-sm-6">
+                        <div class="ud-widget">
+                            <h6 class="ud-widget-title">Liens rapides</h6>
+                            <ul class="ud-widget-links">
+                                <li>
+                                    <a href="#home">Accueil</a>
+                                </li>
+                                <li>
+                                    <a href="#features">Fonctionnalités</a>
+                                </li>
+                                <li>
+                                    <a href="#pricing">Tarifs</a>
+                                </li>
+                                <li>
+                                    <a href="#contact">Contact</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                        <div class="ud-widget">
+                            <h6 class="ud-widget-title">Contact</h6>
+                            <ul class="ud-widget-brands">
+                                <li>
+                                    <a href="mailto:contact@doreviateam.com">contact@doreviateam.com</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-lg-3 col-md-6 col-sm-6">
+                        <div class="ud-widget">
+                            <h6 class="ud-widget-title">À propos</h6>
+                            <p class="ud-widget-desc">
+                                Dorevia-Vault n'est pas une GED. C'est une <strong>machine à produire de la preuve.</strong>
+                            </p>
+                            <p style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.8); font-style: italic; margin-top: 0.5rem;">
+                                "La confiance se prouve."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ud-footer-bottom">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8">
+                        <ul class="ud-footer-bottom-left">
+                            <li>
+                                <a href="{{ path('privacy_index') }}">Politique de confidentialité</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="ud-footer-bottom-right">
+                            &copy; {{ "now"|date("Y") }} Dorevia Team. Tous droits réservés.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- ====== Footer End ====== -->
+
+    <!-- ====== Back To Top Start ====== -->
+    <a href="javascript:void(0)" class="back-to-top">
+        <i class="lni lni-chevron-up"></i>
+    </a>
+    <!-- ====== Back To Top End ====== -->
+
+    <!-- ====== CTA Flottant Start ====== -->
+    <div id="floating-cta" class="floating-cta">
+        <a href="#contact" class="ud-main-btn ud-white-btn" style="padding: 1rem 1.5rem; font-size: 1rem; white-space: nowrap;">
+            🚀 Demander une démo
+        </a>
+    </div>
+    <!-- ====== CTA Flottant End ====== -->
+
+    <!-- ====== All Javascript Files ====== -->
+    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('assets/js/wow.min.js') }}"></script>
+    <script src="{{ asset('assets/js/status-cards.js') }}" defer></script>
+    <script>
+        // Version corrigée de main.js pour gérer l'absence du logo
+        (function () {
+            "use strict";
+
+            // ======= Sticky Header (sans gestion du logo)
+            window.onscroll = function () {
+                const ud_header = document.querySelector(".ud-header");
+                if (ud_header) {
+                    const sticky = ud_header.offsetTop;
+                    if (window.pageYOffset > sticky) {
+                        ud_header.classList.add("sticky");
+                    } else {
+                        ud_header.classList.remove("sticky");
+                    }
+                }
+
+                // show or hide the back-top-top button
+                const backToTop = document.querySelector(".back-to-top");
+                if (backToTop) {
+                    if (
+                        document.body.scrollTop > 50 ||
+                        document.documentElement.scrollTop > 50
+                    ) {
+                        backToTop.style.display = "flex";
+                    } else {
+                        backToTop.style.display = "none";
+                    }
+                }
+            };
+
+            //===== close navbar-collapse when a clicked
+            let navbarToggler = document.querySelector(".navbar-toggler");
+            const navbarCollapse = document.querySelector(".navbar-collapse");
+
+            if (navbarToggler && navbarCollapse) {
+                document.querySelectorAll(".ud-menu-scroll").forEach((e) =>
+                    e.addEventListener("click", () => {
+                        navbarToggler.classList.remove("active");
+                        navbarCollapse.classList.remove("show");
+                    })
+                );
+                navbarToggler.addEventListener("click", function () {
+                    navbarToggler.classList.toggle("active");
+                    navbarCollapse.classList.toggle("show");
+                });
+            }
+
+            // ===== submenu
+            const submenuButton = document.querySelectorAll(".nav-item-has-children");
+            submenuButton.forEach((elem) => {
+                const link = elem.querySelector("a");
+                if (link) {
+                    link.addEventListener("click", () => {
+                        const submenu = elem.querySelector(".ud-submenu");
+                        if (submenu) {
+                            submenu.classList.toggle("show");
+                        }
+                    });
+                }
+            });
+
+            // ===== wow js
+            if (typeof WOW !== 'undefined') {
+                new WOW().init();
+            }
+
+            // ====== scroll top js
+            function scrollTo(element, to = 0, duration = 500) {
+                const start = element.scrollTop;
+                const change = to - start;
+                const increment = 20;
+                let currentTime = 0;
+
+                const animateScroll = () => {
+                    currentTime += increment;
+
+                    const val = Math.easeInOutQuad(currentTime, start, change, duration);
+
+                    element.scrollTop = val;
+
+                    if (currentTime < duration) {
+                        setTimeout(animateScroll, increment);
+                    }
+                };
+
+                animateScroll();
+            }
+
+            Math.easeInOutQuad = function (t, b, c, d) {
+                t /= d / 2;
+                if (t < 1) return (c / 2) * t * t + b;
+                t--;
+                return (-c / 2) * (t * (t - 2) - 1) + b;
+            };
+
+            const backToTopBtn = document.querySelector(".back-to-top");
+            if (backToTopBtn) {
+                backToTopBtn.onclick = () => {
+                    scrollTo(document.documentElement);
+                };
+            }
+        })();
+    </script>
+    <script>
+        // Gestion du formulaire en AJAX
+        document.getElementById('lead-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const submitButton = document.getElementById('submit-button');
+            const messageDiv = document.getElementById('form-message');
+            const formData = new FormData(form);
+            
+            // Récupérer les paramètres UTM depuis l'URL
+            const urlParams = new URLSearchParams(window.location.search);
+            ['utm_source', 'utm_campaign', 'utm_medium', 'utm_content'].forEach(param => {
+                if (urlParams.has(param)) {
+                    formData.append(param, urlParams.get(param));
+                }
+            });
+            
+            submitButton.disabled = true;
+            const originalButtonContent = submitButton.innerHTML;
+            submitButton.innerHTML = '<span style="position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 10px;"><span style="display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;"></span><span>Envoi en cours...</span></span>';
+            messageDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    messageDiv.innerHTML = '<div style="display: flex; align-items: center; gap: 12px;"><span style="font-size: 24px;">✨</span><span><strong>Merci !</strong> On arrive dans votre boîte mail ✨</span></div>';
+                    messageDiv.className = 'alert alert-success';
+                    messageDiv.style.display = 'block';
+                    form.reset();
+                    // Réinitialiser l'affichage des champs optionnels
+                    if (companyFields) companyFields.style.display = 'none';
+                    if (showCompanyWrapper) showCompanyWrapper.style.display = 'block';
+                    if (siretFieldWrapper) siretFieldWrapper.style.display = 'none';
+                } else {
+                    let errorMsg = data.message || 'Une erreur est survenue. Veuillez réessayer.';
+                    if (data.errors && data.errors.length > 0) {
+                        errorMsg += ' ' + data.errors.join(', ');
+                    }
+                    messageDiv.textContent = errorMsg;
+                    messageDiv.className = 'alert alert-danger';
+                    messageDiv.style.display = 'block';
+                }
+            } catch (error) {
+                messageDiv.textContent = 'Une erreur est survenue. Veuillez réessayer plus tard.';
+                messageDiv.className = 'alert alert-danger';
+                messageDiv.style.display = 'block';
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<span style="position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 10px;"><span style="font-size: 24px;">🚀</span><span>Rejoindre l\'aventure</span></span>';
+                messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+
+        // ==== for menu scroll
+        const pageLink = document.querySelectorAll(".ud-menu-scroll");
+
+        pageLink.forEach((elem) => {
+            elem.addEventListener("click", (e) => {
+                e.preventDefault();
+                document.querySelector(elem.getAttribute("href")).scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                });
+            });
+        });
+
+        // Progress Bar
+        const progressBar = document.getElementById('scroll-progress-bar');
+        if (progressBar) {
+            window.addEventListener('scroll', () => {
+                const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (window.pageYOffset / windowHeight) * 100;
+                progressBar.style.width = scrolled + '%';
+            });
+        }
+
+        // CTA Flottant
+        const floatingCta = document.getElementById('floating-cta');
+        if (floatingCta) {
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    floatingCta.classList.add('visible');
+                } else {
+                    floatingCta.classList.remove('visible');
+                }
+            });
+        }
+
+        // Progressive Disclosure - Afficher champs entreprise
+        const showCompanyBtn = document.getElementById('show-company');
+        const companyFields = document.getElementById('company-fields');
+        const showCompanyWrapper = document.getElementById('show-company-wrapper');
+        
+        if (showCompanyBtn && companyFields) {
+            showCompanyBtn.addEventListener('click', () => {
+                companyFields.style.display = 'block';
+                showCompanyWrapper.style.display = 'none';
+                // Smooth scroll vers les champs dépliés
+                companyFields.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        }
+
+        // Gestion du champ SIRET conditionnel
+        const fiscalCountrySelect = document.getElementById('lead_fiscalCountry');
+        const siretFieldWrapper = document.getElementById('siret-field-wrapper');
+        const siretInput = document.getElementById('lead_siret');
+        
+        function toggleSiretField() {
+            if (fiscalCountrySelect && siretFieldWrapper) {
+                if (fiscalCountrySelect.value === 'france') {
+                    siretFieldWrapper.style.display = 'block';
+                } else {
+                    siretFieldWrapper.style.display = 'none';
+                    if (siretInput) {
+                        siretInput.value = '';
+                    }
+                }
+            }
+        }
+        
+        if (fiscalCountrySelect) {
+            fiscalCountrySelect.addEventListener('change', toggleSiretField);
+            // Vérifier l'état initial si les champs sont déjà visibles
+            toggleSiretField();
+        }
+
+        // Formatage du SIRET (espaces tous les 3 chiffres)
+        if (siretInput) {
+            siretInput.addEventListener('input', function(e) {
+                // Retirer tous les espaces et caractères non numériques
+                let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/g, '');
+                // Limiter à 14 chiffres
+                value = value.substring(0, 14);
+                // Ajouter des espaces tous les 3 chiffres
+                if (value.length > 0) {
+                    value = value.match(/.{1,3}/g).join(' ');
+                }
+                e.target.value = value;
+            });
+        }
+
+        // Highlight menu item on scroll
+        const sections = document.querySelectorAll('section[id]');
+        const menuItems = document.querySelectorAll('.ud-menu-scroll');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            menuItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === `#${current}`) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

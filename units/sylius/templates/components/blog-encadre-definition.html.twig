@@ -1,0 +1,14 @@
+{# Encadré Définition - Clarification concept clé #}
+<div class="blog-encadre blog-encadre-definition" style="background: var(--blog-accent-soft); border-left: 4px solid var(--blog-accent); border-radius: var(--blog-radius); padding: 24px; margin: 2rem 0;">
+    <div style="display: flex; align-items: start; gap: 12px;">
+        <div style="font-size: 24px; line-height: 1;">📖</div>
+        <div style="flex: 1;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--blog-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+                Définition
+            </div>
+            <div class="blog-encadre-content" style="color: var(--blog-text); font-size: 16px; line-height: 1.7;">
+                {{ content|raw }}
+            </div>
+        </div>
+    </div>
+</div>

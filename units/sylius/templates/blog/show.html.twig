@@ -1,0 +1,236 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ page_description }}{% endblock %}
+{% block meta_keywords %}{{ article.metaKeywords }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/css/landing-v2-final.css') }}?v={{ 'now'|date('U') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/blog-v2.css') }}?v={{ 'now'|date('U') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/blog-v3.css') }}?v={{ 'now'|date('U') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" />
+    <style>
+        body { background: #fdfdfd !important; }
+        .ud-header, .ud-footer { display: none !important; }
+    </style>
+    {# Structured Data JSON-LD pour SEO #}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "{{ article.title|e('js') }}",
+      "description": "{{ (article.metaDescription ?: article.excerpt)|e('js') }}",
+      "author": {
+        "@type": "Person",
+        "name": "{{ article.author|e('js') }}"
+      },
+      "datePublished": "{{ article.publishedAt|date('c') }}",
+      {% if article.updatedAt %}
+      "dateModified": "{{ article.updatedAt|date('c') }}",
+      {% endif %}
+      "publisher": {
+        "@type": "Organization",
+        "name": "Dorevia-Vault",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://sylius.lab.core.doreviateam.com/assets/images/logo/logo.svg"
+        }
+      },
+      {% set coverImage = article.coverImage ?: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=600&fit=crop&q=80' %}
+      "image": {
+        "@type": "ImageObject",
+        "url": "{{ coverImage }}",
+        "width": 1200,
+        "height": 600
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "{{ app.request.uri }}"
+      }
+    }
+    </script>
+{% endblock %}
+
+{% block body %}
+<div class="blog-v2 blog-article-pandoc blog-v3">
+    <!-- ARTICLE CONTENT — mise en page inspirée Pandoc (Georgia, 36em, lecture longue) -->
+    <article class="blog-article-pandoc-article">
+        <div class="blog-v2-container">
+            <div class="blog-article-page blog-article-pandoc-page">
+                <!-- Fil d'Ariane minimal (style Korben) -->
+                <nav class="blog-article-breadcrumb" aria-label="Fil d'Ariane">
+                    <a href="{{ path('home') }}">Accueil</a>
+                    <span class="blog-breadcrumb-sep" aria-hidden="true"> › </span>
+                    <a href="{{ path('blog_index') }}">Blog</a>
+                    {% if article.category %}
+                        <span class="blog-breadcrumb-sep" aria-hidden="true"> › </span>
+                        <a href="{{ path('blog_index', {category: article.category}) }}">{{ article.category }}</a>
+                    {% endif %}
+                </nav>
+
+                <!-- Titre H1 -->
+                <h1 class="blog-article-title">{{ article.title }}</h1>
+
+                <!-- Méta une ligne (style Korben) -->
+                <div class="blog-article-meta-bar">
+                    {% set mois = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'] %}
+                    <span class="blog-article-meta">{{ article.publishedAt|date('j') }} {{ mois[article.publishedAt|date('n') - 1] }} {{ article.publishedAt|date('Y') }}</span>
+                    <span class="blog-breadcrumb-sep" aria-hidden="true"> · </span>
+                    <span class="blog-article-meta">par {{ article.author }}</span>
+                    {% if article.category %}
+                        <span class="blog-breadcrumb-sep" aria-hidden="true"> · </span>
+                        <a href="{{ path('blog_index', {category: article.category}) }}" class="blog-article-category-inline">{{ article.category }}</a>
+                    {% endif %}
+                    <span class="blog-article-share-inline blog-article-meta-share-right">
+                        <a href="https://twitter.com/intent/tweet?text={{ article.title|url_encode }}&url={{ app.request.uri|url_encode }}" target="_blank" rel="noopener noreferrer" class="blog-article-share-btn" aria-label="Twitter">Twitter</a>
+                        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ app.request.uri|url_encode }}" target="_blank" rel="noopener noreferrer" class="blog-article-share-btn" aria-label="LinkedIn">LinkedIn</a>
+                    </span>
+                </div>
+
+                {% if article.chapeau %}
+                    <div class="blog-article-chapeau">{{ article.chapeau|raw }}</div>
+                {% endif %}
+                {% if article.coverImage %}
+                    <img src="{{ article.coverImage }}" alt="" class="blog-article-cover" loading="lazy" width="1200" height="600">
+                {% endif %}
+
+                <!-- Corps de l'article -->
+                <div class="article-content blog-article-body">
+                    {{ html_content|raw }}
+                </div>
+
+                <!-- CTA doux (obligatoire selon SPEC) -->
+                {% include 'components/blog-cta-doux.html.twig' %}
+
+                <!-- Bloc auteur (style éditorial) -->
+                <div class="blog-article-author-box">
+                    <p class="blog-article-author-name">{{ article.author }}</p>
+                    <p class="blog-article-author-bio">Équipe Dorevia-Vault. Nous concevons une infrastructure de preuve financière pour que chaque événement validé dans votre ERP devienne une preuve scellée, vérifiable et opposable.</p>
+                </div>
+
+                <!-- Partager (répété en bas) -->
+                <div class="article-share">
+                    <h3 class="article-share-title">Partager cet article</h3>
+                    <div class="article-share-buttons">
+                        <a href="https://twitter.com/intent/tweet?text={{ article.title|url_encode }}&url={{ app.request.uri|url_encode }}" target="_blank" rel="noopener noreferrer" class="article-share-button twitter">Twitter</a>
+                        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ app.request.uri|url_encode }}" target="_blank" rel="noopener noreferrer" class="article-share-button linkedin">LinkedIn</a>
+                        <a href="mailto:?subject={{ article.title|url_encode }}&body={{ app.request.uri|url_encode }}" class="article-share-button email">Envoyer par email</a>
+                    </div>
+                </div>
+
+                <!-- Dans la même catégorie (style JdC) -->
+                {% if related_articles|length > 0 %}
+                    <div class="blog-related-articles">
+                        <h2 class="blog-related-title">Dans la même catégorie</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px;">
+                            {% for related in related_articles %}
+                                <a href="{{ path('blog_show', {slug: related.slug}) }}" class="blog-related-card" style="text-decoration: none; color: inherit;">
+                                    <div style="padding: 24px; background: var(--blog-surface); border: 1.5px solid var(--blog-line); border-radius: var(--blog-radius); transition: all 0.3s ease; height: 100%; display: flex; flex-direction: column;">
+                                        {% if related.category %}
+                                            {% set categoryColors = {
+                                                'Conformité & réglementation': 'background: #BFCDEB; color: #1A2B4C;',
+                                                'ERP & Odoo CE': 'background: #A7E2D8; color: #1A2B4C;',
+                                                'Trésorerie & pilotage': 'background: #FDEAA8; color: #1A2B4C;',
+                                                'Preuve & audit': 'background: #FDD2D5; color: #1A2B4C;',
+                                                'Architecture & sécurité': 'background: #BFCDEB; color: #1A2B4C;'
+                                            } %}
+                                            {% set categoryStyle = categoryColors[related.category] ?? 'background: var(--blog-accent-soft); color: var(--blog-accent);' %}
+                                            <div style="display: inline-block; padding: 4px 10px; {{ categoryStyle }} border-radius: 6px; font-size: 11px; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">
+                                                {{ related.category }}
+                                            </div>
+                                        {% endif %}
+                                        <h3 style="font-size: 18px; font-weight: 700; color: var(--blog-text); margin-bottom: 12px; line-height: 1.4; flex: 1;">{{ related.title }}</h3>
+                                        {% if related.excerpt %}
+                                            <p style="font-size: 14px; color: var(--blog-muted); margin-bottom: 12px; line-height: 1.6;">{{ related.excerpt|slice(0, 100) }}{% if related.excerpt|length > 100 %}...{% endif %}</p>
+                                        {% endif %}
+                                        <p style="font-size: 13px; color: var(--blog-muted2); margin: 0; margin-top: auto;">{{ related.publishedAt|date('d/m/Y') }} · {{ related.readingTime }} min</p>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Back to Blog -->
+                <div style="text-align: center; margin-top: 4rem;">
+                    <a href="{{ path('blog_index') }}" class="blog-newsletter-button">
+                        ← Retour au blog
+                    </a>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <!-- FOOTER BLOG (Indépendant selon SPEC) -->
+    {% include 'components/footer-blog.html.twig' %}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        // Remplacer les placeholders d'encadrés par les composants réels
+        document.addEventListener('DOMContentLoaded', function() {
+            const placeholders = document.querySelectorAll('.blog-encadre-placeholder');
+            placeholders.forEach(function(placeholder) {
+                const type = placeholder.getAttribute('data-type');
+                let html = '';
+                
+                if (type === 'definition') {
+                    const content = placeholder.getAttribute('data-content');
+                    html = `
+                        <div class="blog-encadre blog-encadre-definition" style="background: var(--blog-accent-soft); border-left: 4px solid var(--blog-accent); border-radius: var(--blog-radius); padding: 24px; margin: 2rem 0;">
+                            <div style="display: flex; align-items: start; gap: 12px;">
+                                <div style="font-size: 24px; line-height: 1;">📖</div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 12px; font-weight: 700; color: var(--blog-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Définition</div>
+                                    <div style="color: var(--blog-text); font-size: 16px; line-height: 1.7;">${content}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (type === 'a-retenir') {
+                    const pointsJson = placeholder.getAttribute('data-points');
+                    const points = JSON.parse(pointsJson);
+                    const pointsHtml = points.map(p => `<li style="margin-bottom: 8px;">${p}</li>`).join('');
+                    html = `
+                        <div class="blog-encadre blog-encadre-a-retenir" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #f59e0b; border-radius: var(--blog-radius); padding: 24px; margin: 2rem 0;">
+                            <div style="display: flex; align-items: start; gap: 12px;">
+                                <div style="font-size: 24px; line-height: 1;">💡</div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 12px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">À retenir</div>
+                                    <ul style="margin: 0; padding-left: 20px; color: #78350f; font-size: 16px; line-height: 1.8;">${pointsHtml}</ul>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (type === 'exemple') {
+                    const content = placeholder.getAttribute('data-content');
+                    html = `
+                        <div class="blog-encadre blog-encadre-exemple" style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); border-left: 4px solid #0ea5e9; border-radius: var(--blog-radius); padding: 24px; margin: 2rem 0;">
+                            <div style="display: flex; align-items: start; gap: 12px;">
+                                <div style="font-size: 24px; line-height: 1;">🔍</div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 12px; font-weight: 700; color: #0c4a6e; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Exemple</div>
+                                    <div style="color: #0c4a6e; font-size: 16px; line-height: 1.7;">${content}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (html) {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    placeholder.parentNode.replaceChild(temp.firstElementChild, placeholder);
+                }
+            });
+        });
+    </script>
+{% endblock %}

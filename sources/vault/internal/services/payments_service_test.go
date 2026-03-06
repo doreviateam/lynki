@@ -119,6 +119,51 @@ func TestPaymentsService_Ingest_Idempotent(t *testing.T) {
 	signer.AssertNotCalled(t, "SignPayload", ctx, mock.Anything)
 }
 
+func TestPaymentsService_Ingest_IdempotentByKey(t *testing.T) {
+	// Step 1 : idempotence par idempotency_key (priorité sur SHA256)
+	repo := new(MockDocumentRepository)
+	ledgerSvc := new(MockLedgerService)
+	signer := new(MockSigner)
+	service := NewPaymentsService(repo, ledgerSvc, signer)
+
+	input := PaymentInput{
+		Tenant:           "test-tenant",
+		SourceModel:       "account.payment",
+		SourceID:          "42",
+		PaymentDate:       "2025-01-18T10:00:00Z",
+		Amount:            50,
+		Currency:          "EUR",
+		Method:            "transfer",
+		Source:            "account",
+		PaymentDirection:  "inbound",
+		IsRefund:          false,
+		CompanyID:         1,
+		Payment:           map[string]interface{}{"name": "PAY/001"},
+		IdempotencyKey:    "tenant|odoo_account|account.payment|42",
+	}
+
+	ctx := context.Background()
+	existingID := uuid.New()
+	existingDoc := &models.Document{
+		ID:          existingID,
+		Tenant:      stringPtr("test-tenant"),
+		SHA256Hex:   "old-hash",
+		LedgerHash:  stringPtr("ledger-1"),
+		EvidenceJWS: stringPtr("old-jws"),
+		CreatedAt:   time.Now().Add(-2 * time.Hour),
+	}
+
+	repo.On("GetDocumentByIdempotencyKey", ctx, "test-tenant", input.IdempotencyKey).Return(existingDoc, nil)
+
+	result, err := service.Ingest(ctx, input)
+	require.NoError(t, err)
+	assert.Equal(t, existingID, result.ID)
+	assert.Equal(t, "old-hash", result.SHA256Hex)
+	assert.Equal(t, "old-jws", *result.EvidenceJWS)
+	repo.AssertNotCalled(t, "GetDocumentBySHA256", ctx, mock.Anything)
+	repo.AssertNotCalled(t, "InsertDocumentWithEvidence", ctx, mock.Anything, mock.Anything, mock.Anything)
+}
+
 func TestPaymentsService_Ingest_InvalidDate(t *testing.T) {
 	repo := new(MockDocumentRepository)
 	ledgerSvc := new(MockLedgerService)

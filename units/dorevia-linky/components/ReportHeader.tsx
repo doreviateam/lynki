@@ -35,8 +35,12 @@ interface ReportHeaderProps {
   monthsWithDataByYear?: Record<string, number[]>;
   /** Nombre de documents scellés sur la période (pour le badge intégrité) */
   sealedCount?: number | null;
+  /** true = les 5 sources ont répondu, comptage fiable. false = partiel, à rafraîchir. */
+  sealedCountComplete?: boolean;
   /** Rafraîchir les métriques (badge preuves scellées) */
   onRefreshMetrics?: () => void;
+  /** Masquer le badge ou afficher version neutre quand complétude non validée (spec AT5) */
+  showIntegrityBadge?: boolean;
   /** Application affichée (linky = dashboard, odoo = iframe Odoo) */
   currentApp?: "linky" | "odoo";
   /** Bascule vers Linky ou Odoo */
@@ -56,7 +60,9 @@ export function ReportHeader({
   availableYears = null,
   monthsWithDataByYear = {},
   sealedCount = null,
+  sealedCountComplete,
   onRefreshMetrics,
+  showIntegrityBadge = true,
   currentApp = "linky",
   onAppChange,
 }: ReportHeaderProps) {
@@ -80,13 +86,18 @@ export function ReportHeader({
   }, [period.from, period.to]);
 
   useEffect(() => {
-    const next = getPeriodFromKeyAndYear(periodKey, periodYear);
-    onPeriodChange(next);
+    const t = setTimeout(() => {
+      const next = getPeriodFromKeyAndYear(periodKey, periodYear);
+      onPeriodChange(next);
+    }, 200); // Debounce : évite saturation navigateur au changement d'année
+    return () => clearTimeout(t);
   }, [periodKey, periodYear, onPeriodChange]);
 
   const yearsToShow = useMemo(() => {
+    const currentYear = new Date().getFullYear();
     if (availableYears && availableYears.length > 0) {
       const set = new Set(availableYears);
+      set.add(currentYear);
       if (!set.has(periodYear)) set.add(periodYear);
       return Array.from(set).sort((a, b) => b - a);
     }
@@ -94,20 +105,21 @@ export function ReportHeader({
   }, [availableYears, periodYear]);
 
   const periodOptionsToShow = useMemo(() => {
-    const ytd = PERIOD_OPTIONS[0];
-    const months = PERIOD_OPTIONS.slice(1);
+    const allOpt = PERIOD_OPTIONS[0]; // Toutes périodes (toutes années)
+    const ytd = PERIOD_OPTIONS[1]; // Exercice à date
+    const months = PERIOD_OPTIONS.slice(2); // Janvier…Décembre
     const monthsForYear = monthsWithDataByYear[String(periodYear)];
     if (monthsForYear && monthsForYear.length > 0) {
       const monthSet = new Set(monthsForYear);
       const filtered = months.filter((opt) => monthSet.has(parseInt(opt.value, 10)));
-      return [ytd, ...filtered];
+      return [allOpt, ytd, ...filtered];
     }
     return PERIOD_OPTIONS;
   }, [monthsWithDataByYear, periodYear]);
 
   useEffect(() => {
     const monthKey = parseInt(periodKey, 10);
-    if (periodKey !== "ytd" && !Number.isNaN(monthKey)) {
+    if (periodKey !== "ytd" && periodKey !== "all" && !Number.isNaN(monthKey)) {
       const monthsForYear = monthsWithDataByYear[String(periodYear)];
       if (monthsForYear && monthsForYear.length > 0 && !monthsForYear.includes(monthKey)) {
         setPeriodKey("ytd");
@@ -424,8 +436,9 @@ export function ReportHeader({
               value={selectedCompanyId ?? ""}
               onChange={(e) => onCompanyChange(e.target.value || null)}
               className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              aria-label="Société"
             >
-              <option value="">Tout</option>
+              <option value="">Toutes les sociétés</option>
               {companies.map((c) => (
                 <option key={c.company_id} value={c.company_id}>
                   {c.display_name ?? c.company_id}
@@ -466,7 +479,11 @@ export function ReportHeader({
             </select>
           </div>
           <div className="flex justify-end">
-            <IntegrityBadge tenantId={tenantId} sealedCount={sealedCount} onRefresh={onRefreshMetrics} />
+            {showIntegrityBadge ? (
+              <IntegrityBadge tenantId={tenantId} sealedCount={sealedCount} sealedCountComplete={sealedCountComplete} onRefresh={onRefreshMetrics} />
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-0.5 text-xs text-[var(--text-secondary)]" title="Synchronisation en cours">—</span>
+            )}
           </div>
         </div>
         )}
@@ -483,8 +500,9 @@ export function ReportHeader({
             value={selectedCompanyId ?? ""}
             onChange={(e) => onCompanyChange(e.target.value || null)}
             className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+            aria-label="Société"
           >
-            <option value="">Tout</option>
+            <option value="">Toutes les sociétés</option>
             {companies.map((c) => (
               <option key={c.company_id} value={c.company_id}>
                 {c.display_name ?? c.company_id}
@@ -519,7 +537,11 @@ export function ReportHeader({
             ))}
           </select>
           <div className="ml-auto">
-            <IntegrityBadge tenantId={tenantId} sealedCount={sealedCount} onRefresh={onRefreshMetrics} />
+            {showIntegrityBadge ? (
+              <IntegrityBadge tenantId={tenantId} sealedCount={sealedCount} sealedCountComplete={sealedCountComplete} onRefresh={onRefreshMetrics} />
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-0.5 text-xs text-[var(--text-secondary)]" title="Synchronisation en cours">—</span>
+            )}
           </div>
         </div>
         )}

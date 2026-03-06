@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/doreviateam/diva/internal/cache"
+	"github.com/doreviateam/diva/internal/facts"
 	"github.com/doreviateam/diva/internal/guard"
 	"github.com/doreviateam/diva/internal/mistral"
 	"github.com/doreviateam/diva/internal/models"
@@ -106,8 +107,35 @@ func Explain(cacheStore *cache.Cache, refreshGuard *guard.RefreshGuard, mc *mist
 		}
 		defer refreshGuard.Release(contextHash)
 
+		// Dashboard details pour Mistral : _details + data_completeness (DIVA Cockpit v1.1)
+		dashboardDetails := req.Dashboard.Details
+		if dashboardDetails == nil {
+			dashboardDetails = make(map[string]interface{})
+		}
+		if req.Dashboard.DataCompleteness != nil {
+			dashboardDetails["data_completeness"] = req.Dashboard.DataCompleteness
+		}
+
+		// Cockpit : FactsPack ; card : nil
+		var fp *facts.FactsPack
+		if req.Options.FocusCard == "" {
+			ctxMeta := facts.ContextMeta{
+				Tenant: req.Context.Tenant, CompanyID: req.Context.CompanyID,
+				DateStart: req.Context.DateStart, DateEnd: req.Context.DateEnd, Currency: req.Context.Currency,
+			}
+			var dc *facts.DataCompleteness
+			if req.Dashboard.DataCompleteness != nil {
+				dc = &facts.DataCompleteness{BankHealthMetrics: req.Dashboard.DataCompleteness.BankHealthMetrics}
+			}
+			fp = facts.BuildFactsPack(req.Dashboard.Cards, dashboardDetails, dc, ctxMeta)
+		}
+		outputMode := req.Options.OutputMode
+		if outputMode == "" {
+			outputMode = "short"
+		}
+
 		// Appel Mistral
-		flash, err := mc.Chat(req.Context, req.Dashboard.Cards, req.Options.FocusCard, req.Options.FocusCardDetails, req.Dashboard.Details)
+		flash, err := mc.Chat(req.Context, req.Dashboard.Cards, req.Options.FocusCard, req.Options.FocusCardDetails, dashboardDetails, outputMode, fp)
 		latencyMs := time.Since(start).Milliseconds()
 
 		meta := models.Meta{

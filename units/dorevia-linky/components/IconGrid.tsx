@@ -19,6 +19,7 @@ import type { DashboardMetricsResponse, ValueKind } from "@/app/api/dashboard-me
 
 export type CardId =
   | "treasury"
+  | "treasury_position"
   | "cash"
   | "business"
   | "taxes"
@@ -34,7 +35,7 @@ interface IconGridItem {
 }
 
 const GRID_ITEMS: IconGridItem[] = [
-  { id: "treasury", label: "Trésorerie validée", Icon: IconTreasury },
+  { id: "treasury", label: "Paiements", Icon: IconTreasury },
   { id: "cash", label: "Cash", Icon: IconCash },
   { id: "business", label: "Business", Icon: IconBusiness },
   { id: "taxes", label: "Taxes", Icon: IconTaxes },
@@ -117,6 +118,15 @@ export function IconGrid({ tenantId, companyId, period, metrics: metricsProp, me
         const metric = metrics?.[id];
         const formatted = metric?.formatted ?? "—";
         const valueKind = (metric?.valueKind ?? "neutral") as ValueKind;
+        // Tuile Paiements : couleur valeur selon statut (alignée Card Paiements)
+        const valueColorClass =
+          id === "treasury"
+            ? metric?.status === "ok"
+              ? "text-[var(--positive)]"
+              : metric?.status === "watch"
+                ? "text-[var(--warning)]"
+                : valueKindToClass(valueKind)
+            : valueKindToClass(valueKind);
 
         return (
           <button
@@ -141,7 +151,7 @@ export function IconGrid({ tenantId, companyId, period, metrics: metricsProp, me
             <span className="text-center text-sm font-semibold text-[var(--text)]">{label}</span>
             {/* Valeur — skeleton si chargement, sinon donnée */}
             <span
-              className={`text-center text-sm font-bold tabular-nums ${valueKindToClass(valueKind)} ${metricsLoading && !metric ? "animate-pulse opacity-60" : ""}`}
+              className={`text-center text-sm font-bold tabular-nums ${valueColorClass} ${metricsLoading && !metric ? "animate-pulse opacity-60" : ""}`}
               aria-busy={metricsLoading && !metric}
             >
               {formatted}

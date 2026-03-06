@@ -29,6 +29,36 @@ warn() {
   echo -e "${YELLOW}WARN: ${NC}$1"
 }
 
+# Port par univers (multi-univers : odoo, suitecrm, n8n, sylius, ui). ui : linky=3000, appsmith=80.
+# Usage: get_port_for_universe <universe> [ui_unit]
+get_port_for_universe() {
+  local universe="$1"
+  local ui_unit="${2:-appsmith}"
+  case "$universe" in
+    odoo)    echo "8069" ;;
+    suitecrm) echo "8080" ;;
+    n8n)     echo "5678" ;;
+    sylius)  echo "80" ;;
+    ui)      [[ "$ui_unit" == "linky" ]] && echo "3000" || echo "80" ;;
+    pos)     echo "8069" ;;
+    *)       echo "8069" ;;
+  esac
+}
+
+# Nom du conteneur cible pour reverse_proxy (Sylius=nginx, ui=appsmith ou linky).
+# Usage: get_container_for_universe <universe> <env> <tenant_id> [ui_unit]
+get_container_for_universe() {
+  local universe="$1"
+  local env="$2"
+  local tenant_id="$3"
+  local ui_unit="${4:-appsmith}"
+  case "$universe" in
+    sylius) echo "${universe}_${env}_${tenant_id}_nginx" ;;
+    ui)     [[ "$ui_unit" == "linky" ]] && echo "linky_${env}_${tenant_id}" || echo "appsmith_${env}_${tenant_id}" ;;
+    *)      echo "${universe}_${env}_${tenant_id}" ;;
+  esac
+}
+
 # Fonction pour construire liste hostnames (canonique + alias + fallback)
 build_hostnames() {
   local canonical="$1"
@@ -226,6 +256,11 @@ else
   if ! echo "$ENVIRONMENTS" | grep -q "^${ENV}$"; then
     error "Environnement '$ENV' non activé pour tenant '$TENANT'"
   fi
+  # Unité UI pour Caddy (linky → port 3000, appsmith → port 80)
+  UI_UNIT=$(echo "$MANIFEST" | jq -r '(.units.ui // ["appsmith"])[0]')
+fi
+if [[ -z "${UI_UNIT:-}" ]]; then
+  UI_UNIT="appsmith"
 fi
 
 # Phase 3: Déterminer fallback selon mode
@@ -267,9 +302,11 @@ OUTPUT_FILE="$OUTPUT_DIR/Caddyfile"
     
     hostnames=$(build_hostnames "$canonical_hostname" "$fallback_hostname" "$ALIASES_JSON" "$universe")
     
+    port=$(get_port_for_universe "$universe" "${UI_UNIT:-appsmith}")
+    container=$(get_container_for_universe "$universe" "$ENV" "$TENANT_ID" "${UI_UNIT:-appsmith}")
     echo "# $universe - Environnements (tenant $TENANT_ID)"
     echo "$hostnames {"
-    echo "  reverse_proxy ${universe}_${ENV}_${TENANT_ID}:8069"
+    echo "  reverse_proxy ${container}:${port}"
     echo "}"
     echo ""
   done

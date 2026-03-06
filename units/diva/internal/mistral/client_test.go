@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/doreviateam/diva/internal/facts"
 	"github.com/doreviateam/diva/internal/models"
 )
 
@@ -45,10 +46,11 @@ var emptyAssocCards = []models.Card{
 	{Key: "pos_z", Label: "Z de caisse", Value: nil, Unit: "EUR", Formatted: "—"},
 }
 
-// --- Story 7: computeInsights ---
+// --- Story 7: BuildFactsPack (ex-computeInsights) ---
 
 func TestComputeInsights_LaPlatine(t *testing.T) {
-	insights := computeInsights(laPlatineCards, nil)
+	fp := facts.BuildFactsPack(laPlatineCards, nil, nil, facts.ContextMeta{})
+	insights := fp.Messages()
 	if len(insights) == 0 {
 		t.Fatal("La Platine doit produire des insights")
 	}
@@ -116,7 +118,8 @@ func TestComputeInsights_LaPlatine(t *testing.T) {
 }
 
 func TestComputeInsights_SweetManihot(t *testing.T) {
-	insights := computeInsights(sweetManihotCards, nil)
+	fp := facts.BuildFactsPack(sweetManihotCards, nil, nil, facts.ContextMeta{})
+	insights := fp.Messages()
 
 	hasActiviteExclusivePOS := false
 	hasEcartCA := false
@@ -144,7 +147,8 @@ func TestComputeInsights_SweetManihot(t *testing.T) {
 }
 
 func TestComputeInsights_EmptyAssoc(t *testing.T) {
-	insights := computeInsights(emptyAssocCards, nil)
+	fp := facts.BuildFactsPack(emptyAssocCards, nil, nil, facts.ContextMeta{})
+	insights := fp.Messages()
 
 	for _, ins := range insights {
 		if strings.Contains(ins, "POINT DOMINANT") {
@@ -163,7 +167,8 @@ func TestComputeInsights_Rule16_NoFlux(t *testing.T) {
 		{Key: "business", Label: "Business", Value: ptr(0), Unit: "EUR", Formatted: "0 €"},
 		{Key: "pos_shops", Label: "POS magasins", Value: ptr(0), Unit: "EUR", Formatted: "0 €"},
 	}
-	insights := computeInsights(cards, nil)
+	fp := facts.BuildFactsPack(cards, nil, nil, facts.ContextMeta{})
+	insights := fp.Messages()
 	for _, ins := range insights {
 		if strings.Contains(ins, "trésorerie validée à 0%") && strings.Contains(ins, "flux") {
 			t.Errorf("Règle 16 : pas d'insight discipline quand flux absents ; reçu: %q", ins)
@@ -179,7 +184,8 @@ func TestComputeInsights_Rule16_WithFlux(t *testing.T) {
 		{Key: "business", Label: "Business", Value: ptr(0), Unit: "EUR", Formatted: "0 €"},
 		{Key: "pos_shops", Label: "POS magasins", Value: ptr(0), Unit: "EUR", Formatted: "0 €"},
 	}
-	insights := computeInsights(cards, nil)
+	fp := facts.BuildFactsPack(cards, nil, nil, facts.ContextMeta{})
+	insights := fp.Messages()
 	hasDiscipline := false
 	for _, ins := range insights {
 		if strings.Contains(ins, "POINT DOMINANT") && (strings.Contains(ins, "validation bancaire") || strings.Contains(ins, "discipline")) {
@@ -189,6 +195,27 @@ func TestComputeInsights_Rule16_WithFlux(t *testing.T) {
 	}
 	if !hasDiscipline {
 		t.Error("Règle 16 : insight discipline requis quand Tréso 0% et flux (cash) présent")
+	}
+}
+
+// --- Facts Pack v1.2.1 — buildUserPromptFromFactsPack ---
+
+func TestBuildUserPromptFromFactsPack(t *testing.T) {
+	cli := NewClient()
+	fp := facts.BuildFactsPack(laPlatineCards, nil, nil, facts.ContextMeta{})
+	prompt := cli.buildUserPromptFromFactsPack(fp, "short")
+	if prompt == "" {
+		t.Fatal("prompt ne doit pas être vide")
+	}
+	if !strings.Contains(prompt, "output_mode") {
+		t.Error("prompt doit contenir output_mode")
+	}
+	if !strings.Contains(prompt, "facts") {
+		t.Error("prompt doit contenir facts")
+	}
+	// Pas de cards dans le payload Facts Pack
+	if strings.Contains(prompt, `"cards"`) {
+		t.Error("payload Facts Pack ne doit pas contenir cards")
 	}
 }
 
@@ -542,7 +569,8 @@ var laPlatinePosDetails = map[string]interface{}{
 }
 
 func TestComputeInsights_LaPlatineWithPOS(t *testing.T) {
-	insights := computeInsights(laPlatineCards, laPlatinePosDetails)
+	fp := facts.BuildFactsPack(laPlatineCards, laPlatinePosDetails, nil, facts.ContextMeta{})
+	insights := fp.Messages()
 
 	hasInducteurPOS := false
 	hasPanierMoyen := false
@@ -572,8 +600,9 @@ func TestComputeInsights_LaPlatineWithPOS(t *testing.T) {
 	if !hasMixPaiements {
 		t.Error("Manque insight mix paiements POS")
 	}
-	if !hasRepartition {
-		t.Error("Manque insight répartition POS par point de vente")
+	// répartition peut être exclue par la limite de 10 faits (FactsPack v1.2.1)
+	if !hasRepartition && len(insights) < 10 {
+		t.Error("Manque insight répartition POS (attendu quand < 10 faits)")
 	}
 }
 
@@ -600,7 +629,8 @@ func TestComputeInsights_POS_AnomalyAlert(t *testing.T) {
 		{Key: "treasury_validated_pct", Value: ptr(50), Unit: "%"},
 	}
 
-	insights := computeInsights(cards, details)
+	fp := facts.BuildFactsPack(cards, details, nil, facts.ContextMeta{})
+	insights := fp.Messages()
 
 	hasAlerte := false
 	hasConformite := false
@@ -621,31 +651,37 @@ func TestComputeInsights_POS_AnomalyAlert(t *testing.T) {
 	}
 }
 
-func TestExtractPosDetails_Nil(t *testing.T) {
-	if extractPosDetails(nil) != nil {
-		t.Error("extractPosDetails(nil) devrait retourner nil")
+func TestBuildFactsPack_WithNilDetails(t *testing.T) {
+	fp := facts.BuildFactsPack(laPlatineCards, nil, nil, facts.ContextMeta{})
+	if fp == nil {
+		t.Fatal("BuildFactsPack ne doit pas retourner nil")
 	}
-	if extractPosDetails(map[string]interface{}{}) != nil {
-		t.Error("extractPosDetails({}) devrait retourner nil")
+	if len(fp.Facts) == 0 && len(laPlatineCards) > 0 {
+		t.Error("BuildFactsPack avec cartes valides doit produire des faits")
 	}
 }
 
-func TestExtractPosDetails_Valid(t *testing.T) {
-	d := extractPosDetails(laPlatinePosDetails)
-	if d == nil {
-		t.Fatal("extractPosDetails devrait retourner des données")
+func TestBuildFactsPack_WithPOSDetails(t *testing.T) {
+	fp := facts.BuildFactsPack(laPlatineCards, laPlatinePosDetails, nil, facts.ContextMeta{})
+	if fp == nil {
+		t.Fatal("BuildFactsPack ne doit pas retourner nil")
 	}
-	if d.totalSessions != 7 {
-		t.Errorf("totalSessions = %d, want 7", d.totalSessions)
+	msgs := fp.Messages()
+	hasSessions := false
+	hasTickets := false
+	for _, m := range msgs {
+		if strings.Contains(m, "7") && strings.Contains(m, "sessions") {
+			hasSessions = true
+		}
+		if strings.Contains(m, "8") && strings.Contains(m, "tickets") {
+			hasTickets = true
+		}
 	}
-	if d.sealedSessions != 7 {
-		t.Errorf("sealedSessions = %d, want 7", d.sealedSessions)
+	if !hasSessions {
+		t.Error("BuildFactsPack avec POS details doit inclure les sessions (7)")
 	}
-	if d.totalTickets != 8 {
-		t.Errorf("totalTickets = %d, want 8", d.totalTickets)
-	}
-	if len(d.shops) != 2 {
-		t.Errorf("shops count = %d, want 2", len(d.shops))
+	if !hasTickets {
+		t.Error("BuildFactsPack avec POS details doit inclure les tickets (8)")
 	}
 }
 
@@ -681,14 +717,27 @@ func TestDegradedFlash_SweetManihot(t *testing.T) {
 	if flash.Headline == "" || flash.Headline == "Lecture DIVA temporairement indisponible." {
 		t.Errorf("headline invalide: %q", flash.Headline)
 	}
-	hasExclusivePOS := false
-	for _, s := range flash.WhatISee {
-		if strings.Contains(s, "POS") || strings.Contains(s, "exclusivement") {
-			hasExclusivePOS = true
-		}
+	// FactsPack v1.2.1 : tri priorité treasury > governance > inductors.
+	// Sweet Manihot (cash+POS, biz=0) → POINT DOMINANT cash en tête ; POS peut être hors top-3.
+	if len(flash.WhatISee) == 0 {
+		t.Error("degradedFlash doit avoir au moins un élément dans what_i_see")
 	}
-	if !hasExclusivePOS {
-		t.Error("degradedFlash Sweet Manihot devrait mentionner POS dans what_i_see")
+}
+
+func TestDegradedFlashFromFactsPack(t *testing.T) {
+	fp := facts.BuildFactsPack(laPlatineCards, nil, nil, facts.ContextMeta{})
+	flash := DegradedFlashFromFactsPack(fp, laPlatineCards)
+	if !flash.Degraded {
+		t.Error("DegradedFlashFromFactsPack doit avoir Degraded=true")
+	}
+	if flash.Headline == "" {
+		t.Error("headline ne doit pas être vide")
+	}
+	if len(flash.WhatISee) > 3 {
+		t.Errorf("what_i_see max 3, got %d", len(flash.WhatISee))
+	}
+	if len(flash.ToCheck) > 2 {
+		t.Errorf("to_check max 2, got %d", len(flash.ToCheck))
 	}
 }
 
@@ -783,7 +832,8 @@ func assertFlashStructure(t *testing.T, flash models.Flash, cards []models.Card)
 // --- Gouvernance insights ---
 
 func TestComputeInsights_GovernanceLaPlatine(t *testing.T) {
-	insights := computeInsights(laPlatineCards, nil)
+	fp := facts.BuildFactsPack(laPlatineCards, nil, nil, facts.ContextMeta{})
+	insights := fp.Messages()
 	hasGovernance := false
 	for _, ins := range insights {
 		if strings.Contains(ins, "GOUVERNANCE") {
@@ -803,7 +853,8 @@ func TestComputeInsights_GovernanceLaPlatine(t *testing.T) {
 }
 
 func TestComputeInsights_GovernanceSweetManihot(t *testing.T) {
-	insights := computeInsights(sweetManihotCards, nil)
+	fp := facts.BuildFactsPack(sweetManihotCards, nil, nil, facts.ContextMeta{})
+	insights := fp.Messages()
 	hasGovernance := false
 	for _, ins := range insights {
 		if strings.Contains(ins, "GOUVERNANCE") {
@@ -830,7 +881,8 @@ func TestComputeInsights_NoGovernanceWhenAllOk(t *testing.T) {
 		{Key: "pos_shops", Label: "POS magasins", Value: ptr(10000), Unit: "EUR", Status: "ok", StatusReason: "POS conforme"},
 		{Key: "pos_z", Label: "Z de caisse", Value: nil, Unit: "EUR", Status: "neutral", StatusReason: "Z de caisse non renseigné"},
 	}
-	insights := computeInsights(allOkCards, nil)
+	fp := facts.BuildFactsPack(allOkCards, nil, nil, facts.ContextMeta{})
+	insights := fp.Messages()
 	for _, ins := range insights {
 		if strings.Contains(ins, "GOUVERNANCE") {
 			t.Error("Aucun insight GOUVERNANCE ne doit apparaître quand toutes les cartes sont ok/neutral")

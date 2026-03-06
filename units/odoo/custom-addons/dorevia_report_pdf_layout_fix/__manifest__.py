@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    "name": "Dorevia Report PDF Layout Fix",
+    "name": "Dorevia Report PDF Layout Fix (nok)",
     "version": "18.0.1.0.0",
     "category": "Reporting",
     "summary": "Fix mise en page PDF (Bootstrap col-*) pour Sale/Account",

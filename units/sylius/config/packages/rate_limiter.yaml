@@ -1,0 +1,10 @@
+framework:
+    rate_limiter:
+        # Rate limiter pour le formulaire de lead
+        # Limite : 10 requêtes par heure par IP
+        lead_form:
+            policy: 'fixed_window'
+            limit: 10
+            interval: '1 hour'
+            # Stockage en mémoire (utilise cache.app par défaut)
+            # En production, peut être remplacé par Redis pour un stockage distribué

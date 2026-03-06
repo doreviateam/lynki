@@ -25,6 +25,9 @@ func BuildHashInput(req *models.ExplainRequest) (map[string]interface{}, error) 
 		"date_end":      req.Context.DateEnd,
 		"currency":      firstNonEmpty(req.Context.Currency, "EUR"),
 	}
+	if req.Context.PartnerName != "" {
+		ctx["partner_name"] = req.Context.PartnerName
+	}
 
 	cardMap := make(map[string]interface{})
 	cardsByKey := make(map[string]*models.Card)
@@ -48,11 +51,14 @@ func BuildHashInput(req *models.ExplainRequest) (map[string]interface{}, error) 
 			}
 			cardVal = map[string]interface{}{"value_minor": minor}
 		}
+		if card != nil && card.Status != "" {
+			cardVal["status"] = card.Status
+		}
 		cardMap[key] = cardVal
 	}
 
 	out := map[string]interface{}{
-		"schema":        "dorevia.diva.hash_input.v2",
+		"schema":        "dorevia.diva.hash_input.v3",
 		"context":       ctx,
 		"context_scope": "cockpit",
 		"cards":         cardMap,
@@ -66,7 +72,77 @@ func BuildHashInput(req *models.ExplainRequest) (map[string]interface{}, error) 
 		out["pos_aggregates"] = posAgg
 	}
 
+	if arAgg := extractARByPartnerForHash(req.Dashboard.Details); arAgg != nil {
+		out["ar_by_partner_aggregates"] = arAgg
+	}
+
 	return out, nil
+}
+
+func extractARByPartnerForHash(details map[string]interface{}) map[string]interface{} {
+	if details == nil {
+		return nil
+	}
+	bus, ok := details["business"].(map[string]interface{})
+	if !ok || bus == nil {
+		return nil
+	}
+	ar, ok := bus["ar_by_partner"].(map[string]interface{})
+	if !ok || ar == nil {
+		return nil
+	}
+	totals, ok := ar["totals"].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	agg := map[string]interface{}{
+		"open_amount_minor":     toMinorFromRaw(totals["open_amount"]),
+		"overdue_amount_minor":  toMinorFromRaw(totals["overdue_amount"]),
+	}
+	partnersRaw, ok := ar["partners"].([]interface{})
+	if ok && len(partnersRaw) > 0 {
+		type od struct {
+			pid string
+			pname string
+			minor *int64
+		}
+		var overdue []od
+		for _, p := range partnersRaw {
+			pm, ok := p.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			m := toMinorFromRaw(pm["overdue_amount"])
+			if m == nil || *m <= 0 {
+				continue
+			}
+			pid, _ := pm["partner_id"].(string)
+			pname, _ := pm["partner_name"].(string)
+			overdue = append(overdue, od{pid, pname, m})
+		}
+		sort.Slice(overdue, func(i, j int) bool {
+			if overdue[i].minor == nil || overdue[j].minor == nil {
+				return false
+			}
+			return *overdue[i].minor > *overdue[j].minor
+		})
+		if len(overdue) > 0 {
+			n := 5
+			if len(overdue) < n {
+				n = len(overdue)
+			}
+			top5 := make([]map[string]interface{}, n)
+			for i := 0; i < n; i++ {
+				top5[i] = map[string]interface{}{
+					"partner_id":           overdue[i].pid,
+					"partner_name":         overdue[i].pname,
+					"overdue_amount_minor": overdue[i].minor,
+				}
+			}
+			agg["top_overdue"] = top5
+		}
+	}
+	return agg
 }
 
 // extractPOSAggregatesForHash extrait les agrégats POS normalisés pour le hash.

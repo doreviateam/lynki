@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/doreviateam/diva/internal/facts"
 	"github.com/doreviateam/diva/internal/hashinput"
 	"github.com/doreviateam/diva/internal/mistral"
 	"github.com/doreviateam/diva/internal/models"
@@ -57,13 +58,48 @@ func Generate(genStore store.GenerateStore, mc *mistral.Client) fiber.Handler {
 		contextKey := hashinput.ComputeContextKey(
 			req.Context.Tenant, companyID,
 			req.Context.DateStart, req.Context.DateEnd,
+			req.Context.PartnerName,
 		)
 
-		payloadHash, err := hashinput.ComputePayloadHash(&req)
-		if err != nil {
-			return c.Status(500).JSON(fiber.Map{
-				"error": fiber.Map{"code": "INTERNAL_ERROR", "message": "Erreur calcul hash."},
-			})
+		// Dashboard details pour Mistral : _details + data_completeness (DIVA Cockpit v1.1)
+		dashboardDetails := req.Dashboard.Details
+		if dashboardDetails == nil {
+			dashboardDetails = make(map[string]interface{})
+		}
+		if req.Dashboard.DataCompleteness != nil {
+			dashboardDetails["data_completeness"] = req.Dashboard.DataCompleteness
+		}
+
+		// Cockpit : FactsPack + payload_hash dérivé du canonique (SPEC v1.2.1)
+		var fp *facts.FactsPack
+		var payloadHash string
+		if focusCard == "" {
+			ctxMeta := facts.ContextMeta{
+				Tenant:    req.Context.Tenant,
+				CompanyID: req.Context.CompanyID,
+				DateStart: req.Context.DateStart,
+				DateEnd:   req.Context.DateEnd,
+				Currency:  req.Context.Currency,
+			}
+			var dc *facts.DataCompleteness
+			if req.Dashboard.DataCompleteness != nil {
+				dc = &facts.DataCompleteness{BankHealthMetrics: req.Dashboard.DataCompleteness.BankHealthMetrics}
+			}
+			fp = facts.BuildFactsPack(req.Dashboard.Cards, dashboardDetails, dc, ctxMeta)
+			payloadHash = facts.PayloadHash(fp)
+		} else {
+			var errHash error
+			payloadHash, errHash = hashinput.ComputePayloadHash(&req)
+			if errHash != nil {
+				return c.Status(500).JSON(fiber.Map{
+					"error": fiber.Map{"code": "INTERNAL_ERROR", "message": "Erreur calcul hash."},
+				})
+			}
+		}
+
+		outputMode := req.Options.OutputMode
+		if outputMode == "" {
+			outputMode = "short"
 		}
 
 	generatedFromRunner := req.Options.GeneratedFromRunner
@@ -72,6 +108,7 @@ func Generate(genStore store.GenerateStore, mc *mistral.Client) fiber.Handler {
 
 	var resultState string
 	var resultErrorCode string
+	var err error
 
 	err = genStore.WithGenerateLock(c.Context(), contextKey, func(tx store.GenerateTx) error {
 		forceRefresh := req.Options.ForceRefresh
@@ -85,7 +122,7 @@ func Generate(genStore store.GenerateStore, mc *mistral.Client) fiber.Handler {
 			}
 		}
 
-		flash, chatErr := mc.Chat(req.Context, req.Dashboard.Cards, focusCard, req.Options.FocusCardDetails, req.Dashboard.Details)
+		flash, chatErr := mc.Chat(req.Context, req.Dashboard.Cards, focusCard, req.Options.FocusCardDetails, dashboardDetails, outputMode, fp)
 		latencyMs := int(time.Since(start).Milliseconds())
 
 		if chatErr != nil {

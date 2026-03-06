@@ -21,6 +21,7 @@
         'security/ir.model.access.csv',
         'security/res_groups.xml',
         'data/ir_config_parameter.xml',
+        'data/ir_config_parameter_linky.xml',
         'data/res_users_linky.xml',
     ],
     'installable': True,

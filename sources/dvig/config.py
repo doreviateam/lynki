@@ -22,8 +22,8 @@ class Settings(BaseSettings):
         "postgresql://dvig_user:dvig_pass@localhost:5432/dvig_db"
     )
     
-    # Configuration Vault
-    vault_host: str = "vault"  # Service Docker interne
+    # Configuration Vault (host/port — override via VAULT_HOST, VAULT_PORT sans rebuild)
+    vault_host: str = "vault"
     vault_port: int = 8080
     vault_timeout: int = 10
     

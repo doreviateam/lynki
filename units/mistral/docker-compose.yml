@@ -1,0 +1,38 @@
+# Docker Compose — Unit Mistral (llama.cpp server, Option B CPU)
+# Usage : inference locale pour DIVA — réseau interne uniquement, aucun port exposé
+# SPEC : ZeDocs/web22/RECO_MISTRAL_CPU_LLAMACPP_OPTION_B_v1.0.md
+# Plan : ZeDocs/web22/PLAN_IMPLEMENTATION_MISTRAL_SCRUM_v1.0.md
+
+services:
+  mistral-llamacpp:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    container_name: mistral-llamacpp
+    command: >
+      -m /models/mistral-7b-instruct-v0.2.Q4_K_M.gguf
+      --host 0.0.0.0
+      --port 8000
+      --ctx-size 8192
+      --threads 16
+      --batch-size 512
+      --parallel 2
+      --mlock
+    volumes:
+      - ./models:/models:ro
+    networks:
+      - dorevia-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health > /dev/null || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+networks:
+  dorevia-network:
+    external: true

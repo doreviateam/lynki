@@ -22,6 +22,7 @@ const CARD_MAPPING: Array<{
   detailsKey?: keyof NonNullable<DashboardMetricsResponse["_details"]>;
 }> = [
   { dmKey: "treasury", specKey: "treasury_validated_pct", label: "Trésorerie validée", unit: "%", detailsKey: "treasury" },
+  { dmKey: "treasury_position", specKey: "treasury_position", label: "Position trésorerie", unit: "EUR", detailsKey: "treasury" },
   { dmKey: "cash", specKey: "cash", label: "Cash", unit: "EUR", detailsKey: "cash" },
   { dmKey: "business", specKey: "business", label: "Business", unit: "EUR", detailsKey: "business" },
   { dmKey: "taxes", specKey: "taxes", label: "Taxes", unit: "EUR" },
@@ -56,6 +57,7 @@ interface ExplainRequestBody {
     timezone?: string;
     currency?: string;
     locale?: string;
+    partner_name?: string;
   };
   dashboard?: DashboardMetricsResponse;
   options?: {
@@ -103,8 +105,13 @@ export async function POST(request: NextRequest) {
         timezone: context.timezone ?? "Europe/Paris",
         currency: context.currency ?? "EUR",
         locale: context.locale ?? "fr-FR",
+        ...(context.partner_name && { partner_name: context.partner_name }),
       },
-      dashboard: { cards, _details: details ?? undefined },
+      dashboard: {
+        cards,
+        _details: details ?? undefined,
+        data_completeness: metrics.data_completeness ?? { bank_health_metrics: "absent" as const },
+      },
       options: {
         mode: options.mode ?? "flash",
         force_refresh: options.force_refresh ?? false,

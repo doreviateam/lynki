@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- noupdate=0 : appliqué à chaque upgrade pour forcer la redirection logout → ui.lab -->
+<odoo>
+    <data noupdate="0">
+        <record id="ir_config_parameter_logout_linky_url" model="ir.config_parameter">
+            <field name="key">dorevia_session_guard.logout_linky_url</field>
+            <field name="value">https://ui.lab.sarl-la-platine.doreviateam.com</field>
+        </record>
+        <record id="ir_config_parameter_linky_urls" model="ir.config_parameter">
+            <field name="key">dorevia_session_guard.linky_urls</field>
+            <field name="value">["https://ui.lab.sarl-la-platine.doreviateam.com"]</field>
+        </record>
+    </data>
+</odoo>

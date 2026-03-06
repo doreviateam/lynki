@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Dorevia-Vault — Chiffres prouvables pour piloter la trésorerie.{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Dorevia-Vault sécurise vos événements financiers à la source. Des preuves fiables, vérifiables et juridiquement opposables.{% endblock %}" />
+    {% if app.request.server.get('APP_ENV') != 'prod' %}
+    <meta name="robots" content="noindex, nofollow">
+    {% else %}
+    <meta name="robots" content="index, follow">
+    {% endif %}
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ block('title') }}">
+    <meta property="og:description" content="{{ block('meta_description') }}">
+    <meta property="og:url" content="{{ app.request.schemeAndHttpHost }}{{ app.request.pathInfo }}">
+    <link rel="canonical" href="{{ app.request.schemeAndHttpHost }}{{ app.request.pathInfo }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/images/favicon.svg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('assets/css/landing-propale.css') }}?v={{ 'now'|date('U') }}" />
+        <link rel="stylesheet" href="{{ asset('assets/css/propale-v2.css') }}?v={{ 'now'|date('U') }}" />
+    {% endblock %}
+</head>
+<body class="landing-propale">
+    <header class="propale-nav">
+        <div class="propale-container propale-nav-in">
+            <a class="propale-brand" href="{{ path('home') }}">
+                <span class="propale-logo"></span>
+                <span>Dorevia-Vault</span>
+            </a>
+            <nav class="propale-menu">
+                <a href="{{ path('home') }}#fonctionnement">Produit</a>
+                <a href="{{ path('home') }}#probleme">Pourquoi</a>
+                <a href="{{ path('home') }}#conformite">Conformité</a>
+                <a href="{{ path('blog_index') }}">Blog</a>
+                <a href="{{ path('ressources') }}">Ressources</a>
+                <a href="{{ path('home') }}#contact-section">Démarrer</a>
+            </nav>
+            <div class="propale-nav-cta">
+                <a class="btn propale-nav-cta-link" href="#contact-section">Nous contacter</a>
+                <a class="btn primary propale-nav-cta-link" href="#contact-section">Demander une démo</a>
+            </div>
+            <button type="button" class="propale-hamburger" aria-label="Menu" aria-expanded="false" aria-controls="propale-mobile-menu" id="propale-hamburger-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+    <div class="propale-mobile-menu" id="propale-mobile-menu" aria-hidden="true">
+        <nav class="propale-mobile-menu-inner">
+            <a href="{{ path('home') }}#fonctionnement">Produit</a>
+            <a href="{{ path('home') }}#probleme">Pourquoi</a>
+            <a href="{{ path('home') }}#conformite">Conformité</a>
+            <a href="{{ path('blog_index') }}">Blog</a>
+            <a href="{{ path('ressources') }}">Ressources</a>
+            <a href="{{ path('home') }}#contact-section">Démarrer</a>
+            <a href="{{ path('home') }}#contact-section" class="btn">Nous contacter</a>
+            <a href="{{ path('home') }}#contact-section" class="btn primary">Demander une démo</a>
+        </nav>
+    </div>
+
+    <main>
+        {% block body %}{% endblock %}
+    </main>
+
+    <footer class="propale-footer">
+        <div class="propale-container propale-foot">
+            <div>
+                <div class="propale-brand" style="gap:10px">
+                    <span class="propale-logo"></span>
+                    <span>Dorevia-Vault</span>
+                </div>
+                <p style="margin:10px 0 0;color:var(--muted);line-height:1.6;max-width:70ch">
+                    <strong>Dorevia-Vault</strong> est édité par <strong>Dorevia Team</strong> située à <strong>Nantes</strong> et <strong>Guadeloupe</strong> 🇫🇷 🇬🇵<br>
+                    Infrastructure de preuve financière : capture, scellement et vérification des événements depuis ERP & caisses.
+                </p>
+                <div style="margin-top:10px;color:var(--muted2)">© {{ "now"|date("Y") }} Dorevia Team. Tous droits réservés.</div>
+            </div>
+            <div class="propale-cols">
+                <a href="{{ path('blog_index') }}">Blog</a>
+                <a href="{{ path('ressources') }}">Ressources</a>
+                <a href="{{ path('manifeste') }}">Manifeste</a>
+                <a href="{{ path('contact') }}">Contact</a>
+                <a href="{{ path('pour_qui') }}">Pour qui</a>
+                <a href="{{ path('cas_usage') }}">Cas d'usage</a>
+                <a href="{{ path('conformite') }}">Conformité</a>
+                <a href="{{ path('privacy_index') }}">Politique de confidentialité</a>
+            </div>
+        </div>
+    </footer>
+
+    {% block javascripts %}{% endblock %}
+    <script>
+        (function() {
+            var btn = document.getElementById('propale-hamburger-btn');
+            var menu = document.getElementById('propale-mobile-menu');
+            if (!btn || !menu) return;
+            function open() {
+                btn.setAttribute('aria-expanded', 'true');
+                menu.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('propale-menu-open');
+            }
+            function close() {
+                btn.setAttribute('aria-expanded', 'false');
+                menu.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('propale-menu-open');
+            }
+            btn.addEventListener('click', function() {
+                if (document.body.classList.contains('propale-menu-open')) close(); else open();
+            });
+            menu.querySelectorAll('a').forEach(function(a) {
+                a.addEventListener('click', close);
+            });
+        })();
+    </script>
+</body>
+</html>

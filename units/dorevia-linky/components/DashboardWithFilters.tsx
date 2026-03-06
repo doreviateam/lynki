@@ -6,6 +6,7 @@ import { ReportHeader, type ViewMode } from "@/components/ReportHeader";
 import { BusinessCardWithPolling } from "@/components/BusinessCardWithPolling";
 import { FluxCashCardWithPolling } from "@/components/FluxCashCardWithPolling";
 import { TreasuryCardWithPolling } from "@/components/TreasuryCardWithPolling";
+import { TresoreriePositionCardWithPolling } from "@/components/TresoreriePositionCardWithPolling";
 import { PosShopsView } from "@/components/PosShopsView";
 import { PosComingSoonView } from "@/components/PosComingSoonView";
 import { TaxesCardWithPolling } from "@/components/TaxesCardWithPolling";
@@ -15,13 +16,16 @@ import { LinkyFooter } from "@/components/LinkyFooter";
 import { IconGrid, type CardId } from "@/components/IconGrid";
 import { DivaFlashBlock } from "@/components/DivaFlashBlock";
 import { DecisionsBlock } from "@/components/DecisionsBlock";
+import { SyncInProgress } from "@/components/SyncInProgress";
 import { getDefaultPeriod, type PeriodRange } from "@/app/lib/period-utils";
 import type { DashboardMetricsResponse } from "@/app/api/dashboard-metrics/route";
 
 const COMPANIES_TIMEOUT_MS = 5000;
 const DASHBOARD_METRICS_POLL_MS = 2 * 60 * 1000; // 2 min
+const INCOMPLETE_RETRY_MS = 2000; // Si sealed_count_complete=false, retry une fois après 2 s
+const TREASURY_UNBLOCK_AFTER_MS = 5000; // Après 5 s d'incomplétude : libérer carte Trésorerie en priorité (Option C)
 const METRICS_CACHE_KEY = "linky_dashboard_metrics";
-const METRICS_CACHE_TTL_MS = 30 * 1000; // 30 s
+const METRICS_CACHE_TTL_MS = 90 * 1000; // 90 s — affichage instantané si retour sur la même vue
 
 function getCachedMetrics(tenantId: string, companyId: string | null, period: { from: string; to: string }): DashboardMetricsResponse | null {
   if (typeof window === "undefined") return null;
@@ -50,6 +54,13 @@ function setCachedMetrics(tenantId: string, companyId: string | null, period: { 
     }));
   } catch { /* ignore */ }
 }
+
+function clearCachedMetrics() {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(METRICS_CACHE_KEY);
+  } catch { /* ignore */ }
+}
 const DEFAULT_TENANT = "core";
 
 interface CompanyItem {
@@ -70,6 +81,10 @@ export function DashboardWithFilters() {
   const [monthsWithDataByYear, setMonthsWithDataByYear] = useState<Record<string, number[]>>({});
   const [dashboardMetrics, setDashboardMetrics] = useState<DashboardMetricsResponse | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(true);
+  const [metricsError, setMetricsError] = useState(false);
+  const [attemptCount, setAttemptCount] = useState(0);
+  const [showTreasuryAfterIncomplete, setShowTreasuryAfterIncomplete] = useState(false);
+  const prevScopeRef = useRef("");
 
   useEffect(() => {
     fetch("/api/tenant")
@@ -89,9 +104,13 @@ export function DashboardWithFilters() {
       .then((data: CompanyItem[]) => {
         const list = Array.isArray(data) ? data : [];
         setCompanies(list);
-        // COMPTE_RENDU : auto-sélection première société si liste non vide
-        if (list.length > 0) {
+        // Auto-sélection : seulement si au moins une société a des documents Vault.
+        // Si tout vient du manifest (documents_count: 0), garder "Tout" pour afficher les données agrégées.
+        const hasVaultData = list.some((c) => c.documents_count > 0);
+        if (list.length > 0 && hasVaultData) {
           setSelectedCompanyId((prev) => (prev === null ? list[0].company_id : prev));
+        } else if (list.length > 0 && !hasVaultData) {
+          setSelectedCompanyId((prev) => prev); // Garder "Tout" (null) par défaut
         }
       })
       .catch(() => setCompanies([]))
@@ -122,16 +141,29 @@ export function DashboardWithFilters() {
 
   // Fetch dashboard-metrics : pour IconGrid/Diva quand vue "all", et sealed_count pour le badge (toujours)
   const showIconGrid = viewMode === "all" && !focusedCardId;
+  const scopeKey = `${tenantId}|${selectedCompanyId ?? ""}|${period.from}|${period.to}`;
   const fetchMetricsRef = useRef<() => void>(() => {});
   useEffect(() => {
     let cancelled = false;
+    const retryTimeoutRef = { id: null as ReturnType<typeof setTimeout> | null };
+    const retryCountRef = { count: 0 };
+
+    // T1.8 — Invalider le cache au changement de scope (anti-stale)
+    if (prevScopeRef.current && prevScopeRef.current !== scopeKey) {
+      clearCachedMetrics();
+    }
+    prevScopeRef.current = scopeKey;
+
     const cached = getCachedMetrics(tenantId, selectedCompanyId, period);
     if (cached) {
       setDashboardMetrics(cached);
       setMetricsLoading(false);
+      setMetricsError(false);
     } else {
       setDashboardMetrics(null);
       setMetricsLoading(true);
+      setMetricsError(false);
+      setAttemptCount(0);
     }
     const fetchMetrics = () => {
       const params = new URLSearchParams({
@@ -139,32 +171,65 @@ export function DashboardWithFilters() {
         date_debut: period.from,
         date_fin: period.to,
         ...(selectedCompanyId && { company_id: selectedCompanyId }),
+        ...(showIconGrid && { minimal: "1" }), // Vue grille : skip sales-by-partner, ar-by-partner (allège payload)
       });
       fetch(`/api/dashboard-metrics?${params}`, { cache: "no-store", headers: { Accept: "application/json" } })
         .then((r) => r.json())
         .then((d) => {
           if (!cancelled && d && typeof d === "object" && typeof d.treasury === "object") {
+            setAttemptCount((c) => c + 1);
             setDashboardMetrics(d);
             setCachedMetrics(tenantId, selectedCompanyId, period, d);
             setMetricsLoading(false);
+            setMetricsError(false);
+            if (d.sealed_count_complete === false && retryCountRef.count < 1) {
+              retryCountRef.count += 1;
+              retryTimeoutRef.id = setTimeout(() => {
+                retryTimeoutRef.id = null;
+                fetchMetricsRef.current();
+              }, INCOMPLETE_RETRY_MS);
+            }
           }
         })
         .catch(() => {
           if (!cancelled) {
+            setAttemptCount((c) => c + 1);
             setDashboardMetrics(null);
             setMetricsLoading(false);
+            setMetricsError(true);
           }
         });
     };
     fetchMetricsRef.current = fetchMetrics;
     fetchMetrics();
-    const id = setInterval(fetchMetrics, DASHBOARD_METRICS_POLL_MS);
+    const pollId = setInterval(fetchMetrics, DASHBOARD_METRICS_POLL_MS);
     return () => {
       cancelled = true;
-      clearInterval(id);
+      clearInterval(pollId);
+      if (retryTimeoutRef.id) clearTimeout(retryTimeoutRef.id);
     };
-  }, [tenantId, selectedCompanyId, period.from, period.to]);
+  }, [tenantId, selectedCompanyId, period.from, period.to, showIconGrid]);
+
+  // Spec §4.1 — Aucune carte si incomplet OU loading OU erreur
+  const showCards =
+    dashboardMetrics?.sealed_count_complete === true &&
+    !metricsLoading &&
+    !metricsError;
+  const isIncomplete = !metricsLoading && !metricsError && (dashboardMetrics?.sealed_count_complete === false);
+
+  // Option C : après 5 s d'incomplétude, libérer la carte Trésorerie en priorité
+  useEffect(() => {
+    if (!isIncomplete) {
+      setShowTreasuryAfterIncomplete(false);
+      return;
+    }
+    const t = setTimeout(() => setShowTreasuryAfterIncomplete(true), TREASURY_UNBLOCK_AFTER_MS);
+    return () => clearTimeout(t);
+  }, [isIncomplete]);
+
   const handleRefreshMetrics = useCallback(() => {
+    setMetricsLoading(true);
+    setMetricsError(false);
     fetchMetricsRef.current();
   }, []);
 
@@ -205,9 +270,12 @@ export function DashboardWithFilters() {
         availableYears={availableYears}
         monthsWithDataByYear={monthsWithDataByYear}
         sealedCount={dashboardMetrics?.sealed_count}
+        sealedCountComplete={dashboardMetrics?.sealed_count_complete}
         onRefreshMetrics={handleRefreshMetrics}
+        showIntegrityBadge={showCards}
       />
       <main className="mx-auto flex min-h-0 flex-1 w-full max-w-4xl flex-col px-4 py-6 pb-16">
+        {showCards ? (
         <>
         {focusedCardId && (
           <button
@@ -220,6 +288,14 @@ export function DashboardWithFilters() {
         )}
         {showIconGrid ? (
           <div className="flex flex-1 min-h-0 flex-col items-center pt-6">
+            {!isPosView && (
+              <div className="w-full max-w-4xl mb-6">
+                <TresoreriePositionCardWithPolling
+                  tenantId={tenantId}
+                  companyId={selectedCompanyId}
+                />
+              </div>
+            )}
             <div className="flex items-start justify-center">
               <IconGrid
                 tenantId={tenantId}
@@ -230,18 +306,26 @@ export function DashboardWithFilters() {
                 onSelect={(id: CardId) => setFocusedCardId(id)}
               />
             </div>
-            <DivaFlashBlock
-              tenantId={tenantId}
-              companyId={selectedCompanyId}
-              period={{ from: period.from, to: period.to }}
-              dashboardMetrics={dashboardMetrics}
-            />
+            {!metricsLoading && (
+              <DivaFlashBlock
+                tenantId={tenantId}
+                companyId={selectedCompanyId}
+                period={{ from: period.from, to: period.to }}
+                dashboardMetrics={dashboardMetrics}
+              />
+            )}
             <DecisionsBlock tenantId={tenantId} />
           </div>
         ) : (
         <section className="space-y-6">
           {showPosZ && (
             <PosComingSoonView title="Z de caisse" />
+          )}
+          {!isPosView && (
+            <TresoreriePositionCardWithPolling
+              tenantId={tenantId}
+              companyId={selectedCompanyId}
+            />
           )}
           {(showCash || showWhenFocused("treasury")) && showCard("treasury") && (
             <TreasuryCardWithPolling
@@ -318,6 +402,40 @@ export function DashboardWithFilters() {
         </section>
         )}
         </>
+        ) : showTreasuryAfterIncomplete ? (
+          <>
+            {!isPosView && (
+              <div className="mb-6">
+                <p className="mb-3 text-xs text-[var(--text-muted)]" aria-live="polite">
+                  Consolidation globale en cours
+                </p>
+                <TresoreriePositionCardWithPolling
+                  tenantId={tenantId}
+                  companyId={selectedCompanyId}
+                />
+              </div>
+            )}
+            <SyncInProgress
+              sealedCount={dashboardMetrics?.sealed_count}
+              sealedCountComplete={dashboardMetrics?.sealed_count_complete}
+              expectedCount={dashboardMetrics?.expected_count}
+              generatedAt={dashboardMetrics?.generated_at}
+              onRetry={handleRefreshMetrics}
+              loading={metricsLoading}
+              attemptCount={attemptCount}
+            />
+          </>
+        ) : (
+          <SyncInProgress
+            sealedCount={dashboardMetrics?.sealed_count}
+            sealedCountComplete={dashboardMetrics?.sealed_count_complete}
+            expectedCount={dashboardMetrics?.expected_count}
+            generatedAt={dashboardMetrics?.generated_at}
+            onRetry={handleRefreshMetrics}
+            loading={metricsLoading}
+            attemptCount={attemptCount}
+          />
+        )}
       </main>
       <LinkyFooter tenantId={tenantId} />
     </div>

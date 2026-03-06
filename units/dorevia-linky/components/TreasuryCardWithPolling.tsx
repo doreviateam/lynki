@@ -18,11 +18,50 @@ interface TreasuryData {
   reconciliation_rate?: number | null;
   currency?: string;
   error?: string;
-  /** SPEC Trésorerie v1.1 — agrégats rapprochement */
   unreconciled_lines_count?: number | null;
   oldest_unreconciled_date?: string | null;
   journals_count?: number | null;
   last_statement_import_date?: string | null;
+  /** SPEC Trésorerie v4.1 */
+  generated_at?: string | null;
+  position?: {
+    validated_balance?: number;
+    erp_balance?: number | null;
+    unvalidated_exposure?: number | null;
+    reliability_position?: number | null;
+  };
+  process?: {
+    reconciled_volume?: number;
+    unreconciled_volume?: number;
+    reliability_volume?: number;
+    /** Sprint 5 — "confirmation" = événements financiers ; "proxy" = lignes bancaires */
+    source?: "confirmation" | "proxy";
+  };
+  /** Sprint 5 — Métriques confirmation bancaire (événements financiers) */
+  confirmation?: {
+    total_amount_abs?: number;
+    confirmed_amount_abs?: number;
+    unconfirmed_amount_abs?: number;
+    confirmation_rate?: number;
+    full_count?: number;
+    partial_count?: number;
+    unconfirmed_count?: number;
+  };
+  flags?: {
+    sign_mismatch?: boolean;
+    large_delta?: boolean;
+    structural_delta?: boolean;
+  };
+  /** SPEC Carte Paiements v1.1 — contrôle complétude avant affichage KPI */
+  completeness_check?: { ok: boolean; badge: string; message: string } | null;
+  /** SPEC web38 — Reste à rapprocher */
+  reconciliation_metrics?: {
+    total_amount_abs?: number;
+    reconciled_amount_abs?: number;
+    remaining_amount_abs?: number;
+    remaining_ratio?: number;
+    generated_at?: string;
+  } | null;
 }
 
 interface TreasuryCardWithPollingProps {
@@ -99,57 +138,114 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
   }, [period.from, period.to, companyId, tenantId]);
 
   useEffect(() => {
+    setData(null);
+    setLoading(true);
     fetchData();
     const id = setInterval(fetchData, POLL_INTERVAL_MS);
     return () => clearInterval(id);
   }, [fetchData]);
 
-  const total = data?.total ?? 0;
-  const reconciled = data?.reconciled ?? 0;
-  const unreconciled = data?.unreconciled ?? 0;
-  const rate = data?.reconciliation_rate;
   const currency = data?.currency ?? "EUR";
-  const rateRounded =
-    typeof rate === "number" && !Number.isNaN(rate) ? Math.round(rate) : null;
+  const pos = data?.position;
+  const proc = data?.process;
+  const flags = data?.flags ?? {};
+  const generatedAt = data?.generated_at;
 
-  const unreconciledLines = data?.unreconciled_lines_count ?? null;
-  const oldestDate = data?.oldest_unreconciled_date ?? null;
+  // V4.1 : position (net) vs process (volume)
+  const validatedBalance = pos?.validated_balance ?? data?.reconciled ?? 0;
+  const unvalidatedExposure = pos?.unvalidated_exposure ?? (pos?.erp_balance != null ? (pos.erp_balance - validatedBalance) : null);
+  const erpBalance = pos?.erp_balance;
+  const reliabilityPosition = pos?.reliability_position;
+
+  const reconciledVol = proc?.reconciled_volume ?? data?.reconciled ?? 0;
+  const unreconciledVol = proc?.unreconciled_volume ?? data?.unreconciled ?? 0;
+
   const journalsCount = data?.journals_count ?? null;
   const lastImportDate = data?.last_statement_import_date ?? null;
 
-  const borderVerdict =
-    rateRounded === 100
-      ? "border-l-[var(--positive)]"
-      : rateRounded === 0
-        ? "border-l-[var(--warning)]"
-        : "border-l-[var(--accent)]";
+  // SPEC web38 — Reste à rapprocher (remaining_ratio 0–1 → %)
+  const reconMetrics = data?.reconciliation_metrics;
+  const remainingRatioPct =
+    reconMetrics?.remaining_ratio != null && Number.isFinite(reconMetrics.remaining_ratio)
+      ? reconMetrics.remaining_ratio * 100
+      : null;
+  const totalAmountAbs = reconMetrics?.total_amount_abs ?? 0;
+  const reconciledAmountAbs = reconMetrics?.reconciled_amount_abs ?? 0;
+  const remainingAmountAbs = reconMetrics?.remaining_amount_abs ?? 0;
+  const completenessOk = data?.completeness_check?.ok === true;
+  /** Afficher les données dès qu'on les a — même si complétude partielle (moins strict) */
+  const showResteARapprocher = remainingRatioPct != null && totalAmountAbs > 0;
 
-  const verdictPhrase =
-    rateRounded === 100
-      ? "Toutes les écritures sont rapprochées et validées."
-      : rateRounded === 0
-        ? "Aucun rapprochement effectué sur la période sélectionnée."
-        : "Rapprochement partiel. Montants non validés présents.";
+  /** Mode Gouvernance v1.0 — statut fiabilité dominant. Complétude KO → orange (données partielles), pas rouge. */
+  type GovernanceStatus = "partial" | "critical" | "progress" | "ok";
+  const governanceStatus: GovernanceStatus = !completenessOk
+    ? "partial"
+    : totalAmountAbs === 0
+      ? "ok"
+      : remainingRatioPct! > 30
+        ? "critical"
+        : remainingRatioPct! >= 10
+          ? "progress"
+          : "ok";
 
-  const showCTAs = unreconciled > 0;
+  const governanceConfig = {
+    partial: {
+      border: "border-l-[var(--warning)]",
+      status: "DONNÉES PARTIELLES",
+      subtitle: (pct: number | null) =>
+        pct != null && totalAmountAbs > 0
+          ? `${pct.toFixed(1)} % des flux non couverts par preuve bancaire`
+          : data?.completeness_check?.message || "Certains paiements ERP ne sont pas encore enregistrés dans le Vault.",
+      statusColor: "text-[var(--warning)]",
+    },
+    critical: {
+      border: "border-l-[var(--warning)]",
+      status: "RAPPROCHEMENT INSUFFISANT",
+      subtitle: (pct: number) => `${pct.toFixed(1)} % des flux non couverts par preuve bancaire`,
+      statusColor: "text-[var(--warning)]",
+    },
+    progress: {
+      border: "border-l-[var(--governance-yellow)]",
+      status: "RAPPROCHEMENT EN COURS",
+      subtitle: (pct: number) => `${pct.toFixed(1)} % des flux non couverts par preuve bancaire`,
+      statusColor: "text-[var(--governance-yellow)]",
+    },
+    ok: {
+      border: "border-l-[var(--positive)]",
+      status: "COUVERTURE PROBANTE MAÎTRISÉE",
+      subtitle: totalAmountAbs === 0 ? "Aucun paiement sur la période" : ((pct: number) => `${pct.toFixed(1)} % des flux non couverts par preuve bancaire`),
+      statusColor: "text-[var(--positive)]",
+    },
+  } as const;
 
+  const gov = governanceConfig[governanceStatus];
+  const borderVerdictGov = gov.border;
+
+  const updatedAgo =
+    generatedAt && typeof generatedAt === "string"
+      ? Math.max(0, Math.floor((Date.now() - new Date(generatedAt).getTime()) / 1000))
+      : null;
+
+  const showCTAs = unreconciledVol > 0;
+
+  /** Célébration 100 % — Mode Gouvernance : remainingRatioPct passe à 0 */
   useEffect(() => {
-    if (
-      rateRounded === 100 &&
+    const justHit100 =
+      totalAmountAbs > 0 &&
+      remainingRatioPct === 0 &&
       prevRateRef.current !== null &&
-      prevRateRef.current < 100 &&
-      total > 0
-    ) {
+      prevRateRef.current > 0;
+    if (justHit100) {
       setIsCelebrating100(true);
-    } else if (rateRounded !== 100) {
+    } else if (remainingRatioPct !== 0) {
       setIsCelebrating100(false);
     }
-    prevRateRef.current = rateRounded;
-  }, [rateRounded, total]);
+    prevRateRef.current = remainingRatioPct ?? -1;
+  }, [remainingRatioPct, totalAmountAbs]);
 
   const IconWrap = onFocusRequest
     ? ({ children }: { children: React.ReactNode }) => (
-        <button type="button" onClick={onFocusRequest} className="flex cursor-pointer rounded p-1 -m-1 hover:bg-[var(--accent-soft)]/30 transition-colors" aria-label="Ouvrir la card Trésorerie">
+        <button type="button" onClick={onFocusRequest} className="flex cursor-pointer rounded p-1 -m-1 hover:bg-[var(--accent-soft)]/30 transition-colors" aria-label="Ouvrir la card Paiements">
           {children}
         </button>
       )
@@ -163,7 +259,7 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
             <IconWrap>
               <IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" />
             </IconWrap>
-            <span className="text-lg font-bold uppercase tracking-wide text-[var(--accent)]">Trésorerie validée</span>
+            <span className="text-lg font-bold uppercase tracking-wide text-[var(--accent)]">Paiements</span>
           </div>
           <div className="skeleton h-5 w-28" />
         </div>
@@ -177,39 +273,98 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
     );
   }
 
+  /** Subtitle pour affichage — string ou fonction (pct) */
+  const govSubtitle =
+    typeof gov.subtitle === "string"
+      ? gov.subtitle
+      : typeof gov.subtitle === "function"
+        ? gov.subtitle(remainingRatioPct ?? 0)
+        : "";
+
   return (
-    <section className={`${CARD_BASE} ${borderVerdict}`}>
+    <section className={`${CARD_BASE} ${borderVerdictGov}`}>
+      {/* Header — Titre PAIEMENTS */}
       <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] pb-3 mb-4">
         <div className="flex items-center gap-2 min-w-0">
           <IconWrap>
             <IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" />
           </IconWrap>
-          <span className="text-lg font-bold uppercase tracking-wide text-[var(--accent)]">Trésorerie validée</span>
-        </div>
-        <span className="text-xl font-semibold tabular-nums text-[var(--text)] shrink-0">{formatAmount(reconciled, currency)}</span>
-      </div>
-      <div className="space-y-2 text-sm font-semibold text-[var(--text-secondary)]">
-        <div className="flex justify-between">
-          <span>En attente de rapprochement</span>
-          <span className="font-medium tabular-nums text-[var(--warning)]">{formatAmount(unreconciled, currency)}</span>
-        </div>
-        <div className="flex justify-between pt-2 border-t border-[var(--border)]">
-          <span>Fiabilité bancaire</span>
-          <span className="font-semibold tabular-nums">{rate != null ? `${Math.round(rate)} %` : "—"}</span>
+          <span className="text-lg font-bold uppercase tracking-wide text-[var(--accent)]">Paiements</span>
         </div>
       </div>
 
-      <p className="mt-2 text-sm text-[var(--text-secondary)]">{verdictPhrase}</p>
+      {/* Mode Gouvernance v1.0 — 1. Statut fiabilité (dominant) + 2. Pourcentage (typographie forte) */}
+      <div className="mb-4">
+        <p className={`text-xl font-bold uppercase tracking-wide ${gov.statusColor}`}>{gov.status}</p>
+        {showResteARapprocher ? (
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            <span className={`text-2xl font-bold tabular-nums ${gov.statusColor}`} title="Cet indicateur ne mesure pas la qualité comptable, mais la couverture probante des flux par des preuves bancaires.">
+              {remainingRatioPct!.toFixed(1)} %
+            </span>{" "}
+            des flux non couverts par preuve bancaire
+          </p>
+        ) : (
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">{govSubtitle}</p>
+        )}
+      </div>
+
+      {/* Données partielles — message d'avertissement en orange */}
+      {governanceStatus === "partial" && (
+        <div className="rounded bg-[var(--warning)]/15 px-3 py-2 text-sm text-[var(--warning)] mb-3">
+          {data?.completeness_check?.message || "Certains paiements ERP ne sont pas encore enregistrés dans le Vault."}
+        </div>
+      )}
+
+      {/* 3. Total période + 4. Détails — afficher dès qu'on a des données */}
+      {totalAmountAbs > 0 && (
+        <>
+          <p className="text-sm text-[var(--text-secondary)] mb-1">
+            Total période : <span className="font-semibold tabular-nums text-[var(--text)]">{formatAmount(totalAmountAbs, currency)}</span>
+          </p>
+          <div className="space-y-1 text-sm text-[var(--text-secondary)]">
+            <div className="flex justify-between">
+              <span>Rapproché</span>
+              <span className="font-medium tabular-nums text-[var(--text)]">{formatAmount(reconciledAmountAbs, currency)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>À rapprocher</span>
+              <span className="font-medium tabular-nums text-[var(--text)]">
+                {remainingAmountAbs === 0 ? "Rapprocher" : formatAmount(remainingAmountAbs, currency)}
+              </span>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Flags métier (sign_mismatch, etc.) */}
+      {(flags.sign_mismatch || flags.large_delta || flags.structural_delta) && (
+        <>
+          {flags.sign_mismatch && (
+            <div className="mt-2 rounded bg-[var(--warning)]/20 px-2 py-1 text-xs text-[var(--warning)]">⚠ Signes incohérents</div>
+          )}
+          {flags.large_delta && (
+            <div className="mt-2 rounded bg-[var(--warning)]/20 px-2 py-1 text-xs text-[var(--warning)]">⚠ Écart important</div>
+          )}
+          {flags.structural_delta && (
+            <div className="mt-2 rounded bg-[var(--warning)]/20 px-2 py-1 text-xs text-[var(--warning)]">⚠ Écart structurel</div>
+          )}
+        </>
+      )}
+
+      {updatedAgo != null && (
+        <p className="mt-2 text-xs text-[var(--text-secondary)]">
+          Données actualisées il y a {updatedAgo < 60 ? `${updatedAgo}s` : updatedAgo < 3600 ? `${Math.floor(updatedAgo / 60)}min` : `${Math.floor(updatedAgo / 3600)}h`}
+        </p>
+      )}
+
+      <p className="mt-2 text-sm text-[var(--text-secondary)]">
+        {governanceStatus === "partial"
+          ? "Données partielles — certains paiements ERP ne sont pas encore enregistrés dans le Vault."
+          : "Cet indicateur mesure la couverture probante des flux par des preuves bancaires."}
+      </p>
 
       <div className="mt-3 space-y-1 text-xs text-[var(--text-secondary)]">
-        <div className="flex justify-between">
-          <span>Lignes à rapprocher</span>
-          <span className="tabular-nums">{unreconciledLines != null ? unreconciledLines : "—"}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Plus ancien mouvement</span>
-          <span className="tabular-nums">{formatDateOnly(oldestDate)}</span>
-        </div>
+        {/* Lignes à rapprocher / Plus ancien mouvement : non déterminables (sémantique Odoo vs périmètre vaulté) */}
         <div className="flex justify-between">
           <span>Journaux concernés</span>
           <span className="tabular-nums">{journalsCount != null ? journalsCount : "—"}</span>
@@ -226,7 +381,8 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
         </div>
       </div>
 
-      {showCTAs && (
+      {/* CTAs masqués pour l'instant — réactiver en passant showCTAs à true */}
+      {false && showCTAs && (
         <div className="mt-3 flex flex-wrap gap-2">
           <a
             href={`${ODOO_BASE_URL.replace(/\/$/, "")}/web#model=account.bank.statement.line`}
@@ -247,39 +403,43 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
         </div>
       )}
 
-      <CardChartSection
-        storageKey="linky-treasury-chart-expanded"
-        sectionTitle="Répartition"
-        chartType={chartType}
-        onChartTypeChange={handleChartTypeChange}
-        chartGranularity={chartGranularity}
-        onChartGranularityChange={handleGranularityChange}
-        availableGranularities={availableGranularities}
-        whyContent={{
-          periodLabel: `Du ${period.from} au ${period.to}`,
-          tenantId: tenantId ?? undefined,
-          dataSource: "Vault (agrégations)",
-          calculationRule: "TTC, scellé",
-        }}
-        interpretationOverride={
-          isCelebrating100 && chartType === "pie"
-            ? { primary: "100 % rapproché", secondary: "✔ Cohérence bancaire confirmée" }
-            : undefined
-        }
-      >
-        <DualSeriesChart
-          series1={[]}
-          series2={[]}
-          total1={Math.max(0, reconciled)}
-          total2={Math.max(0, unreconciled)}
-          label1="Rapproché"
-          label2="En attente"
-          granularity={chartGranularity}
+      {/* 5. Donut en support — afficher dès qu'on a des données */}
+      {(totalAmountAbs > 0 || reconciledVol > 0 || unreconciledVol > 0) && (
+        <CardChartSection
+          storageKey="linky-treasury-chart-expanded"
+          sectionTitle="Répartition"
           chartType={chartType}
-          currency={currency}
-          celebrating100={isCelebrating100 && chartType === "pie"}
-        />
-      </CardChartSection>
+          onChartTypeChange={handleChartTypeChange}
+          chartGranularity={chartGranularity}
+          onChartGranularityChange={handleGranularityChange}
+          availableGranularities={availableGranularities}
+          whyContent={{
+            periodLabel: `Du ${period.from} au ${period.to}`,
+            tenantId: tenantId ?? undefined,
+            dataSource: "Vault (agrégations)",
+            calculationRule: "TTC, scellé",
+          }}
+          interpretationOverride={
+            isCelebrating100 && chartType === "pie"
+              ? { primary: "100 % rapproché", secondary: "✔ Tous les paiements traités" }
+              : undefined
+          }
+        >
+          <DualSeriesChart
+            series1={[]}
+            series2={[]}
+            total1={showResteARapprocher ? Math.max(0, reconciledAmountAbs) : Math.max(0, reconciledVol)}
+            total2={showResteARapprocher ? Math.max(0, remainingAmountAbs) : Math.max(0, unreconciledVol)}
+            label1="Rapproché"
+            label2="À rapprocher"
+            granularity={chartGranularity}
+            chartType={chartType}
+            currency={currency}
+            celebrating100={isCelebrating100 && chartType === "pie"}
+            pieColor2={governanceStatus === "progress" ? "var(--governance-yellow)" : undefined}
+          />
+        </CardChartSection>
+      )}
       {footer}
     </section>
   );

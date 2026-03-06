@@ -1,0 +1,424 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ page_description }}{% endblock %}
+
+{% block body %}
+    <!-- ====== Pricing Start ====== -->
+    <section class="ud-pricing" style="padding: 120px 0;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-section-title mx-auto text-center">
+                        <span>Tarification</span>
+                        <h2>Modèle MRR transparent</h2>
+                        <p>
+                            Abonnement mensuel + usage par preuve générée. Sans engagement, facturation mensuelle.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 align-items-stretch justify-content-center" style="margin-top: 3rem;">
+                <!-- STARTER - 30€/mois -->
+                <div class="col-lg-4 col-md-6 col-sm-10">
+                    <div class="ud-single-pricing first-item wow fadeInUp" data-wow-delay=".15s">
+                        <span class="ud-popular-tag">⭐ Le plus choisi</span>
+                        <div class="ud-pricing-header">
+                            <h3>STARTER</h3>
+                            <h4>30 €<span style="font-size: 20px; font-weight: 500; color: #94a3b8;">/mois</span></h4>
+                        </div>
+                        <div class="ud-pricing-body">
+                            <ul>
+                                <li>Jusqu'à <strong>500 factures / mois</strong></li>
+                                <li>Preuve cryptographique certifiée</li>
+                                <li>Ledger immuable</li>
+                                <li>Horodatage légal</li>
+                                <li>Support email</li>
+                                <li>API basique</li>
+                                <li>Portail de consultation des preuves</li>
+                            </ul>
+                            <div style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed rgba(0,0,0,0.1);">
+                                <p style="font-size: 13px; color: #64748b; margin-bottom: 8px; font-weight: 600;">
+                                    Usage supplémentaire
+                                </p>
+                                <p style="font-size: 14px; color: #1e293b; margin: 0;">
+                                    <strong style="color: var(--primary-color);">+ 0,15 €</strong> / facture au-delà de 500 / mois
+                                </p>
+                            </div>
+                        </div>
+                        <div class="ud-pricing-footer">
+                            <p style="font-size: 13px; color: #64748b; margin-bottom: 20px; font-style: italic; padding: 12px; background: #f1f5f9; border-radius: 8px;">
+                                💳 Comparable au prix d'une location de TPE
+                            </p>
+                            <a href="{{ path('contact') }}" class="ud-main-btn ud-border-btn">Commencer maintenant</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BUSINESS - 80€/mois -->
+                <div class="col-lg-4 col-md-6 col-sm-10">
+                    <div class="ud-single-pricing active wow fadeInUp" data-wow-delay=".1s">
+                        <span class="ud-popular-tag" style="background: rgba(255, 255, 255, 0.95); border: 2px solid rgba(255, 255, 255, 0.3);">👍 Recommandé</span>
+                        <div class="ud-pricing-header">
+                            <h3 style="color: rgba(255, 255, 255, 0.9);">BUSINESS</h3>
+                            <h4 style="color: white;">80 €<span style="font-size: 20px; font-weight: 500; color: rgba(255, 255, 255, 0.8);">/mois</span></h4>
+                        </div>
+                        <div class="ud-pricing-body">
+                            <ul>
+                                <li>Jusqu'à <strong>1500 factures / mois</strong></li>
+                                <li>Tout Starter</li>
+                                <li>Réconciliation automatique</li>
+                                <li>Support prioritaire</li>
+                                <li>API avancée</li>
+                                <li>Exports comptables</li>
+                                <li>Tableaux de suivi</li>
+                            </ul>
+                            <div style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed rgba(255,255,255,0.3);">
+                                <p style="font-size: 13px; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">
+                                    Usage supplémentaire
+                                </p>
+                                <p style="font-size: 14px; color: white; margin: 0;">
+                                    <strong style="color: rgba(255, 255, 255, 1);">+ 0,12 €</strong> / facture au-delà de 1500 / mois
+                                </p>
+                            </div>
+                        </div>
+                        <div class="ud-pricing-footer" style="border-top: 1px solid rgba(255,255,255,0.2);">
+                            <a href="{{ path('contact') }}" class="ud-main-btn ud-white-btn">Essayer gratuitement</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCALE - 150€/mois -->
+                <div class="col-lg-4 col-md-6 col-sm-10">
+                    <div class="ud-single-pricing last-item wow fadeInUp" data-wow-delay=".15s">
+                        <span class="ud-popular-tag">🚀 Pour les équipes</span>
+                        <div class="ud-pricing-header">
+                            <h3>SCALE</h3>
+                            <h4>150 €<span style="font-size: 20px; font-weight: 500; color: #94a3b8;">/mois</span></h4>
+                        </div>
+                        <div class="ud-pricing-body">
+                            <ul>
+                                <li>Jusqu'à <strong>5000 factures / mois</strong></li>
+                                <li>Tout Business</li>
+                                <li>Reporting avancé</li>
+                                <li>Support dédié</li>
+                                <li>Formation incluse</li>
+                                <li>SLA (99,9% - réponse &lt; 24h)</li>
+                                <li>Accès fonctionnalités bêta</li>
+                            </ul>
+                            <div style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed rgba(0,0,0,0.1);">
+                                <p style="font-size: 13px; color: #64748b; margin-bottom: 8px; font-weight: 600;">
+                                    Usage supplémentaire
+                                </p>
+                                <p style="font-size: 14px; color: #1e293b; margin: 0;">
+                                    <strong style="color: var(--primary-color);">+ 0,10 €</strong> / facture au-delà de 5000 / mois
+                                </p>
+                            </div>
+                        </div>
+                        <div class="ud-pricing-footer">
+                            <p style="font-size: 12px; color: #64748b; margin-bottom: 16px; padding: 10px; background: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 4px;">
+                                <strong style="color: #92400e;">💼 +5000 factures</strong> → Offre Enterprise sur devis
+                            </p>
+                            <a href="{{ path('contact') }}" class="ud-main-btn ud-border-btn">Nous contacter</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Calculateur interactif -->
+            <div class="row" style="margin-top: 3rem;">
+                <div class="col-lg-10 mx-auto">
+                    <div style="padding: 2rem; background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%); border-radius: 16px; border: 2px solid #bfdbfe; box-shadow: 0 4px 6px rgba(14, 165, 233, 0.1);">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+                            <div style="width: 48px; height: 48px; background: #0ea5e9; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                💡
+                            </div>
+                            <h5 style="color: #0369a1; margin: 0; font-size: 1.25rem; font-weight: 700;">Calculateur de prix</h5>
+                        </div>
+                        <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                                <div>
+                                    <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;">Plan</label>
+                                    <select id="calculator-plan" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px; background: #f8fafc;">
+                                        <option value="starter">STARTER (30€/mois)</option>
+                                        <option value="business">BUSINESS (80€/mois)</option>
+                                        <option value="scale">SCALE (150€/mois)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;">Nombre de factures / mois</label>
+                                    <input type="number" id="calculator-invoices" value="750" min="0" step="1" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px; background: #f8fafc;">
+                                </div>
+                            </div>
+                            <button id="calculator-button" style="width: 100%; padding: 16px; background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(14, 165, 233, 0.4)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 12px rgba(14, 165, 233, 0.3)';">
+                                Calculer mon prix
+                            </button>
+                            <div id="calculator-result" style="display: none; margin-top: 2rem; padding: 1.5rem; background: #f8fafc; border-radius: 12px;">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; text-align: left;" id="calculator-details"></div>
+                                <div id="calculator-recommendation" style="margin-top: 1rem; padding: 1rem; background: #fef3c7; border-radius: 8px; border-left: 3px solid #f59e0b; display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mentions obligatoires -->
+            <div class="row" style="margin-top: 3rem;">
+                <div class="col-lg-12">
+                    <div style="padding: 2.5rem; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border-radius: 16px; border: 2px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+                        <h4 style="margin-bottom: 2rem; color: #1e293b; text-align: center; font-weight: 700; font-size: 1.5rem;">
+                            ✨ Garanties et flexibilité
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                            <div style="padding: 1.5rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 24px;">
+                                    ✓
+                                </div>
+                                <p style="margin-bottom: 0.5rem; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Sans engagement</p>
+                                <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">Annulation à tout moment, sans frais</p>
+                            </div>
+                            <div style="padding: 1.5rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 24px;">
+                                    💳
+                                </div>
+                                <p style="margin-bottom: 0.5rem; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Facturation mensuelle</p>
+                                <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">Paiement par CB ou virement bancaire</p>
+                            </div>
+                            <div style="padding: 1.5rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 24px;">
+                                    🔄
+                                </div>
+                                <p style="margin-bottom: 0.5rem; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Upgrade / downgrade libre</p>
+                                <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">Changement d'offre à tout moment</p>
+                            </div>
+                            <div style="padding: 1.5rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 24px;">
+                                    🔍
+                                </div>
+                                <p style="margin-bottom: 0.5rem; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Pas de frais cachés</p>
+                                <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">Tarification 100% transparente</p>
+                            </div>
+                        </div>
+                        <div style="padding: 1.5rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; border-left: 4px solid #f59e0b; margin-top: 1.5rem;">
+                            <p style="font-size: 0.95rem; color: #92400e; margin: 0; line-height: 1.6;">
+                                <strong style="font-weight: 700;">🎁 Programme Early Adopters :</strong> Les clients ayant souscrit à l'ancienne offre Early (49 €) sont automatiquement migrés vers <strong>STARTER à 30 €</strong>. 
+                                <br><em style="font-size: 0.875rem;">Tarif early adopter garanti jusqu'au 31/03/2026</em>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ -->
+            <div class="row" style="margin-top: 4rem;">
+                <div class="col-lg-10 mx-auto">
+                    <div class="ud-section-title mx-auto text-center" style="margin-bottom: 3rem;">
+                        <span>Questions fréquentes</span>
+                        <h2>FAQ Tarifs</h2>
+                    </div>
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        <div class="faq-item" style="margin-bottom: 1rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+                            <button class="faq-question" style="width: 100%; padding: 1.5rem; text-align: left; background: transparent; border: none; font-size: 1.1rem; font-weight: 700; color: #1e293b; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="toggleFaq(this)">
+                                <span>Comment fonctionne le calcul du prix ?</span>
+                                <span class="faq-icon" style="font-size: 1.5rem; transition: transform 0.3s;">+</span>
+                            </button>
+                            <div class="faq-answer" style="display: none; padding: 0 1.5rem 1.5rem; color: #64748b; line-height: 1.7;">
+                                <p>Le prix se compose d'un abonnement mensuel fixe (selon votre plan) + un coût par facture au-delà du volume inclus. Par exemple, avec STARTER (30€/mois pour 500 factures), si vous avez 750 factures, vous payez 30€ + (250 × 0,15€) = 67,50€/mois.</p>
+                            </div>
+                        </div>
+                        <div class="faq-item" style="margin-bottom: 1rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+                            <button class="faq-question" style="width: 100%; padding: 1.5rem; text-align: left; background: transparent; border: none; font-size: 1.1rem; font-weight: 700; color: #1e293b; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="toggleFaq(this)">
+                                <span>Puis-je changer de plan à tout moment ?</span>
+                                <span class="faq-icon" style="font-size: 1.5rem; transition: transform 0.3s;">+</span>
+                            </button>
+                            <div class="faq-answer" style="display: none; padding: 0 1.5rem 1.5rem; color: #64748b; line-height: 1.7;">
+                                <p>Oui, vous pouvez upgrader ou downgrader votre plan à tout moment. Le changement prend effet immédiatement et la facturation est ajustée au prorata.</p>
+                            </div>
+                        </div>
+                        <div class="faq-item" style="margin-bottom: 1rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+                            <button class="faq-question" style="width: 100%; padding: 1.5rem; text-align: left; background: transparent; border: none; font-size: 1.1rem; font-weight: 700; color: #1e293b; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="toggleFaq(this)">
+                                <span>Y a-t-il des frais cachés ?</span>
+                                <span class="faq-icon" style="font-size: 1.5rem; transition: transform 0.3s;">+</span>
+                            </button>
+                            <div class="faq-answer" style="display: none; padding: 0 1.5rem 1.5rem; color: #64748b; line-height: 1.7;">
+                                <p>Non, aucun frais caché. Le prix affiché est le prix final. Pas de frais d'installation, pas de frais de résiliation, pas de frais de changement de plan.</p>
+                            </div>
+                        </div>
+                        <div class="faq-item" style="margin-bottom: 1rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+                            <button class="faq-question" style="width: 100%; padding: 1.5rem; text-align: left; background: transparent; border: none; font-size: 1.1rem; font-weight: 700; color: #1e293b; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="toggleFaq(this)">
+                                <span>Que se passe-t-il si je dépasse mon volume inclus ?</span>
+                                <span class="faq-icon" style="font-size: 1.5rem; transition: transform 0.3s;">+</span>
+                            </button>
+                            <div class="faq-answer" style="display: none; padding: 0 1.5rem 1.5rem; color: #64748b; line-height: 1.7;">
+                                <p>Vous êtes automatiquement facturé pour les factures supplémentaires au tarif du plan choisi (0,15€ pour STARTER, 0,12€ pour BUSINESS, 0,10€ pour SCALE). Aucune interruption de service, vous pouvez continuer à utiliser Dorevia-Vault normalement.</p>
+                            </div>
+                        </div>
+                        <div class="faq-item" style="margin-bottom: 1rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+                            <button class="faq-question" style="width: 100%; padding: 1.5rem; text-align: left; background: transparent; border: none; font-size: 1.1rem; font-weight: 700; color: #1e293b; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="toggleFaq(this)">
+                                <span>Puis-je annuler mon abonnement à tout moment ?</span>
+                                <span class="faq-icon" style="font-size: 1.5rem; transition: transform 0.3s;">+</span>
+                            </button>
+                            <div class="faq-answer" style="display: none; padding: 0 1.5rem 1.5rem; color: #64748b; line-height: 1.7;">
+                                <p>Oui, sans engagement. Vous pouvez annuler votre abonnement à tout moment depuis votre espace client. Aucun frais de résiliation, vous conservez l'accès jusqu'à la fin de la période payée.</p>
+                            </div>
+                        </div>
+                        <div class="faq-item" style="margin-bottom: 1rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+                            <button class="faq-question" style="width: 100%; padding: 1.5rem; text-align: left; background: transparent; border: none; font-size: 1.1rem; font-weight: 700; color: #1e293b; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="toggleFaq(this)">
+                                <span>Quels modes de paiement sont acceptés ?</span>
+                                <span class="faq-icon" style="font-size: 1.5rem; transition: transform 0.3s;">+</span>
+                            </button>
+                            <div class="faq-answer" style="display: none; padding: 0 1.5rem 1.5rem; color: #64748b; line-height: 1.7;">
+                                <p>Nous acceptons les paiements par carte bancaire (CB, Visa, Mastercard) et par virement bancaire. La facturation est mensuelle, automatique pour les cartes bancaires.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ====== Pricing End ====== -->
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    // Calculateur pricing
+    const calculatorButton = document.getElementById('calculator-button');
+    const calculatorPlan = document.getElementById('calculator-plan');
+    const calculatorInvoices = document.getElementById('calculator-invoices');
+    const calculatorResult = document.getElementById('calculator-result');
+    const calculatorDetails = document.getElementById('calculator-details');
+    const calculatorRecommendation = document.getElementById('calculator-recommendation');
+
+    function calculatePrice() {
+        const plan = calculatorPlan.value;
+        const invoices = parseInt(calculatorInvoices.value) || 0;
+
+        if (invoices < 0) {
+            alert('Le nombre de factures doit être positif');
+            return;
+        }
+
+        calculatorButton.disabled = true;
+        calculatorButton.textContent = 'Calcul en cours...';
+
+        fetch('{{ path("api_pricing_calculate") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ plan, invoices }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const calc = data.calculation;
+                
+                // Tracking analytics
+                if (typeof trackEvent === 'function') {
+                    trackEvent('Pricing', 'calculate', plan, calc.total);
+                }
+                const planNames = {
+                    'starter': 'STARTER',
+                    'business': 'BUSINESS',
+                    'scale': 'SCALE'
+                };
+
+                calculatorDetails.innerHTML = `
+                    <div style="padding: 1rem; background: #f1f5f9; border-radius: 8px;">
+                        <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 600;">Abonnement</p>
+                        <p style="font-size: 1.1rem; color: #1e293b; margin: 0; font-weight: 700;">${calc.base_price.toFixed(2)} €</p>
+                        <p style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">${calc.included_invoices} factures incluses</p>
+                    </div>
+                    ${calc.overage_invoices > 0 ? `
+                    <div style="padding: 1rem; background: #fef3c7; border-radius: 8px;">
+                        <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 600;">Supplément</p>
+                        <p style="font-size: 1.1rem; color: #1e293b; margin: 0; font-weight: 700;">${calc.overage_total.toFixed(2)} €</p>
+                        <p style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">${calc.overage_invoices} × ${calc.overage_price.toFixed(2)} €</p>
+                    </div>
+                    ` : ''}
+                    <div style="padding: 1rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px; color: white;">
+                        <p style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.9); margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 600;">Total</p>
+                        <p style="font-size: 1.5rem; color: white; margin: 0; font-weight: 800;">${calc.total.toFixed(2)} €</p>
+                        <p style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.9); margin-top: 0.25rem;">par mois</p>
+                    </div>
+                `;
+
+                if (data.recommendation) {
+                    const recNames = {
+                        'business': 'BUSINESS',
+                        'scale': 'SCALE'
+                    };
+                    calculatorRecommendation.innerHTML = `
+                        <p style="color: #92400e; margin: 0; font-weight: 600;">
+                            💡 <strong>Recommandation :</strong> Avec ${invoices} factures/mois, le plan <strong>${recNames[data.recommendation]}</strong> pourrait être plus économique.
+                        </p>
+                    `;
+                    calculatorRecommendation.style.display = 'block';
+                } else {
+                    calculatorRecommendation.style.display = 'none';
+                }
+
+                calculatorResult.style.display = 'block';
+                calculatorResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                alert('Erreur : ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Une erreur est survenue lors du calcul');
+        })
+        .finally(() => {
+            calculatorButton.disabled = false;
+            calculatorButton.textContent = 'Calculer mon prix';
+        });
+    }
+
+    if (calculatorButton) {
+        calculatorButton.addEventListener('click', calculatePrice);
+    }
+
+    // Auto-calcul lors du changement
+    if (calculatorPlan && calculatorInvoices) {
+        calculatorPlan.addEventListener('change', () => {
+            if (calculatorResult.style.display === 'block') {
+                calculatePrice();
+            }
+        });
+        calculatorInvoices.addEventListener('input', () => {
+            if (calculatorResult.style.display === 'block') {
+                calculatePrice();
+            }
+        });
+    }
+
+    // FAQ Accordéon
+    function toggleFaq(button) {
+        const item = button.closest('.faq-item');
+        const answer = item.querySelector('.faq-answer');
+        const icon = button.querySelector('.faq-icon');
+        const isOpen = answer.style.display === 'block';
+
+        // Fermer toutes les autres FAQ
+        document.querySelectorAll('.faq-answer').forEach(a => {
+            if (a !== answer) {
+                a.style.display = 'none';
+                a.closest('.faq-item').querySelector('.faq-icon').textContent = '+';
+                a.closest('.faq-item').querySelector('.faq-icon').style.transform = 'rotate(0deg)';
+            }
+        });
+
+        // Toggle la FAQ actuelle
+        if (isOpen) {
+            answer.style.display = 'none';
+            icon.textContent = '+';
+            icon.style.transform = 'rotate(0deg)';
+        } else {
+            answer.style.display = 'block';
+            icon.textContent = '−';
+            icon.style.transform = 'rotate(180deg)';
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,9 @@
+# Routes Symfony - Landing Page Dorevia-Vault
+# Les routes sont également définies via attributes dans les controllers
+
+# Routes principales
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute

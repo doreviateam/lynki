@@ -1,242 +1,347 @@
-{% extends 'layout.html.twig' %}
+{% extends 'layout_play.html.twig' %}
 
-{% block title %}Dorevia-Vault — Des chiffres vrais. Par conception.{% endblock %}
-{% block meta_description %}Dorevia-Vault sécurise vos événements financiers à la source. Une infrastructure souveraine conçue pour la conformité LNE 2026 / NF525.{% endblock %}
+{% block title %}Dorevia-Vault — Chiffres prouvables pour piloter la trésorerie.{% endblock %}
+{% block meta_description %}Dorevia-Vault sécurise vos événements financiers à la source. Des preuves fiables, vérifiables et juridiquement opposables.{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    <link rel="stylesheet" href="{{ asset('assets/css/landing-v2-final.css') }}?v={{ 'now'|date('U') }}" />
-    <style>
-        body { background: var(--bg) !important; }
-        .ud-header, .ud-footer { display: none !important; }
-        .alert-success { background: #f0fdf4; border: 1px solid #10b981; color: #166534; padding: 20px; border-radius: 12px; }
-        .alert-danger { background: #fef2f2; border: 1px solid #ef4444; color: #991b1b; padding: 20px; border-radius: 12px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
 {% endblock %}
 
 {% block body %}
-<div class="landing-v2">
-    <!-- HEADER -->
-    <header class="v2-header" style="position: sticky; top: 0; z-index: 1000; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line);">
-        <div class="v2-container">
-            <nav style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0;">
-                <div class="v2-logo" style="font-size: 20px; font-weight: 800; color: var(--text); letter-spacing: -0.5px;">
-                    Dorevia<span style="color: var(--accent);">-Vault</span>
-                </div>
-                
-                <div class="v2-navlinks" style="display: flex; gap: 32px; align-items: center;">
-                    <a href="#fonctionnement">Solution</a>
-                    <a href="#conformite">Infrastructure</a>
-                    <a href="#contact-section" class="v2-btn v2-btn-primary" style="padding: 10px 20px; font-size: 13px;">Diagnostic expert</a>
-                </div>
-            </nav>
-        </div>
-    </header>
-
-    <!-- HERO -->
-    <main id="top" class="v2-hero v2-anchor" style="padding: 120px 0; background: radial-gradient(circle at top right, rgba(91, 124, 250, 0.03), transparent 40%);">
-        <div class="v2-container">
-            <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 80px; align-items: center;">
-                <div data-aos="fade-up" data-aos-duration="800">
-                    <span style="display: inline-block; padding: 6px 12px; background: rgba(91,124,250,0.08); color: var(--accent); border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 24px;">
-                        🇬🇵 🇫🇷 <span style="text-transform: uppercase; margin-left: 4px;">Infrastructure de Vérité Financière</span>
-                    </span>
-
-                    <h1 style="margin-bottom: 24px; color: var(--text);">Des chiffres vrais.<br/>Par conception.</h1>
-
-                    <p style="font-size: 22px; color: #334155; margin-bottom: 12px; max-width: 580px; line-height: 1.4; font-weight: 500;">
-                        Chaque événement financier issu de votre ERP devient une preuve vérifiable et juridiquement opposable, dès sa création.
-                    </p>
-
-                    <p style="font-size: 17px; color: #64748b; font-style: italic; margin-bottom: 48px;">
-                        "Un chiffre sans preuve n’est qu’une estimation."
-                    </p>
-
-                    <div style="display: flex; gap: 16px; margin-bottom: 60px;">
-                        <a class="v2-btn v2-btn-primary" href="#fonctionnement">Voir une preuve réelle</a>
-                        <a class="v2-btn v2-btn-secondary" href="#contact-section">Vérifier l’adéquation technique</a>
+    <!-- ====== Hero (Play Bootstrap — contenu Dorevia) ====== -->
+    <section class="ud-hero" id="home">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="ud-hero-content wow fadeInUp" data-wow-delay=".2s">
+                        <span class="tag" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 0.5rem 1rem; border-radius: 2rem; margin-bottom: 1rem; display: inline-block; font-size: 14px;">Preuve financière native • NF525 & LNE 2026</span>
+                        <h1 class="ud-hero-title">Des chiffres qui ne peuvent pas être contredits.</h1>
+                        <p class="ud-hero-desc" style="color: rgba(255, 255, 255, 0.95); margin: 1rem 0 1.5rem;">
+                            Chaque événement validé dans votre ERP est scellé à la source. Preuve immuable, vérifiable, sans intervention humaine.
+                        </p>
+                        <ul class="ud-hero-buttons">
+                            <li><a href="#contact-section" class="ud-main-btn ud-white-btn">Demander une démo</a></li>
+                            <li><a href="#fonctionnement" class="ud-main-btn ud-link-btn" style="color: white;">Voir comment ça marche <i class="lni lni-arrow-right"></i></a></li>
+                        </ul>
+                        <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; margin-top: 1.5rem;">Odoo • Multi-ERP • Hébergement France • Conforme NF525</p>
                     </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-                        <div style="display: flex; gap: 12px; align-items: center; color: #475569; font-size: 14px; font-weight: 500;">
-                            <div class="v2-dot" style="margin:0;"></div> Preuves vérifiables en temps réel
+                </div>
+                <div class="col-lg-6">
+                    <div class="ud-hero-mock wow fadeInUp" data-wow-delay=".3s" aria-hidden="true">
+                        <div class="mock-header">
+                            <span>Dorevia-Vault • Tableau de preuve</span>
+                            <span>✅ Vérifiable</span>
                         </div>
-                        <div style="display: flex; gap: 12px; align-items: center; color: #475569; font-size: 14px; font-weight: 500;">
-                            <div class="v2-dot" style="margin:0;"></div> Zéro manipulation humaine
+                        <div class="mock-card">
+                            <div class="mock-kpi">325 450 €</div>
+                            <div class="mock-mini">Trésorerie probante (snapshot)</div>
+                            <div class="mock-bar"><i style="width: 70%;"></i></div>
+                            <div class="mock-mini">Dernier scellement : il y a 12 min</div>
                         </div>
-                        <div style="display: flex; gap: 12px; align-items: center; color: #475569; font-size: 14px; font-weight: 500;">
-                            <div class="v2-dot" style="margin:0;"></div> Compatible ERP open-source
+                        <div class="mock-card">
+                            <div style="font-weight: 700; color: white;">Événements</div>
+                            <div class="mock-mini">Facture.posted • Ticket.closed • Payment.captured</div>
+                            <div class="mock-bar"><i style="width: 46%;"></i></div>
+                            <div class="mock-mini">Intégrité : 100%</div>
                         </div>
-                        <div style="display: flex; gap: 12px; align-items: center; color: #475569; font-size: 14px; font-weight: 500;">
-                            <div class="v2-dot" style="margin:0;"></div> Infrastructure souveraine d’audit
+                        <div class="mock-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-weight: 700; color: white;">Preuves scellées</div>
+                                <div class="mock-mini">Export UI/API • Receipts</div>
+                            </div>
+                            <div class="mock-bar"><i style="width: 78%;"></i></div>
                         </div>
-                    </div>
-                </div>
-
-                <div data-aos="fade-left" data-aos-duration="1000" style="text-align: right;">
-                    <img src="{{ asset('assets/images/v2/illustration-hero-abstract.svg') }}" alt="Infrastructure Flow" style="width: 100%; max-width: 500px;">
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- SECTION 1 : FONCTIONNEMENT -->
-    <section id="fonctionnement" class="v2-section v2-anchor" style="border-top: 1px solid var(--line); background: var(--bg-surface);">
-        <div class="v2-container">
-            <div style="max-width: 800px; margin-bottom: 80px;" data-aos="fade-up">
-                <h2 style="font-size: 42px; margin-bottom: 20px;">Votre ERP fournit la matière première.<br/>Nous la transformons source de vérité.</h2>
-                <p style="font-size: 19px; color: var(--muted);">Une couche de sécurité silencieuse qui s'interface avec vos flux existants sans les perturber.</p>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: flex-start;">
-                <div style="display: grid; gap: 24px;">
-                    <div class="v2-card" style="padding: 32px;" data-aos="fade-up">
-                        <h3 class="v2-block-title">Capture à la source</h3>
-                        <p style="color: var(--muted); margin: 0; font-size: 15px;">Connexion directe à votre ERP. Aucune intervention humaine possible.</p>
-                    </div>
-                    <div class="v2-card" style="padding: 32px;" data-aos="fade-up" data-aos-delay="100">
-                        <h3 class="v2-block-title">Scellage probant</h3>
-                        <p style="color: var(--muted); margin: 0; font-size: 15px;">Horodatage et signature cryptographique immédiate. L'événement devient immuable.</p>
-                    </div>
-                    <div class="v2-card" style="padding: 32px; background: #fff;" data-aos="fade-up" data-aos-delay="200">
-                        <img src="{{ asset('assets/images/v2/illustration-process-abstract.svg') }}" alt="Processus" style="width: 100%;">
-                    </div>
-                </div>
-                
-                <div class="v2-card" style="background: #F1F5F9; border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px; min-height: 500px;" data-aos="fade-left">
-                    <img src="{{ asset('assets/images/v2/illustration-ui-readonly-abstract.svg') }}" alt="Dorevia UI" style="width: 100%; max-width: 400px; margin-bottom: 32px;">
-                    <div style="text-align: center;">
-                        <h3 style="font-size: 18px; margin-bottom: 8px;">Interface de consultation</h3>
-                        <p style="color: var(--muted2); font-size: 14px; margin: 0;">Une plateforme en lecture seule dédiée à la vérification.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- SECTION 2 : CONFORMITE -->
-    <section id="conformite" class="v2-section v2-anchor" style="border-top: 1px solid var(--line);">
-        <div class="v2-container">
-            <div style="text-align: center; max-width: 800px; margin: 0 auto 100px;" data-aos="fade-up">
-                <h2>Bâtir sur un socle souverain.</h2>
-                <p style="font-size: 19px; color: var(--muted);">Sécurité et conformité LNE 2026 / NF525 par construction.</p>
-            </div>
+    <!-- ====== Trust bar ====== -->
+    <section class="ud-trust-bar" aria-hidden="true">
+        <div class="container">
+            <p style="margin: 0;">Conçu pour NF525 & e-invoicing 2026 • Hébergement France • Compatible Odoo & Multi-ERP</p>
+        </div>
+    </section>
 
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;">
-                <div class="v2-card" style="padding: 48px 40px; text-align: center;" data-aos="fade-up">
-                    <div style="font-size: 40px; margin-bottom: 24px;">🇫🇷</div>
-                    <h3 class="v2-block-title" style="font-size: 15px; letter-spacing: 0.05em;">SOUVERAINETÉ</h3>
-                    <p style="color: var(--muted); font-size: 14px; line-height: 1.6;">Hébergement français. Juridiction française exclusive.</p>
+    <!-- ====== Pourquoi Dorevia-Vault (Le problème) ====== -->
+    <section class="ud-features" id="probleme">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-section-title mx-auto text-center">
+                        <span>Pourquoi Dorevia-Vault</span>
+                        <h2>La donnée financière est vulnérable.</h2>
+                        <p>Tant qu'il n'y a pas de tension, « ça passe ». Mais au premier contrôle, litige ou audit, la question devient : <strong>peut-on prouver ?</strong></p>
+                    </div>
                 </div>
-                <div class="v2-card" style="padding: 48px 40px; text-align: center;" data-aos="fade-up" data-aos-delay="100">
-                    <div style="font-size: 40px; margin-bottom: 24px;">🛡️</div>
-                    <h3 class="v2-block-title" style="font-size: 15px; letter-spacing: 0.05em;">CONFORMITÉ</h3>
-                    <p style="color: var(--muted); font-size: 14px; line-height: 1.6;">Architecture conçue pour les exigences fiscales de 2026.</p>
+            </div>
+            <div class="row">
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".1s">
+                        <div class="ud-feature-icon large-emoji">📄</div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Chiffres modifiables</h3>
+                            <p class="ud-feature-desc">Corrections, brouillons, exports, resaisies… la vérité se fragmente.</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="v2-card" style="padding: 48px 40px; text-align: center; display: flex; align-items: center; justify-content: center;" data-aos="fade-up" data-aos-delay="200">
-                    <img src="{{ asset('assets/images/v2/badge-conformite-lne.svg') }}" alt="Badge LNE" style="width: 120px;">
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".15s">
+                        <div class="ud-feature-icon large-emoji">📑</div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Versions contradictoires</h3>
+                            <p class="ud-feature-desc">ERP vs Excel vs BI vs compta : chacun a « son » chiffre.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".2s">
+                        <div class="ud-feature-icon large-emoji">🔍</div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Preuves reconstruites</h3>
+                            <p class="ud-feature-desc">Quand ça chauffe, on enquête au lieu de vérifier.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-center" style="margin-top: 2rem; font-size: 1.1rem; max-width: 600px; margin-left: auto; margin-right: auto;">Pour assurer la conformité et prouver les faits, vous avez besoin de <strong>données irréfutables dès la source</strong>.</p>
+        </div>
+    </section>
+
+    <!-- ====== Produit (Fonctionnement) ====== -->
+    <section class="ud-features ud-section-alt" id="fonctionnement">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-section-title mx-auto text-center">
+                        <span>Produit</span>
+                        <h2>Votre ERP fournit la matière première. Nous la transformons en source de vérité.</h2>
+                        <p>Une couche de sécurité silencieuse qui s'interface avec vos flux existants sans les perturber.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="play-flow">
+                <div class="play-flow-item"><span class="play-flow-icon">📦</span><span>ERP</span></div>
+                <div class="play-flow-arrow"></div>
+                <div class="play-flow-item"><span class="play-flow-icon">⚡</span><span>DVIG</span><span class="play-flow-sublabel">Dorevia-Vault</span></div>
+                <div class="play-flow-arrow"></div>
+                <div class="play-flow-item"><span class="play-flow-icon">🛡️</span><span>Preuve</span><span class="play-flow-sublabel">scellée</span></div>
+            </div>
+            <div class="row" style="margin-top: 3rem;">
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".1s">
+                        <div class="ud-feature-icon"><i class="lni lni-cog"></i></div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Capture à la source</h3>
+                            <p class="ud-feature-desc">Connexion directe à votre ERP. Aucune intervention humaine possible.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".15s">
+                        <div class="ud-feature-icon"><i class="lni lni-lock"></i></div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Scellage probant</h3>
+                            <p class="ud-feature-desc">Horodatage et signature cryptographique immédiate. L'événement devient immuable.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".2s">
+                        <div class="ud-feature-icon"><i class="lni lni-eye"></i></div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Interface de consultation</h3>
+                            <p class="ud-feature-desc">Une plateforme en lecture seule dédiée à la vérification.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 2rem;">
+                <div class="col-md-6">
+                    <div class="ud-single-feature" style="padding: 1.5rem; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+                        <h3 class="ud-feature-title">La métaphore « compteur Linky »</h3>
+                        <p class="ud-feature-desc" style="margin-top: 0.5rem;">Comme Linky mesure l'énergie à la source, Dorevia-Vault mesure et scelle la vérité financière au moment où elle naît.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="ud-single-feature" style="padding: 1.5rem; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+                        <h3 class="ud-feature-title">Indépendant de l'ERP</h3>
+                        <p class="ud-feature-desc" style="margin-top: 0.5rem;">Vous pouvez changer d'outil : la preuve reste, et l'historique demeure vérifiable.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- SECTION 3 : CONTACT -->
-    <section id="contact-section" class="v2-section v2-anchor" style="border-top: 1px solid var(--line); background: var(--bg-surface);">
-        <div class="v2-container">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 100px; align-items: center;">
-                <div data-aos="fade-right">
-                    <h2 style="font-size: 52px; margin-bottom: 24px; line-height: 1.1;">Prêt pour la vérité financière ?</h2>
-                    <p style="font-size: 19px; color: var(--muted); margin-bottom: 40px;">Diagnostic gratuit de votre contexte technique et réglementaire (15 min).</p>
-                    
-                    <div style="display: grid; gap: 20px;">
-                        <div style="display: flex; gap: 16px; align-items: center; color: var(--text); font-weight: 600;">
-                            <div class="v2-dot" style="margin:0;"></div> Réponse garantie sous 24h
-                        </div>
-                        <div style="display: flex; gap: 16px; align-items: center; color: var(--text); font-weight: 600;">
-                            <div class="v2-dot" style="margin:0;"></div> Diagnostic sans engagement
+    <!-- ====== Conformité ====== -->
+    <section class="ud-features" id="conformite">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-section-title mx-auto text-center">
+                        <span>Conformité</span>
+                        <h2>Bâtir sur un socle souverain.</h2>
+                        <p>Sécurité et conformité LNE 2026 / NF525. Chaque événement financier est scellé dès sa validation et ne peut plus être modifié ensuite.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".1s">
+                        <div class="ud-feature-icon large-emoji">🇫🇷</div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">SOUVERAINETÉ</h3>
+                            <p class="ud-feature-desc">Hébergement français. Juridiction française exclusive.</p>
                         </div>
                     </div>
                 </div>
-
-                <div class="v2-card" style="padding: 48px; border: none; box-shadow: 0 30px 60px rgba(0,0,0,0.08);" data-aos="fade-left">
-                    <div id="form-message" style="display:none; margin-bottom: 32px;"></div>
-                    
-                    {{ form_start(form, {'attr': {'id': 'lead-form', 'action': path('lead_submit'), 'style': 'display:grid; gap: 24px;'}}) }}
-                        <div style="display:grid; gap: 8px;">
-                            <label style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Email professionnel</label>
-                            {{ form_widget(form.email, {'attr': {'placeholder': 'nom@entreprise.fr', 'style': 'width:100%;'}}) }}
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".15s">
+                        <div class="ud-feature-icon large-emoji">🛡️</div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">CONFORMITÉ</h3>
+                            <p class="ud-feature-desc">Architecture conçue pour les exigences fiscales de 2026.</p>
                         </div>
-                        <div style="display:grid; gap: 8px;">
-                            <label style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Contexte technique (ERP...)</label>
-                            {{ form_widget(form.message, {'attr': {'placeholder': 'Quel ERP utilisez-vous ? Quel est votre volume de facturation ?', 'style': 'min-height: 120px; width:100%;'}}) }}
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".2s">
+                        <div class="ud-feature-icon" style="font-size: 0.9rem; font-weight: 700;">Badge LNE</div>
+                        <div class="ud-feature-content">
+                            <p class="ud-feature-desc">Infrastructure d'audit indépendante et labellisable.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== Bénéfices (Prouvez en continu) ====== -->
+    <section class="ud-features ud-section-alt" id="prouvez-continu">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-section-title mx-auto text-center">
+                        <span>Bénéfices</span>
+                        <h2>Prouvez votre réalité financière en continu (NF525)</h2>
+                        <p>Pour répondre au contrôle fiscal, aux litiges et aux changements d'outil : des données opposables, scellées et disponibles.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".1s">
+                        <div class="ud-feature-icon large-emoji">🛡️</div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Audit & contrôle</h3>
+                            <p class="ud-feature-desc">Répondez au contrôle fiscal avec des données opposables, sans reconstruire après coup.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".15s">
+                        <div class="ud-feature-icon large-emoji">⚖️</div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Litige & conformité</h3>
+                            <p class="ud-feature-desc">Scellement automatique et incontestable des données financières. Preuve immuable.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".2s">
+                        <div class="ud-feature-icon large-emoji">📁</div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title">Changement d'outil comptable</h3>
+                            <p class="ud-feature-desc">Tout votre historique scellé reste vérifiable, quel que soit l'ERP ou la caisse.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== Démarrer (Contact / Formulaire) ====== -->
+    <section class="ud-contact" id="contact-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-section-title mx-auto text-center">
+                        <span>Démarrer</span>
+                        <h2>Prêt pour des chiffres incontestables ?</h2>
+                        <p>Diagnostic de votre contexte technique et réglementaire (15 min). Réponse sous 24h, sans engagement.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center" style="margin-top: 3rem;">
+                <div class="col-lg-8 col-xl-6">
+                    <div class="play-pills">
+                        <div class="play-pill"><span class="play-dot"></span> Réponse garantie sous 24h</div>
+                        <div class="play-pill"><span class="play-dot brand"></span> Sans engagement</div>
+                    </div>
+                    <div id="form-message" style="display: none; margin-bottom: 20px;"></div>
+                    {{ form_start(form, {'attr': {'id': 'lead-form', 'action': path('lead_submit'), 'class': 'ud-contact-form'}}) }}
+                        <div class="ud-form-group" style="margin-bottom: 1.5rem;">
+                            <label for="{{ form.email.vars.id }}">Email professionnel</label>
+                            {{ form_widget(form.email, {'attr': {'class': 'ud-form-control form-control', 'placeholder': 'nom@entreprise.fr'}}) }}
+                        </div>
+                        <div class="ud-form-group" style="margin-bottom: 1.5rem;">
+                            <label for="{{ form.message.vars.id }}">Contexte technique (ERP...)</label>
+                            {{ form_widget(form.message, {'attr': {'class': 'ud-form-control form-control', 'placeholder': 'Quel ERP utilisez-vous ? Quel est votre volume de facturation ?', 'rows': 4}}) }}
                         </div>
                         <div style="display:none;">{{ form_rest(form) }}</div>
-                        <button type="submit" class="v2-btn v2-btn-primary" id="submit-button" style="width: 100%; justify-content: center; font-size: 16px; padding: 18px;">Démarrer le diagnostic</button>
+                        <button type="submit" class="ud-main-btn" id="submit-button" style="width: 100%; padding: 16px; font-size: 16px;">Demander une démo</button>
                     {{ form_end(form) }}
                 </div>
             </div>
         </div>
     </section>
-
-    <!-- FOOTER -->
-    <footer style="padding: 80px 0 40px; border-top: 1px solid var(--line); background: #fff;">
-        <div class="v2-container">
-            <div style="display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 13px;">
-                <div>
-                    <span style="color: var(--text); font-weight: 800; font-size: 16px; margin-right: 20px;">Dorevia<span style="color: var(--accent);">-Vault</span></span>
-                    © {{ "now"|date("Y") }} Infrastructure de Vérité Financière. 🇫🇷
-                </div>
-                <div style="display: flex; gap: 32px;">
-                    <a href="{{ path('privacy_index') }}" style="color: inherit; text-decoration: none;">Confidentialité</a>
-                    <a href="#" style="color: inherit; text-decoration: none;">Mentions légales</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-</div>
+{% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('assets/js/wow.min.js') }}"></script>
     <script>
-        AOS.init({ duration: 800, easing: 'ease-out-quad', once: true, offset: 50 });
-
-        const leadForm = document.getElementById('lead-form');
-        if (leadForm) {
+        (function() {
+            if (typeof WOW !== 'undefined') new WOW().init();
+            var leadForm = document.getElementById('lead-form');
+            if (!leadForm) return;
             leadForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const submitBtn = document.getElementById('submit-button');
-                const messageDiv = document.getElementById('form-message');
-                const formData = new FormData(this);
-                
+                var submitBtn = document.getElementById('submit-button');
+                var messageDiv = document.getElementById('form-message');
+                var formData = new FormData(this);
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Envoi...';
-                
                 try {
-                    const response = await fetch(this.action, { method: 'POST', body: formData });
-                    const data = await response.json();
+                    var response = await fetch(this.action, { method: 'POST', body: formData });
+                    var data = await response.json();
                     if (data.status === 'success') {
-                        messageDiv.innerHTML = '<div class="alert-success"><strong>✨ Succès.</strong> Nous vous recontactons sous 24h.</div>';
+                        messageDiv.innerHTML = '<div class="play-alert-success"><strong>Succès.</strong> Nous vous recontactons sous 24h.</div>';
                         messageDiv.style.display = 'block';
                         leadForm.reset();
                     } else {
-                        messageDiv.innerHTML = '<div class="alert-danger">' + (data.message || 'Erreur.') + '</div>';
+                        messageDiv.innerHTML = '<div class="play-alert-danger">' + (data.message || 'Erreur.') + '</div>';
                         messageDiv.style.display = 'block';
                     }
-                } catch (error) {
-                    messageDiv.innerHTML = '<div class="alert-danger">Erreur réseau.</div>';
+                } catch (err) {
+                    messageDiv.innerHTML = '<div class="play-alert-danger">Erreur réseau.</div>';
                     messageDiv.style.display = 'block';
                 } finally {
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Démarrer le diagnostic';
+                    submitBtn.textContent = 'Demander une démo';
                 }
             });
-        }
+            document.querySelectorAll('a.ud-menu-scroll[href^="#"]').forEach(function(a) {
+                a.addEventListener('click', function(e) {
+                    var href = this.getAttribute('href');
+                    if (href && href.length > 1) {
+                        var el = document.querySelector(href);
+                        if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+                    }
+                });
+            });
+        })();
     </script>
-{% endblock %}
 {% endblock %}

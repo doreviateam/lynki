@@ -1,0 +1,190 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ page_description }}{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .form-message {
+        display: none;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .form-message.alert-success {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #10b981;
+        display: block;
+    }
+    .form-message.alert-danger {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #dc2626;
+        display: block;
+    }
+    .modern-input:focus {
+        outline: none !important;
+        border-color: var(--primary-color) !important;
+        background: white !important;
+        box-shadow: 0 0 0 4px rgba(48, 86, 211, 0.1) !important;
+        transform: translateY(-2px);
+    }
+    .modern-input:hover {
+        border-color: #cbd5e1 !important;
+        background: white !important;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+    <!-- ====== Contact/Form Start ====== -->
+    <section class="ud-contact" style="background: linear-gradient(180deg, #f8fafc 0%, #ffffff 50%); position: relative; overflow: hidden; padding: 120px 0;">
+        {# Éléments décoratifs de fond #}
+        <div style="position: absolute; top: -100px; right: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(48, 86, 211, 0.1) 0%, transparent 70%); border-radius: 50%; z-index: 0;"></div>
+        <div style="position: absolute; bottom: -150px; left: -150px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%); border-radius: 50%; z-index: 0;"></div>
+        
+        <div class="container" style="position: relative; z-index: 1;">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-section-title mx-auto text-center">
+                        <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1.5rem; color: #1e293b;">
+                            Un besoin, une question,<br>
+                            une discussion ?
+                        </h2>
+                        <p style="font-size: 1.2rem; color: #64748b; max-width: 600px; margin: 0 auto;">
+                            Écris-moi simplement.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 3rem;">
+                <div class="col-lg-8 col-xl-7 mx-auto">
+                    <div class="ud-contact-form-wrapper wow fadeInUp" data-wow-delay=".2s" style="box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05); border-radius: 24px; background: white; padding: 3rem;">
+                        <div class="form-message" id="form-message"></div>
+                        
+                        {{ form_start(form, {'attr': {'id': 'lead-form', 'action': path('lead_submit'), 'class': 'ud-contact-form'}}) }}
+                            
+                            {# Email (obligatoire) #}
+                            <div class="ud-form-group" style="margin-bottom: 2rem;">
+                                <label for="{{ form.email.vars.id }}" style="display: block; font-weight: 600; font-size: 14px; color: #1e293b; margin-bottom: 0.75rem;">
+                                    {{ form_label(form.email) }} <span style="color: #dc2626;">*</span>
+                                </label>
+                                <div style="position: relative;">
+                                    <div style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 18px; z-index: 1;">✉️</div>
+                                    {{ form_widget(form.email, {'attr': {'class': 'ud-form-control modern-input', 'style': 'padding: 16px 16px 16px 50px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f8fafc; width: 100%;'}}) }}
+                                </div>
+                                {{ form_errors(form.email) }}
+                            </div>
+
+                            {# Message (obligatoire) #}
+                            <div class="ud-form-group" style="margin-bottom: 2rem;">
+                                <label for="{{ form.message.vars.id }}" style="display: block; font-weight: 600; font-size: 14px; color: #1e293b; margin-bottom: 0.75rem;">
+                                    {{ form_label(form.message) }} <span style="color: #dc2626;">*</span>
+                                </label>
+                                {{ form_widget(form.message, {'attr': {'class': 'ud-form-control modern-input', 'style': 'padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f8fafc; width: 100%; resize: vertical; min-height: 120px;'}}) }}
+                                {{ form_errors(form.message) }}
+                            </div>
+
+                            {# Entreprise (optionnel) #}
+                            <div class="ud-form-group" style="margin-bottom: 2rem;">
+                                <label for="{{ form.companyName.vars.id }}" style="display: block; font-weight: 600; font-size: 14px; color: #1e293b; margin-bottom: 0.75rem;">
+                                    {{ form_label(form.companyName) }} <span style="color: #94a3b8; font-weight: normal; font-size: 12px;">(optionnel)</span>
+                                </label>
+                                {{ form_widget(form.companyName, {'attr': {'class': 'ud-form-control modern-input', 'style': 'padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f8fafc; width: 100%;'}}) }}
+                                {{ form_errors(form.companyName) }}
+                            </div>
+
+                            {# Champs cachés (honeypot, role optionnel) #}
+                            {{ form_widget(form.website) }}
+                            {{ form_widget(form.role) }}
+
+                            {# Bouton Envoyer #}
+                            <div class="ud-form-group" style="margin-top: 2.5rem;">
+                                <button type="submit" 
+                                        class="ud-main-btn" 
+                                        id="submit-button"
+                                        aria-label="Envoyer le formulaire de contact"
+                                        style="width: 100%; padding: 18px; background: linear-gradient(135deg, #3056d3 0%, #179bee 100%); border: none; border-radius: 16px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(48, 86, 211, 0.3);" 
+                                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 40px rgba(48, 86, 211, 0.4)';" 
+                                        onmouseout="this.style.transform=''; this.style.boxShadow='0 10px 30px rgba(48, 86, 211, 0.3)';">
+                                    <span style="position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 10px;">
+                                        <span>Envoyer</span>
+                                    </span>
+                                </button>
+                            </div>
+
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ====== Contact/Form End ====== -->
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    // Gestion du formulaire en AJAX
+    document.getElementById('lead-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const form = e.target;
+        const submitButton = document.getElementById('submit-button');
+        const messageDiv = document.getElementById('form-message');
+        const formData = new FormData(form);
+        
+        // Récupérer les paramètres UTM depuis l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        ['utm_source', 'utm_campaign', 'utm_medium', 'utm_content'].forEach(param => {
+            if (urlParams.has(param)) {
+                formData.append(param, urlParams.get(param));
+            }
+        });
+        
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span style="position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 10px;"><span style="display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;"></span><span>Envoi en cours...</span></span>';
+        messageDiv.style.display = 'none';
+        
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                // Tracking analytics
+                if (typeof trackEvent === 'function') {
+                    trackEvent('Lead', 'form_submit', 'contact_page', 1);
+                }
+                
+                messageDiv.innerHTML = '<div style="display: flex; align-items: center; gap: 12px;"><span style="font-size: 24px;">✨</span><span><strong>Merci !</strong> Je te réponds rapidement ✨</span></div>';
+                messageDiv.className = 'alert alert-success';
+                messageDiv.style.display = 'block';
+                form.reset();
+            } else {
+                let errorMsg = data.message || 'Une erreur est survenue. Veuillez réessayer.';
+                if (data.errors && data.errors.length > 0) {
+                    errorMsg += ' ' + data.errors.join(', ');
+                }
+                messageDiv.textContent = errorMsg;
+                messageDiv.className = 'alert alert-danger';
+                messageDiv.style.display = 'block';
+            }
+        } catch (error) {
+            messageDiv.textContent = 'Une erreur est survenue. Veuillez réessayer plus tard.';
+            messageDiv.className = 'alert alert-danger';
+            messageDiv.style.display = 'block';
+        } finally {
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<span style="position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 10px;"><span>Envoyer</span></span>';
+            messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    });
+</script>
+{% endblock %}

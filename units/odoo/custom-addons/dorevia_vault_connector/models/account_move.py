@@ -355,6 +355,7 @@ class AccountMove(models.Model):
                 'move_type': self.move_type,
                 'partner_id': self.partner_id.id,
                 'partner_name': self.partner_id.name,
+                'company_id': self.company_id.id if self.company_id else None,
                 'amount_total': float(self.amount_total),
                 'amount_untaxed': float(self.amount_untaxed),
                 'amount_tax': float(self.amount_tax),

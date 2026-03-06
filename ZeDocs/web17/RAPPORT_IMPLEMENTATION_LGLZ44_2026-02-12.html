@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Rapport d'implémentation — Instance Odoo 18 lglz44</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    h1 { border-bottom: 1px solid #ccc; padding-bottom: 0.3em; }
+    h2 { margin-top: 1.5em; color: #333; }
+    table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+    th, td { border: 1px solid #ddd; padding: 0.5em; text-align: left; }
+    th { background: #f5f5f5; }
+    code, pre { background: #f5f5f5; padding: 0.2em 0.4em; border-radius: 3px; font-size: 0.9em; }
+    pre { padding: 1em; overflow-x: auto; }
+    img { max-width: 100%; height: auto; border: 1px solid #ddd; }
+    hr { margin: 2em 0; border: none; border-top: 1px solid #eee; }
+    @media print { body { max-width: none; } }
+  </style>
+</head>
+<body>
+
+<h1>Rapport d'implémentation — Instance Odoo 18 lglz44</h1>
+
+<p><strong>Date</strong> : 2026-02-12<br>
+<strong>Tenant</strong> : lglz44<br>
+<strong>URL</strong> : <a href="https://odoo.lab.lglz44.doreviateam.com">https://odoo.lab.lglz44.doreviateam.com</a><br>
+<strong>Référence</strong> : PLAN_INSTANCE_ODOO_18_LGLZ44_2026-02-12.md</p>
+
+<hr>
+
+<h2>1. Contexte</h2>
+<p>Mise en place d'une nouvelle instance Odoo 18 pour le tenant <strong>lglz44</strong>, sans branchement Dorevia Vault (prévu ultérieurement).</p>
+
+<hr>
+
+<h2>2. Réalisations</h2>
+
+<h3>2.1 Fichiers créés</h3>
+<table>
+  <tr><th>Fichier</th><th>Description</th></tr>
+  <tr><td><code>tenants/lglz44/state/manifest.json</code></td><td>Manifest tenant (universes: odoo, environments: lab, units.platform: [])</td></tr>
+  <tr><td><code>tenants/lglz44/apps/odoo/lab/odoo.conf</code></td><td>Configuration Odoo (db, addons, proxy_mode, sans queue_job)</td></tr>
+  <tr><td><code>tenants/lglz44/apps/odoo/lab/docker-compose.yml</code></td><td>Compose Odoo + PostgreSQL (copié depuis rendered)</td></tr>
+</table>
+
+<h3>2.2 Artefacts générés (render)</h3>
+<ul>
+  <li><code>tenants/lglz44/rendered/lab/odoo/docker-compose.yml</code></li>
+  <li><code>tenants/lglz44/rendered/lab/caddy/Caddyfile</code></li>
+  <li>Platform non généré (units.platform vide — comportement attendu)</li>
+</ul>
+
+<h3>2.3 Déploiement</h3>
+<table>
+  <tr><th>Composant</th><th>Statut</th></tr>
+  <tr><td>PostgreSQL</td><td><code>odoo_db_lab_lglz44</code> — démarré</td></tr>
+  <tr><td>Odoo 18</td><td><code>odoo_lab_lglz44</code> — démarré</td></tr>
+  <tr><td>Volumes</td><td><code>odoo_lab_lglz44_db</code>, <code>odoo_lab_lglz44_data</code> — créés</td></tr>
+  <tr><td>Réseau</td><td>Attaché à <code>dorevia-network</code></td></tr>
+</table>
+
+<h3>2.4 Gateway</h3>
+<ul>
+  <li>Caddyfile agrégé (7 Caddyfiles collectés, dont lglz44)</li>
+  <li>Bloc ajouté : <code>odoo.lab.lglz44.doreviateam.com</code> → <code>odoo_lab_lglz44:8069</code></li>
+  <li>Caddy rechargé avec succès</li>
+</ul>
+
+<hr>
+
+<h2>3. Méthode utilisée</h2>
+<p>L'étape <strong>apply</strong> du script dorevia.sh n'a pas été utilisée car le tenant a <code>units.platform: []</code> et le script attend un fichier <code>rendered/platform/docker-compose.yml</code>. Le déploiement a été effectué manuellement :</p>
+<ol>
+  <li>Copie du docker-compose rendu vers <code>apps/odoo/lab/</code></li>
+  <li><code>docker compose -p dorevia_odoo_lab_lglz44 up -d</code></li>
+  <li><code>dorevia.sh gateway aggregate</code></li>
+  <li><code>docker compose -f units/gateway/docker-compose.yml exec caddy caddy reload --config /etc/caddy/Caddyfile</code></li>
+</ol>
+
+<hr>
+
+<h2>4. Points d'attention</h2>
+<ul>
+  <li><strong>Volume <code>oca_extra_addons</code></strong> : Avertissement Docker (volume partagé avec dorevia_odoo_lab_core). Comportement normal pour les addons OCA.</li>
+  <li><strong>Test HTTPS</strong> : À valider manuellement depuis le serveur ou une machine avec accès au DNS :<br>
+    <pre>curl -I https://odoo.lab.lglz44.doreviateam.com</pre></li>
+</ul>
+
+<hr>
+
+<h2>5. Validation — Création de la base Odoo</h2>
+<p>Premier accès à <a href="https://odoo.lab.lglz44.doreviateam.com">https://odoo.lab.lglz44.doreviateam.com</a> : écran de création de base (database name <code>odoo_lab_lglz44</code>).</p>
+<p><img src="odoo_lglz44_creation_base.png" alt="Formulaire création base Odoo lglz44" style="max-width: 600px;"></p>
+
+<hr>
+
+<h2>6. Prochaines étapes possibles</h2>
+<ol>
+  <li><strong>Base créée</strong> : Finaliser la configuration initiale Odoo (modules, société, etc.).</li>
+  <li><strong>Branchement Vault</strong> : Suivre la section 6 du plan lorsque Dorevia Vault sera activé.</li>
+</ol>
+
+<hr>
+
+<h2>7. Checklist post-déploiement</h2>
+<table>
+  <tr><th>Vérification</th><th>Commande</th></tr>
+  <tr><td>Conteneurs up</td><td><code>docker ps | grep odoo_lab_lglz44</code></td></tr>
+  <tr><td>Réseau</td><td><code>docker inspect odoo_lab_lglz44 | grep dorevia-network</code></td></tr>
+  <tr><td>HTTPS</td><td><code>curl -I https://odoo.lab.lglz44.doreviateam.com</code></td></tr>
+</table>
+
+</body>
+</html>

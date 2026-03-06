@@ -827,9 +827,9 @@ main
 **Test recommandé** :
 ```bash
 # Test 1: Latest en prod (doit échouer)
-sed -i 's/odoo:18.0/odoo:latest/' tenants/core/apps/odoo/prod/docker-compose.yml
+sed -i 's/odoo:18.0-20250819/odoo:latest/' tenants/core/apps/odoo/prod/docker-compose.yml
 dorevia.sh app up odoo prod core  # Doit retourner E02
-sed -i 's/odoo:latest/odoo:18.0/' tenants/core/apps/odoo/prod/docker-compose.yml
+sed -i 's/odoo:latest/odoo:18.0-20250819/' tenants/core/apps/odoo/prod/docker-compose.yml
 
 # Test 2: Tag valide (doit passer)
 dorevia.sh app up odoo prod core  # Doit passer

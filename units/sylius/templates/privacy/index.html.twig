@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <meta name="description" content="{{ page_description }}">
+    
+    {# SEO LAB - noindex #}
+    <meta name="robots" content="noindex, nofollow">
+    
+    {# OpenGraph #}
+    <meta property="og:title" content="{{ page_title }}">
+    <meta property="og:description" content="{{ page_description }}">
+    <meta property="og:type" content="website">
+    
+    <style>
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-primary: #2563eb;
+            --color-primary-dark: #1e40af;
+            --color-secondary: #10b981;
+            --color-text: #1f2937;
+            --color-text-light: #6b7280;
+            --color-bg: #ffffff;
+            --color-bg-light: #f9fafb;
+            --color-border: #e5e7eb;
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 2rem;
+            --spacing-lg: 4rem;
+            --spacing-xl: 6rem;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--color-text);
+            background-color: var(--color-bg);
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: var(--spacing-md) var(--spacing-sm);
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                padding: var(--spacing-lg) var(--spacing-md);
+            }
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: var(--spacing-lg) 0;
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        @media (min-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.125rem;
+        }
+
+        /* Typography */
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-top: var(--spacing-lg);
+            margin-bottom: var(--spacing-sm);
+            color: var(--color-text);
+            padding-bottom: var(--spacing-xs);
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: var(--spacing-md);
+            margin-bottom: var(--spacing-xs);
+            color: var(--color-text);
+        }
+
+        p {
+            margin-bottom: var(--spacing-sm);
+            color: var(--color-text-light);
+        }
+
+        ul, ol {
+            margin-bottom: var(--spacing-sm);
+            padding-left: var(--spacing-md);
+            color: var(--color-text-light);
+        }
+
+        li {
+            margin-bottom: var(--spacing-xs);
+        }
+
+        /* Sections */
+        .section {
+            background: white;
+            padding: var(--spacing-md);
+            border-radius: 0.5rem;
+            margin-bottom: var(--spacing-md);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .highlight {
+            background: var(--color-bg-light);
+            padding: var(--spacing-sm);
+            border-left: 4px solid var(--color-primary);
+            border-radius: 0.25rem;
+            margin: var(--spacing-sm) 0;
+        }
+
+        .contact-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: var(--spacing-md);
+            border-radius: 0.5rem;
+            text-align: center;
+            margin: var(--spacing-lg) 0;
+        }
+
+        .contact-box a {
+            color: white;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        .contact-box a:hover {
+            text-decoration: none;
+        }
+
+        /* Navigation */
+        .nav-link {
+            display: inline-block;
+            margin-top: var(--spacing-lg);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .nav-link:hover {
+            background: var(--color-primary-dark);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--color-text);
+            color: white;
+            text-align: center;
+            padding: var(--spacing-md) 0;
+            margin-top: var(--spacing-xl);
+        }
+
+        footer p {
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 767px) {
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            h3 {
+                font-size: 1.125rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>Politique de Confidentialité</h1>
+            <p>Protection des données personnelles — RGPD</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2>1. Responsable du traitement</h2>
+            <p>Le responsable du traitement des données personnelles est :</p>
+            <div class="highlight">
+                <p><strong>Dorevia Team</strong></p>
+                <p>Email : <a href="mailto:privacy@doreviateam.com">privacy@doreviateam.com</a></p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>2. Données collectées</h2>
+            <p>Dans le cadre de votre demande d'accès anticipé à la plateforme Dorevia-Vault, nous collectons les données personnelles suivantes :</p>
+            
+            <h3>Données obligatoires</h3>
+            <ul>
+                <li><strong>Email</strong> : Adresse email professionnelle</li>
+                <li><strong>Rôle</strong> : Fonction dans votre organisation (dirigeant, DAF, comptable, cabinet, retail, intégrateur IT, autre)</li>
+            </ul>
+
+            <h3>Données optionnelles</h3>
+            <ul>
+                <li><strong>Stack technique</strong> : Technologies utilisées (ERP, etc.)</li>
+                <li><strong>Volume de factures</strong> : Estimation du volume mensuel</li>
+                <li><strong>Message</strong> : Message libre que vous souhaitez nous transmettre</li>
+            </ul>
+
+            <h3>Données de tracking automatiques</h3>
+            <ul>
+                <li><strong>Paramètres UTM</strong> : Source, campagne, medium, content (si présents dans l'URL)</li>
+                <li><strong>Referrer</strong> : Site web d'origine (si applicable)</li>
+                <li><strong>IP hash</strong> : Adresse IP anonymisée par hachage cryptographique (SHA-256)</li>
+                <li><strong>User Agent</strong> : Navigateur et système d'exploitation</li>
+                <li><strong>Date et heure</strong> : Horodatage de la demande</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>3. Finalités du traitement</h2>
+            <p>Vos données personnelles sont collectées et traitées pour les finalités suivantes :</p>
+            <ul>
+                <li><strong>Qualification commerciale</strong> : Évaluation de votre profil et de vos besoins</li>
+                <li><strong>Contact commercial</strong> : Prise de contact pour présenter la plateforme Dorevia-Vault</li>
+                <li><strong>Gestion CRM</strong> : Enregistrement dans notre système de gestion de la relation client (Odoo CRM)</li>
+                <li><strong>Analyse marketing</strong> : Analyse de l'efficacité des campagnes marketing via les paramètres UTM</li>
+                <li><strong>Amélioration du service</strong> : Analyse statistique anonymisée pour améliorer notre offre</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>4. Base légale</h2>
+            <p>Le traitement de vos données personnelles est fondé sur :</p>
+            <div class="highlight">
+                <p><strong>Intérêt légitime</strong> : Développement commercial et marketing de la plateforme Dorevia-Vault.</p>
+                <p>Nous estimons que notre intérêt légitime à développer notre activité commerciale est compatible avec vos droits et libertés, notamment car :</p>
+                <ul>
+                    <li>Les données collectées sont limitées au strict nécessaire</li>
+                    <li>Vous pouvez vous opposer à tout moment au traitement</li>
+                    <li>Les données sont conservées de manière sécurisée et pour une durée limitée</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>5. Conservation des données</h2>
+            <p>Vos données personnelles sont conservées pour une durée maximale de <strong>24 mois</strong> à compter de la date de collecte.</p>
+            <p>Au-delà de cette période :</p>
+            <ul>
+                <li>Les données sont automatiquement supprimées par un processus automatisé (CRON)</li>
+                <li>Aucune donnée personnelle n'est conservée au-delà de cette durée</li>
+            </ul>
+            <div class="highlight">
+                <p><strong>Exception</strong> : Si vous devenez client de Dorevia-Vault, vos données peuvent être conservées dans le cadre de la relation contractuelle, conformément à la politique de confidentialité applicable aux clients.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>6. Vos droits</h2>
+            <p>Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez des droits suivants :</p>
+            
+            <h3>Droit d'accès</h3>
+            <p>Vous avez le droit d'obtenir la confirmation que vos données personnelles sont traitées et d'accéder à ces données.</p>
+
+            <h3>Droit de rectification</h3>
+            <p>Vous avez le droit de demander la rectification de vos données personnelles inexactes ou incomplètes.</p>
+
+            <h3>Droit à l'effacement</h3>
+            <p>Vous avez le droit de demander l'effacement de vos données personnelles dans certains cas (données non nécessaires, retrait du consentement, etc.).</p>
+
+            <h3>Droit à la limitation du traitement</h3>
+            <p>Vous avez le droit de demander la limitation du traitement de vos données personnelles dans certains cas.</p>
+
+            <h3>Droit à la portabilité</h3>
+            <p>Vous avez le droit de recevoir vos données personnelles dans un format structuré et couramment utilisé.</p>
+
+            <h3>Droit d'opposition</h3>
+            <p>Vous avez le droit de vous opposer au traitement de vos données personnelles fondé sur l'intérêt légitime.</p>
+        </div>
+
+        <div class="section">
+            <h2>7. Exercer vos droits</h2>
+            <p>Pour exercer l'un de vos droits, vous pouvez nous contacter :</p>
+            <div class="contact-box">
+                <p><strong>Email :</strong> <a href="mailto:privacy@doreviateam.com">privacy@doreviateam.com</a></p>
+                <p>Nous nous engageons à répondre à votre demande dans un délai d'un mois maximum.</p>
+            </div>
+            <p>Pour faciliter le traitement de votre demande, merci de préciser :</p>
+            <ul>
+                <li>Le droit que vous souhaitez exercer</li>
+                <li>Votre identité (nom, prénom, email utilisé lors de la demande)</li>
+                <li>Le cas échéant, une copie d'une pièce d'identité</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>8. Sous-traitants</h2>
+            <p>Vos données personnelles peuvent être transmises aux sous-traitants suivants :</p>
+            
+            <h3>Hébergeur</h3>
+            <ul>
+                <li><strong>Rôle</strong> : Hébergement de l'infrastructure technique</li>
+                <li><strong>Données concernées</strong> : Toutes les données collectées</li>
+                <li><strong>Garanties</strong> : Contrat de sous-traitance avec clauses RGPD</li>
+            </ul>
+
+            <h3>Odoo CRM</h3>
+            <ul>
+                <li><strong>Rôle</strong> : Gestion de la relation client (CRM)</li>
+                <li><strong>Données concernées</strong> : Email, rôle, stack, volume, message, paramètres UTM</li>
+                <li><strong>Garanties</strong> : Conformité RGPD, hébergement sécurisé</li>
+            </ul>
+
+            <p>Tous nos sous-traitants sont soumis à des obligations strictes de confidentialité et de sécurité des données.</p>
+        </div>
+
+        <div class="section">
+            <h2>9. Sécurité des données</h2>
+            <p>Nous mettons en œuvre des mesures techniques et organisationnelles appropriées pour protéger vos données personnelles :</p>
+            <ul>
+                <li>Chiffrement des données en transit (HTTPS)</li>
+                <li>Anonymisation des adresses IP par hachage cryptographique</li>
+                <li>Accès restreint aux données (principe du moindre privilège)</li>
+                <li>Sauvegardes régulières et sécurisées</li>
+                <li>Surveillance et détection des incidents de sécurité</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>10. Transferts hors UE</h2>
+            <p>Vos données personnelles sont traitées et stockées au sein de l'Union Européenne.</p>
+            <p>En cas de transfert vers un pays tiers, nous nous assurons que des garanties appropriées sont en place (clauses contractuelles types, Privacy Shield, etc.).</p>
+        </div>
+
+        <div class="section">
+            <h2>11. Réclamations</h2>
+            <p>Si vous estimez que le traitement de vos données personnelles constitue une violation du RGPD, vous avez le droit d'introduire une réclamation auprès de l'autorité de contrôle compétente :</p>
+            <div class="highlight">
+                <p><strong>CNIL (Commission Nationale de l'Informatique et des Libertés)</strong></p>
+                <p>3 Place de Fontenoy - TSA 80715<br>
+                75334 PARIS CEDEX 07<br>
+                Téléphone : 01 53 73 22 22<br>
+                Site web : <a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a></p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>12. Modifications</h2>
+            <p>Cette politique de confidentialité peut être modifiée à tout moment. La date de dernière mise à jour est indiquée ci-dessous.</p>
+            <p><strong>Dernière mise à jour :</strong> {{ "now"|date("d/m/Y") }}</p>
+        </div>
+
+        <a href="{{ path('home') }}" class="nav-link">← Retour à l'accueil</a>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; {{ "now"|date("Y") }} Dorevia-Vault. Tous droits réservés.</p>
+            <p>La preuve commence quand l'humain valide</p>
+        </div>
+    </footer>
+</body>
+</html>

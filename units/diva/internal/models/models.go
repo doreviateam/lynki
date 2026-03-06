@@ -10,34 +10,44 @@ type ExplainRequest struct {
 }
 
 type Context struct {
-	Tenant    string `json:"tenant"`
-	CompanyID int    `json:"company_id"`
-	DateStart string `json:"date_start"`
-	DateEnd   string `json:"date_end"`
-	Timezone  string `json:"timezone"`
-	Currency  string `json:"currency"`
-	Locale    string `json:"locale"`
+	Tenant      string `json:"tenant"`
+	CompanyID   int    `json:"company_id"`
+	DateStart   string `json:"date_start"`
+	DateEnd     string `json:"date_end"`
+	Timezone    string `json:"timezone"`
+	Currency    string `json:"currency"`
+	Locale      string `json:"locale"`
+	PartnerName string `json:"partner_name,omitempty"` // Filtre client/partenaire (optionnel)
 }
 
 type Dashboard struct {
-	Cards   []Card                 `json:"cards"`
-	Details map[string]interface{} `json:"_details,omitempty"`
+	Cards            []Card                 `json:"cards"`
+	Details          map[string]interface{} `json:"_details,omitempty"`
+	DataCompleteness *DataCompleteness     `json:"data_completeness,omitempty"` // DIVA Cockpit v1.1 — complete = disponibles, pas qualité
+}
+
+// DataCompleteness — complétude des données pour le prompt (axe discipline)
+type DataCompleteness struct {
+	BankHealthMetrics string `json:"bank_health_metrics"` // "absent" | "partial" | "complete"
 }
 
 type Card struct {
-	Key       string   `json:"key"`
-	Label     string   `json:"label"`
-	Value     *float64 `json:"value"`
-	Formatted string   `json:"formatted,omitempty"`
-	Unit      string   `json:"unit"`
+	Key          string   `json:"key"`
+	Label        string   `json:"label"`
+	Value        *float64 `json:"value"`
+	Formatted    string   `json:"formatted,omitempty"`
+	Unit         string   `json:"unit"`
+	Status       string   `json:"status,omitempty"`
+	StatusReason string   `json:"status_reason,omitempty"`
 }
 
 type Options struct {
-	Mode             string                 `json:"mode"`
-	ForceRefresh     bool                   `json:"force_refresh"`
-	FocusCard        string                 `json:"focus_card,omitempty"`        // Clé de la carte à cibler
-	FocusCardDetails    map[string]interface{} `json:"focus_card_details,omitempty"`
-	GeneratedFromRunner bool                   `json:"generated_from_runner,omitempty"`
+	Mode                 string                 `json:"mode"`
+	OutputMode           string                 `json:"output_mode,omitempty"`   // short | professional | deep (défaut: short)
+	ForceRefresh         bool                   `json:"force_refresh"`
+	FocusCard            string                 `json:"focus_card,omitempty"`   // Clé de la carte à cibler
+	FocusCardDetails     map[string]interface{} `json:"focus_card_details,omitempty"`
+	GeneratedFromRunner  bool                   `json:"generated_from_runner,omitempty"`
 }
 
 // ExplainResponse — 200 body

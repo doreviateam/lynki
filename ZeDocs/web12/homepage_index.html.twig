@@ -1,0 +1,276 @@
+{% extends 'layout_propale.html.twig' %}
+
+{% block title %}Dorevia-Vault — Chiffres prouvables pour piloter la trésorerie.{% endblock %}
+{% block meta_description %}Dorevia-Vault sécurise vos événements financiers à la source. Des preuves fiables, vérifiables et juridiquement opposables.{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+{% endblock %}
+
+{% block body %}
+    <!-- HERO (style SaaS) -->
+    <section class="propale-hero">
+        <div class="propale-container propale-hero-grid">
+            <div class="propale-hero-text">
+                <p class="propale-hero-badge">Preuve financière native • NF525 & LNE 2026</p>
+                <h1>Des chiffres qui ne peuvent pas être contredits.</h1>
+                <p class="propale-hero-sub">
+                    Chaque événement validé dans votre ERP est scellé à la source. Preuve immuable, vérifiable, sans intervention humaine.
+                </p>
+                <div class="propale-cta-row">
+                    <a class="btn primary propale-cta-primary" href="#contact-section">Demander une démo</a>
+                    <a class="btn propale-cta-secondary" href="#fonctionnement">Voir comment ça marche</a>
+                </div>
+                <p class="propale-trust-line">Odoo • Multi-ERP • Hébergement France • Conforme NF525</p>
+            </div>
+            <div class="propale-mock" aria-hidden="true">
+                <div class="propale-mock-inner">
+                    <div class="propale-shot-top">
+                        <span>Dorevia-Vault • Tableau de preuve</span>
+                        <span>✅ Vérifiable</span>
+                    </div>
+                    <div class="propale-shot-body">
+                        <div class="propale-card">
+                            <div class="propale-kpi">325 450 €</div>
+                            <div class="propale-mini">Trésorerie probante (snapshot)</div>
+                            <div class="propale-bar"><i></i></div>
+                            <div class="propale-mini">Dernier scellement : il y a 12 min</div>
+                        </div>
+                        <div class="propale-card">
+                            <div style="font-weight:900">Événements</div>
+                            <div class="propale-mini">Facture.posted • Ticket.closed • Payment.captured</div>
+                            <div class="propale-bar"><i style="width:46%"></i></div>
+                            <div class="propale-mini">Intégrité : 100%</div>
+                        </div>
+                        <div class="propale-card" style="grid-column: 1 / -1">
+                            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+                                <div style="font-weight:900">Preuves scellées</div>
+                                <div class="propale-mini">Export UI/API • Receipts</div>
+                            </div>
+                            <div class="propale-bar"><i style="width:78%"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRUST BAR (style SaaS) -->
+    <section class="propale-trust-bar" aria-hidden="true">
+        <div class="propale-container">
+            <p class="propale-trust-bar-text">Conçu pour NF525 & e-invoicing 2026 • Hébergement France • Compatible Odoo & Multi-ERP</p>
+        </div>
+    </section>
+
+    <!-- POURQUOI (Le problème) -->
+    <section class="propale-section propale-section-probleme" id="probleme">
+        <div class="propale-container">
+            <p class="propale-section-label">Pourquoi Dorevia-Vault</p>
+            <h2 class="propale-h2 propale-section-title">La donnée financière est vulnérable.</h2>
+            <p class="propale-lead propale-section-lead">
+                Tant qu'il n'y a pas de tension, « ça passe ». Mais au premier contrôle, litige ou audit, la question devient : <strong>peut-on prouver ?</strong>
+            </p>
+        </div>
+        <div class="propale-container propale-surface propale-section-inner">
+            <div class="propale-grid3 propale-grid-probleme">
+                <div class="propale-feat propale-feat-probleme">
+                    <span class="propale-feat-icon propale-feat-icon-doc">📄</span>
+                    <b>Chiffres modifiables</b>
+                    <p>Corrections, brouillons, exports, resaisies… la vérité se fragmente.</p>
+                </div>
+                <div class="propale-feat propale-feat-probleme">
+                    <span class="propale-feat-icon propale-feat-icon-doc">📑</span>
+                    <b>Versions contradictoires</b>
+                    <p>ERP vs Excel vs BI vs compta : chacun a « son » chiffre.</p>
+                </div>
+                <div class="propale-feat propale-feat-probleme">
+                    <span class="propale-feat-icon propale-feat-icon-doc">🔍</span>
+                    <b>Preuves reconstruites</b>
+                    <p>Quand ça chauffe, on enquête au lieu de vérifier.</p>
+                </div>
+            </div>
+            <p class="propale-probleme-conclusion">
+                Pour assurer la conformité et prouver les faits, vous avez besoin de <strong>données irréfutables dès la source</strong>.
+            </p>
+        </div>
+    </section>
+
+    <!-- FONCTIONNEMENT -->
+    <section class="propale-section propale-section-alt" id="fonctionnement">
+        <div class="propale-container">
+            <p class="propale-section-label">Produit</p>
+            <h2 class="propale-h2 propale-section-title">Votre ERP fournit la matière première. Nous la transformons en source de vérité.</h2>
+            <p class="propale-lead propale-section-lead">
+                Une couche de sécurité silencieuse qui s'interface avec vos flux existants sans les perturber.
+            </p>
+            <div class="propale-flow" aria-hidden="true">
+                <div class="propale-flow-item"><span class="propale-flow-icon">📦</span><span>ERP</span></div>
+                <div class="propale-flow-arrow" aria-hidden="true"></div>
+                <div class="propale-flow-item propale-flow-dvig"><span class="propale-flow-icon">⚡</span><span>DVIG</span><span class="propale-flow-sublabel">Dorevia-Vault</span></div>
+                <div class="propale-flow-arrow" aria-hidden="true"></div>
+                <div class="propale-flow-item propale-flow-shield"><span class="propale-flow-icon">🛡️</span><span>Preuve</span><span class="propale-flow-sublabel">scellée</span></div>
+            </div>
+        </div>
+        <div class="propale-container propale-surface propale-split propale-section-inner">
+            <div>
+                <div class="propale-grid3 propale-grid-stack">
+                <div class="propale-feat">
+                        <b>Capture à la source</b>
+                        <p>Connexion directe à votre ERP. Aucune intervention humaine possible.</p>
+                    </div>
+                    <div class="propale-feat">
+                        <b>Scellage probant</b>
+                        <p>Horodatage et signature cryptographique immédiate. L'événement devient immuable.</p>
+                    </div>
+                    <div class="propale-feat">
+                        <b>Interface de consultation</b>
+                        <p>Une plateforme en lecture seule dédiée à la vérification.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="propale-section-aside">
+                <div class="propale-feat" style="padding:18px">
+                    <b>La métaphore « compteur Linky »</b>
+                    <p style="margin:10px 0 0;color:var(--muted);line-height:1.6">
+                        Comme Linky mesure l'énergie à la source, Dorevia-Vault mesure et scelle la vérité financière au moment où elle naît.
+                    </p>
+                </div>
+                <div style="height:12px"></div>
+                <div class="propale-feat" style="padding:18px">
+                    <b>Indépendant de l'ERP</b>
+                    <p style="margin:10px 0 0;color:var(--muted);line-height:1.6">
+                        Vous pouvez changer d'outil : la preuve reste, et l'historique demeure vérifiable.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONFORMITÉ -->
+    <section class="propale-section" id="conformite">
+        <div class="propale-container">
+            <p class="propale-section-label">Conformité</p>
+            <h2 class="propale-h2 propale-section-title">Bâtir sur un socle souverain.</h2>
+            <p class="propale-lead propale-section-lead">
+                Sécurité et conformité LNE 2026 / NF525. Chaque événement financier est scellé dès sa validation et ne peut plus être modifié ensuite.
+            </p>
+        </div>
+        <div class="propale-container propale-surface propale-section-inner">
+            <div class="propale-grid3 propale-grid-conformite">
+                <div class="propale-feat propale-feat-center">
+                    <span class="propale-feat-icon">🇫🇷</span>
+                    <b>SOUVERAINETÉ</b>
+                    <p>Hébergement français. Juridiction française exclusive.</p>
+                </div>
+                <div class="propale-feat propale-feat-center">
+                    <span class="propale-feat-icon">🛡️</span>
+                    <b>CONFORMITÉ</b>
+                    <p>Architecture conçue pour les exigences fiscales de 2026.</p>
+                </div>
+                <div class="propale-feat propale-feat-center">
+                    <span class="propale-feat-icon propale-feat-icon-sm">Badge LNE</span>
+                    <p>Infrastructure d'audit indépendante et labellisable.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROUVEZ EN CONTINU (NF525) -->
+    <section class="propale-section propale-section-alt" id="prouvez-continu">
+        <div class="propale-container">
+            <p class="propale-section-label">Bénéfices</p>
+            <h2 class="propale-h2 propale-section-title">Prouvez votre réalité financière en continu (NF525)</h2>
+            <p class="propale-lead propale-section-lead">
+                Pour répondre au contrôle fiscal, aux litiges et aux changements d'outil : des données opposables, scellées et disponibles.
+            </p>
+        </div>
+        <div class="propale-container propale-surface propale-section-inner">
+            <div class="propale-grid3 propale-grid-continu">
+                <div class="propale-feat propale-feat-center">
+                    <span class="propale-feat-icon propale-feat-icon-shield">🛡️</span>
+                    <b>Audit & contrôle</b>
+                    <p>Répondez au contrôle fiscal avec des données opposables, sans reconstruire après coup.</p>
+                </div>
+                <div class="propale-feat propale-feat-center">
+                    <span class="propale-feat-icon propale-feat-icon-shield warn">⚖️</span>
+                    <b>Litige & conformité</b>
+                    <p>Scellement automatique et incontestable des données financières. Preuve immuable.</p>
+                </div>
+                <div class="propale-feat propale-feat-center">
+                    <span class="propale-feat-icon">📁</span>
+                    <b>Changement d'outil comptable</b>
+                    <p>Tout votre historique scellé reste vérifiable, quel que soit l'ERP ou la caisse.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT / DIAGNOSTIC -->
+    <section class="propale-section propale-section-cta" id="contact-section">
+        <div class="propale-container">
+            <p class="propale-section-label">Démarrer</p>
+            <h2 class="propale-h2 propale-section-title">Prêt pour des chiffres incontestables ?</h2>
+            <p class="propale-lead propale-section-lead">
+                Diagnostic de votre contexte technique et réglementaire (15 min). Réponse sous 24h, sans engagement.
+            </p>
+        </div>
+        <div class="propale-container propale-surface propale-split propale-section-inner">
+            <div class="propale-cta-blurb">
+                <div class="propale-pills">
+                    <div class="propale-pill"><span class="propale-dot"></span> Réponse garantie sous 24h</div>
+                    <div class="propale-pill"><span class="propale-dot brand"></span> Sans engagement</div>
+                </div>
+            </div>
+            <div>
+                <div id="form-message" style="display:none; margin-bottom: 20px;"></div>
+                {{ form_start(form, {'attr': {'id': 'lead-form', 'action': path('lead_submit'), 'style': 'display:grid; gap: 20px;'}}) }}
+                    <div class="propale-form-group">
+                        <label class="propale-form-label">Email professionnel</label>
+                        {{ form_widget(form.email, {'attr': {'class': 'propale-form-input', 'placeholder': 'nom@entreprise.fr'}}) }}
+                    </div>
+                    <div class="propale-form-group">
+                        <label class="propale-form-label">Contexte technique (ERP...)</label>
+                        {{ form_widget(form.message, {'attr': {'class': 'propale-form-textarea', 'placeholder': 'Quel ERP utilisez-vous ? Quel est votre volume de facturation ?'}}) }}
+                    </div>
+                    <div style="display:none;">{{ form_rest(form) }}</div>
+                    <button type="submit" class="btn primary" id="submit-button" style="width: 100%; justify-content: center; font-size: 16px; padding: 14px;">Demander une démo</button>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        (function() {
+            var leadForm = document.getElementById('lead-form');
+            if (!leadForm) return;
+            leadForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var submitBtn = document.getElementById('submit-button');
+                var messageDiv = document.getElementById('form-message');
+                var formData = new FormData(this);
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Envoi...';
+                try {
+                    var response = await fetch(this.action, { method: 'POST', body: formData });
+                    var data = await response.json();
+                    if (data.status === 'success') {
+                        messageDiv.innerHTML = '<div class="propale-alert-success"><strong>Succès.</strong> Nous vous recontactons sous 24h.</div>';
+                        messageDiv.style.display = 'block';
+                        leadForm.reset();
+                    } else {
+                        messageDiv.innerHTML = '<div class="propale-alert-danger">' + (data.message || 'Erreur.') + '</div>';
+                        messageDiv.style.display = 'block';
+                    }
+                } catch (err) {
+                    messageDiv.innerHTML = '<div class="propale-alert-danger">Erreur réseau.</div>';
+                    messageDiv.style.display = 'block';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Demander une démo';
+                }
+            });
+        })();
+    </script>
+{% endblock %}

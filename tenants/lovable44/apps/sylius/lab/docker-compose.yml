@@ -1,0 +1,83 @@
+# Docker Compose - Site web Lov'Arbitre (Sylius)
+# Version: 1.1 (Fix Service Collision)
+# Environnement: LAB
+# Tenant: lovable44
+
+services:
+  # PostgreSQL Database
+  postgres-lovable:
+    image: postgres:16
+    container_name: sylius_lab_lovable44_postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-sylius}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-sylius_password}
+      - POSTGRES_DB=${POSTGRES_DB:-sylius_lab_lovable44_db}
+    volumes:
+      - sylius_lab_lovable44_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sylius}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # PHP-FPM (Sylius/Symfony)
+  php-fpm-lovable:
+    build:
+      context: /opt/dorevia-plateform/units/sylius
+      dockerfile: Dockerfile
+    container_name: sylius_lab_lovable44_php-fpm
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - /opt/dorevia-plateform/units/sylius:/var/www/html
+    environment:
+      - APP_ENV=${APP_ENV:-prod}
+      - APP_DEBUG=${APP_DEBUG:-0}
+      - DEPLOY_ENV=${DEPLOY_ENV:-lab}
+      - TENANT_ID=lovable44
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-sylius}:${POSTGRES_PASSWORD:-sylius_password}@postgres-lovable:5432/${POSTGRES_DB:-sylius_lab_lovable44_db}
+    depends_on:
+      postgres-lovable:
+        condition: service_healthy
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Nginx (Reverse Proxy)
+  nginx-lovable:
+    image: nginx:alpine
+    container_name: sylius_lab_lovable44_nginx
+    restart: unless-stopped
+    environment:
+      - PHP_FPM_HOST=php-fpm-lovable
+    volumes:
+      - /opt/dorevia-plateform/units/sylius/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - /opt/dorevia-plateform/units/sylius/public:/var/www/html/public:ro
+      - /opt/dorevia-plateform/units/sylius/templates:/var/www/html/templates:ro
+    depends_on:
+      - php-fpm-lovable
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  sylius_lab_lovable44_postgres_data:
+    name: sylius_lab_lovable44_postgres_data
+
+networks:
+  dorevia-network:
+    external: true

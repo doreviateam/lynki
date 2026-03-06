@@ -1,0 +1,319 @@
+/* ===== Landing Page — Ghost UI Design ===== */
+/* Design moderne avec effets glassmorphism, animations subtiles, skeleton loaders */
+
+/* ===== 1. Glassmorphism Avancé ===== */
+
+.dv-card,
+.dv-proof__visual,
+.dv-transparency {
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    box-shadow: 
+        0 8px 32px 0 rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.dv-card:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 
+        0 12px 40px 0 rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ===== 2. Animations Subtiles au Scroll ===== */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+/* Animation désactivée pour défilement normal */
+/* .dv-section {
+    animation: fadeInUp 0.8s ease-out !important;
+} */
+
+/* Animations désactivées pour défilement normal */
+/* .dv-card {
+    animation: fadeInUp 0.6s ease-out !important;
+    animation-fill-mode: both !important;
+} */
+
+/* ===== 3. Skeleton Loaders (Ghost Content) ===== */
+
+.ghost-skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.05) 100%
+    ) !important;
+    background-size: 2000px 100% !important;
+    animation: shimmer 2s infinite linear !important;
+    border-radius: 8px !important;
+}
+
+.ghost-skeleton-text {
+    height: 16px !important;
+    margin-bottom: 12px !important;
+    border-radius: 4px !important;
+}
+
+.ghost-skeleton-text:last-child {
+    width: 80% !important;
+}
+
+.ghost-skeleton-title {
+    height: 24px !important;
+    width: 60% !important;
+    margin-bottom: 20px !important;
+    border-radius: 6px !important;
+}
+
+.ghost-skeleton-card {
+    min-height: 200px !important;
+    border-radius: 24px !important;
+}
+
+/* ===== 4. Effets de Hover Subtils ===== */
+
+.dv-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.dv-card::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    ) !important;
+    transition: left 0.5s ease !important;
+}
+
+.dv-card:hover::before {
+    left: 100% !important;
+}
+
+/* ===== 5. Bordures Luminieuses Subtiles ===== */
+
+.dv-card {
+    position: relative !important;
+}
+
+.dv-card::after {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    border-radius: 24px !important;
+    padding: 1px !important;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.2),
+        rgba(255, 255, 255, 0.05),
+        rgba(255, 255, 255, 0.2)
+    ) !important;
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0) !important;
+    -webkit-mask-composite: xor !important;
+    mask-composite: exclude !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease !important;
+}
+
+.dv-card:hover::after {
+    opacity: 1 !important;
+}
+
+/* ===== 6. Particules Flottantes Subtiles ===== */
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+    }
+}
+
+.ghost-particle {
+    position: absolute !important;
+    width: 4px !important;
+    height: 4px !important;
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-radius: 50% !important;
+    animation: float 6s ease-in-out infinite !important;
+    pointer-events: none !important;
+}
+
+/* ===== 7. Texte avec Effet Glow Subtil ===== */
+
+.dv-section h2,
+.ud-section-title-heading {
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.1) !important;
+    position: relative !important;
+}
+
+/* ===== 8. Boutons avec Effet Ghost ===== */
+
+.ud-main-btn,
+.dv-btn {
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.ud-main-btn::before,
+.dv-btn::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 0 !important;
+    height: 0 !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translate(-50%, -50%) !important;
+    transition: width 0.6s ease, height 0.6s ease !important;
+}
+
+.ud-main-btn:hover::before,
+.dv-btn:hover::before {
+    width: 300px !important;
+    height: 300px !important;
+}
+
+.ud-main-btn span,
+.dv-btn span {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* ===== 9. Section avec Gradient Overlay Subtil ===== */
+
+.dv-section {
+    position: relative !important;
+}
+
+.dv-section::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: radial-gradient(
+        circle at 30% 20%,
+        rgba(59, 130, 246, 0.05) 0%,
+        transparent 50%
+    ) !important;
+    pointer-events: none !important;
+    z-index: 0 !important;
+}
+
+.dv-section > .container {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* ===== 10. Icônes avec Effet Pulse ===== */
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+.dv-explications .dv-card > div:first-child {
+    animation: pulse 3s ease-in-out infinite !important;
+}
+
+/* ===== 11. Liste avec Effet Stagger ===== */
+
+.dv-proof .dv-card ul li {
+    opacity: 0 !important;
+    animation: fadeInUp 0.5s ease-out forwards !important;
+}
+
+.dv-proof .dv-card ul li:nth-child(1) {
+    animation-delay: 0.1s !important;
+}
+
+.dv-proof .dv-card ul li:nth-child(2) {
+    animation-delay: 0.2s !important;
+}
+
+.dv-proof .dv-card ul li:nth-child(3) {
+    animation-delay: 0.3s !important;
+}
+
+.dv-proof .dv-card ul li:nth-child(4) {
+    animation-delay: 0.4s !important;
+}
+
+/* ===== 12. Responsive Ghost UI ===== */
+
+@media (max-width: 991.98px) {
+    .dv-card {
+        backdrop-filter: blur(15px) saturate(150%) !important;
+        -webkit-backdrop-filter: blur(15px) saturate(150%) !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .dv-card {
+        backdrop-filter: blur(10px) saturate(120%) !important;
+        -webkit-backdrop-filter: blur(10px) saturate(120%) !important;
+    }
+    
+    .ghost-particle {
+        display: none !important;
+    }
+}
+
+/* ===== 13. Reduced Motion ===== */
+
+@media (prefers-reduced-motion: reduce) {
+    .dv-card,
+    .dv-section,
+    .dv-proof .dv-card ul li,
+    .dv-explications .dv-card > div:first-child {
+        animation: none !important;
+    }
+    
+    .ghost-skeleton {
+        animation: none !important;
+    }
+}
+
+/* ===== Fin du fichier ===== */

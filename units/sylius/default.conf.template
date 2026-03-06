@@ -1,0 +1,63 @@
+# Nginx Snippet - Included in http block via /etc/nginx/conf.d/
+# Version: 1.3
+
+upstream php-fpm {
+    server ${PHP_FPM_HOST}:9000;
+}
+
+server {
+    listen 80 default_server;
+    server_name _;
+    root /var/www/html/public;
+    index index.php;
+
+    # Security: Deny access to hidden files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Serve static files directly
+    location ~* \.(jpg|jpeg|gif|png|css|js|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+        try_files $uri =404;
+    }
+
+    # Health check endpoint
+    location = /healthz {
+        fastcgi_pass php-fpm;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root/index.php;
+        fastcgi_param REQUEST_URI /healthz;
+    }
+
+    # Main location
+    location / {
+        try_files $uri $uri/ /index.php$is_args$args;
+    }
+
+    # PHP-FPM handler
+    location ~ ^/index\.php(/|$) {
+        fastcgi_pass php-fpm;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        internal;
+    }
+
+    # Deny access to other PHP files
+    location ~ \.php$ {
+        return 404;
+    }
+
+    # Deny access to sensitive directories
+    location ~ ^/(var|vendor|config|src|tests)/ {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+}

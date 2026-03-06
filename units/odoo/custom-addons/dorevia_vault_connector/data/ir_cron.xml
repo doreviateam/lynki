@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
     <!-- CRON #1 — Envoi DVIG asynchrone (SPEC v1.1) -->
-    <!-- NOTE: Intervalle réduit à 1 minute pour accélérer les tests -->
+    <!-- Intervalle 1 min : fallback si queue_job indisponible (Odoo min = 1 min) -->
     <record id="ir_cron_vault_send_dvig" model="ir.cron">
         <field name="name">Vault Send DVIG (SPEC v1.1)</field>
         <field name="model_id" ref="account.model_account_move"/>
@@ -14,7 +14,7 @@
     </record>
     
     <!-- CRON #2 — Récupération preuve (SPEC v1.1) -->
-    <!-- NOTE: Intervalle réduit à 1 minute pour accélérer les tests -->
+    <!-- Intervalle 1 min : fallback si queue_job indisponible -->
     <record id="ir_cron_vault_fetch_proof" model="ir.cron">
         <field name="name">Vault Fetch Proof (SPEC v1.1)</field>
         <field name="model_id" ref="account.model_account_move"/>
@@ -68,7 +68,44 @@
         <field name="model_id" ref="account.model_account_payment"/>
         <field name="state">code</field>
         <field name="code">model.cron_vault_send_payments()</field>
-        <field name="interval_number">5</field>
+        <field name="interval_number">2</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+    </record>
+
+    <!-- CRON Paiements — Récupération preuve (fallback si queue_job absent ou en retard) -->
+    <record id="ir_cron_vault_fetch_proof_payments" model="ir.cron">
+        <field name="name">Vault Fetch Proof Payments</field>
+        <field name="model_id" ref="account.model_account_payment"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_vault_fetch_proof_payments()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+    </record>
+
+    <!-- CRON Backfill Confirmation Bancaire v1.3 — Rattrapage lignes rapprochées (impacted_documents) -->
+    <record id="ir_cron_reconcil_backfill_confirmation" model="ir.cron">
+        <field name="name">Reconcil Backfill Confirmation (v1.3)</field>
+        <field name="model_id" ref="account.model_account_bank_statement_line"/>
+        <field name="state">code</field>
+        <field name="code">model.backfill_reconciliation_confirmation_events(batch_size=100)</field>
+        <field name="interval_number">6</field>
+        <field name="interval_type">hours</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+    </record>
+
+    <!-- CRON Expected Counts — Alimentation expected_count vers DVIG (SPEC Complétude v1.1 Phase DVIG) -->
+    <!-- Fréquence 2 min : après cycle vaulting, pour cohérence sealed_count / expected_count -->
+    <record id="ir_cron_expected_counts_push" model="ir.cron">
+        <field name="name">Expected Counts Push (Phase DVIG)</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">model.env["dorevia.dvig.service"].push_expected_counts(periods_months=2)</field>
+        <field name="interval_number">2</field>
         <field name="interval_type">minutes</field>
         <field name="active">True</field>
         <field name="user_id" ref="base.user_root"/>

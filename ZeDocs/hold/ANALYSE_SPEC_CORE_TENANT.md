@@ -956,7 +956,7 @@ vault.core.doreviateam.com {
          - dorevia-network
    
      odoo:
-       image: odoo:18.0  # ⚠️ SPEC : Version taggée, pas latest
+       image: odoo:18.0-20250819  # ⚠️ SPEC : Version taggée, pas latest
        container_name: odoo-prod
        depends_on:
          - db

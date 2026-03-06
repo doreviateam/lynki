@@ -1,0 +1,92 @@
+/* ===== Fix Espacement — Sections qui se suivent normalement ===== */
+
+/* Forcer fond sombre sur body et html pour éviter barre blanche */
+html,
+body {
+    background: linear-gradient(180deg, #1e40af 0%, #2f57d7 100%) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Réduire l'espace entre Hero et première section */
+.ud-hero {
+    padding-bottom: 40px !important;
+    margin-bottom: 0 !important;
+    min-height: auto !important; /* Permettre au hero de s'adapter au contenu */
+}
+
+@media (min-width: 992px) {
+    .ud-hero {
+        min-height: auto !important; /* Pas de hauteur fixe qui crée un espace */
+        height: auto !important;
+        padding-bottom: 60px !important;
+    }
+}
+
+/* Première section après Hero : padding-top réduit */
+.dv-position {
+    padding-top: 40px !important;
+    margin-top: 0 !important;
+}
+
+@media (min-width: 992px) {
+    .dv-position {
+        padding-top: 60px !important;
+    }
+}
+
+/* Espacement normal entre toutes les sections */
+.dv-section {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+@media (min-width: 992px) {
+    .dv-section {
+        padding-top: 60px !important;
+        padding-bottom: 60px !important;
+    }
+}
+
+/* Supprimer les marges supplémentaires entre sections */
+.dv-section + .dv-section,
+.ud-hero + .dv-section {
+    margin-top: 0 !important;
+    padding-top: 40px !important;
+}
+
+@media (min-width: 992px) {
+    .ud-hero + .dv-section {
+        padding-top: 60px !important;
+    }
+}
+
+/* Container et row sans fond blanc */
+.container,
+.row {
+    background: transparent !important;
+}
+
+/* Supprimer toute bordure ou séparateur blanc */
+hr,
+.separator,
+.divider,
+[class*="separator"],
+[class*="divider"] {
+    display: none !important;
+    border: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Supprimer les bordures blanches sur les sections */
+section,
+.ud-section,
+.dv-section {
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+}

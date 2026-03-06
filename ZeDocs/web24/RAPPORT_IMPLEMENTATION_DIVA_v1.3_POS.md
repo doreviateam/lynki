@@ -400,7 +400,251 @@ Vérifié en prod : 5 générations loguées avec `gen=called`, 0 degraded.
 
 ------------------------------------------------------------------------
 
-## 10. PROCHAINES ÉTAPES POSSIBLES
+## 10. LINKY STATUS BADGES v1.0 (2026-02-20)
+
+Implémentation de la spec `SPEC_DOREVIA_Linky_Icon_Status_Badge_v1.0_Detailed.md`
+(traduite et amendée avant implémentation).
+
+### 10.1 Objectif
+
+Transformer le cockpit Linky d'un tableau de bord financier en un
+**tableau de santé structurelle** où chaque carte KPI affiche un verdict
+visuel immédiat via un encadrement coloré de l'icône.
+
+Le badge est un mécanisme de **gouvernance déterministe** (pas d'IA).
+
+### 10.2 Modèle de statut — Hiérarchie sémantique
+
+| Statut    | Couleur         | Hex       | Signification                          |
+|-----------|-----------------|-----------|----------------------------------------|
+| `neutral` | Bleu            | `#60a5fa` | Donnée présente, pas de règle applicable |
+| `ok`      | Vert            | `#22c55e` | Structurellement conforme               |
+| `watch`   | **Orange**      | `#f97316` | Seuil franchi / gouvernance non conforme |
+| `alert`   | **Rouge**       | `#ef4444` | **Réservé** — continuité d'exploitation menacée |
+
+**Principe directeur :**
+- Orange = gouvernance non conforme (tous les dépassements de seuil v1)
+- Rouge = risque systémique (réservé pour trésorerie négative,
+  incohérence comptable, écart POS majeur, ratio remboursement > 10 %)
+
+Aucune règle n'émet `alert` en v1. Le statut est défini dans le type
+mais réservé pour activation ultérieure.
+
+### 10.3 Rendu visuel — Encadrement de l'icône
+
+Au lieu d'une pastille (badge dot), le statut est rendu par un
+**encadrement coloré** du conteneur d'icône (64×64 px) :
+
+- Bordure fine (`1.5px solid`) de la couleur du statut
+- Fond très léger teinté (12 % d'opacité) de la couleur du statut
+- Tooltip natif (`title`) affichant `status_reason` en français au survol
+- Pas d'animation, pas de pulsation
+
+Styles appliqués en **inline** (pas de classes Tailwind dynamiques)
+pour éviter le purging CSS lors du build Docker.
+
+### 10.4 Règles de statut déterministes
+
+Implémentées dans `computeCardStatuses()` côté serveur (API route).
+
+**§4.1 Trésorerie validée** (KPI maître) :
+
+| Condition              | Statut    | Raison                                    |
+|------------------------|-----------|-------------------------------------------|
+| null                   | `neutral` | Donnée non disponible                     |
+| `== 0 %`              | `watch`   | Trésorerie non validée (0 %)              |
+| `< 50 %`              | `watch`   | Trésorerie faiblement validée ({v} %)     |
+| `< 80 %`              | `watch`   | Trésorerie partiellement validée ({v} %)  |
+| `≥ 80 %`              | `ok`      | Trésorerie validée à {v} %               |
+
+**§4.2 Cash** (dépend de la trésorerie) :
+
+| Condition               | Statut    | Raison                                    |
+|-------------------------|-----------|-------------------------------------------|
+| null ou 0               | `neutral` | Pas de donnée / activité cash             |
+| trésorerie null         | `neutral` | Trésorerie non disponible                 |
+| `tPct < 50`             | `watch`   | Cash non validé (trésorerie insuffisante) |
+| `tPct < 80`             | `watch`   | Cash partiellement validé                 |
+| `tPct ≥ 80`             | `ok`      | Cash validé                               |
+
+**§4.3 Business** :
+
+| Condition                        | Statut    | Raison                        |
+|----------------------------------|-----------|-------------------------------|
+| null                             | `neutral` | Pas de donnée facturation     |
+| `biz == 0` et `totalCA > 0`     | `neutral` | CA exclusivement POS          |
+| `biz == 0` et `totalCA == 0`    | `watch`   | Aucune activité commerciale   |
+| `biz > 0`                       | `ok`      | Facturation active            |
+
+**§4.4 Taxes** :
+
+| Condition                  | Statut    | Raison                                      |
+|----------------------------|-----------|---------------------------------------------|
+| null ou 0                  | `neutral` | Pas de charge fiscale                       |
+| `tPct < 80`               | `watch`   | Poids fiscal à surveiller (tréso < 80 %)    |
+| `tPct ≥ 80`               | `ok`      | Charges fiscales couvertes                  |
+
+**§4.5 Notes de crédit** : `neutral` si 0, `watch` si > 0.
+
+**§4.6 Remboursements** (ratio `abs(refunds) / totalCA × 100`) :
+
+| Ratio        | Statut    | Raison                                   |
+|--------------|-----------|------------------------------------------|
+| 0 ou absent  | `neutral` | Aucun remboursement                      |
+| `< 2 %`     | `ok`      | Remboursements marginaux                 |
+| `2–5 %`     | `watch`   | Remboursements à surveiller              |
+| `≥ 5 %`     | `watch`   | Remboursements élevés                    |
+
+**§4.7 POS** : `ok` si conforme, `watch` si anomalies/pending/écart > 1 €.
+
+**§4.8 Z de caisse** : `neutral` uniquement en v1 (données non disponibles).
+
+### 10.5 Règle de cohérence globale (§5) — OBLIGATOIRE v1
+
+Si `treasury_validated_pct == 0`, toute carte `ok` (sauf POS) est
+rétrogradée en `watch` avec la raison suffixée " (trésorerie non validée)".
+
+### 10.6 Corrections annexes
+
+| Problème | Correction | Fichier |
+|----------|-----------|---------|
+| Flash DIVA affichait du JSON brut | Parsing `insight.message_text` comme JSON si `insight.flash` absent | `DivaFlashBlock.tsx` |
+| Page Linky pré-rendue statique (cache 1 an) | `export const dynamic = "force-dynamic"` + `revalidate = 0` | `app/page.tsx` |
+| Docker build incluait `.next` stale | Création `.dockerignore` (`.next`, `node_modules`, `.git`) | `.dockerignore` |
+| Variables CSS non utilisées en runtime | Styles inline avec hex hardcodés dans `IconGrid.tsx` | `IconGrid.tsx` |
+
+### 10.7 Fichiers modifiés
+
+| Fichier | Modification |
+|---------|-------------|
+| `units/dorevia-linky/app/api/dashboard-metrics/route.ts` | Type `CardStatusValue`, interface `KpiMetric` étendue, `computeCardStatuses()` (96 lignes de règles déterministes + cohérence globale) |
+| `units/dorevia-linky/components/IconGrid.tsx` | `STATUS_COLORS` / `STATUS_BG` (4 niveaux), encadrement icône inline, tooltip `status_reason` |
+| `units/dorevia-linky/components/DivaFlashBlock.tsx` | Parsing JSON `message_text` quand `flash` absent |
+| `units/dorevia-linky/app/page.tsx` | `dynamic = "force-dynamic"`, `revalidate = 0` |
+| `units/dorevia-linky/app/globals.css` | Variables CSS `--status-*` (light + dark) |
+| `units/dorevia-linky/.dockerignore` | Créé (`.next`, `node_modules`, `.git`) |
+| `tenants/sarl-la-platine/apps/ui/stinger/docker-compose.yml` | Image → `dorevia/linky:v1.19-status-badges` |
+| `tenants/sarl-la-platine/apps/ui/lab/docker-compose.yml` | Image → `dorevia/linky:v1.19-status-badges` |
+
+### 10.8 Déploiement
+
+| Service | Image | Environnement | Statut |
+|---------|-------|---------------|--------|
+| Linky (stinger) | `dorevia/linky:v1.19-status-badges` | stinger | ✅ Up |
+| Linky (lab) | `dorevia/linky:v1.19-status-badges` | lab | ✅ Up |
+
+### 10.9 Résultat vérifié — La Platine (exercice à date 2026)
+
+| Carte             | Statut    | Couleur | Raison                                    |
+|-------------------|-----------|---------|-------------------------------------------|
+| Trésorerie (0 %)  | `watch`   | Orange  | Trésorerie non validée (0 %)              |
+| Cash              | `watch`   | Orange  | Cash non validé (trésorerie insuffisante) |
+| Business          | `ok`      | Vert    | Facturation active                        |
+| Taxes             | `watch`   | Orange  | Poids fiscal à surveiller                 |
+| Notes de crédit   | `neutral` | Bleu    | Aucune note de crédit                     |
+| Remboursements    | `watch`   | Orange  | Remboursements à surveiller               |
+| Points de vente   | `ok`      | Vert    | POS conforme                              |
+| Z de caisse       | `neutral` | Bleu    | Z de caisse non renseigné                 |
+
+### 10.10 Indépendance DIVA
+
+Le système de statut est **indépendant de DIVA**. Il se calcule à partir
+des données brutes (métriques + `_details`). DIVA peut exploiter
+`status` et `status_reason` comme signaux d'entrée dans de futures
+versions de `computeInsights`.
+
+------------------------------------------------------------------------
+
+## 11. DIVA v1.5 — INTÉGRATION DES STATUTS DE GOUVERNANCE (2026-02-20)
+
+Les statuts de gouvernance calculés par Linky (`status`, `status_reason`)
+sont désormais transmis à DIVA et exploités par Mistral. L'IA et les
+badges visuels racontent la même histoire.
+
+### 11.1 Pipeline de données
+
+| Couche | Modification | Fichier |
+|--------|-------------|---------|
+| Modèle | `Card` étendu avec `Status` + `StatusReason` | `models/models.go` |
+| Runner | `kpiMetricResponse` capture `status` + `status_reason` depuis Linky | `runner/metrics.go` |
+| Prompt | Chaque carte dans le payload JSON inclut `"status"` et `"status_reason"` | `mistral/client.go` (`buildUserPrompt`) |
+
+**Flux :**
+
+```
+Linky computeCardStatuses()
+  │ { status: "watch", status_reason: "Trésorerie non validée (0 %)" }
+  ▼
+DIVA Runner (metrics.go)
+  │ models.Card { Status: "watch", StatusReason: "..." }
+  ▼
+DIVA computeInsights()
+  │ "GOUVERNANCE — points d'attention: Trésorerie (watch) | Cash (watch) | ..."
+  ▼
+DIVA buildUserPrompt()
+  │ cards[].status + cards[].status_reason dans le JSON
+  ▼
+Mistral (Rule 11)
+  │ Priorise les cartes watch/alert dans le headline
+  ▼
+Flash cohérent avec les badges visuels
+```
+
+### 11.2 Insights de gouvernance (`computeInsights`)
+
+Deux nouveaux insights pré-calculés ajoutés en fin de `computeInsights` :
+
+| Insight | Condition | Exemple |
+|---------|-----------|---------|
+| `GOUVERNANCE CRITIQUE` | Au moins 1 carte `alert` | "GOUVERNANCE CRITIQUE: Trésorerie (tréso nette négative)" |
+| `GOUVERNANCE — points d'attention` | Au moins 1 carte `watch` | "GOUVERNANCE — points d'attention: Trésorerie (0 %) \| Cash (non validé) \| Taxes (< 80 %)" |
+
+Ces insights sont transmis à Mistral dans le champ `insights` du payload.
+
+### 11.3 System Prompt — Rule 11
+
+```
+11. Chaque carte contient un champ "status" (neutral/ok/watch/alert)
+    et "status_reason" calculés par le système de gouvernance.
+    Priorise les cartes en "watch" ou "alert" dans ta synthèse.
+    Le headline doit refléter le point de gouvernance le plus critique.
+    Ne contredis jamais un statut de gouvernance.
+```
+
+### 11.4 Hash v3
+
+Le `status` de chaque carte est inclus dans le hash input (schema
+`dorevia.diva.hash_input.v3`). Un changement de statut (ex: trésorerie
+passe de `watch` à `ok` après validation bancaire) déclenche
+automatiquement une régénération de l'analyse.
+
+### 11.5 Fichiers modifiés
+
+| Fichier | Modification |
+|---------|-------------|
+| `units/diva/internal/models/models.go` | `Card` : ajout `Status string` + `StatusReason string` |
+| `units/diva/internal/runner/metrics.go` | `kpiMetricResponse` struct, `cardMapping` avec `getKpi`, extraction `Status`/`StatusReason` |
+| `units/diva/internal/mistral/client.go` | `cardStatus()` helper, insights GOUVERNANCE, `buildUserPrompt` inclut `status`/`status_reason`, Rule 11 |
+| `units/diva/internal/mistral/client_test.go` | Fixtures avec statuts, 4 tests : `GovernanceLaPlatine`, `GovernanceSweetManihot`, `NoGovernanceWhenAllOk`, `CardStatus_Helper` |
+| `units/diva/internal/hashinput/build.go` | Schema → `hash_input.v3`, `status` dans chaque carte du hash |
+| `units/diva/internal/hashinput/hash_test.go` | 2 tests : `StatusChangeChangesHash`, `StatusIncludedInCards` |
+
+### 11.6 Bilan tests
+
+| Package | Tests | Résultat |
+|---------|-------|----------|
+| `mistral` | 30 (dont 4 nouveaux) | PASS |
+| `hashinput` | 15 (dont 2 nouveaux) | PASS |
+| Total | **45** | **0 régression** |
+
+### 11.7 Résultat vérifié
+
+6/6 contextes régénérés avec `state=ready`. Les analyses intègrent
+les points de gouvernance `watch` dans le headline et les what_i_see.
+
+------------------------------------------------------------------------
+
+## 12. PROCHAINES ÉTAPES POSSIBLES
 
 - [ ] Filtrer `pos-sessions` par `company_id` dans Linky
 - [ ] Exploiter `pos_z` quand disponible
@@ -409,7 +653,13 @@ Vérifié en prod : 5 générations loguées avec `gen=called`, 0 degraded.
 - [ ] Optimisation mémoire Mistral (modèle Q3 ou inference en batch)
 - [ ] Indicateur UI pour `degraded: true`
 - [ ] KPI `diva_hash_hit_ratio` via endpoint `/health`
+- [x] ~~Transmettre les statuts de gouvernance à DIVA~~ (fait v1.5)
+- [ ] Activer le niveau `alert` (rouge) pour : trésorerie nette négative,
+  ratio remboursement > 10 %, écart POS > seuil critique
+- [ ] Tests unitaires serveur pour `computeCardStatuses` (bornes seuils)
+- [ ] Tests visuels automatisés (4 couleurs visibles en dark mode)
+- [ ] DIVA exploite `status` pour moduler `confidence` (alert → high)
 
 ------------------------------------------------------------------------
 
-*Rapport mis à jour le 2026-02-20 — DIVA v1.4 Compute Discipline.*
+*Rapport mis à jour le 2026-02-20 — DIVA v1.5 Intégration Gouvernance.*

@@ -1,0 +1,58 @@
+# Docker Compose - n8n lab lab
+# Généré automatiquement depuis manifest Phase 1
+# Source attendue: n8n.lab.lab
+# DB name: n8n_lab_lab
+# Compose project: dorevia_n8n_lab_lab
+
+services:
+  db:
+    image: postgres:16
+    container_name: n8n_db_lab_lab
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: n8n
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: n8n
+    volumes:
+      - n8n_lab_lab_db:/var/lib/postgresql/data
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n_lab_lab
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      N8N_HOST: n8n.lab.lab.doreviateam.com
+      N8N_PORT: 5678
+      N8N_PROTOCOL: https
+      N8N_ENCRYPTION_KEY: change-me-in-secrets
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: db
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: n8n
+      DB_POSTGRESDB_PASSWORD: n8n
+      TZ: Europe/Paris
+    volumes:
+      - n8n_lab_lab_data:/home/node/.n8n
+    networks:
+      - dorevia-network
+    # Port 5678 en interne (routage via Caddy)
+
+volumes:
+  n8n_lab_lab_db:
+    name: n8n_lab_lab_db
+  n8n_lab_lab_data:
+    name: n8n_lab_lab_data
+
+networks:
+  dorevia-network:
+    external: true

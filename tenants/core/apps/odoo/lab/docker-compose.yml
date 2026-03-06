@@ -24,10 +24,7 @@ services:
       retries: 5
 
   odoo:
-    build:
-      context: ../../../../../units/odoo
-      dockerfile: Dockerfile
-    image: odoo:18.0-dorevia
+    image: odoo:18.0-20250819
     container_name: odoo_lab_core
     restart: unless-stopped
     depends_on:

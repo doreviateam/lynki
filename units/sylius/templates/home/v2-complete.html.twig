@@ -1,0 +1,507 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Dorevia-Vault — La vérité financière prouvée{% endblock %}
+{% block meta_description %}Dorevia-Vault capture, scelle et rend opposables vos événements financiers. Dorevia UI : l'interface Linky (lecture seule) pour lire et présenter vos preuves.{% endblock %}
+{% block meta_keywords %}vérité financière, preuves vérifiables, Dorevia UI, interface lecture seule, conformité LNE 2026, NF525, pilotage financier{% endblock %}
+
+{% block og_title %}La vérité financière prouvée | Dorevia-Vault{% endblock %}
+{% block og_description %}Dorevia-Vault capture, scelle et rend opposables vos événements financiers. Dorevia UI : l'interface Linky (lecture seule).{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<link rel="stylesheet" href="{{ asset('assets/css/landing-v2-complete.css') }}?v=20260122" />
+<style>
+    /* Override layout pour cette page */
+    body {
+        background: radial-gradient(1200px 700px at 20% -10%, rgba(255, 255, 255, 0.08), transparent 60%), #0b1220 !important;
+        color: #e9eefc !important;
+    }
+    /* Masquer le header et footer du layout */
+    .ud-header,
+    .ud-footer {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- Topbar -->
+<header class="topbar">
+    <div class="container">
+        <div class="nav">
+            <a class="brand" href="{{ path('home') }}#top">
+                <span class="logo" aria-hidden="true"></span>
+                <span>
+                    Dorevia-Vault
+                    <small>La vérité financière prouvée</small>
+                </span>
+            </a>
+
+            <nav class="navlinks" aria-label="Navigation principale">
+                <a href="#pourquoi">Pourquoi</a>
+                <a href="#produit">Produit</a>
+                <a href="#ui">Dorevia UI</a>
+                <a href="#benefices">Bénéfices</a>
+                <a href="#faq">FAQ</a>
+            </nav>
+
+            <div class="actions">
+                <a class="btn secondary" href="#diagnostic">Diagnostic (15 min)</a>
+                <a class="btn primary" href="#demo">Voir la démo</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- HERO -->
+<main id="top" class="hero">
+    <div class="container">
+        <div class="heroGrid">
+            <div class="heroCard">
+                <span class="pill">Lecture seule • Zéro manipulation • ERP-agnostique</span>
+                <h1 style="color: #e9eefc !important; font-weight: 800;">Pilotez avec des chiffres qui ne peuvent pas être contredits.</h1>
+                <p class="subtitle">
+                    Dorevia-Vault capture, scelle et rend opposables vos événements financiers —
+                    avec <b>Dorevia UI</b>, l'interface <b>lecture seule</b> pour lire, exploiter et présenter les preuves en toute confiance.
+                </p>
+
+                <div class="ctaRow">
+                    <a id="demo" class="btn primary" href="#contact">Voir la démo</a>
+                    <a id="diagnostic" class="btn secondary" href="#contact">Demander un diagnostic (15 min)</a>
+                </div>
+
+                <div class="microProof" aria-label="Micro-preuves">
+                    <div class="proofItem"><span class="dot"></span><span>Compatible ERP & systèmes de caisse</span></div>
+                    <div class="proofItem"><span class="dot"></span><span>Conçu pour traçabilité <b>LNE 2026 / NF525</b></span></div>
+                    <div class="proofItem"><span class="dot"></span><span>Preuves vérifiables, horodatées, exportables</span></div>
+                </div>
+            </div>
+
+            <aside class="heroAside">
+                <div class="asideCard">
+                    <div class="asideTitle">L'analogie officielle</div>
+                    <p class="asideText">
+                        <b>Dorevia-Vault</b> = le <b>compteur Linky</b> (il mesure & scelle).<br/>
+                        <b>Dorevia UI</b> = <b>l'écran Linky</b> (il montre, sans modifier).
+                    </p>
+                    <div class="miniGrid">
+                        <div class="kpi">
+                            <b>Faits prouvés</b>
+                            <span>Événements scellés au fil de l'eau</span>
+                        </div>
+                        <div class="kpi">
+                            <b>Prêt audit</b>
+                            <span>Export "dossier de preuve"</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="asideCard">
+                    <div class="asideTitle">Pour qui ?</div>
+                    <p class="asideText">
+                        CFO / RAF / dirigeants financiers qui veulent piloter <b>sans doute</b> et présenter une preuve immédiate en cas de contrôle ou de litige.
+                    </p>
+                    <p class="tiny">
+                        Astuce : si vous utilisez déjà un ERP (ex. Odoo, Sage, Cegid…), Dorevia-Vault s'intègre en surcouche de preuve.
+                    </p>
+                </div>
+            </aside>
+        </div>
+    </div>
+</main>
+
+<!-- Pourquoi -->
+<section id="pourquoi" class="anchor">
+    <div class="container">
+        <div class="sectionHeader">
+            <div>
+                <h2 style="color: #e9eefc !important; font-weight: 800;">Les chiffres comptent. Mais prouver qu'ils sont vrais, c'est autre chose.</h2>
+                <p class="lead">
+                    Quand la confiance disparaît (audit, contrôle, litige, changement d'équipe ou d'ERP), les outils classiques sont faits pour gérer…
+                    pas pour produire une preuve immédiate et opposable.
+                </p>
+            </div>
+        </div>
+
+        <div class="grid2">
+            <div class="card">
+                <h3>Ce qui se passe dans la vraie vie</h3>
+                <ul class="list">
+                    <li class="li">
+                        <div class="icon">↺</div>
+                        <div><b>Données modifiables</b><span>Même pour de "bonnes" raisons : correction, régularisation, re-saisie.</span></div>
+                    </li>
+                    <li class="li">
+                        <div class="icon">⇅</div>
+                        <div><b>Versions multiples</b><span>Exports, rapprochements, fichiers divergents, dépendance à une personne clé.</span></div>
+                    </li>
+                    <li class="li">
+                        <div class="icon">⏳</div>
+                        <div><b>Preuve tardive</b><span>On reconstitue après coup. Or, l'exigence se déplace "à la source".</span></div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>Ce dont vous avez besoin</h3>
+                <ul class="list">
+                    <li class="li">
+                        <div class="icon">✓</div>
+                        <div><b>Faits prouvés</b><span>Un événement scellé au moment où il se produit.</span></div>
+                    </li>
+                    <li class="li">
+                        <div class="icon">🔒</div>
+                        <div><b>Immuabilité</b><span>Impossible de modifier une fois capturé : la preuve survit aux outils.</span></div>
+                    </li>
+                    <li class="li">
+                        <div class="icon">⚖</div>
+                        <div><b>Opposabilité</b><span>Présentable à un tiers : auditeur, administration, partenaire.</span></div>
+                    </li>
+                </ul>
+
+                <div class="callout">
+                    <strong>Conclusion :</strong> vous n'avez pas seulement besoin de chiffres.
+                    Vous avez besoin de <strong>faits prouvés</strong>.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Produit -->
+<section id="produit" class="anchor">
+    <div class="container">
+        <div class="sectionHeader">
+            <div>
+                <h2>Dorevia-Vault : la vérité financière, certifiée à la source</h2>
+                <p class="lead">
+                    Une surcouche de preuve qui capture les événements (facture, ticket, paiement), les scelle et les rend vérifiables dans le temps — sans refonte de votre SI.
+                </p>
+            </div>
+        </div>
+
+        <div class="grid2">
+            <div class="card">
+                <h3 style="color: #e9eefc !important; font-weight: 800;">4 piliers</h3>
+                <ul class="list">
+                    <li class="li">
+                        <div class="icon">①</div>
+                        <div><b>Capture immuable</b><span>Événements captés au moment où ils se produisent, sans intervention humaine.</span></div>
+                    </li>
+                    <li class="li">
+                        <div class="icon">②</div>
+                        <div><b>Scellage & vérifiabilité</b><span>Horodatage + empreinte + scellage : preuve vérifiable, durable.</span></div>
+                    </li>
+                    <li class="li">
+                        <div class="icon">③</div>
+                        <div><b>ERP-agnostique</b><span>Compatible avec vos systèmes existants (ERP, caisse, facturation).</span></div>
+                    </li>
+                    <li class="li">
+                        <div class="icon">④</div>
+                        <div><b>Opposable</b><span>Audit, contrôle, litige : vous présentez une preuve, pas une interprétation.</span></div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>Bloc visuel (placeholder)</h3>
+                <p class="muted">Ici, tu peux mettre un schéma simple "ERP / Caisse → DVIG → Vault → Dorevia UI".</p>
+                <div class="callout">
+                    <div class="mono">ERP / POS</div>
+                    <div class="mono">→ Ingestion (DVIG)</div>
+                    <div class="mono">→ Scellage (Vault)</div>
+                    <div class="mono">→ Lecture (Dorevia UI)</div>
+                </div>
+                <p class="tiny">Astuce : un SVG minimal (2 flèches, 4 blocs) suffit pour un rendu "adulte".</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- UI -->
+<section id="ui" class="anchor">
+    <div class="container">
+        <div class="sectionHeader">
+            <div>
+                <h2>Dorevia UI : l'interface Linky (lecture seule)</h2>
+                <p class="lead">
+                    Voir, comprendre, expliquer — sans toucher. Dorevia UI rend la preuve lisible et présentable, sans jamais modifier les données.
+                </p>
+            </div>
+        </div>
+
+        <div class="grid2">
+            <div class="card">
+                <h3>Ce que vous voyez</h3>
+                <ul class="list">
+                    <li class="li">
+                        <div class="icon">👁</div>
+                        <div><b>Vue des preuves capturées</b><span>Liste, filtres, recherche, statuts (capturé / scellé / conforme).</span></div>
+                    </li>
+                    <li class="li">
+                        <div class="icon">⏱</div>
+                        <div><b>Horodatage & empreinte</b><span>Détail d'un événement : source, signature, traçabilité.</span></div>
+                    </li>
+                    <li class="li">
+                        <div class="icon">⬇</div>
+                        <div><b>Export "dossier de preuve"</b><span>Pour audit, contrôle ou présentation à un tiers.</span></div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>Analogie officielle</h3>
+                <div class="callout">
+                    <strong>Dorevia-Vault</strong> est le <strong>compteur Linky</strong> : il mesure & scelle.<br/>
+                    <strong>Dorevia UI</strong> est <strong>l'écran Linky</strong> : il montre ce qui a été mesuré.<br/>
+                    <br/>
+                    <strong>Règle :</strong> aucun recalcul, aucune correction — uniquement la vérité mesurée.
+                </div>
+                <p class="tiny">Cette phrase peut vivre sur la landing, dans le pitch, et dans le deck.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Bénéfices -->
+<section id="benefices" class="anchor">
+    <div class="container">
+        <div class="sectionHeader">
+            <div>
+                <h2>Ce que vous gagnez</h2>
+                <p class="lead">
+                    Un pilotage plus serein, parce qu'il repose sur des faits prouvés — et une capacité immédiate à répondre en cas de contrôle.
+                </p>
+            </div>
+        </div>
+
+        <div class="steps">
+            <div class="step">
+                <span class="badge">✓</span>
+                <h3 style="color: #e9eefc !important; font-weight: 800;">Décisions irréfutables</h3>
+                <p class="muted">Vos indicateurs reposent sur des événements scellés, pas sur des reconstructions.</p>
+            </div>
+            <div class="step">
+                <span class="badge">⚖</span>
+                <h3 style="color: #e9eefc !important; font-weight: 800;">Risque réduit</h3>
+                <p class="muted">Moins de stress fiscal/juridique : preuve présentable, claire, exportable.</p>
+            </div>
+            <div class="step">
+                <span class="badge">⏱</span>
+                <h3 style="color: #e9eefc !important; font-weight: 800;">Audit accéléré</h3>
+                <p class="muted">Moins d'allers-retours, moins d'extractions : le dossier de preuve est prêt.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Comment ça marche -->
+<section id="comment" class="anchor">
+    <div class="container">
+        <div class="sectionHeader">
+            <div>
+                <h2>Comment ça marche</h2>
+                <p class="lead">En 3 étapes : vous gardez vos outils métiers, vous ajoutez la certitude.</p>
+            </div>
+        </div>
+
+        <div class="steps">
+            <div class="step">
+                <span class="badge">1</span>
+                <h3>Connexion à vos systèmes</h3>
+                <p class="muted">ERP, caisse, facturation : ingestion des événements bruts.</p>
+            </div>
+            <div class="step">
+                <span class="badge">2</span>
+                <h3>Capture & scellage automatique</h3>
+                <p class="muted">Horodatage + empreinte + scellage : la preuve est produite au fil de l'eau.</p>
+            </div>
+            <div class="step">
+                <span class="badge">3</span>
+                <h3>Consultation via Dorevia UI</h3>
+                <p class="muted">Lecture claire, exportable, partageable : prêt pour audit / contrôle.</p>
+            </div>
+        </div>
+
+        <div class="callout" style="margin-top:16px">
+            <strong>Promesse :</strong> vous n'ajoutez pas un outil de gestion de plus.
+            Vous ajoutez un <strong>compteur de preuve</strong> derrière vos outils.
+        </div>
+    </div>
+</section>
+
+<!-- Cas d'usage -->
+<section id="cas" class="anchor">
+    <div class="container">
+        <div class="sectionHeader">
+            <div>
+                <h2>Cas d'usage</h2>
+                <p class="lead">Des situations concrètes où la preuve fait la différence.</p>
+            </div>
+        </div>
+
+        <div class="grid2">
+            <div class="card">
+                <h3>Contrôle fiscal / conformité</h3>
+                <p>Produisez une preuve opposable, pas une série d'exports et de versions divergentes.</p>
+            </div>
+            <div class="card">
+                <h3>Audit interne / externe</h3>
+                <p>Accélérez les cycles d'audit grâce à des événements scellés et vérifiables.</p>
+            </div>
+            <div class="card">
+                <h3>Changement d'ERP / migration</h3>
+                <p>Conservez la continuité : la preuve ne dépend pas de l'ERP ni d'un PDF.</p>
+            </div>
+            <div class="card">
+                <h3>Litige / contestation</h3>
+                <p>La preuve parle d'elle-même : horodatée, traçable, vérifiable.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Confiance -->
+<section id="confiance" class="anchor">
+    <div class="container">
+        <div class="sectionHeader">
+            <div>
+                <h2>Ils veulent piloter sans doute</h2>
+                <p class="lead">Placeholders à remplacer par 2–3 retours early adopters dès que dispo.</p>
+            </div>
+        </div>
+
+        <div class="grid2">
+            <div class="quote">
+                <p>"La preuve était là, immédiatement exploitable."</p>
+                <span>— CFO / RAF</span>
+            </div>
+            <div class="quote">
+                <p>"On a réduit le temps d'audit de façon drastique."</p>
+                <span>— Responsable conformité</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="anchor">
+    <div class="container">
+        <div class="sectionHeader">
+            <div>
+                <h2>FAQ</h2>
+                <p class="lead">Les questions qui reviennent (et qui évitent toute confusion).</p>
+            </div>
+        </div>
+
+        <div class="faq">
+            <details>
+                <summary>Dorevia-Vault remplace-t-il Sage / Cegid / un ERP ?</summary>
+                <p>Non. Dorevia-Vault <b>complète</b> vos systèmes existants en certifiant la preuve des événements (facturation, caisse, paiements).</p>
+            </details>
+            <details>
+                <summary>Pourquoi ce n'est pas "juste un logiciel de trésorerie" ?</summary>
+                <p>Parce que Dorevia-Vault ne reconstruit pas : il <b>certifie</b> l'événement à la source, puis Dorevia UI le rend lisible.</p>
+            </details>
+            <details>
+                <summary>Dorevia UI permet-elle de corriger des données ?</summary>
+                <p>Non. <b>Lecture seule</b> par design : on lit, on explique, on exporte — on ne modifie pas.</p>
+            </details>
+            <details>
+                <summary>Est-ce compatible avec plusieurs sources (ERP + caisse) ?</summary>
+                <p>Oui. L'objectif est d'aligner facturation/caisse avec une preuve unifiée, vérifiable et exportable.</p>
+            </details>
+        </div>
+    </div>
+</section>
+
+<!-- Contact / CTA final -->
+<section id="contact" class="anchor">
+    <div class="container">
+        <div class="sectionHeader">
+            <div>
+                <h2>Prêt à piloter avec des faits prouvés ?</h2>
+                <p class="lead">Demande une démo ou un diagnostic rapide (15 min). On te répond avec un plan clair, sans blabla.</p>
+            </div>
+        </div>
+
+        <div class="grid2">
+            <div class="card">
+                <h3>Démo</h3>
+                <p class="muted">Un walkthrough court : capture → scellage → lecture dans Dorevia UI → export "dossier de preuve".</p>
+                <div class="ctaRow" style="margin-top:12px">
+                    <a class="btn primary" href="{{ path('contact') }}">Demander une démo</a>
+                    <a class="btn secondary" href="#pourquoi">Relire le pourquoi</a>
+                </div>
+                <p class="tiny">Formulaire de contact intégré.</p>
+            </div>
+
+            <div class="card">
+                <h3>Diagnostic (15 min)</h3>
+                <p class="muted">On qualifie ton contexte : ERP / caisse, volume d'événements, contraintes conformité, et on te dit si Dorevia-Vault est pertinent.</p>
+
+                <form style="margin-top:12px; display:grid; gap:10px" action="{{ path('contact') }}" method="post">
+                    <label>
+                        <span class="tiny">Email</span>
+                        <input required type="email" name="email" placeholder="vous@entreprise.fr" />
+                    </label>
+
+                    <label>
+                        <span class="tiny">Rôle</span>
+                        <select name="role">
+                            <option>CFO / RAF</option>
+                            <option>Dirigeant</option>
+                            <option>Expert-comptable</option>
+                            <option>Responsable conformité</option>
+                            <option>DSI / SI</option>
+                        </select>
+                    </label>
+
+                    <button class="btn primary" type="submit">Demander le diagnostic</button>
+                    <p class="tiny">Formulaire connecté au système de leads.</p>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footerGrid">
+            <div>
+                <div style="font-weight:900">Dorevia-Vault</div>
+                <div class="tiny">La vérité financière prouvée • Dorevia UI : interface Linky (lecture seule)</div>
+            </div>
+            <div class="actions">
+                <a class="btn secondary" href="#top">Retour en haut</a>
+                <a class="btn primary" href="{{ path('contact') }}">Contact</a>
+            </div>
+        </div>
+        <div class="tiny" style="margin-top:12px; opacity:.9">
+            © {{ "now"|date("Y") }} Dorevia. Tous droits réservés.
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Smooth scroll for same-page anchors
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', (e) => {
+            const id = a.getAttribute('href');
+            if (!id || id === '#') return;
+            const el = document.querySelector(id);
+            if (!el) return;
+            e.preventDefault();
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            history.pushState(null, '', id);
+        });
+    });
+
+    // FAQ: keep only one open at a time
+    const details = Array.from(document.querySelectorAll('#faq details'));
+    details.forEach(d => d.addEventListener('toggle', () => {
+        if (!d.open) return;
+        details.forEach(other => { if (other !== d) other.open = false; });
+    }));
+</script>
+{% endblock %}

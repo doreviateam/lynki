@@ -1,0 +1,811 @@
+fais moi un fichier .html a télécharger avec :
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dorevia-Vault — La vérité financière prouvée</title>
+  <meta name="description" content="Dorevia-Vault capture, scelle et rend opposables vos événements financiers. Dorevia UI : l’interface Linky (lecture seule) pour lire et présenter vos preuves." />
+  <meta name="theme-color" content="#0b1220" />
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a2e;
+      --card:#111f38;
+      --text:#e9eefc;
+      --muted:#b7c2df;
+      --muted2:#91a0c8;
+      --line:rgba(255,255,255,.10);
+      --shadow: 0 12px 34px rgba(0,0,0,.35);
+      --radius: 18px;
+      --radius2: 26px;
+      --max: 1120px;
+      --pad: 22px;
+      --btn:#ffffff;
+      --btnText:#0b1220;
+      --btn2: rgba(255,255,255,.10);
+      --btn2Text:#e9eefc;
+      --focus: rgba(255,255,255,.18);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:radial-gradient(1200px 700px at 20% -10%, rgba(255,255,255,.08), transparent 60%), var(--bg); color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; line-height:1.5}
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block}
+    .container{max-width:var(--max); margin:0 auto; padding:0 var(--pad)}
+    .topbar{
+      position: sticky; top:0; z-index:50;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(to bottom, rgba(11,18,32,.80), rgba(11,18,32,.35));
+      border-bottom:1px solid var(--line);
+    }
+    .nav{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 0;
+      gap:12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px;
+    }
+    .logo{
+      width:34px;height:34px;border-radius:12px;
+      background: radial-gradient(12px 12px at 30% 30%, rgba(255,255,255,.9), rgba(255,255,255,.15)), rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      box-shadow: 0 8px 22px rgba(0,0,0,.28);
+    }
+    .brand small{display:block;color:var(--muted);font-weight:600; letter-spacing:.1px; margin-top:-2px}
+    .navlinks{display:flex; gap:16px; align-items:center}
+    .navlinks a{
+      color:var(--muted);
+      font-weight:600;
+      padding:8px 10px;
+      border-radius:12px;
+    }
+    .navlinks a:hover{background:rgba(255,255,255,.06); color:var(--text)}
+    .actions{display:flex; gap:10px; align-items:center}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 14px;
+      border-radius:14px;
+      font-weight:800;
+      border:1px solid transparent;
+      cursor:pointer;
+      white-space:nowrap;
+      transition: transform .08s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+    }
+    .btn:active{transform: translateY(1px)}
+    .btn.primary{background:var(--btn); color:var(--btnText)}
+    .btn.primary:hover{filter:brightness(.96)}
+    .btn.secondary{
+      background:var(--btn2); color:var(--btn2Text);
+      border-color: var(--line);
+    }
+    .btn.secondary:hover{background:rgba(255,255,255,.14)}
+    .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:7px 10px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      border-radius:999px;
+      color:var(--muted);
+      font-weight:700;
+      font-size:13px;
+    }
+
+    /* HERO */
+    .hero{
+      padding: 56px 0 34px;
+    }
+    .heroGrid{
+      display:grid;
+      grid-template-columns: 1.08fr .92fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+    @media (max-width: 980px){
+      .heroGrid{grid-template-columns:1fr}
+      .navlinks{display:none}
+    }
+    .heroCard{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border-radius: var(--radius2);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      position:relative;
+      overflow:hidden;
+    }
+    .heroCard::before{
+      content:"";
+      position:absolute; inset:-120px -120px auto auto;
+      width:340px;height:340px;border-radius:999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.14), transparent 60%);
+      transform: rotate(10deg);
+      pointer-events:none;
+    }
+    h1{
+      margin:10px 0 10px;
+      font-size: clamp(34px, 4.1vw, 54px);
+      line-height:1.08;
+      letter-spacing:-.8px;
+    }
+    .subtitle{
+      color:var(--muted);
+      font-size: 18px;
+      max-width: 54ch;
+      margin: 0 0 18px;
+    }
+    .ctaRow{display:flex; gap:12px; flex-wrap:wrap; margin-top: 14px}
+    .microProof{
+      display:flex; flex-wrap:wrap; gap:10px; margin-top:18px
+    }
+    .proofItem{
+      display:flex; gap:10px; align-items:flex-start;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      border-radius: 16px;
+      color:var(--muted);
+      font-weight:650;
+      font-size:14px;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      background: rgba(255,255,255,.70);
+      margin-top: 5px;
+      box-shadow: 0 0 0 4px rgba(255,255,255,.08);
+      flex:0 0 auto;
+    }
+    .heroAside{
+      display:grid; gap: 14px;
+    }
+    .asideCard{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      border-radius: var(--radius2);
+      padding: 18px;
+      box-shadow: 0 10px 28px rgba(0,0,0,.25);
+    }
+    .asideTitle{font-weight:900; letter-spacing:-.2px; margin: 2px 0 8px}
+    .asideText{color:var(--muted); margin:0}
+    .miniGrid{
+      display:grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      margin-top: 14px;
+    }
+    @media (max-width: 540px){
+      .miniGrid{grid-template-columns:1fr}
+    }
+    .kpi{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 18px;
+      padding: 14px;
+    }
+    .kpi b{display:block; font-size: 18px}
+    .kpi span{color:var(--muted); font-weight:650; font-size: 13px}
+
+    /* SECTIONS */
+    section{padding: 52px 0}
+    .sectionHeader{
+      display:flex; justify-content:space-between; align-items:flex-end; gap: 18px; flex-wrap:wrap;
+      margin-bottom: 18px;
+    }
+    h2{
+      margin:0;
+      font-size: clamp(24px, 3vw, 34px);
+      letter-spacing:-.5px;
+      line-height:1.15;
+    }
+    .lead{
+      color: var(--muted);
+      margin: 6px 0 0;
+      max-width: 70ch;
+      font-size: 16px;
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 900px){ .grid2{grid-template-columns:1fr} }
+    .card{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      border-radius: var(--radius2);
+      padding: 20px;
+      box-shadow: 0 10px 28px rgba(0,0,0,.22);
+    }
+    .card h3{
+      margin: 0 0 8px;
+      font-size: 18px;
+      letter-spacing:-.2px;
+    }
+    .card p{margin:0;color:var(--muted)}
+    .list{
+      margin: 12px 0 0;
+      padding: 0;
+      list-style:none;
+      display:grid;
+      gap: 10px;
+    }
+    .li{
+      display:flex; gap:12px; align-items:flex-start;
+      padding: 12px 12px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,.03);
+    }
+    .li .icon{
+      width:32px;height:32px;border-radius: 14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      display:flex; align-items:center; justify-content:center;
+      color: rgba(255,255,255,.85);
+      font-weight:900;
+      flex:0 0 auto;
+    }
+    .li b{display:block; margin-top:-2px}
+    .li span{display:block; color:var(--muted); margin-top:2px}
+    .callout{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border-radius: var(--radius2);
+      padding: 18px;
+      margin-top: 14px;
+      color: var(--muted);
+    }
+    .callout strong{color:var(--text)}
+    .steps{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 950px){ .steps{grid-template-columns:1fr} }
+    .step{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      border-radius: var(--radius2);
+      padding: 18px;
+      position:relative;
+      overflow:hidden;
+    }
+    .badge{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:36px;height:36px;border-radius: 14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      font-weight:900;
+    }
+    .step h3{margin:10px 0 8px}
+    .muted{color:var(--muted)}
+    .quote{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: var(--radius2);
+      padding: 18px;
+    }
+    .quote p{margin:0; color: var(--text); font-weight:750}
+    .quote span{display:block; margin-top:8px; color:var(--muted)}
+    .faq{
+      display:grid; gap: 10px;
+    }
+    details{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      border-radius: var(--radius2);
+      padding: 14px 16px;
+    }
+    summary{
+      cursor:pointer;
+      list-style:none;
+      font-weight:850;
+      letter-spacing:-.15px;
+      outline:none;
+    }
+    summary::-webkit-details-marker{display:none}
+    details[open]{background: rgba(255,255,255,.06)}
+    details p{margin:10px 0 0; color: var(--muted)}
+    .footer{
+      padding: 36px 0 44px;
+      border-top: 1px solid var(--line);
+      background: linear-gradient(to top, rgba(255,255,255,.05), transparent 70%);
+    }
+    .footerGrid{
+      display:flex; justify-content:space-between; gap: 18px; flex-wrap:wrap; align-items:center;
+    }
+    .tiny{color:var(--muted2); font-size: 12px; margin-top: 8px}
+    .anchor{scroll-margin-top: 90px;}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+  </style>
+</head>
+
+<body>
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="container">
+      <div class="nav">
+        <a class="brand" href="#top">
+          <span class="logo" aria-hidden="true"></span>
+          <span>
+            Dorevia-Vault
+            <small>La vérité financière prouvée</small>
+          </span>
+        </a>
+
+        <nav class="navlinks" aria-label="Navigation principale">
+          <a href="#pourquoi">Pourquoi</a>
+          <a href="#produit">Produit</a>
+          <a href="#ui">Dorevia UI</a>
+          <a href="#benefices">Bénéfices</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+
+        <div class="actions">
+          <a class="btn secondary" href="#diagnostic">Diagnostic (15 min)</a>
+          <a class="btn primary" href="#demo">Voir la démo</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <main id="top" class="hero">
+    <div class="container">
+      <div class="heroGrid">
+        <div class="heroCard">
+          <span class="pill">Lecture seule • Zéro manipulation • ERP-agnostique</span>
+          <h1>Pilotez avec des chiffres qui ne peuvent pas être contredits.</h1>
+          <p class="subtitle">
+            Dorevia-Vault capture, scelle et rend opposables vos événements financiers —
+            avec <b>Dorevia UI</b>, l’interface <b>lecture seule</b> pour lire, exploiter et présenter les preuves en toute confiance.
+          </p>
+
+          <div class="ctaRow">
+            <a id="demo" class="btn primary" href="#contact">Voir la démo</a>
+            <a id="diagnostic" class="btn secondary" href="#contact">Demander un diagnostic (15 min)</a>
+          </div>
+
+          <div class="microProof" aria-label="Micro-preuves">
+            <div class="proofItem"><span class="dot"></span><span>Compatible ERP & systèmes de caisse</span></div>
+            <div class="proofItem"><span class="dot"></span><span>Conçu pour traçabilité <b>LNE 2026 / NF525</b></span></div>
+            <div class="proofItem"><span class="dot"></span><span>Preuves vérifiables, horodatées, exportables</span></div>
+          </div>
+        </div>
+
+        <aside class="heroAside">
+          <div class="asideCard">
+            <div class="asideTitle">L’analogie officielle</div>
+            <p class="asideText">
+              <b>Dorevia-Vault</b> = le <b>compteur Linky</b> (il mesure & scelle).<br/>
+              <b>Dorevia UI</b> = <b>l’écran Linky</b> (il montre, sans modifier).
+            </p>
+            <div class="miniGrid">
+              <div class="kpi">
+                <b>Faits prouvés</b>
+                <span>Événements scellés au fil de l’eau</span>
+              </div>
+              <div class="kpi">
+                <b>Prêt audit</b>
+                <span>Export “dossier de preuve”</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="asideCard">
+            <div class="asideTitle">Pour qui ?</div>
+            <p class="asideText">
+              CFO / RAF / dirigeants financiers qui veulent piloter <b>sans doute</b> et présenter une preuve immédiate en cas de contrôle ou de litige.
+            </p>
+            <p class="tiny">
+              Astuce : si vous utilisez déjà un ERP (ex. Odoo, Sage, Cegid…), Dorevia-Vault s’intègre en surcouche de preuve.
+            </p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- Pourquoi -->
+  <section id="pourquoi" class="anchor">
+    <div class="container">
+      <div class="sectionHeader">
+        <div>
+          <h2>Les chiffres comptent. Mais prouver qu’ils sont vrais, c’est autre chose.</h2>
+          <p class="lead">
+            Quand la confiance disparaît (audit, contrôle, litige, changement d’équipe ou d’ERP), les outils classiques sont faits pour gérer…
+            pas pour produire une preuve immédiate et opposable.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>Ce qui se passe dans la vraie vie</h3>
+          <ul class="list">
+            <li class="li">
+              <div class="icon">↺</div>
+              <div><b>Données modifiables</b><span>Même pour de “bonnes” raisons : correction, régularisation, re-saisie.</span></div>
+            </li>
+            <li class="li">
+              <div class="icon">⇅</div>
+              <div><b>Versions multiples</b><span>Exports, rapprochements, fichiers divergents, dépendance à une personne clé.</span></div>
+            </li>
+            <li class="li">
+              <div class="icon">⏳</div>
+              <div><b>Preuve tardive</b><span>On reconstitue après coup. Or, l’exigence se déplace “à la source”.</span></div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Ce dont vous avez besoin</h3>
+          <ul class="list">
+            <li class="li">
+              <div class="icon">✓</div>
+              <div><b>Faits prouvés</b><span>Un événement scellé au moment où il se produit.</span></div>
+            </li>
+            <li class="li">
+              <div class="icon">🔒</div>
+              <div><b>Immuabilité</b><span>Impossible de modifier une fois capturé : la preuve survit aux outils.</span></div>
+            </li>
+            <li class="li">
+              <div class="icon">⚖</div>
+              <div><b>Opposabilité</b><span>Présentable à un tiers : auditeur, administration, partenaire.</span></div>
+            </li>
+          </ul>
+
+          <div class="callout">
+            <strong>Conclusion :</strong> vous n’avez pas seulement besoin de chiffres.
+            Vous avez besoin de <strong>faits prouvés</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Produit -->
+  <section id="produit" class="anchor">
+    <div class="container">
+      <div class="sectionHeader">
+        <div>
+          <h2>Dorevia-Vault : la vérité financière, certifiée à la source</h2>
+          <p class="lead">
+            Une surcouche de preuve qui capture les événements (facture, ticket, paiement), les scelle et les rend vérifiables dans le temps — sans refonte de votre SI.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>4 piliers</h3>
+          <ul class="list">
+            <li class="li">
+              <div class="icon">①</div>
+              <div><b>Capture immuable</b><span>Événements captés au moment où ils se produisent, sans intervention humaine.</span></div>
+            </li>
+            <li class="li">
+              <div class="icon">②</div>
+              <div><b>Scellage & vérifiabilité</b><span>Horodatage + empreinte + scellage : preuve vérifiable, durable.</span></div>
+            </li>
+            <li class="li">
+              <div class="icon">③</div>
+              <div><b>ERP-agnostique</b><span>Compatible avec vos systèmes existants (ERP, caisse, facturation).</span></div>
+            </li>
+            <li class="li">
+              <div class="icon">④</div>
+              <div><b>Opposable</b><span>Audit, contrôle, litige : vous présentez une preuve, pas une interprétation.</span></div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Bloc visuel (placeholder)</h3>
+          <p class="muted">Ici, tu peux mettre un schéma simple “ERP / Caisse → DVIG → Vault → Dorevia UI”.</p>
+          <div class="callout">
+            <div class="mono">ERP / POS</div>
+            <div class="mono">→ Ingestion (DVIG)</div>
+            <div class="mono">→ Scellage (Vault)</div>
+            <div class="mono">→ Lecture (Dorevia UI)</div>
+          </div>
+          <p class="tiny">Astuce : un SVG minimal (2 flèches, 4 blocs) suffit pour un rendu “adulte”.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- UI -->
+  <section id="ui" class="anchor">
+    <div class="container">
+      <div class="sectionHeader">
+        <div>
+          <h2>Dorevia UI : l’interface Linky (lecture seule)</h2>
+          <p class="lead">
+            Voir, comprendre, expliquer — sans toucher. Dorevia UI rend la preuve lisible et présentable, sans jamais modifier les données.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>Ce que vous voyez</h3>
+          <ul class="list">
+            <li class="li">
+              <div class="icon">👁</div>
+              <div><b>Vue des preuves capturées</b><span>Liste, filtres, recherche, statuts (capturé / scellé / conforme).</span></div>
+            </li>
+            <li class="li">
+              <div class="icon">⏱</div>
+              <div><b>Horodatage & empreinte</b><span>Détail d’un événement : source, signature, traçabilité.</span></div>
+            </li>
+            <li class="li">
+              <div class="icon">⬇</div>
+              <div><b>Export “dossier de preuve”</b><span>Pour audit, contrôle ou présentation à un tiers.</span></div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Analogie officielle</h3>
+          <div class="callout">
+            <strong>Dorevia-Vault</strong> est le <strong>compteur Linky</strong> : il mesure & scelle.<br/>
+            <strong>Dorevia UI</strong> est <strong>l’écran Linky</strong> : il montre ce qui a été mesuré.<br/>
+            <br/>
+            <strong>Règle :</strong> aucun recalcul, aucune correction — uniquement la vérité mesurée.
+          </div>
+          <p class="tiny">Cette phrase peut vivre sur la landing, dans le pitch, et dans le deck.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bénéfices -->
+  <section id="benefices" class="anchor">
+    <div class="container">
+      <div class="sectionHeader">
+        <div>
+          <h2>Ce que vous gagnez</h2>
+          <p class="lead">
+            Un pilotage plus serein, parce qu’il repose sur des faits prouvés — et une capacité immédiate à répondre en cas de contrôle.
+          </p>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <span class="badge">✓</span>
+          <h3>Décisions irréfutables</h3>
+          <p class="muted">Vos indicateurs reposent sur des événements scellés, pas sur des reconstructions.</p>
+        </div>
+        <div class="step">
+          <span class="badge">⚖</span>
+          <h3>Risque réduit</h3>
+          <p class="muted">Moins de stress fiscal/juridique : preuve présentable, claire, exportable.</p>
+        </div>
+        <div class="step">
+          <span class="badge">⏱</span>
+          <h3>Audit accéléré</h3>
+          <p class="muted">Moins d’allers-retours, moins d’extractions : le dossier de preuve est prêt.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comment ça marche -->
+  <section id="comment" class="anchor">
+    <div class="container">
+      <div class="sectionHeader">
+        <div>
+          <h2>Comment ça marche</h2>
+          <p class="lead">En 3 étapes : vous gardez vos outils métiers, vous ajoutez la certitude.</p>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <span class="badge">1</span>
+          <h3>Connexion à vos systèmes</h3>
+          <p class="muted">ERP, caisse, facturation : ingestion des événements bruts.</p>
+        </div>
+        <div class="step">
+          <span class="badge">2</span>
+          <h3>Capture & scellage automatique</h3>
+          <p class="muted">Horodatage + empreinte + scellage : la preuve est produite au fil de l’eau.</p>
+        </div>
+        <div class="step">
+          <span class="badge">3</span>
+          <h3>Consultation via Dorevia UI</h3>
+          <p class="muted">Lecture claire, exportable, partageable : prêt pour audit / contrôle.</p>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top:16px">
+        <strong>Promesse :</strong> vous n’ajoutez pas un outil de gestion de plus.
+        Vous ajoutez un <strong>compteur de preuve</strong> derrière vos outils.
+      </div>
+    </div>
+  </section>
+
+  <!-- Cas d'usage -->
+  <section id="cas" class="anchor">
+    <div class="container">
+      <div class="sectionHeader">
+        <div>
+          <h2>Cas d’usage</h2>
+          <p class="lead">Des situations concrètes où la preuve fait la différence.</p>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>Contrôle fiscal / conformité</h3>
+          <p>Produisez une preuve opposable, pas une série d’exports et de versions divergentes.</p>
+        </div>
+        <div class="card">
+          <h3>Audit interne / externe</h3>
+          <p>Accélérez les cycles d’audit grâce à des événements scellés et vérifiables.</p>
+        </div>
+        <div class="card">
+          <h3>Changement d’ERP / migration</h3>
+          <p>Conservez la continuité : la preuve ne dépend pas de l’ERP ni d’un PDF.</p>
+        </div>
+        <div class="card">
+          <h3>Litige / contestation</h3>
+          <p>La preuve parle d’elle-même : horodatée, traçable, vérifiable.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Confiance -->
+  <section id="confiance" class="anchor">
+    <div class="container">
+      <div class="sectionHeader">
+        <div>
+          <h2>Ils veulent piloter sans doute</h2>
+          <p class="lead">Placeholders à remplacer par 2–3 retours early adopters dès que dispo.</p>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="quote">
+          <p>“La preuve était là, immédiatement exploitable.”</p>
+          <span>— CFO / RAF</span>
+        </div>
+        <div class="quote">
+          <p>“On a réduit le temps d’audit de façon drastique.”</p>
+          <span>— Responsable conformité</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="anchor">
+    <div class="container">
+      <div class="sectionHeader">
+        <div>
+          <h2>FAQ</h2>
+          <p class="lead">Les questions qui reviennent (et qui évitent toute confusion).</p>
+        </div>
+      </div>
+
+      <div class="faq">
+        <details>
+          <summary>Dorevia-Vault remplace-t-il Sage / Cegid / un ERP ?</summary>
+          <p>Non. Dorevia-Vault <b>complète</b> vos systèmes existants en certifiant la preuve des événements (facturation, caisse, paiements).</p>
+        </details>
+        <details>
+          <summary>Pourquoi ce n’est pas “juste un logiciel de trésorerie” ?</summary>
+          <p>Parce que Dorevia-Vault ne reconstruit pas : il <b>certifie</b> l’événement à la source, puis Dorevia UI le rend lisible.</p>
+        </details>
+        <details>
+          <summary>Dorevia UI permet-elle de corriger des données ?</summary>
+          <p>Non. <b>Lecture seule</b> par design : on lit, on explique, on exporte — on ne modifie pas.</p>
+        </details>
+        <details>
+          <summary>Est-ce compatible avec plusieurs sources (ERP + caisse) ?</summary>
+          <p>Oui. L’objectif est d’aligner facturation/caisse avec une preuve unifiée, vérifiable et exportable.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact / CTA final -->
+  <section id="contact" class="anchor">
+    <div class="container">
+      <div class="sectionHeader">
+        <div>
+          <h2>Prêt à piloter avec des faits prouvés ?</h2>
+          <p class="lead">Demande une démo ou un diagnostic rapide (15 min). On te répond avec un plan clair, sans blabla.</p>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>Démo</h3>
+          <p class="muted">Un walkthrough court : capture → scellage → lecture dans Dorevia UI → export “dossier de preuve”.</p>
+          <div class="ctaRow" style="margin-top:12px">
+            <a class="btn primary" href="mailto:contact@doreviateam.com?subject=Demande%20de%20d%C3%A9mo%20Dorevia-Vault">Demander une démo</a>
+            <a class="btn secondary" href="#pourquoi">Relire le pourquoi</a>
+          </div>
+          <p class="tiny">Remplace l’email par ton formulaire Sylius / CRM quand tu veux.</p>
+        </div>
+
+        <div class="card">
+          <h3>Diagnostic (15 min)</h3>
+          <p class="muted">On qualifie ton contexte : ERP / caisse, volume d’événements, contraintes conformité, et on te dit si Dorevia-Vault est pertinent.</p>
+
+          <form style="margin-top:12px; display:grid; gap:10px" action="#" method="post">
+            <label>
+              <span class="tiny">Email</span>
+              <input required type="email" placeholder="vous@entreprise.fr"
+                style="width:100%; padding:12px 12px; border-radius:14px; border:1px solid var(--line); background: rgba(255,255,255,.04); color:var(--text); outline:none"
+              />
+            </label>
+
+            <label>
+              <span class="tiny">Rôle</span>
+              <select
+                style="width:100%; padding:12px 12px; border-radius:14px; border:1px solid var(--line); background: rgba(255,255,255,.04); color:var(--text); outline:none"
+              >
+                <option>CFO / RAF</option>
+                <option>Dirigeant</option>
+                <option>Expert-comptable</option>
+                <option>Responsable conformité</option>
+                <option>DSI / SI</option>
+              </select>
+            </label>
+
+            <button class="btn primary" type="submit">Demander le diagnostic</button>
+            <p class="tiny">Ce formulaire est un placeholder (à brancher sur Sylius/CRM).</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footerGrid">
+        <div>
+          <div style="font-weight:900">Dorevia-Vault</div>
+          <div class="tiny">La vérité financière prouvée • Dorevia UI : interface Linky (lecture seule)</div>
+        </div>
+        <div class="actions">
+          <a class="btn secondary" href="#top">Retour en haut</a>
+          <a class="btn primary" href="mailto:contact@doreviateam.com?subject=Dorevia-Vault%20-%20Contact">Contact</a>
+        </div>
+      </div>
+      <div class="tiny" style="margin-top:12px; opacity:.9">
+        © <span id="year"></span> Dorevia. Tous droits réservés.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Smooth scroll for same-page anchors
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        const id = a.getAttribute('href');
+        if (!id || id === '#') return;
+        const el = document.querySelector(id);
+        if (!el) return;
+        e.preventDefault();
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.pushState(null, '', id);
+      });
+    });
+
+    // FAQ: keep only one open at a time (optional “adult” behavior)
+    const details = Array.from(document.querySelectorAll('#faq details'));
+    details.forEach(d => d.addEventListener('toggle', () => {
+      if (!d.open) return;
+      details.forEach(other => { if (other !== d) other.open = false; });
+    }));
+  </script>
+</body>
+</html>

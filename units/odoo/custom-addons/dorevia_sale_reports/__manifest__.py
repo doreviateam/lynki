@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    "name": "Dorevia Sale Reports",
+    "name": "Dorevia Sale Reports(NOK)",
     "version": "18.0.1.1.0",
     "category": "Sales/Reporting",
     "summary": "Modèles d'impression Dorevia (Devis, Commandes, Pro Forma) — PDF layout stable",

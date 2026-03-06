@@ -1,0 +1,53 @@
+# Docker Compose — Unit DLP (Decision Link Performance)
+# SPEC : ZeDocs/web31/SPEC_DLP_v0.3.md
+# Base PostgreSQL dédiée au service DLP
+
+services:
+  dlp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dorevia/dlp:v0.3
+    container_name: dlp
+    environment:
+      PORT: ${DLP_PORT:-8020}
+      DATABASE_URL: postgres://dlp:${DLP_DB_PASSWORD:-dlp_password}@dlp-db:5432/dorevia_dlp
+      LOG_LEVEL: ${DLP_LOG_LEVEL:-info}
+      DLP_MIGRATIONS_DIR: /app/migrations
+    networks:
+      - dorevia-network
+    depends_on:
+      dlp-db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8020/health > /dev/null || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  dlp-db:
+    image: postgres:16
+    container_name: dlp-db
+    environment:
+      POSTGRES_USER: dlp
+      POSTGRES_PASSWORD: ${DLP_DB_PASSWORD:-dlp_password}
+      POSTGRES_DB: dorevia_dlp
+    volumes:
+      - dlp_db_data:/var/lib/postgresql/data
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dlp -d dorevia_dlp"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+networks:
+  dorevia-network:
+    external: true
+
+volumes:
+  dlp_db_data:

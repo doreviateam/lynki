@@ -1,0 +1,167 @@
+# SPEC --- Confirmation Bancaire Stricte des Événements Financiers (v1.2)
+
+**Date :** 2026-02-25\
+**Statut :** P0 --- Implémentable\
+**Auteur :** Dorevia --- Équipe Architecture & Développement
+
+------------------------------------------------------------------------
+
+# 1. Objectif
+
+Mettre en place dans le Vault un mécanisme strict de confirmation
+bancaire des événements financiers vaultés, indépendant d'Odoo après
+ingestion, supportant :
+
+-   Rapprochements complets
+-   Rapprochements partiels
+-   Annulations de rapprochement (unreconcile)
+-   Idempotence forte
+-   Agrégation fiable pour indicateurs CFO
+
+------------------------------------------------------------------------
+
+# 2. Définitions
+
+## 2.1 Événement financier
+
+Un document Vault représentant un mouvement financier entrant ou
+sortant.
+
+Champs requis (documents) : - id (UUID) - tenant - source - odoo_model -
+odoo_id - amount_signed (NUMERIC(16,2)) - currency - occurred_at
+
+------------------------------------------------------------------------
+
+# 3. Nouveau Modèle de Données
+
+## 3.1 Table : financial_recon_deltas
+
+  Champ                    Type            Description
+  ------------------------ --------------- -------------------------
+  id                       UUID            PK
+  tenant                   TEXT            Tenant
+  document_id              UUID            FK documents.id
+  odoo_move_id             INT             account.move lié
+  bank_statement_line_id   INT             Ligne bancaire source
+  delta_amount_abs         NUMERIC(16,2)   Montant absolu confirmé
+  direction                TEXT            '+' ou '-'
+  currency                 TEXT            Devise
+  event_uid                TEXT            Clé idempotente
+  occurred_at              TIMESTAMP       Date métier
+  ingested_at              TIMESTAMP       Date ingestion Vault
+
+Contraintes : - UNIQUE(tenant, event_uid) - INDEX (tenant,
+document_id) - INDEX (tenant, odoo_move_id)
+
+------------------------------------------------------------------------
+
+# 4. Logique d'Ingestion
+
+## 4.1 Événement bank.move.reconciled
+
+Payload minimal requis :
+
+``` json
+{
+  "event_type": "bank.move.reconciled",
+  "tenant": "...",
+  "bank_statement_line_id": 123,
+  "impacted_documents": [
+    {"odoo_model": "account.payment", "odoo_id": 901, "amount_abs": 700.00}
+  ],
+  "occurred_at": "..."
+}
+```
+
+Traitement : - Résolution document_id - Insertion delta (+) -
+Idempotence via event_uid
+
+## 4.2 Événement bank.move.unreconciled
+
+Même structure, direction '-'
+
+------------------------------------------------------------------------
+
+# 5. Calcul Confirmation
+
+Pour chaque document :
+
+confirmed_abs = clamp( SUM(delta_amount_abs \* sign(direction)), min=0,
+max=ABS(document.amount_signed) )
+
+Statuts : - full - partial - none
+
+------------------------------------------------------------------------
+
+# 6. Métriques Globales
+
+X_abs = SUM(ABS(amount_signed)) Y_abs = SUM(confirmed_abs) Z_abs =
+X_abs - Y_abs
+
+confirmation_rate = CASE WHEN X_abs = 0 THEN 1 ELSE Y_abs / X_abs END
+
+------------------------------------------------------------------------
+
+# 7. API Treasury
+
+Extension JSON :
+
+``` json
+{
+  "confirmation": {
+    "total_amount_abs": 0,
+    "confirmed_amount_abs": 0,
+    "unconfirmed_amount_abs": 0,
+    "confirmation_rate": 0.0,
+    "full_count": 0,
+    "partial_count": 0,
+    "unconfirmed_count": 0
+  }
+}
+```
+
+------------------------------------------------------------------------
+
+# 8. Idempotence
+
+event_uid = hash( tenant + event_type + bank_statement_line_id +
+sorted(move_ids) + occurred_at )
+
+------------------------------------------------------------------------
+
+# 9. Cas à Tester
+
+-   Partiel
+-   Full
+-   Unreconcile
+-   Double ingestion
+-   Underflow
+-   Multi-split
+
+------------------------------------------------------------------------
+
+# 10. Plan de Migration
+
+1.  Création table
+2.  Implémentation handler
+3.  Backfill historique
+4.  Activation métrique stricte
+5.  Retrait proxy
+
+------------------------------------------------------------------------
+
+# 11. DoD
+
+-   Table créée
+-   Handlers opérationnels
+-   Tests unitaires complets
+-   API exposée
+-   Backfill validé
+
+------------------------------------------------------------------------
+
+# 12. Conclusion
+
+Cette évolution permet au Vault de devenir la source stricte et
+indépendante de la confirmation bancaire des événements financiers,
+alignée avec la vision Dorevia d'infrastructure financière probante.

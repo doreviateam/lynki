@@ -7,7 +7,7 @@ FROM python:3.11-slim
 # Métadonnées
 LABEL maintainer="Dorevia Team"
 LABEL description="Dorevia Vault Integration Gateway"
-LABEL version="0.1.2"
+LABEL version="0.1.3"
 
 # Variables d'environnement
 ENV PYTHONUNBUFFERED=1
@@ -19,6 +19,7 @@ WORKDIR /app
 # Installer les dépendances système
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    cron \
     && rm -rf /var/lib/apt/lists/*
 
 # Copier requirements et installer dépendances Python
@@ -29,6 +30,17 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copier le code source
 COPY dvig/ ./dvig/
 COPY config/ ./config/
+# Copier les répertoires nécessaires pour le worker outbox et les routes (SPEC DVIG → Vault Forwarding v1.1)
+COPY workers/ ./workers/
+COPY storage/ ./storage/
+COPY models/ ./models/
+COPY auth/ ./auth/
+COPY services/ ./services/
+COPY api/ ./api/
+COPY config.py ./config.py
+COPY metrics.py ./metrics.py
+# Copier les scripts utilitaires
+COPY scripts/ ./scripts/
 
 # Créer l'utilisateur non-root
 RUN useradd -m -u 1000 dvig && \

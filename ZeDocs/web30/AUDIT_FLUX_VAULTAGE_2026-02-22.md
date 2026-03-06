@@ -5,6 +5,16 @@
 
 ---
 
+## Erreur POS : « Invalid field 'picking_ids' on model 'sale.order' » (annexe)
+
+**Symptôme** : au chargement du POS (`/pos/ui?config_id=2`), une erreur s'affiche.
+
+**Cause** : le champ `picking_ids` sur `sale.order` est défini par le module **sale_stock** (Gestion des ventes et des entrepôts). Sans ce module, une vue/action ou un domaine peut tenter d'accéder à ce champ et provoquer l'erreur.
+
+**Solution** : installer le module **sale_stock** (Apps → Ventes → « Gestion des ventes et des entrepôts » / « Sales and Warehouse Management »).
+
+---
+
 ## 1. Schéma du flux
 
 ```

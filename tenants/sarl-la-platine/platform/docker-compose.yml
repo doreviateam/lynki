@@ -1,0 +1,61 @@
+# Platform sarl-la-platine — Vault uniquement (pour Caddy vault.sarl-la-platine.doreviateam.com)
+# Card Ventes certifiées : GET /ui/aggregations/sales
+
+services:
+  vault-db:
+    image: postgres:16
+    container_name: vault-db-sarl-la-platine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=vault
+      - POSTGRES_PASSWORD=${VAULT_DB_PASSWORD:-vault_password}
+      - POSTGRES_DB=dorevia_vault
+    volumes:
+      - vault_db_data_sarl-la-platine:/var/lib/postgresql/data
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vault"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  vault:
+    image: dorevia/vault:cash-bank-method-2026-02-28
+    container_name: vault-sarl-la-platine
+    restart: unless-stopped
+    networks:
+      - dorevia-network
+    environment:
+      - DATABASE_URL=postgres://vault:${VAULT_DB_PASSWORD:-vault_password}@vault-db-sarl-la-platine:5432/dorevia_vault
+      - PORT=8080
+      - JWS_REQUIRED=false
+      # Trésorerie validée : proxy vers Odoo pour le rapprochement bancaire
+      - ODOO_BANK_RECONCILIATION_URL=http://odoo_stinger_sarl-la-platine:8069/dorevia/vault/linky_bank_reconciliation
+    volumes:
+      - vault_storage_sarl-la-platine:/opt/dorevia-vault/storage
+      - vault_ledger_sarl-la-platine:/opt/dorevia-vault/ledger
+      - vault_audit_sarl-la-platine:/opt/dorevia-vault/audit
+    depends_on:
+      vault-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "sh", "-lc", "wget -qO- http://127.0.0.1:8080/health >/dev/null || curl -f http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 40s
+
+volumes:
+  vault_db_data_sarl-la-platine:
+    name: vault_db_sarl-la-platine_data
+  vault_storage_sarl-la-platine:
+    name: vault_storage_sarl-la-platine
+  vault_ledger_sarl-la-platine:
+    name: vault_ledger_sarl-la-platine
+  vault_audit_sarl-la-platine:
+    name: vault_audit_sarl-la-platine
+
+networks:
+  dorevia-network:
+    external: true

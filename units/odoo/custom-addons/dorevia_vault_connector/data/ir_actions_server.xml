@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Action serveur : Sécuriser maintenant (contournement bouton form non déclenché) -->
+    <record id="action_securiser_maintenant_server" model="ir.actions.server">
+        <field name="name">🔐 Sécuriser maintenant</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">action = records[:1].action_securiser_maintenant()</field>
+    </record>
+
+    <!-- Action serveur : Backfill rapprochement bancaire RECONCIL (SPEC web16) -->
+    <record id="action_bank_reconciliation_backfill" model="ir.actions.server">
+        <field name="name">📥 Backfill rapprochement bancaire (RECONCIL)</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="state">code</field>
+        <field name="help">Initialise la projection Vault avec l'état courant des lignes de relevé bancaire (account.bank.statement.line). À exécuter une fois après déploiement RECONCIL.</field>
+        <field name="code"><![CDATA[
+result = env['bank.reconciliation.backfill'].run_backfill(company_id=env.company.id)
+if isinstance(result, dict):
+    msg = result.get('message', 'Backfill terminé.')
+    notif_type = 'success' if result.get('errors', 0) == 0 else 'warning'
+    action = {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'message': msg, 'type': notif_type, 'sticky': True}}
+else:
+    action = {}
+]]></field>
+    </record>
+
+    <!-- Action serveur : Backfill Confirmation Bancaire v1.3 (impacted_documents → financial_recon_deltas) -->
+    <record id="action_reconcil_backfill_confirmation" model="ir.actions.server">
+        <field name="name">📥 Backfill Confirmation Bancaire (v1.3)</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="state">code</field>
+        <field name="help">Émet bank.move.reconciled avec impacted_documents pour les lignes rapprochées. Idempotent. Complète le backfill projection RECONCIL.</field>
+        <field name="code"><![CDATA[
+n = env['account.bank.statement.line'].backfill_reconciliation_confirmation_events(batch_size=500)
+action = {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'message': f'Backfill Confirmation : {n} lignes traitées.', 'type': 'success', 'sticky': True}}
+]]></field>
+    </record>
+</odoo>

@@ -1,0 +1,57 @@
+# Docker Compose — Unit SuiteCRM (référence plateforme Dorevia)
+# Usage : référence pour render_app_compose.sh ; test local avec réseau dorevia-network
+# Conventions : container_name suitecrm_<env>_<tenant>, suitecrm_db_<env>_<tenant>
+# Port app : 80 (routage via Caddy uniquement)
+# Note : noms de volumes fixés (lab/lab) pour validation compose ; le render génère <env>_<tenant> dynamique
+
+services:
+  db:
+    image: ${SUITECRM_DB_IMAGE:-mariadb:11}
+    container_name: suitecrm_db_${DEPLOY_ENV:-lab}_${TENANT_ID:-lab}
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${SUITECRM_DB_NAME:-suitecrm}
+      MARIADB_USER: ${SUITECRM_DB_USER:-suitecrm}
+      MARIADB_PASSWORD: ${SUITECRM_DB_PASSWORD:-suitecrm}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root}
+    volumes:
+      - suitecrm_lab_lab_db:/var/lib/mysql
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb -u root -p\"$$MARIADB_ROOT_PASSWORD\" -e \"SELECT 1\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  suitecrm:
+    image: ${SUITECRM_IMAGE:-bitnami/suitecrm:8}
+    container_name: suitecrm_${DEPLOY_ENV:-lab}_${TENANT_ID:-lab}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SUITECRM_DATABASE_HOST: db
+      SUITECRM_DATABASE_NAME: ${SUITECRM_DB_NAME:-suitecrm}
+      SUITECRM_DATABASE_USER: ${SUITECRM_DB_USER:-suitecrm}
+      SUITECRM_DATABASE_PASSWORD: ${SUITECRM_DB_PASSWORD:-suitecrm}
+      SUITECRM_USERNAME: ${SUITECRM_ADMIN_USER:-admin}
+      SUITECRM_PASSWORD: ${SUITECRM_ADMIN_PASSWORD:-admin}
+      SUITECRM_HOST: ${SUITECRM_DOMAIN:-suitecrm.lab.lab.doreviateam.com}
+      TZ: ${TZ:-Europe/Paris}
+    volumes:
+      - suitecrm_lab_lab_data:/bitnami/suitecrm
+    networks:
+      - dorevia-network
+
+volumes:
+  suitecrm_lab_lab_db:
+    name: suitecrm_lab_lab_db
+  suitecrm_lab_lab_data:
+    name: suitecrm_lab_lab_data
+
+networks:
+  dorevia-network:
+    external: true

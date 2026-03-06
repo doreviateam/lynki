@@ -3,12 +3,48 @@
 }
 
 
+# Tenant: conceptsun97139 - Environment: stinger
+
+
+# odoo - Environnements (tenant conceptsun97139)
+odoo.stinger.conceptsun97139.doreviateam.com {
+  reverse_proxy odoo_stinger_conceptsun97139:8069
+}
+
+# Services partagés (tenant conceptsun97139) - 1 par tenant
+dvig.conceptsun97139.doreviateam.com {
+  reverse_proxy dvig-conceptsun97139:8080
+}
+
+vault.conceptsun97139.doreviateam.com {
+  reverse_proxy vault-conceptsun97139:8080
+}
 # Tenant: core - Environment: lab
 
 
 # odoo - Environnements (tenant core)
 odoo.lab.core.doreviateam.com {
   reverse_proxy odoo_lab_core:8069
+}
+
+# n8n - Environnements (tenant core)
+n8n.lab.core.doreviateam.com {
+  reverse_proxy n8n_lab_core:5678
+}
+
+# suitecrm - Environnements (tenant core)
+suitecrm.lab.core.doreviateam.com {
+  reverse_proxy suitecrm_lab_core:8080
+}
+
+# sylius - Environnements (tenant core)
+sylius.lab.core.doreviateam.com {
+  reverse_proxy sylius_lab_core_nginx:80
+}
+
+# ui - Environnements (tenant core)
+ui.lab.core.doreviateam.com {
+  reverse_proxy appsmith_lab_core:80
 }
 
 # Services partagés (tenant core) - 1 par tenant
@@ -19,102 +55,118 @@ dvig.core.doreviateam.com {
 vault.core.doreviateam.com {
   reverse_proxy vault-core:8080
 }
-# Tenant: core - Environment: prod
+# Tenant: core-stinger - Environment: stinger
 
 
-# odoo - Environnements (tenant core)
-odoo.prod.core.doreviateam.com {
-  reverse_proxy odoo_prod_core:8069
+# odoo - Environnements (tenant core-stinger)
+odoo.stinger.core-stinger.doreviateam.com {
+  reverse_proxy odoo_stinger_core-stinger:8069
 }
 
-# Services partagés (tenant core) - 1 par tenant
-
-# Tenant: core - Environment: stinger
-
-
-# odoo - Environnements (tenant core)
-odoo.stinger.core.doreviateam.com {
-  reverse_proxy odoo_stinger_core:8069
+# Services partagés (tenant core-stinger) - 1 par tenant
+dvig.core-stinger.doreviateam.com {
+  reverse_proxy dvig-core-stinger:8080
 }
 
-# Services partagés (tenant core) - 1 par tenant
+vault.core-stinger.doreviateam.com {
+  reverse_proxy vault-core-stinger:8080
+}
+# Tenant: lab - Environment: lab
 
-# Tenant: dido - Environment: lab
 
-
-# odoo - Environnements (tenant dido)
-odoo.lab.dido.doreviateam.com {
-  reverse_proxy odoo_lab_dido:8069
+# odoo - Environnements (tenant lab)
+odoo.lab.lab.doreviateam.com {
+  reverse_proxy odoo_lab_lab:8069
 }
 
-# Services partagés (tenant dido) - 1 par tenant
-dvig.dido.doreviateam.com {
-  reverse_proxy dvig-dido:8080
+# suitecrm - Environnements (tenant lab)
+suitecrm.lab.lab.doreviateam.com {
+  reverse_proxy suitecrm_lab_lab:80
 }
 
-vault.dido.doreviateam.com {
-  reverse_proxy vault-dido:8080
-}
-# Tenant: dido - Environment: prod
-
-
-# odoo - Environnements (tenant dido)
-odoo.prod.dido.doreviateam.com {
-  reverse_proxy odoo_prod_dido:8069
+# n8n - Environnements (tenant lab)
+n8n.lab.lab.doreviateam.com {
+  reverse_proxy n8n_lab_lab:5678
 }
 
-# Services partagés (tenant dido) - 1 par tenant
-
-# Tenant: dido - Environment: stinger
-
-
-# odoo - Environnements (tenant dido)
-odoo.stinger.dido.doreviateam.com {
-  reverse_proxy odoo_stinger_dido:8069
+# Services partagés (tenant lab) - 1 par tenant
+dvig.lab.doreviateam.com {
+  reverse_proxy dvig-lab:8080
 }
 
-# Services partagés (tenant dido) - 1 par tenant
+vault.lab.doreviateam.com {
+  reverse_proxy vault-lab:8080
+}
+# Tenant: laplatine2026 - Environment: lab
 
-# Tenant: rozas - Environment: lab
 
-
-# odoo - Environnements (tenant rozas)
-odoo.lab.rozas.doreviateam.com {
-  reverse_proxy odoo_lab_rozas:8069
+# odoo - Environnements (tenant laplatine2026)
+odoo.lab.laplatine2026.doreviateam.com {
+  reverse_proxy odoo_lab_laplatine2026:8069
 }
 
-# Services partagés (tenant rozas) - 1 par tenant
-dvig.rozas.doreviateam.com {
-  reverse_proxy dvig-rozas:8080
+# ui - Environnements (tenant laplatine2026)
+ui.lab.laplatine2026.doreviateam.com {
+  reverse_proxy linky_lab_laplatine2026:3000
 }
 
-vault.rozas.doreviateam.com {
-  reverse_proxy vault-rozas:8080
-}
-# Tenant: rozas - Environment: prod
-
-
-# odoo - Environnements (tenant rozas)
-[1;33mWARN: [0mCollision alias détectée: erp.rozas.gp (ignoré)
-odoo.prod.rozas.rozas.gp,erp.rozas.gp,crm.rozas.gp,odoo.prod.rozas.doreviateam.com {
-  reverse_proxy odoo_prod_rozas:8069
+# Services partagés (tenant laplatine2026) - 1 par tenant
+dvig.laplatine2026.doreviateam.com {
+  reverse_proxy dvig-laplatine2026:8080
 }
 
-# Services partagés (tenant rozas) - 1 par tenant
-dvig.rozas.rozas.gp,erp.rozas.gp,dvig.rozas.doreviateam.com {
-  reverse_proxy dvig-rozas:8080
+vault.laplatine2026.doreviateam.com {
+  reverse_proxy vault-laplatine2026:8080
+}
+# Tenant: lglz44 - Environment: lab
+
+
+# odoo - Environnements (tenant lglz44)
+odoo.lab.lglz44.doreviateam.com {
+  reverse_proxy odoo_lab_lglz44:8069
 }
 
-vault.rozas.rozas.gp,erp.rozas.gp,vault.rozas.doreviateam.com {
-  reverse_proxy vault-rozas:8080
-}
-# Tenant: rozas - Environment: stinger
-
-
-# odoo - Environnements (tenant rozas)
-odoo.stinger.rozas.doreviateam.com {
-  reverse_proxy odoo_stinger_rozas:8069
+# Services partagés (tenant lglz44) - 1 par tenant
+dvig.lglz44.doreviateam.com {
+  reverse_proxy dvig-lglz44:8080
 }
 
-# Services partagés (tenant rozas) - 1 par tenant
+vault.lglz44.doreviateam.com {
+  reverse_proxy vault-lglz44:8080
+}
+# Tenant: sarl-la-platine - Environment: lab
+
+
+# odoo - Environnements (tenant sarl-la-platine)
+odoo.lab.sarl-la-platine.doreviateam.com {
+  reverse_proxy odoo_lab_sarl-la-platine:8069
+}
+
+# ui - Environnements (tenant sarl-la-platine)
+ui.lab.sarl-la-platine.doreviateam.com {
+  reverse_proxy linky_lab_sarl-la-platine:3000
+}
+
+# Services partagés (tenant sarl-la-platine) - 1 par tenant
+dvig.sarl-la-platine.doreviateam.com {
+  reverse_proxy dvig-sarl-la-platine:8080
+}
+
+vault.sarl-la-platine.doreviateam.com {
+  reverse_proxy vault-sarl-la-platine:8080
+}
+# Tenant: sarl-la-platine - Environment: stinger
+
+
+# odoo - Environnements (tenant sarl-la-platine)
+odoo.stinger.sarl-la-platine.doreviateam.com {
+  reverse_proxy odoo_stinger_sarl-la-platine:8069
+}
+
+# ui - Environnements (tenant sarl-la-platine)
+ui.stinger.sarl-la-platine.doreviateam.com {
+  reverse_proxy linky_stinger_sarl-la-platine:3000
+}
+
+# Services partagés (tenant sarl-la-platine) - 1 par tenant
 

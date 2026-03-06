@@ -1,0 +1,32 @@
+-- Backfill total_ht (et total_ttc si besoin) depuis les odoo_id pour sarl-la-platine
+-- Données source : Odoo account_move (amount_untaxed)
+UPDATE documents SET total_ht = 356626.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1896;
+UPDATE documents SET total_ht = 110466.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1898;
+UPDATE documents SET total_ht = 3444.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1899;
+UPDATE documents SET total_ht = 2664.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1900;
+UPDATE documents SET total_ht = 39483.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1901;
+UPDATE documents SET total_ht = 39483.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1902;
+UPDATE documents SET total_ht = 2340.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1903;
+UPDATE documents SET total_ht = 123.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1904;
+UPDATE documents SET total_ht = 11438.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1905;
+UPDATE documents SET total_ht = 4000.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1906;
+UPDATE documents SET total_ht = 200.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1907;
+UPDATE documents SET total_ht = 3000.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1908;
+UPDATE documents SET total_ht = 24680.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1909;
+UPDATE documents SET total_ht = 2460.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1910;
+UPDATE documents SET total_ht = 1200.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1911;
+UPDATE documents SET total_ht = 165.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1912;
+UPDATE documents SET total_ht = 633.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1916;
+UPDATE documents SET total_ht = 31.25 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1920;
+UPDATE documents SET total_ht = 274.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1924;
+UPDATE documents SET total_ht = 337.15 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1930;
+UPDATE documents SET total_ht = 3960.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1942;
+UPDATE documents SET total_ht = 12.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1945;
+UPDATE documents SET total_ht = 24000.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1946;
+UPDATE documents SET total_ht = 14.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1947;
+UPDATE documents SET total_ht = 1.25 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1948;
+UPDATE documents SET total_ht = 153.75 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1949;
+UPDATE documents SET total_ht = 125000.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1952;
+UPDATE documents SET total_ht = 1958.75 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1953;
+UPDATE documents SET total_ht = 1800.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1954;
+UPDATE documents SET total_ht = 1800.00 WHERE tenant = 'sarl-la-platine' AND odoo_model = 'account.move' AND odoo_id = 1956;

@@ -1,0 +1,308 @@
+/* ===== Landing Page — Design Inspiré Solo.ai ===== */
+/* Transformation pour atteindre un niveau de design équivalent à Solo.ai */
+
+/* ===== 1. Espacement Global ===== */
+
+.dv-section {
+    padding: 60px 0 !important; /* Réduit pour sections qui se suivent normalement */
+}
+
+@media (max-width: 991.98px) {
+    .dv-section {
+        padding: 40px 0 !important; /* Mobile : 40px */
+    }
+}
+
+/* Container max-width */
+.container {
+    max-width: 1200px !important;
+}
+
+/* ===== 2. Typographie Améliorée ===== */
+
+.ud-section-title-heading {
+    font-size: clamp(2.25rem, 5vw, 3rem) !important; /* 36-48px au lieu de 28-40px */
+    font-weight: 800 !important;
+    line-height: 1.2 !important;
+    margin-bottom: 48px !important; /* Augmenté de 24px */
+    letter-spacing: -0.02em !important;
+}
+
+.dv-position-title,
+.dv-proof-title {
+    font-size: clamp(2.25rem, 5vw, 3rem) !important;
+    margin-bottom: 32px !important;
+}
+
+/* Sous-titres */
+.dv-hook,
+.proof-hook {
+    font-size: 20px !important; /* Augmenté de 18px */
+    line-height: 1.6 !important;
+    margin-bottom: 32px !important;
+}
+
+/* Texte de corps */
+.dv-card p,
+.dv-position-text {
+    font-size: 16px !important; /* Augmenté de 14-15px */
+    line-height: 1.7 !important; /* Amélioré de 1.5-1.6 */
+}
+
+/* ===== 3. Cartes Modernisées ===== */
+
+.dv-card {
+    background: rgba(255, 255, 255, 0.15) !important; /* Plus clair : 0.06 → 0.15 */
+    border: 1px solid rgba(255, 255, 255, 0.25) !important; /* Plus visible */
+    border-radius: 24px !important; /* Augmenté de 18px */
+    padding: 40px !important; /* Augmenté de 24px */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                0 2px 4px -1px rgba(0, 0, 0, 0.06) !important; /* Ombre plus douce */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    backdrop-filter: blur(10px) !important; /* Effet glassmorphism */
+    -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.dv-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+                0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Cartes dans section Explications */
+.dv-explications .dv-card {
+    padding: 48px 32px !important; /* Encore plus généreux */
+}
+
+/* ===== 4. Icônes Plus Proéminentes ===== */
+
+.dv-explications .dv-card > div:first-child {
+    font-size: 64px !important; /* Augmenté de 48px */
+    margin-bottom: 24px !important; /* Augmenté de 16px */
+}
+
+/* ===== 5. Espacement Entre Éléments ===== */
+
+/* Gap entre cartes */
+.row.g-4,
+.row[class*="gap"] {
+    gap: 32px !important; /* Augmenté de 20-24px */
+}
+
+/* Margin-top sections */
+.mt-4 {
+    margin-top: 32px !important; /* Augmenté de 24px */
+}
+
+.mt-5 {
+    margin-top: 48px !important; /* Augmenté de 40px */
+}
+
+/* Espacement dans les cartes */
+.dv-card h3 {
+    margin-bottom: 16px !important; /* Augmenté de 10-12px */
+    font-size: 20px !important; /* Augmenté de 16-18px */
+    font-weight: 700 !important;
+}
+
+.dv-card p {
+    margin-bottom: 0 !important;
+    line-height: 1.7 !important;
+}
+
+/* ===== 6. Section Bénéfices Améliorée ===== */
+
+.dv-explications .dv-card:last-child {
+    padding: 40px !important;
+}
+
+.dv-explications .dv-card:last-child h3 {
+    font-size: 22px !important;
+    margin-bottom: 32px !important;
+}
+
+.dv-explications .dv-card:last-child > div {
+    gap: 24px !important; /* Augmenté de 20px */
+}
+
+.dv-explications .dv-card:last-child > div > div {
+    padding: 16px 20px !important; /* Augmenté de 12px */
+    border-radius: 16px !important; /* Augmenté de 12px */
+}
+
+/* ===== 7. Section À Propos Améliorée ===== */
+
+.dv-apropos .dv-card {
+    padding: 40px 32px !important;
+}
+
+.dv-apropos .dv-card h3 {
+    font-size: 20px !important;
+    margin-bottom: 16px !important;
+}
+
+.dv-apropos .dv-transparency {
+    padding: 32px !important; /* Augmenté de 20px */
+    border-radius: 20px !important; /* Augmenté de 18px */
+    margin: 32px auto !important; /* Augmenté de 24px */
+}
+
+/* ===== 8. Boutons Améliorés ===== */
+
+.ud-main-btn,
+.dv-btn {
+    padding: 14px 32px !important; /* Augmenté de 12px 24px */
+    font-size: 16px !important; /* Augmenté de 14-15px */
+    font-weight: 600 !important;
+    border-radius: 12px !important; /* Augmenté de 8-10px */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.ud-main-btn:hover,
+.dv-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 
+                0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ===== 9. Section Positionnement ===== */
+
+.dv-position-content {
+    margin-bottom: 48px !important; /* Augmenté de 32px */
+}
+
+.dv-position-content p {
+    margin-bottom: 20px !important; /* Augmenté de 14px */
+    font-size: 17px !important; /* Augmenté de 16px */
+}
+
+/* ===== 10. Section Preuve ===== */
+
+.dv-proof__visual {
+    border-radius: 20px !important; /* Augmenté de 18px */
+    padding: 24px !important; /* Augmenté de 16px */
+}
+
+.dv-proof .dv-card {
+    padding: 32px !important; /* Augmenté de 20px */
+}
+
+.dv-proof .dv-card h3 {
+    font-size: 20px !important;
+    margin-bottom: 20px !important;
+}
+
+.dv-proof .dv-card ul {
+    margin-bottom: 24px !important;
+}
+
+.dv-proof .dv-card ul li {
+    font-size: 16px !important;
+    margin: 12px 0 !important; /* Augmenté de 10px */
+    line-height: 1.7 !important;
+}
+
+/* ===== 11. Responsive ===== */
+
+@media (max-width: 991.98px) {
+    .dv-section {
+        padding: 80px 0 !important;
+    }
+    
+    .ud-section-title-heading {
+        font-size: clamp(1.75rem, 6vw, 2.25rem) !important;
+        margin-bottom: 32px !important;
+    }
+    
+    .dv-card {
+        padding: 32px 24px !important;
+    }
+    
+    .dv-explications .dv-card > div:first-child {
+        font-size: 56px !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .dv-section {
+        padding: 60px 0 !important;
+    }
+    
+    .ud-section-title-heading {
+        font-size: clamp(1.5rem, 7vw, 2rem) !important;
+        margin-bottom: 24px !important;
+    }
+    
+    .dv-card {
+        padding: 24px 20px !important;
+        border-radius: 20px !important;
+    }
+    
+    .dv-explications .dv-card > div:first-child {
+        font-size: 48px !important;
+    }
+}
+
+/* ===== 12. Amélioration Contraste Texte ===== */
+
+.dv-card,
+.dv-position-content,
+.dv-proof-content,
+.dv-explications,
+.dv-apropos {
+    color: rgba(255, 255, 255, 0.95) !important; /* Amélioré de 0.72-0.85 */
+}
+
+.dv-card h3,
+.dv-card strong,
+.dv-position-content strong,
+.dv-proof-content strong {
+    color: rgba(255, 255, 255, 1) !important; /* Blanc pur pour les titres */
+    font-weight: 700 !important;
+}
+
+.dv-card p,
+.dv-position-text,
+.dv-proof-description {
+    color: rgba(255, 255, 255, 0.9) !important; /* Très lisible */
+}
+
+.dv-card ul li {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Hook et sous-titres */
+.proof-hook,
+.dv-hook {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-weight: 500 !important;
+}
+
+/* ===== 13. Espacement Vertical Entre Sections ===== */
+
+section + section {
+    margin-top: 0 !important; /* Les sections ont déjà leur padding */
+}
+
+/* ===== 14. Header Spacing ===== */
+
+header.mb-5 {
+    margin-bottom: 64px !important; /* Augmenté de 40px */
+}
+
+@media (max-width: 767.98px) {
+    header.mb-5 {
+        margin-bottom: 48px !important;
+    }
+}
+
+/* ===== 15. Microcopy Amélioré ===== */
+
+.dv-microcopy {
+    font-size: 14px !important; /* Augmenté de 13px */
+    margin-top: 16px !important; /* Augmenté de 10px */
+    color: rgba(255, 255, 255, 0.7) !important; /* Amélioré de 0.56 */
+}
+
+/* ===== Fin du fichier ===== */

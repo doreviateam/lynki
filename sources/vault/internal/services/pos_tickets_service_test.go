@@ -29,6 +29,14 @@ func (m *MockDocumentRepository) GetDocumentBySHA256(ctx context.Context, sha256
 	return args.Get(0).(*models.Document), args.Error(1)
 }
 
+func (m *MockDocumentRepository) GetDocumentByIdempotencyKey(ctx context.Context, tenant, idempotencyKey string) (*models.Document, error) {
+	args := m.Called(ctx, tenant, idempotencyKey)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Document), args.Error(1)
+}
+
 func (m *MockDocumentRepository) InsertDocumentWithEvidence(
 	ctx context.Context,
 	doc *models.Document,

@@ -1,34 +1,23 @@
 {
   "version": "1.0",
   "tenant_id": "core",
-  "created_at": "2025-01-28T00:00:00Z",
-  "universes": [
-    "odoo"
-  ],
-  "environments": [
-    "lab",
-    "stinger",
-    "prod"
-  ],
+  "created_at": "2026-02-01T00:00:00Z",
+  "universes": ["odoo", "n8n", "suitecrm", "sylius", "ui"],
+  "environments": ["lab"],
   "domain_mode": "saas",
   "units": {
-    "platform": [
-      "dvig",
-      "vault",
-      "postgres"
-    ],
-    "odoo": [
-      "odoo",
-      "postgres"
-    ]
-  },
-  "secrets_refs": {
-    "dvig_tokens": "tenants/core/secrets/dvig.tokens.yml"
+    "platform": ["dvig", "vault"],
+    "odoo": ["odoo", "postgres"],
+    "n8n": ["n8n", "postgres"],
+    "suitecrm": ["suitecrm", "mariadb"],
+    "sylius": ["sylius", "postgres"],
+    "ui": ["appsmith"]
   },
   "images": {
-    "dvig": "dorevia/dvig:0.1.2-auth",
-    "vault": "dorevia/vault:v1.3.0",
-    "odoo": "odoo:18.0",
-    "postgres": "postgres:16"
+    "odoo": "odoo:18.0-20250819",
+    "postgres": "postgres:16",
+    "n8n": "n8nio/n8n:latest",
+    "mariadb": "mariadb:11",
+    "suitecrm": "bitnamilegacy/suitecrm:8"
   }
 }

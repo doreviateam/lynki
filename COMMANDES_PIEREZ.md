@@ -83,7 +83,7 @@ cat > tenants/pierez/state/manifest.json << 'EOF'
   "images": {
     "dvig": "dorevia/dvig:0.1.2-auth",
     "vault": "dorevia/vault:v1.3.0",
-    "odoo": "odoo:18.0",
+    "odoo": "odoo:18.0-20250819",
     "postgres": "postgres:16"
   }
 }

@@ -89,12 +89,12 @@ validate_env() {
   esac
 }
 
-# Validation univers
+# Validation univers (odoo, suitecrm, n8n, pos, sylius, ui)
 validate_univers() {
   local univers="$1"
   case "$univers" in
-    odoo) ;;
-    *) error "Univers invalide: $univers (v1.0: odoo uniquement) (E01)" "$E01" ;;
+    odoo|suitecrm|n8n|pos|sylius|ui) ;;
+    *) error "Univers invalide: $univers (E01)" "$E01" ;;
   esac
 }
 
@@ -131,15 +131,16 @@ _get_platform_container_name() {
 }
 
 # Générer nom container app (déterministe)
+# unit = nom service (odoo, suitecrm, n8n pour l'app ; db pour la base)
 _get_app_container_name() {
   local univers="$1"
   local env="$2"
   local tenant="$3"
-  local unit="$4"  # odoo, db
+  local unit="$4"
   
   case "$unit" in
-    odoo) echo "${univers}_${env}_${tenant}" ;;
     db) echo "${univers}_db_${env}_${tenant}" ;;
+    odoo|suitecrm|n8n|pos|sylius) echo "${univers}_${env}_${tenant}" ;;
     *) error "Unit app inconnue: $unit (E01)" "$E01" ;;
   esac
 }
@@ -1508,11 +1509,24 @@ cmd_platform_up() {
   
   # Phase 1: Utiliser fichier généré depuis manifest si disponible
   # Sinon, fallback sur template (compatibilité)
+  # SPEC_DVIG_VAULT_OPTIONNELS_v1.0 : Vérifier si units.platform est vide
   local manifest_file="$TENANTS_DIR/$tenant/state/manifest.json"
   local use_rendered=false
   local env_for_platform="lab"  # Par défaut, utiliser lab (platform partagé entre ENV)
   
   if [[ -f "$manifest_file" ]] && command -v jq &> /dev/null; then
+    # Vérifier si units.platform est vide (services platform optionnels)
+    local units_platform=$(cat "$manifest_file" | jq -r '.units.platform[]? // empty' 2>/dev/null || echo "")
+    if [[ -z "$units_platform" ]]; then
+      echo "ℹ️  Tenant $tenant configuré sans services platform (units.platform: [])"
+      echo "ℹ️  Aucun service platform à démarrer (DVIG/Vault optionnels selon SPEC_DVIG_VAULT_OPTIONNELS_v1.0)"
+      echo "💡 Pour ajouter des services platform, modifier le manifest et exécuter à nouveau cette commande"
+      return 0
+    fi
+    
+    # Créer répertoire platform si absent (pour copie du compose rendu)
+    mkdir -p "$platform_dir"
+    
     # Vérifier si fichier rendered existe (utiliser premier ENV disponible)
     local first_env=$(cat "$manifest_file" | jq -r '.environments[0] // "lab"' 2>/dev/null || echo "lab")
     env_for_platform="$first_env"
@@ -1535,9 +1549,15 @@ cmd_platform_up() {
     generate_platform_compose "$tenant"
   fi
   
-  # Vérifier tokens
+  # Vérifier tokens (uniquement si DVIG est dans units.platform)
   local tokens_file="$TENANTS_DIR/$tenant/secrets/dvig.tokens.yml"
-  if [[ ! -f "$tokens_file" ]]; then
+  if [[ -f "$manifest_file" ]] && command -v jq &> /dev/null; then
+    local has_dvig=$(cat "$manifest_file" | jq -r '.units.platform[]? | select(. == "dvig")' 2>/dev/null || echo "")
+    if [[ -n "$has_dvig" ]] && [[ ! -f "$tokens_file" ]]; then
+      error "Fichier tokens non trouvé: $tokens_file (requis pour DVIG) (E03)" "$E03"
+    fi
+  elif [[ ! -f "$tokens_file" ]]; then
+    # Fallback : vérifier tokens si manifest non disponible (compatibilité)
     error "Fichier tokens non trouvé: $tokens_file (E03)" "$E03"
   fi
   
@@ -1703,21 +1723,41 @@ cmd_platform_destroy() {
 }
 
 # Vérification platform up (prérequis pour app)
+# SPEC_DVIG_VAULT_OPTIONNELS_v1.0 : Vérification conditionnelle basée sur units.platform
 check_platform_up() {
   local tenant="$1"
   local platform_dir="$TENANTS_DIR/$tenant/platform"
   
+  # Lire le manifest pour déterminer les services requis
+  local manifest="$(_read_manifest "$tenant")"
+  local units_platform=$(echo "$manifest" | jq -r '.units.platform[]? // empty' 2>/dev/null || echo "")
+  
+  # Si aucun service platform requis, skip la vérification
+  if [[ -z "$units_platform" ]]; then
+    return 0  # Pas de platform requise
+  fi
+  
+  # Si docker-compose n'existe pas mais des services sont requis
   if [[ ! -f "$platform_dir/docker-compose.yml" ]]; then
     error "Platform $tenant non configurée. Démarrer avec: dorevia.sh platform up $tenant (E04)" "$E04"
   fi
   
-  # Vérifier que les containers platform sont running (générés depuis conventions)
-  local containers=(
-    "$(_get_platform_container_name "dvig" "$tenant")"
-    "$(_get_platform_container_name "vault" "$tenant")"
-  )
-  local all_up=true
+  # Vérifier uniquement les services présents dans units.platform
+  local containers=()
+  if echo "$units_platform" | grep -q "^dvig$"; then
+    containers+=("$(_get_platform_container_name "dvig" "$tenant")")
+  fi
+  if echo "$units_platform" | grep -q "^vault$"; then
+    containers+=("$(_get_platform_container_name "vault" "$tenant")")
+  fi
   
+  # Si aucun container à vérifier, skip
+  if [[ ${#containers[@]} -eq 0 ]]; then
+    return 0
+  fi
+  
+  # Vérifier que les containers requis sont running
+  local all_up=true
   for container in "${containers[@]}"; do
     if ! docker ps --format "{{.Names}}" | grep -q "^${container}$"; then
       all_up=false
@@ -1947,7 +1987,7 @@ cmd_app_up() {
     generate_app_compose "$univers" "$env" "$tenant" "$db_name" "$volume_db" "$volume_data" "$compose_project"
   fi
   
-  if [[ ! -f "$app_dir/odoo.conf" ]]; then
+  if [[ "$univers" == "odoo" ]] && [[ ! -f "$app_dir/odoo.conf" ]]; then
     generate_app_odoo_conf "$univers" "$env" "$tenant" "$db_name"
   fi
   
@@ -2101,11 +2141,13 @@ cmd_app_reset() {
   # Arrêter containers
   docker compose -p "$compose_project" down -v || true
   
-  # Drop DB si container DB existe encore
-  local db_container="$(_get_app_container_name "$univers" "$env" "$tenant" "db")"
-  if docker ps -a --format "{{.Names}}" | grep -q "^${db_container}$"; then
-    echo "🗑️  Suppression DB $db_name..."
-    docker exec "$db_container" psql -U odoo -c "DROP DATABASE IF EXISTS $db_name;" 2>/dev/null || true
+  # Drop DB (Odoo uniquement : PostgreSQL). Pour suitecrm/n8n, compose down -v suffit.
+  if [[ "$univers" == "odoo" ]]; then
+    local db_container="$(_get_app_container_name "$univers" "$env" "$tenant" "db")"
+    if docker ps -a --format "{{.Names}}" | grep -q "^${db_container}$"; then
+      echo "🗑️  Suppression DB $db_name..."
+      docker exec "$db_container" psql -U odoo -c "DROP DATABASE IF EXISTS $db_name;" 2>/dev/null || true
+    fi
   fi
   
   echo "✅ App $univers $env $tenant resetée (DB + volumes supprimés)"

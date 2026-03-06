@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400" fill="none">
+  <!-- Background structure -->
+  <path d="M 50 100 L 450 100 M 50 200 L 450 200 M 50 300 L 450 300" stroke="#E2E8F0" stroke-width="1"/>
+  
+  <!-- Streams -->
+  <path d="M 0 100 Q 150 100 250 150 T 500 200" stroke="#5B7CFA" stroke-width="1.5" stroke-dasharray="4 8" opacity="0.2"/>
+  <path d="M 0 300 Q 150 300 250 250 T 500 200" stroke="#5B7CFA" stroke-width="1.5" stroke-dasharray="4 8" opacity="0.2"/>
+  
+  <!-- Nodes -->
+  <circle cx="250" cy="200" r="40" fill="#fff" stroke="#5B7CFA" stroke-width="1.5"/>
+  <circle cx="250" cy="200" r="4" fill="#5B7CFA"/>
+
+  <!-- Stabilized Nodes -->
+  <g transform="translate(380, 150)">
+    <rect width="60" height="60" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    <path d="M 15 30 L 45 30 M 30 15 L 30 45" stroke="#5B7CFA" stroke-width="1.5"/>
+  </g>
+
+  <g transform="translate(380, 250)">
+    <rect width="60" height="60" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    <path d="M 15 30 L 45 30 M 30 15 L 30 45" stroke="#5B7CFA" stroke-width="1.5"/>
+  </g>
+</svg>

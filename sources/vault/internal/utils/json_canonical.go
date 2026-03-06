@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"sort"
 )
@@ -64,5 +66,21 @@ func normalizeValue(v interface{}) interface{} {
 	default:
 		return val
 	}
+}
+
+// ComputeHash calcule le SHA-256 (hex) des bytes. Utilisé pour le hash canonique (SPEC ERP Reconnect 🔐 A).
+func ComputeHash(data []byte) string {
+	sum := sha256.Sum256(data)
+	return hex.EncodeToString(sum[:])
+}
+
+// CanonicalJSONAndHash retourne la représentation canonique et son hash SHA-256 hex.
+// Garantit que le même contenu sémantique produit toujours le même hash (🔐 A).
+func CanonicalJSONAndHash(payloadJSON []byte) (canonical []byte, hashHex string, err error) {
+	canonical, err = CanonicalizeJSON(payloadJSON)
+	if err != nil {
+		return nil, "", err
+	}
+	return canonical, ComputeHash(canonical), nil
 }
 

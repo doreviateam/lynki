@@ -1,0 +1,58 @@
+# Docker Compose — Unit n8n (référence plateforme Dorevia)
+# Usage : référence pour render_app_compose.sh ; test local avec réseau dorevia-network
+# Conventions : container_name n8n_<env>_<tenant>, n8n_db_<env>_<tenant>
+# Port app : 5678 (routage via Caddy uniquement)
+# Note : noms de volumes fixés (lab/lab) pour validation compose ; le render génère <env>_<tenant> dynamique
+
+services:
+  db:
+    image: ${N8N_DB_IMAGE:-postgres:16}
+    container_name: n8n_db_${DEPLOY_ENV:-lab}_${TENANT_ID:-lab}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_POSTGRESDB_DATABASE:-n8n}
+      POSTGRES_USER: ${DB_POSTGRESDB_USER:-n8n}
+      POSTGRES_PASSWORD: ${DB_POSTGRESDB_PASSWORD:-n8n}
+    volumes:
+      - n8n_lab_lab_db:/var/lib/postgresql/data
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "PGPASSWORD=${DB_POSTGRESDB_PASSWORD:-n8n} psql -U ${DB_POSTGRESDB_USER:-n8n} -d ${DB_POSTGRESDB_DATABASE:-n8n} -h localhost -c 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  n8n:
+    image: ${N8N_IMAGE:-n8nio/n8n:latest}
+    container_name: n8n_${DEPLOY_ENV:-lab}_${TENANT_ID:-lab}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      N8N_HOST: ${N8N_DOMAIN:-n8n.lab.lab.doreviateam.com}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: https
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:?N8N_ENCRYPTION_KEY requis}
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: db
+      DB_POSTGRESDB_DATABASE: ${DB_POSTGRESDB_DATABASE:-n8n}
+      DB_POSTGRESDB_USER: ${DB_POSTGRESDB_USER:-n8n}
+      DB_POSTGRESDB_PASSWORD: ${DB_POSTGRESDB_PASSWORD:-n8n}
+      TZ: ${TZ:-Europe/Paris}
+    volumes:
+      - n8n_lab_lab_data:/home/node/.n8n
+    networks:
+      - dorevia-network
+
+volumes:
+  n8n_lab_lab_db:
+    name: n8n_lab_lab_db
+  n8n_lab_lab_data:
+    name: n8n_lab_lab_data
+
+networks:
+  dorevia-network:
+    external: true

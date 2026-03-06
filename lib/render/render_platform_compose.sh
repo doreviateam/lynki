@@ -55,7 +55,19 @@ MANIFEST=$(cat "$MANIFEST_FILE")
 
 # Extraire données
 TENANT_ID=$(echo "$MANIFEST" | jq -r '.tenant_id')
-UNITS_PLATFORM=$(echo "$MANIFEST" | jq -r '.units.platform[] // empty')
+# Vérifier si units.platform existe avant d'itérer
+# SPEC_DVIG_VAULT_OPTIONNELS_v1.0 : Support de units.platform: [] (tableau vide)
+HAS_PLATFORM=$(echo "$MANIFEST" | jq -r '.units.platform // null')
+if [[ "$HAS_PLATFORM" == "null" ]]; then
+  info "Tenant sans units.platform, génération platform ignorée"
+  exit 0
+fi
+UNITS_PLATFORM=$(echo "$MANIFEST" | jq -r '.units.platform[]? // empty')
+# Si units.platform est un tableau vide, UNITS_PLATFORM sera vide
+if [[ -z "$UNITS_PLATFORM" ]]; then
+  info "Tenant avec units.platform vide [], génération platform ignorée (services platform optionnels)"
+  exit 0
+fi
 ENVIRONMENTS=$(echo "$MANIFEST" | jq -r '.environments[]')
 
 # Vérifier que l'env est dans la liste
@@ -94,7 +106,10 @@ OUTPUT_FILE="$OUTPUT_DIR/docker-compose.yml"
   echo "services:"
   
   # Service DVIG (si présent dans units)
+  # Reproductibilité : DVIG a une base dédiée (dvig-db) + DATABASE_URL + DVIG_INTERNAL_TOKEN
+  # pour que le vaultage fonctionne sans correctif manuel (outbox_events, routage Caddy)
   if echo "$UNITS_PLATFORM" | grep -q "^dvig$"; then
+    DVIG_INTERNAL_TOKEN_DEFAULT="dvig_internal_${TENANT_ID}_${ENV}"
     echo "  # DVIG - Service partagé"
     echo "  dvig:"
     echo "    image: $IMAGE_DVIG"
@@ -103,6 +118,8 @@ OUTPUT_FILE="$OUTPUT_DIR/docker-compose.yml"
     echo "    networks:"
     echo "      - dorevia-network"
     echo "    environment:"
+    echo "      # Base de données (outbox + tokens) — obligatoire pour /ingest et /internal/outbox/process"
+    echo "      - DATABASE_URL=postgresql://dvig_user:\${DVIG_DB_PASSWORD:-dvig_password}@dvig-db:5432/dvig_db"
     echo "      # Auth"
     echo "      - DVIG_AUTH_ENABLED=1"
     echo "      - DVIG_TOKENS_FILE=/etc/dvig/tokens.yml"
@@ -124,9 +141,16 @@ OUTPUT_FILE="$OUTPUT_DIR/docker-compose.yml"
     echo "      - DVIG_LOG_FORMAT=json"
     echo "      - DVIG_LOG_LEVEL=info"
     echo "      "
-    echo "      # Vault"
+    echo "      # Vault (VAULT_HOST/PORT = sans redéploiement si modifiés)"
+    echo "      - VAULT_HOST=vault-$TENANT_ID"
+    echo "      - VAULT_PORT=8080"
     echo "      - VAULT_URL=http://vault-$TENANT_ID:8080"
     echo "      - VAULT_API_KEY=\${VAULT_API_KEY:-}"
+    echo "      # Token pour /internal/outbox/process (Odoo : dorevia.dvig.internal.token = même valeur)"
+    echo "      - DVIG_INTERNAL_TOKEN=\${DVIG_INTERNAL_TOKEN:-$DVIG_INTERNAL_TOKEN_DEFAULT}"
+    echo "    depends_on:"
+    echo "      dvig-db:"
+    echo "        condition: service_healthy"
     echo "    volumes:"
     echo "      # Tokens (read-only) - Source de vérité unique: $DVIG_TOKENS_PATH"
     echo "      - $DVIG_TOKENS_ABS:/etc/dvig/tokens.yml:ro"
@@ -138,6 +162,29 @@ OUTPUT_FILE="$OUTPUT_DIR/docker-compose.yml"
     echo "      timeout: 3s"
     echo "      retries: 10"
     echo "      start_period: 40s"
+    echo ""
+  fi
+
+  # Base DVIG (obligatoire si DVIG présent — outbox_events pour vaultage)
+  if echo "$UNITS_PLATFORM" | grep -q "^dvig$"; then
+    echo "  # DVIG Database - PostgreSQL (outbox_events)"
+    echo "  dvig-db:"
+    echo "    image: $IMAGE_POSTGRES"
+    echo "    container_name: dvig-db-$TENANT_ID"
+    echo "    restart: unless-stopped"
+    echo "    environment:"
+    echo "      - POSTGRES_USER=dvig_user"
+    echo "      - POSTGRES_PASSWORD=\${DVIG_DB_PASSWORD:-dvig_password}"
+    echo "      - POSTGRES_DB=dvig_db"
+    echo "    volumes:"
+    echo "      - dvig_db_data_${TENANT_ID}:/var/lib/postgresql/data"
+    echo "    networks:"
+    echo "      - dorevia-network"
+    echo "    healthcheck:"
+    echo "      test: [\"CMD-SHELL\", \"pg_isready -U dvig_user -d dvig_db\"]"
+    echo "      interval: 10s"
+    echo "      timeout: 5s"
+    echo "      retries: 5"
     echo ""
   fi
   
@@ -153,6 +200,10 @@ OUTPUT_FILE="$OUTPUT_DIR/docker-compose.yml"
     echo "    environment:"
     echo "      - DATABASE_URL=postgres://vault:\${${VAULT_DB_PASSWORD_VAR}:-vault_password}@vault-db-$TENANT_ID:5432/dorevia_vault"
     echo "      - PORT=8080"
+    # Lab sans clés JWS : éviter crash « JWS required but no keys provided »
+    if [[ "$ENV" == "lab" ]]; then
+      echo "      - JWS_REQUIRED=false"
+    fi
     echo "    volumes:"
     echo "      # Volumes persistants pour stockage Vault (Phase 6 - Ops Hardening)"
     echo "      - vault_storage_${TENANT_ID}:/opt/dorevia-vault/storage"
@@ -205,6 +256,8 @@ OUTPUT_FILE="$OUTPUT_DIR/docker-compose.yml"
     echo "    name: vault_audit_${TENANT_ID}"
   fi
   if echo "$UNITS_PLATFORM" | grep -q "^dvig$"; then
+    echo "  dvig_db_data_${TENANT_ID}:"
+    echo "    name: dvig_db_${TENANT_ID}_data"
     echo "  dvig_logs_${TENANT_ID}:"
     echo "    name: dvig_logs_${TENANT_ID}"
   fi

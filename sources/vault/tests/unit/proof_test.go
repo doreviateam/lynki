@@ -14,7 +14,7 @@ import (
 // TestGetProofAccountMoveWithoutDB teste le handler sans DB configurée
 func TestGetProofAccountMoveWithoutDB(t *testing.T) {
 	app := fiber.New()
-	app.Get("/proof/account_move/:id", handlers.GetProofAccountMove(nil))
+	app.Get("/proof/account_move/:id", handlers.GetProofAccountMove(nil, nil, nil))
 
 	req := httptest.NewRequest("GET", "/proof/account_move/123", nil)
 	resp, err := app.Test(req)
@@ -30,7 +30,7 @@ func TestGetProofAccountMoveWithoutDB(t *testing.T) {
 // TestGetProofAccountMoveMissingID teste avec un ID manquant
 func TestGetProofAccountMoveMissingID(t *testing.T) {
 	app := fiber.New()
-	app.Get("/proof/account_move/:id", handlers.GetProofAccountMove(nil))
+	app.Get("/proof/account_move/:id", handlers.GetProofAccountMove(nil, nil, nil))
 
 	req := httptest.NewRequest("GET", "/proof/account_move/", nil)
 	_, err := app.Test(req)
@@ -43,7 +43,7 @@ func TestGetProofAccountMoveMissingID(t *testing.T) {
 // TestGetProofAccountPaymentWithoutDB teste le handler sans DB configurée
 func TestGetProofAccountPaymentWithoutDB(t *testing.T) {
 	app := fiber.New()
-	app.Get("/proof/account_payment/:id", handlers.GetProofAccountPayment(nil))
+	app.Get("/proof/account_payment/:id", handlers.GetProofAccountPayment(nil, nil))
 
 	req := httptest.NewRequest("GET", "/proof/account_payment/456", nil)
 	resp, err := app.Test(req)
@@ -59,9 +59,9 @@ func TestGetProofAccountPaymentWithoutDB(t *testing.T) {
 // TestGetProofPosOrderWithoutDB teste le handler sans DB configurée
 func TestGetProofPosOrderWithoutDB(t *testing.T) {
 	app := fiber.New()
-	app.Get("/proof/pos_order/:id", handlers.GetProofPosOrder(nil))
+	app.Get("/proof/pos_order/:id", handlers.GetProofPosOrder(nil, nil))
 
-	req := httptest.NewRequest("GET", "/proof/pos_order/POS/2025/0001", nil)
+	req := httptest.NewRequest("GET", "/proof/pos_order/123", nil)
 	resp, err := app.Test(req)
 
 	assert.NoError(t, err)
@@ -75,7 +75,7 @@ func TestGetProofPosOrderWithoutDB(t *testing.T) {
 // TestGetProofPosPaymentWithoutDB teste le handler sans DB configurée
 func TestGetProofPosPaymentWithoutDB(t *testing.T) {
 	app := fiber.New()
-	app.Get("/proof/pos_payment/:id", handlers.GetProofPosPayment(nil))
+	app.Get("/proof/pos_payment/:id", handlers.GetProofPosPayment(nil, nil))
 
 	req := httptest.NewRequest("GET", "/proof/pos_payment/789", nil)
 	resp, err := app.Test(req)

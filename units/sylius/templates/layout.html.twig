@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Dorevia-Vault — Coffre-fort numérique | Conformité fiscale PME{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Sécurisez vos factures. Prouvez votre conformité. Dormez tranquille. Dorevia-Vault génère automatiquement des preuves cryptographiques opposables pour tous vos documents financiers.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}coffre-fort numérique, conformité fiscale PME, facturation électronique, archivage légal facture, Odoo conformité fiscale, preuve comptable{% endblock %}">
+    
+    {# SEO - noindex seulement en environnement non-prod #}
+    {% if app.request.server.get('APP_ENV') != 'prod' %}
+    <meta name="robots" content="noindex, nofollow">
+    {% else %}
+    <meta name="robots" content="index, follow">
+    {% endif %}
+    
+    {# Open Graph / Facebook #}
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% block og_title %}{{ block('title') }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ block('meta_description') }}{% endblock %}">
+    <meta property="og:url" content="{{ app.request.schemeAndHttpHost }}{{ app.request.pathInfo }}">
+    <meta property="og:site_name" content="Dorevia-Vault">
+    <meta property="og:locale" content="fr_FR">
+    {% block og_image %}
+    <meta property="og:image" content="{{ app.request.schemeAndHttpHost }}{{ asset('assets/images/og-dorevia-vault.png') }}">
+    {% endblock %}
+    
+    {# Canonical URL #}
+    <link rel="canonical" href="{{ app.request.schemeAndHttpHost }}{{ app.request.pathInfo }}">
+    
+    {# Twitter Card #}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}{{ block('title') }}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{{ block('meta_description') }}{% endblock %}">
+    
+    {# Sitemap #}
+    <link rel="sitemap" type="application/xml" href="{{ path('sitemap') }}">
+    
+    {# Favicon #}
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/images/favicon.svg') }}">
+    
+    <!-- ===== All CSS files ===== -->
+    {# Preload CSS critiques pour Lighthouse #}
+    <link rel="preload" href="{{ asset('assets/css/bootstrap.min.css') }}" as="style" />
+    <link rel="preload" href="{{ asset('assets/css/ud-styles.css') }}" as="style" />
+    
+    {# CSS Vendor (frameworks externes) #}
+    <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/animate.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/lineicons.css') }}" />
+    
+    {# CSS Base (styles globaux) #}
+    <link rel="stylesheet" href="{{ asset('assets/css/ud-styles.css') }}" />
+    {# Design system site-wide (typo Inter, couleurs, rythme — aligné Blog v3) #}
+    <link rel="stylesheet" href="{{ asset('assets/css/dorevia-global.css') }}?v={{ 'now'|date('U') }}" />
+    
+    {# CSS Components (composants réutilisables) #}
+    {# <link rel="stylesheet" href="{{ asset('assets/css/whatsapp-button.css') }}" /> #}
+    
+    {# CSS Sections (styles spécifiques par section) - chargés par page si nécessaire #}
+    {% block stylesheets %}
+        {# CSS par défaut pour le header/footer V2 si non défini dans les pages enfants #}
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{{ asset('assets/css/landing-v2-final.css') }}?v={{ 'now'|date('U') }}" />
+    {% endblock %}
+    
+    {# Google Analytics (GA4) #}
+    {% set ga_measurement_id = app.request.server.get('GA_MEASUREMENT_ID') ?: null %}
+    {% if ga_measurement_id and app.request.server.get('APP_ENV') == 'prod' %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_measurement_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ ga_measurement_id }}', {
+            'page_path': '{{ app.request.pathInfo }}',
+            'page_title': '{{ block('title')|e('js') }}'
+        });
+        
+        // Tracking des événements personnalisés
+        window.trackEvent = function(category, action, label = null, value = null) {
+            gtag('event', action, {
+                'event_category': category,
+                'event_label': label,
+                'value': value
+            });
+        };
+    </script>
+    {% endif %}
+</head>
+<body>
+    <!-- ====== Header Start ====== -->
+    {% block header %}
+        {% include 'components/header-v2.html.twig' %}
+    {% endblock %}
+    <!-- ====== Header End ====== -->
+
+    {% block body %}{% endblock %}
+
+    <!-- ====== Footer Start ====== -->
+    <footer class="ud-footer wow fadeInUp" data-wow-delay=".15s">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-footer-bottom">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="ud-footer-text">
+                                    © 2026 Dorevia-Vault. Tous droits réservés.
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="ud-footer-bottom-right" style="display:flex; gap:14px; flex-wrap:wrap;">
+                                    <li>
+                                        <a href="{{ path('home') }}#positionnement">Positionnement</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('home') }}#preuve">Preuve</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('home') }}#explications">Explications</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('home') }}#apropos">À propos</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('manifeste') }}">Manifeste</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('contact') }}">Contact</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('pour_qui') }}">Pour qui</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('cas_usage') }}">Cas d'usage</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('conformite') }}">Conformité</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('privacy_index') }}">Politique de confidentialité</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- ====== Footer End ====== -->
+
+    <!-- ====== Back To Top Start ====== -->
+    <a href="javascript:void(0)" 
+       class="back-to-top" 
+       aria-label="Retour en haut de la page"
+       role="button">
+        <i class="lni lni-chevron-up" aria-hidden="true"> </i>
+    </a>
+    <!-- ====== Back To Top End ====== -->
+
+    <!-- ====== All Javascript Files ====== -->
+    {# JS Vendor (frameworks externes) #}
+    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}" defer></script>
+    <script src="{{ asset('assets/js/wow.min.js') }}" defer></script>
+    
+    {# JS Core (fonctions globales) #}
+    <script src="{{ asset('assets/js/main.js') }}" defer></script>
+    
+    {# JS Components (composants réutilisables) #}
+    {# Script header-auto-hide désactivé - menu toujours visible #}
+    {# <script src="{{ asset('assets/js/header-auto-hide.js') }}" defer></script> #}
+    
+    {# JS Sections (scripts spécifiques par section) - chargés par page si nécessaire #}
+    {% block javascripts %}{% endblock %}
+    
+    {# Animations V2 - Phase 1 (Obot.ai inspired) #}
+    <script src="{{ asset('assets/js/animations-v2.js') }}" defer></script>
+</body>
+</html>

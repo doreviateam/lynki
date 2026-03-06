@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Dorevia-Vault — Chiffres prouvables pour piloter la trésorerie.{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Dorevia-Vault sécurise vos événements financiers à la source. Des preuves fiables, vérifiables et juridiquement opposables.{% endblock %}" />
+    {% if app.request.server.get('APP_ENV') != 'prod' %}
+    <meta name="robots" content="noindex, nofollow">
+    {% else %}
+    <meta name="robots" content="index, follow">
+    {% endif %}
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ block('title') }}">
+    <meta property="og:description" content="{{ block('meta_description') }}">
+    <meta property="og:url" content="{{ app.request.schemeAndHttpHost }}{{ app.request.pathInfo }}">
+    <link rel="canonical" href="{{ app.request.schemeAndHttpHost }}{{ app.request.pathInfo }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/images/favicon.svg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}" />
+        <link rel="stylesheet" href="{{ asset('assets/css/animate.css') }}" />
+        <link rel="stylesheet" href="{{ asset('assets/css/lineicons.css') }}" />
+        <link rel="stylesheet" href="{{ asset('assets/css/ud-styles.css') }}" />
+        <link rel="stylesheet" href="{{ asset('assets/css/play-dorevia-overrides.css') }}?v={{ 'now'|date('U') }}" />
+    {% endblock %}
+</head>
+<body>
+    <!-- ====== Header (Play Bootstrap style) ====== -->
+    <header class="ud-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <nav class="navbar navbar-expand-lg">
+                        <a class="navbar-brand" href="{{ path('home') }}">
+                            <img src="{{ asset('assets/images/logo/dorevia-vault-logo.png') }}" alt="Dorevia-Vault" class="dorevia-vault-logo" style="height: 40px; width: auto; display: block;" />
+                        </a>
+                        <button class="navbar-toggler" type="button" aria-label="Menu" aria-expanded="false" aria-controls="navbar-collapse-play">
+                            <span class="toggler-icon"></span>
+                            <span class="toggler-icon"></span>
+                            <span class="toggler-icon"></span>
+                        </button>
+                        <div class="navbar-collapse" id="navbar-collapse-play">
+                            <ul id="nav" class="navbar-nav mx-auto">
+                                <li class="nav-item"><a class="ud-menu-scroll" href="{{ path('home') }}#fonctionnement">Produit</a></li>
+                                <li class="nav-item"><a class="ud-menu-scroll" href="{{ path('home') }}#probleme">Pourquoi</a></li>
+                                <li class="nav-item"><a class="ud-menu-scroll" href="{{ path('home') }}#conformite">Conformité</a></li>
+                                <li class="nav-item"><a class="ud-menu-scroll" href="{{ path('blog_index') }}">Blog</a></li>
+                                <li class="nav-item"><a class="ud-menu-scroll" href="{{ path('ressources') }}">Ressources</a></li>
+                                <li class="nav-item"><a class="ud-menu-scroll" href="{{ path('home') }}#contact-section">Démarrer</a></li>
+                            </ul>
+                        </div>
+                        <div class="navbar-btn d-none d-sm-inline-block">
+                            <a href="{{ path('home') }}#contact-section" class="ud-main-btn ud-white-btn">Demander une démo</a>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% block body %}{% endblock %}
+    </main>
+
+    <!-- ====== Footer (Play Bootstrap style, contenu Dorevia) ====== -->
+    <footer class="ud-footer">
+        <div class="shape shape-1"><img src="{{ asset('assets/images/footer/shape-1.svg') }}" alt="" aria-hidden="true" /></div>
+        <div class="shape shape-2"><img src="{{ asset('assets/images/footer/shape-2.svg') }}" alt="" aria-hidden="true" /></div>
+        <div class="shape shape-3"><img src="{{ asset('assets/images/footer/shape-3.svg') }}" alt="" aria-hidden="true" /></div>
+        <div class="ud-footer-widgets">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-4 col-lg-4 col-md-6">
+                        <div class="ud-widget">
+                            <a href="{{ path('home') }}" class="ud-footer-logo">
+                                <img src="{{ asset('assets/images/logo/dorevia-vault-logo.png') }}" alt="Dorevia-Vault" style="height: 36px; width: auto; display: block;" />
+                            </a>
+                            <p class="ud-widget-desc">
+                                <strong>Dorevia-Vault</strong> est édité par <strong>Dorevia Team</strong> située à <strong>Nantes</strong> et <strong>Guadeloupe</strong> 🇫🇷 🇬🇵<br>
+                                Infrastructure de preuve financière : capture, scellement et vérification des événements depuis ERP & caisses.
+                            </p>
+                            <p style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.75); margin-top: 1rem;">© {{ "now"|date("Y") }} Dorevia Team. Tous droits réservés.</p>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-lg-2 col-md-6 col-sm-6">
+                        <div class="ud-widget">
+                            <h6 class="ud-widget-title">Navigation</h6>
+                            <ul class="ud-widget-links">
+                                <li><a href="{{ path('blog_index') }}">Blog</a></li>
+                                <li><a href="{{ path('ressources') }}">Ressources</a></li>
+                                <li><a href="{{ path('manifeste') }}">Manifeste</a></li>
+                                <li><a href="{{ path('contact') }}">Contact</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-lg-2 col-md-6 col-sm-6">
+                        <div class="ud-widget">
+                            <h6 class="ud-widget-title">En savoir plus</h6>
+                            <ul class="ud-widget-links">
+                                <li><a href="{{ path('pour_qui') }}">Pour qui</a></li>
+                                <li><a href="{{ path('cas_usage') }}">Cas d'usage</a></li>
+                                <li><a href="{{ path('conformite') }}">Conformité</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-lg-4 col-md-6">
+                        <div class="ud-widget">
+                            <h6 class="ud-widget-title">Légal</h6>
+                            <ul class="ud-widget-links">
+                                <li><a href="{{ path('privacy_index') }}">Politique de confidentialité</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ud-footer-bottom">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8">
+                        <ul class="ud-footer-bottom-left">
+                            <li><a href="{{ path('privacy_index') }}">Politique de confidentialité</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="ud-footer-bottom-right">© {{ "now"|date("Y") }} Dorevia Team. Tous droits réservés.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <a href="javascript:void(0)" class="back-to-top" aria-label="Retour en haut"><i class="lni lni-chevron-up"></i></a>
+
+    {% block javascripts %}{% endblock %}
+    <script>
+        (function() {
+            var toggler = document.querySelector(".navbar-toggler");
+            var collapse = document.querySelector(".navbar-collapse");
+            if (toggler && collapse) {
+                document.querySelectorAll(".ud-menu-scroll").forEach(function(a) {
+                    a.addEventListener("click", function() {
+                        toggler.classList.remove("active");
+                        collapse.classList.remove("show");
+                    });
+                });
+                toggler.addEventListener("click", function() {
+                    toggler.classList.toggle("active");
+                    collapse.classList.toggle("show");
+                });
+            }
+            window.onscroll = function() {
+                var header = document.querySelector(".ud-header");
+                if (header) {
+                    if (window.pageYOffset > header.offsetTop) header.classList.add("sticky");
+                    else header.classList.remove("sticky");
+                }
+                var backToTop = document.querySelector(".back-to-top");
+                if (backToTop) {
+                    backToTop.style.display = (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) ? "flex" : "none";
+                }
+            };
+            var backToTopBtn = document.querySelector(".back-to-top");
+            if (backToTopBtn) backToTopBtn.onclick = function() { window.scrollTo({ top: 0, behavior: "smooth" }); };
+        })();
+    </script>
+</body>
+</html>

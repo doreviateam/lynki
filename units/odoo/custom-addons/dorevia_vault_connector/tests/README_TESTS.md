@@ -2,7 +2,7 @@
 
 **Version** : 1.0  
 **Date** : 2026-01-11  
-**Statut** : ⏳ Structure créée, tests à implémenter
+**Statut** : ✅ Tests action_securiser_maintenant et _fetch_and_apply_proof implémentés (2026-02-22)
 
 ---
 
@@ -15,8 +15,10 @@ tests/
 ├── test_idempotence.py           # Tests idempotence
 ├── test_backoff.py               # Tests backoff exponentiel
 ├── test_classification.py        # Tests classification erreurs
-├── test_cron_send_dvig.py        # Tests CRON #1
-├── test_cron_fetch_proof.py      # Tests CRON #2
+├── test_cron.py                  # Tests CRON #1 et #2
+├── test_action_securiser_maintenant.py  # Bouton « Sécuriser maintenant » + _fetch_and_apply_proof
+├── test_spec_v1_1_1.py           # Tests SPEC v1.1.1
+├── test_hook_write_posted.py     # Hook write/action_post
 └── integration/
     ├── __init__.py
     └── test_end_to_end.py        # Tests d'intégration end-to-end
@@ -80,6 +82,16 @@ tests/
 - [ ] Stockage preuves (vault_id, sha256, jws, ledger_hash)
 - [ ] Gestion erreurs
 - [ ] Gestion 404 (document pas encore traité)
+
+### action_securiser_maintenant (test_action_securiser_maintenant.py)
+
+- [x] Facture vaulted → UserError (non éligible)
+- [x] Config DVIG manquante → UserError
+- [x] pending_proof + preuve disponible → vaulted
+- [x] pending_proof + 404 → incrément attempt_count
+- [x] _fetch_and_apply_proof 200 verified → vaulted
+- [x] _fetch_and_apply_proof 404 → pas de modification
+- [x] _fetch_and_apply_proof status=pending → reste pending_proof
 
 ### Intégration (test_end_to_end.py)
 

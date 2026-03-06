@@ -1,0 +1,58 @@
+# Docker Compose - suitecrm lab lab
+# Généré automatiquement depuis manifest Phase 1
+# Source attendue: suitecrm.lab.lab
+# DB name: suitecrm_lab_lab
+# Compose project: dorevia_suitecrm_lab_lab
+
+services:
+  db:
+    image: mariadb:11
+    container_name: suitecrm_db_lab_lab
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: suitecrm
+      MARIADB_USER: suitecrm
+      MARIADB_PASSWORD: suitecrm
+      MARIADB_ROOT_PASSWORD: root
+    volumes:
+      - suitecrm_lab_lab_db:/var/lib/mysql
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$MARIADB_ROOT_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  suitecrm:
+    image: bitnami/suitecrm:8
+    container_name: suitecrm_lab_lab
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SUITECRM_DATABASE_HOST: db
+      SUITECRM_DATABASE_NAME: suitecrm
+      SUITECRM_DATABASE_USER: suitecrm
+      SUITECRM_DATABASE_PASSWORD: suitecrm
+      SUITECRM_USERNAME: admin
+      SUITECRM_PASSWORD: admin
+      SUITECRM_HOST: suitecrm.lab.lab.doreviateam.com
+      TZ: Europe/Paris
+    volumes:
+      - suitecrm_lab_lab_data:/bitnami/suitecrm
+    networks:
+      - dorevia-network
+    # Port 80 en interne (routage via Caddy)
+
+volumes:
+  suitecrm_lab_lab_db:
+    name: suitecrm_lab_lab_db
+  suitecrm_lab_lab_data:
+    name: suitecrm_lab_lab_data
+
+networks:
+  dorevia-network:
+    external: true

@@ -81,6 +81,25 @@ type Config struct {
 	CoreURL           string `env:"CORE_URL" envDefault:""`                 // URL de l'API Odoo CORE
 	CoreToken         string `env:"CORE_TOKEN" envDefault:""`               // Token d'authentification pour Odoo CORE
 	VaultID           string `env:"VAULT_ID" envDefault:""`                 // Identifiant de l'instance Vault
+
+	// SPEC Indicateur Confiance Vaultage Linky v1.0
+	DvigURL           string `env:"DVIG_URL" envDefault:""`         // URL DVIG (ex. http://dvig:8000)
+	DvigInternalToken string `env:"DVIG_INTERNAL_TOKEN" envDefault:""` // Token pour appeler /internal/vault-health
+
+	// SPEC Indicateur Confiance Rapprochement Bancaire Linky v1.0
+	OdooBankReconciliationURL string `env:"ODOO_BANK_RECONCILIATION_URL" envDefault:""`
+	// Tenant(s) pour lesquels l'URL ci-dessus s'applique (ex. sarl-la-platine).
+	OdooBankReconciliationTenant string `env:"ODOO_BANK_RECONCILIATION_TENANT" envDefault:"sarl-la-platine"`
+	// URL Odoo dédiée pour laplatine2026 (optionnel). Si renseignée, laplatine2026 utilise son Odoo LAB.
+	OdooBankReconciliationURLLaplatine2026 string `env:"ODOO_BANK_RECONCILIATION_URL_LAPLATINE2026" envDefault:""`
+
+	// SPEC ERP Reconnect v1.2 - Replay feed (E2-US1, E2-US2)
+	ReplayEventsLimitMax   int    `env:"REPLAY_EVENTS_LIMIT_MAX" envDefault:"500"`
+	ReplayCursorSecret     string `env:"REPLAY_CURSOR_SECRET" envDefault:""` // HMAC pour cursors ; défaut = WebhooksSecretKey
+
+	// SPEC ERP Reconnect - Adapter Odoo HTTP (E5-US3, P0)
+	OdooTimeoutSec int `env:"ODOO_TIMEOUT_SEC" envDefault:"30"`  // Timeout HTTP vers Odoo
+	OdooRetryMax  int `env:"ODOO_RETRY_MAX" envDefault:"2"`      // Nb retries (0 = pas de retry)
 }
 
 // Load charge la configuration depuis les variables d'environnement

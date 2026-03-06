@@ -1,0 +1,95 @@
+/* ===== Fix Contraste — Texte Blanc sur Fond Blanc ===== */
+/* Correction urgente : toutes les sections doivent avoir un fond sombre */
+
+/* Sections avec fond sombre (comme Hero) */
+.dv-position,
+.dv-proof,
+.dv-explications,
+.dv-apropos,
+.dv-conversation-cta {
+    background: linear-gradient(180deg, #1e40af 0%, #2f57d7 100%) !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Titres toujours blancs sur fond sombre */
+.dv-position .ud-section-title-heading,
+.dv-proof .ud-section-title-heading,
+.dv-explications .ud-section-title-heading,
+.dv-apropos .ud-section-title-heading {
+    color: rgba(255, 255, 255, 1) !important;
+}
+
+/* Texte de corps toujours blanc sur fond sombre */
+.dv-position p,
+.dv-position-content p,
+.dv-proof p,
+.dv-proof-content p,
+.dv-explications p,
+.dv-apropos p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Titres de cartes toujours blancs */
+.dv-card h3 {
+    color: rgba(255, 255, 255, 1) !important;
+}
+
+/* Texte dans les cartes toujours blanc */
+.dv-card p,
+.dv-card li {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Override pour les éléments qui pourraient avoir du texte sombre */
+.dv-position-title,
+.dv-proof-title {
+    color: rgba(255, 255, 255, 1) !important;
+}
+
+/* Hook et sous-titres */
+.proof-hook,
+.dv-hook {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Microcopy */
+.dv-microcopy {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Pills et badges */
+.dv-pill {
+    color: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dv-arrow {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Transparence box */
+.dv-transparency {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dv-transparency p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Lead text */
+.dv-lead {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Position text */
+.dv-position-text {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Proof description */
+.dv-proof-description {
+    color: rgba(255, 255, 255, 0.9) !important;
+}

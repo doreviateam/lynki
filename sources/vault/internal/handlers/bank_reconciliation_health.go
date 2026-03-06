@@ -1,94 +1,101 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/doreviateam/dorevia-vault/internal/config"
 	"github.com/gofiber/fiber/v2"
 )
 
 // BankReconciliationHealthResponse is the response for GET /ui/system/bank-reconciliation-health
 // (SPEC Indicateur Confiance Rapprochement Bancaire Linky v1.0 + Trésorerie v1.1).
+// Proxie vers Odoo ODOO_BANK_RECONCILIATION_URL pour last_statement_date, oldest_unreconciled_date, etc.
 type BankReconciliationHealthResponse struct {
-	ReconciliationRate    *float64 `json:"reconciliation_rate"`
-	LastStatementDate     *string  `json:"last_statement_date"`
-	UnreconciledEntries   int      `json:"unreconciled_entries"`
-	UnreconciledAmount    float64  `json:"unreconciled_amount"`
-	BankAccountsCount     int      `json:"bank_accounts_count"`
-	OldestUnreconciledDate *string  `json:"oldest_unreconciled_date,omitempty"` // SPEC Trésorerie v1.1 — date plus ancienne ligne non rapprochée (YYYY-MM-DD)
+	ReconciliationRate     *float64 `json:"reconciliation_rate"`
+	LastStatementDate      *string  `json:"last_statement_date"`
+	UnreconciledEntries    int      `json:"unreconciled_entries"`
+	UnreconciledAmount     float64  `json:"unreconciled_amount"`
+	BankAccountsCount      int      `json:"bank_accounts_count"`
+	OldestUnreconciledDate *string  `json:"oldest_unreconciled_date,omitempty"`
 }
 
-// BankReconciliationHealthHandler handles GET /ui/system/bank-reconciliation-health. Calls Odoo if configured.
-func BankReconciliationHealthHandler(odooURL string) fiber.Handler {
+// BankReconciliationHealthHandler handles GET /ui/system/bank-reconciliation-health.
+// Proxie vers Odoo si OdooBankReconciliationURL est configuré pour le tenant ; sinon stub (routage multi-tenant).
+func BankReconciliationHealthHandler(odooURL string, cfg *config.Config) fiber.Handler {
 	stub := BankReconciliationHealthResponse{
-		ReconciliationRate: nil,
-		LastStatementDate:  nil,
-		UnreconciledEntries: 0,
-		UnreconciledAmount:  0,
-		BankAccountsCount:   0,
+		ReconciliationRate:     nil,
+		LastStatementDate:      nil,
+		UnreconciledEntries:    0,
+		UnreconciledAmount:     0,
+		BankAccountsCount:      0,
+		OldestUnreconciledDate: nil,
 	}
 	return func(c *fiber.Ctx) error {
-		tenant := c.Query("tenant")
-		if tenant == "" {
+		if c.Query("tenant") == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "tenant is required"})
 		}
-		companyID := c.Query("company_id")
-
-		if odooURL == "" {
+		tenant := c.Query("tenant")
+		effectiveURL := ""
+		if cfg != nil {
+			if tenant == "laplatine2026" && cfg.OdooBankReconciliationURLLaplatine2026 != "" {
+				effectiveURL = cfg.OdooBankReconciliationURLLaplatine2026
+			} else if tenant == cfg.OdooBankReconciliationTenant {
+				effectiveURL = odooURL
+			}
+		}
+		if effectiveURL == "" {
 			return c.JSON(stub)
 		}
-
-		base, _ := url.Parse(odooURL)
+		// Proxy vers Odoo GET /dorevia/vault/linky_bank_reconciliation
+		base, err := url.Parse(effectiveURL)
+		if err != nil {
+			return c.JSON(stub)
+		}
 		q := base.Query()
-		if companyID != "" {
+		q.Set("tenant", c.Query("tenant"))
+		if companyID := c.Query("company_id"); companyID != "" {
 			q.Set("company_id", companyID)
 		}
 		base.RawQuery = q.Encode()
-
 		req, err := http.NewRequestWithContext(c.Context(), http.MethodGet, base.String(), nil)
 		if err != nil {
-			return c.Status(fiber.StatusServiceUnavailable).JSON(stub)
+			return c.JSON(stub)
 		}
 		req.Header.Set("Accept", "application/json")
-
 		client := &http.Client{Timeout: 5 * time.Second}
 		resp, err := client.Do(req)
 		if err != nil {
-			return c.Status(fiber.StatusServiceUnavailable).JSON(stub)
+			return c.JSON(stub)
 		}
 		defer resp.Body.Close()
-
 		if resp.StatusCode != http.StatusOK {
-			return c.Status(fiber.StatusServiceUnavailable).JSON(stub)
+			return c.JSON(stub)
 		}
-
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return c.Status(fiber.StatusServiceUnavailable).JSON(stub)
+			return c.JSON(stub)
 		}
-
 		var data struct {
 			ReconciliationRate     *float64 `json:"reconciliation_rate"`
 			LastStatementDate      *string  `json:"last_statement_date"`
 			UnreconciledEntries    int      `json:"unreconciled_entries"`
-			UnreconciledAmount     float64  `json:"unreconciled_amount"`
-			BankAccountsCount      int      `json:"bank_accounts_count"`
+			UnreconciledAmount    float64  `json:"unreconciled_amount"`
+			BankAccountsCount     int      `json:"bank_accounts_count"`
 			OldestUnreconciledDate *string  `json:"oldest_unreconciled_date"`
 		}
-		if err := json.NewDecoder(bytes.NewReader(body)).Decode(&data); err != nil {
-			return c.Status(fiber.StatusServiceUnavailable).JSON(stub)
+		if err := json.Unmarshal(body, &data); err != nil {
+			return c.JSON(stub)
 		}
-
 		return c.JSON(BankReconciliationHealthResponse{
 			ReconciliationRate:     data.ReconciliationRate,
 			LastStatementDate:      data.LastStatementDate,
-			UnreconciledEntries:   data.UnreconciledEntries,
-			UnreconciledAmount:    data.UnreconciledAmount,
-			BankAccountsCount:     data.BankAccountsCount,
+			UnreconciledEntries:    data.UnreconciledEntries,
+			UnreconciledAmount:     data.UnreconciledAmount,
+			BankAccountsCount:      data.BankAccountsCount,
 			OldestUnreconciledDate: data.OldestUnreconciledDate,
 		})
 	}

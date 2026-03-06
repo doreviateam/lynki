@@ -1,0 +1,113 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dorevia.plateform/schemas/card_context.schema.json",
+  "title": "Dorevia Card Context (IA)",
+  "description": "Structure des données envoyées à l'IA (DIVA/Mistral) pour l'analyse d'une carte KPI. Schema dorevia.card_context.v1",
+  "type": "object",
+  "required": ["schema", "context", "card", "details", "quality"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "dorevia.card_context.v1",
+      "description": "Identifiant de version du schéma"
+    },
+    "context": {
+      "type": "object",
+      "description": "Contexte de la requête (période, tenant, devise)",
+      "required": ["tenant", "date_start", "date_end", "timezone", "currency", "locale"],
+      "properties": {
+        "tenant": { "type": "string", "description": "Identifiant du tenant", "examples": ["core", "sarl-la-platine"] },
+        "company_id": { "type": "integer", "minimum": 0, "description": "ID entreprise (0 si non filtré)", "default": 0 },
+        "date_start": { "type": "string", "format": "date", "description": "Début période (YYYY-MM-DD)" },
+        "date_end": { "type": "string", "format": "date", "description": "Fin période (YYYY-MM-DD)" },
+        "timezone": { "type": "string", "description": "Fuseau horaire", "default": "Europe/Paris" },
+        "currency": { "type": "string", "description": "Devise", "default": "EUR" },
+        "locale": { "type": "string", "description": "Locale pour formatage", "default": "fr-FR" }
+      }
+    },
+    "card": {
+      "type": "object",
+      "description": "Carte KPI ciblée (données agrégées)",
+      "required": ["key", "label", "unit"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "enum": [
+            "treasury_validated_pct",
+            "cash",
+            "business",
+            "taxes",
+            "credit_notes",
+            "refunds",
+            "pos_shops",
+            "pos_z"
+          ],
+          "description": "Clé technique de la carte"
+        },
+        "label": { "type": "string", "description": "Libellé affiché" },
+        "unit": { "type": "string", "description": "Unité (%, EUR)", "enum": ["%", "EUR"] },
+        "value": { "type": ["number", "null"], "description": "Valeur brute (null si non disponible)" },
+        "formatted": { "type": "string", "description": "Valeur formatée pour affichage" }
+      }
+    },
+    "details": {
+      "type": "object",
+      "description": "Détails enrichis selon la carte (vide {} si non disponibles). Variantes par key : treasury={reconciled,unreconciled,total,currency}, cash={encaissements,decaissements,net,currency}, business={ventes,achats,net,currency}, credit_notes|refunds={clients,fournisseurs,flux,currency}",
+      "additionalProperties": true
+    },
+    "quality": {
+      "type": "object",
+      "description": "Métadonnées sur la qualité des données (pour piloter le prompt IA)",
+      "required": ["confidence", "data_coverage"],
+      "properties": {
+        "confidence": {
+          "type": "string",
+          "enum": ["low", "medium", "high"],
+          "description": "Niveau de confiance dans les données"
+        },
+        "data_coverage": {
+          "type": "string",
+          "enum": ["none", "partial", "full"],
+          "description": "Couverture : none=pas de valeur, partial=détails incomplets, full=données complètes"
+        },
+        "missing_details": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["series", "breakdown", "counts", "reconciled", "unreconciled", "taxes_detail"] },
+          "description": "Liste des enrichissements manquants"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "schema": "dorevia.card_context.v1",
+      "context": {
+        "tenant": "sarl-la-platine",
+        "company_id": 1,
+        "date_start": "2025-01-01",
+        "date_end": "2025-01-31",
+        "timezone": "Europe/Paris",
+        "currency": "EUR",
+        "locale": "fr-FR"
+      },
+      "card": {
+        "key": "refunds",
+        "label": "Remboursements",
+        "unit": "EUR",
+        "value": -1686.84,
+        "formatted": "− 1 686,84 €"
+      },
+      "details": {
+        "clients": 500,
+        "fournisseurs": 2186.84,
+        "flux": 1686.84,
+        "currency": "EUR"
+      },
+      "quality": {
+        "confidence": "medium",
+        "data_coverage": "full",
+        "missing_details": []
+      }
+    }
+  ]
+}

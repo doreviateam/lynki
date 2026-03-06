@@ -1,0 +1,121 @@
+# Docker Compose - Services Partagés (Platform)
+# Généré automatiquement depuis manifest Phase 1
+# Tenant: core-stinger
+# Environment: stinger
+
+services:
+  # DVIG - Service partagé
+  dvig:
+    image: dorevia/dvig:0.1.2-auth
+    container_name: dvig-core-stinger
+    restart: unless-stopped
+    networks:
+      - dorevia-network
+    environment:
+      # Auth
+      - DVIG_AUTH_ENABLED=1
+      - DVIG_TOKENS_FILE=/etc/dvig/tokens.yml
+      - DVIG_TOKENS_RELOAD_INTERVAL=60
+      - DVIG_TOKENS_RELOAD_ON_SIGHUP=1
+      
+      # API
+      - DVIG_HOST=0.0.0.0
+      - DVIG_PORT=8080
+      
+      # Docs (désactivés en production)
+      - DVIG_DOCS_ENABLED=0
+      - DVIG_OPENAPI_ENABLED=0
+      
+      # Health
+      - DVIG_HEALTH_PROTECTED=0
+      
+      # Logs (format JSON pour production)
+      - DVIG_LOG_FORMAT=json
+      - DVIG_LOG_LEVEL=info
+      
+      # Vault
+      - VAULT_URL=http://vault-core-stinger:8080
+      - VAULT_API_KEY=${VAULT_API_KEY:-}
+    volumes:
+      # Tokens (read-only) - Source de vérité unique: tenants/core-stinger/secrets/dvig.tokens.yml
+      - /opt/dorevia-plateform/tenants/core-stinger/secrets/dvig.tokens.yml:/etc/dvig/tokens.yml:ro
+      # Logs (optionnel)
+      - dvig_logs_core-stinger:/var/log/dvig
+      # Workers (temporaire pour test - le code n'est pas dans l'image Docker)
+      - /opt/dorevia-plateform/sources/dvig/workers:/app/workers:ro
+    healthcheck:
+      test: ["CMD", "sh", "-lc", "wget -qO- http://127.0.0.1:8080/health >/dev/null || curl -f http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 40s
+
+  # Vault - Service partagé
+  vault:
+    image: dorevia/vault:v1.3.1
+    container_name: vault-core-stinger
+    restart: unless-stopped
+    networks:
+      - dorevia-network
+    environment:
+      - DATABASE_URL=postgres://vault:${VAULT_DB_PASSWORD:-vault_password}@vault-db-core-stinger:5432/dorevia_vault
+      - PORT=8080
+      # Configuration JWS (Sprint 2)
+      - JWS_ENABLED=true
+      - JWS_REQUIRED=false
+      - JWS_PRIVATE_KEY_PATH=/opt/dorevia-vault/keys/jwt-private.pem
+      - JWS_PUBLIC_KEY_PATH=/opt/dorevia-vault/keys/jwt-public.pem
+      # Authentification JWT (Sprint 5 Phase 5.2)
+      - AUTH_ENABLED=true
+      - AUTH_JWT_ENABLED=true
+      - AUTH_JWT_PUBLIC_KEY_PATH=/opt/dorevia-vault/keys/jwt-public.pem
+    volumes:
+      # Volumes persistants pour stockage Vault (Phase 6 - Ops Hardening)
+      - vault_storage_core-stinger:/opt/dorevia-vault/storage
+      - vault_ledger_core-stinger:/opt/dorevia-vault/ledger
+      - vault_audit_core-stinger:/opt/dorevia-vault/audit
+      # Clés JWT (read-only)
+      - /opt/dorevia-plateform/tenants/core-stinger/secrets/keys:/opt/dorevia-vault/keys:ro
+    depends_on:
+      - vault-db
+    healthcheck:
+      test: ["CMD", "sh", "-lc", "wget -qO- http://127.0.0.1:8080/health >/dev/null || curl -f http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 40s
+
+  # Vault Database - PostgreSQL
+  vault-db:
+    image: postgres:16
+    container_name: vault-db-core-stinger
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=vault
+      - POSTGRES_PASSWORD=${VAULT_DB_PASSWORD:-vault_password}
+      - POSTGRES_DB=dorevia_vault
+    volumes:
+      - vault_db_data_core-stinger:/var/lib/postgresql/data
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vault"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  vault_db_data_core-stinger:
+    name: vault_db_core-stinger_data
+  vault_storage_core-stinger:
+    name: vault_storage_core-stinger
+  vault_ledger_core-stinger:
+    name: vault_ledger_core-stinger
+  vault_audit_core-stinger:
+    name: vault_audit_core-stinger
+  dvig_logs_core-stinger:
+    name: dvig_logs_core-stinger
+
+networks:
+  dorevia-network:
+    external: true

@@ -37,7 +37,7 @@
                                     <strong> En cours de sécurisation</strong> — Traitement en cours
                                 </div>
                                 <div invisible="dorevia_vault_status not in ('todo', 'pending_proof', 'failed_soft')" style="margin-bottom: 8px;">
-                                    <button name="action_securiser_maintenant" type="object" string="Sécuriser maintenant" class="btn-primary" 
+                                    <button name="action_securiser_maintenant" type="object" string="Sécuriser maintenant" class="btn-primary"
                                             help="Lance la sécurisation immédiatement (sans attendre le traitement en arrière-plan)"/>
                                 </div>
                                 <div invisible="dorevia_vault_status not in ('failed_soft', 'failed_hard')" style="margin-bottom: 4px;">
@@ -159,24 +159,29 @@
                                nolabel="1" 
                                colspan="2"/>
                         
-                        <!-- Boutons debug (SPEC v1.1.0) -->
+                        <!-- Boutons debug (SPEC v1.1.0) + Sécuriser maintenant (répété pour diagnostic) -->
                         <div colspan="2" style="margin-top: 12px;">
+                            <!-- Sécuriser maintenant : même action que bloc principal, structure groupe pour fiabilité -->
+                            <button name="action_securiser_maintenant" 
+                                    type="object" 
+                                    string="🔐 Sécuriser maintenant" 
+                                    class="btn-primary"
+                                    invisible="dorevia_vault_status not in ('todo', 'pending_proof', 'failed_soft')"
+                                    help="Lance la sécurisation immédiatement"/>
                             <!-- Addendum v1.1.1-add1 : Outils de diagnostic désactivés en PROD -->
-                            <!-- Note : Ces boutons sont des outils de diagnostic uniquement, réservés à l'administrateur en environnements non-PROD. -->
-                            <!-- Ils sont désactivés en production et n'interviennent jamais dans le processus de vaulting, qui reste 100% automatisé. -->
                             <button name="action_refresh_vault_proof" 
                                     type="object" 
                                     string="🔄 Refresh Proof Now" 
                                     class="btn-secondary"
                                     invisible="dorevia_vault_status not in ('pending_proof', 'failed_soft') or not dorevia_debug_enabled"
-                                    help="Outil de diagnostic : Déclenche immédiatement la récupération de la preuve depuis Vault (réservé à l'administrateur, désactivé en PROD)"/>
+                                    help="Outil de diagnostic : Déclenche immédiatement la récupération de la preuve depuis Vault"/>
                             
                             <button name="action_trigger_dvig_worker" 
                                     type="object" 
                                     string="⚡ Trigger DVIG Worker Now" 
                                     class="btn-secondary"
                                     invisible="dorevia_vault_status not in ('todo', 'pending_proof', 'failed_soft') or not dorevia_debug_enabled"
-                                    help="Outil de diagnostic : Déclenche immédiatement le worker DVIG pour traiter l'outbox (réservé à l'administrateur, désactivé en PROD)"/>
+                                    help="Outil de diagnostic : Déclenche immédiatement le worker DVIG"/>
                         </div>
                     </group>
                 </group>

@@ -1,0 +1,251 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ page_description }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/css/landing-v2-final.css') }}?v=20260125-1600" />
+    <style>
+        body { background: var(--bg) !important; }
+        .ud-header, .ud-footer { display: none !important; }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="landing-v2">
+    <!-- HERO SECTION -->
+    <section class="hero" style="padding: 80px 0 100px;">
+        <div class="v2-container">
+            <div style="text-align: center; max-width: 700px; margin: 0 auto;">
+                <h1 class="hero-title" style="margin-bottom: 24px;">
+                    Ressources Dorevia-Vault
+                </h1>
+                <p class="hero-subtitle" style="font-size: 20px; line-height: 1.6;">
+                    Modules, API et documentation pour sécuriser vos flux financiers.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 1 : Modules Dorevia pour Odoo CE -->
+    <section class="v2-section" id="modules">
+        <div class="v2-container">
+            <h2 style="text-align: center; margin-bottom: 60px;">Modules Dorevia pour Odoo Community Edition</h2>
+            <p style="text-align: center; color: var(--muted); margin-bottom: 50px; max-width: 800px; margin-left: auto; margin-right: auto;">
+                Modules natifs de sécurisation financière pour Odoo CE
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; margin-top: 50px;">
+                <!-- Module 1 : Dorevia Vault Connector -->
+                <div class="v2-card" style="padding: 32px;">
+                    <h3 style="font-size: 22px; margin-bottom: 16px; color: var(--text);">Dorevia Vault Connector</h3>
+                    <p style="color: var(--muted); margin-bottom: 20px; line-height: 1.6;">
+                        Capture automatiquement les factures, écritures comptables et événements financiers depuis Odoo.
+                    </p>
+                    <div style="margin-bottom: 20px;">
+                        <strong style="color: var(--text);">Sécurise :</strong>
+                        <ul style="margin-top: 8px; padding-left: 20px; color: var(--muted);">
+                            <li>Factures clients et fournisseurs</li>
+                            <li>Écritures comptables</li>
+                            <li>Événements financiers validés</li>
+                        </ul>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <strong style="color: var(--text);">Bénéfice métier :</strong>
+                        <p style="color: var(--muted); margin-top: 8px; line-height: 1.6;">
+                            Scellage automatique dès validation dans Odoo. Zéro intervention humaine.
+                        </p>
+                    </div>
+                    <a href="#documentation" class="btn btn-secondary" style="width: 100%; text-align: center;">
+                        Documentation →
+                    </a>
+                </div>
+
+                <!-- Module 2 : Dorevia POS Connector -->
+                <div class="v2-card" style="padding: 32px;">
+                    <h3 style="font-size: 22px; margin-bottom: 16px; color: var(--text);">Dorevia POS Connector</h3>
+                    <p style="color: var(--muted); margin-bottom: 20px; line-height: 1.6;">
+                        Intégration native avec le Point de Vente Odoo pour sécuriser les transactions en temps réel.
+                    </p>
+                    <div style="margin-bottom: 20px;">
+                        <strong style="color: var(--text);">Sécurise :</strong>
+                        <ul style="margin-top: 8px; padding-left: 20px; color: var(--muted);">
+                            <li>Tickets de caisse</li>
+                            <li>Paiements</li>
+                            <li>Transactions POS</li>
+                        </ul>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <strong style="color: var(--text);">Bénéfice métier :</strong>
+                        <p style="color: var(--muted); margin-top: 8px; line-height: 1.6;">
+                            Preuve immédiate pour chaque transaction. Conformité caisse garantie.
+                        </p>
+                    </div>
+                    <a href="#documentation" class="btn btn-secondary" style="width: 100%; text-align: center;">
+                        Documentation →
+                    </a>
+                </div>
+
+                <!-- Module 3 : Extensions conformité & preuve -->
+                <div class="v2-card" style="padding: 32px;">
+                    <h3 style="font-size: 22px; margin-bottom: 16px; color: var(--text);">Extensions conformité & preuve</h3>
+                    <p style="color: var(--muted); margin-bottom: 20px; line-height: 1.6;">
+                        Modules complémentaires pour renforcer la conformité réglementaire et la traçabilité.
+                    </p>
+                    <div style="margin-bottom: 20px;">
+                        <strong style="color: var(--text);">Sécurise :</strong>
+                        <ul style="margin-top: 8px; padding-left: 20px; color: var(--muted);">
+                            <li>Conformité NF525</li>
+                            <li>Préparation LNE 2026</li>
+                            <li>Audit et traçabilité</li>
+                        </ul>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <strong style="color: var(--text);">Bénéfice métier :</strong>
+                        <p style="color: var(--muted); margin-top: 8px; line-height: 1.6;">
+                            Conformité réglementaire garantie. Préparation aux évolutions légales.
+                        </p>
+                    </div>
+                    <a href="#documentation" class="btn btn-secondary" style="width: 100%; text-align: center;">
+                        Documentation →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2 : API & Intégrations -->
+    <section class="v2-section" id="api" style="background: var(--bg-surface);">
+        <div class="v2-container">
+            <h2 style="text-align: center; margin-bottom: 60px;">API & Intégrations</h2>
+            <p style="text-align: center; color: var(--muted); margin-bottom: 50px; max-width: 800px; margin-left: auto; margin-right: auto;">
+                Dorevia-Vault s'intègre avec tout ERP ou système métier via des APIs ouvertes
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 50px;">
+                <div class="v2-card" style="padding: 28px;">
+                    <h3 style="font-size: 20px; margin-bottom: 12px; color: var(--text);">API de capture</h3>
+                    <p style="color: var(--muted); line-height: 1.6;">
+                        Capture d'événements financiers depuis votre ERP ou système métier.
+                    </p>
+                </div>
+
+                <div class="v2-card" style="padding: 28px;">
+                    <h3 style="font-size: 20px; margin-bottom: 12px; color: var(--text);">API de preuve</h3>
+                    <p style="color: var(--muted); line-height: 1.6;">
+                        Récupération et vérification de preuves probantes cryptographiques.
+                    </p>
+                </div>
+
+                <div class="v2-card" style="padding: 28px;">
+                    <h3 style="font-size: 20px; margin-bottom: 12px; color: var(--text);">Webhooks</h3>
+                    <p style="color: var(--muted); line-height: 1.6;">
+                        Notifications en temps réel lors du scellage d'événements.
+                    </p>
+                </div>
+
+                <div class="v2-card" style="padding: 28px;">
+                    <h3 style="font-size: 20px; margin-bottom: 12px; color: var(--text);">Intégrations ERP</h3>
+                    <p style="color: var(--muted); line-height: 1.6;">
+                        Connecteurs pour ERP et systèmes métiers ouverts (API design).
+                    </p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 50px;">
+                <a href="#documentation" class="btn btn-primary">
+                    👉 Consulter la documentation API
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3 : Documentation technique -->
+    <section class="v2-section" id="documentation">
+        <div class="v2-container">
+            <h2 style="text-align: center; margin-bottom: 60px;">Documentation technique</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; margin-top: 50px;">
+                <div class="v2-card" style="padding: 32px;">
+                    <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--text);">Installation Odoo CE</h3>
+                    <p style="color: var(--muted); line-height: 1.6;">
+                        Guide d'installation et de configuration des modules Dorevia pour Odoo Community Edition.
+                    </p>
+                </div>
+
+                <div class="v2-card" style="padding: 32px;">
+                    <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--text);">Architecture de preuve</h3>
+                    <p style="color: var(--muted); line-height: 1.6;">
+                        Comprendre le fonctionnement du scellage cryptographique et de la génération de preuves.
+                    </p>
+                </div>
+
+                <div class="v2-card" style="padding: 32px;">
+                    <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--text);">Sécurité & audit</h3>
+                    <p style="color: var(--muted); line-height: 1.6;">
+                        Principes de sécurité, auditabilité et conformité de l'infrastructure Dorevia-Vault.
+                    </p>
+                </div>
+
+                <div class="v2-card" style="padding: 32px;">
+                    <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--text);">Bonnes pratiques conformité</h3>
+                    <p style="color: var(--muted); line-height: 1.6;">
+                        Recommandations pour garantir la conformité réglementaire et l'intégrité des données.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4 : Guides conformité techniques -->
+    <section class="v2-section" id="guides" style="background: var(--bg-surface);">
+        <div class="v2-container">
+            <h2 style="text-align: center; margin-bottom: 60px;">Guides conformité techniques</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; margin-top: 50px;">
+                <div class="v2-card" style="padding: 32px;">
+                    <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--text);">Implémenter NF525</h3>
+                    <p style="color: var(--muted); line-height: 1.6;">
+                        Guide technique pour mettre en conformité votre système avec la norme NF525.
+                    </p>
+                </div>
+
+                <div class="v2-card" style="padding: 32px;">
+                    <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--text);">Préparer LNE 2026</h3>
+                    <p style="color: var(--muted); line-height: 1.6;">
+                        Préparation aux évolutions réglementaires de 2026. Mise en conformité progressive.
+                    </p>
+                </div>
+
+                <div class="v2-card" style="padding: 32px;">
+                    <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--text);">Garantir l'intégrité des données</h3>
+                    <p style="color: var(--muted); line-height: 1.6;">
+                        Méthodes et outils pour garantir l'intégrité et la traçabilité de vos données financières.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section class="v2-section" style="padding: 100px 0; background: linear-gradient(135deg, var(--accent-soft) 0%, rgba(47, 92, 255, 0.05) 100%);">
+        <div class="v2-container">
+            <div style="text-align: center; max-width: 600px; margin: 0 auto;">
+                <h2 style="font-size: clamp(32px, 5vw, 42px); margin-bottom: 24px;">
+                    Vérifier l'adéquation technique de votre ERP
+                </h2>
+                <p style="font-size: 18px; color: var(--muted); margin-bottom: 40px; line-height: 1.6;">
+                    Diagnostic gratuit pour évaluer la compatibilité de votre infrastructure avec Dorevia-Vault.
+                </p>
+                <a href="{{ path('home') }}#contact-section" class="btn btn-primary" style="font-size: 17px; padding: 16px 32px;">
+                    👉 Diagnostic gratuit
+                </a>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

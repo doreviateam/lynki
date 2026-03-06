@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dorevia-Vault — Des chiffres prouvés</title>
+  <meta name="description" content="Dorevia-Vault sécurise vos événements financiers ERP et génère des preuves vérifiables. Démo réelle, posture B2B." />
+
+  <style>
+    :root{
+      --dv-bg: #0b0f14;
+      --dv-card: rgba(255,255,255,.06);
+      --dv-card2: rgba(255,255,255,.04);
+      --dv-text: rgba(255,255,255,.92);
+      --dv-muted: rgba(255,255,255,.72);
+      --dv-faint: rgba(255,255,255,.56);
+      --dv-border: rgba(255,255,255,.12);
+      --dv-primary: #ffffff;
+      --dv-primary-text: #0b0f14;
+      --dv-radius: 18px;
+      --dv-max: 1120px;
+      --dv-gap: 24px;
+      --dv-section-pad: 88px;
+      --dv-shadow: 0 18px 60px rgba(0,0,0,.35);
+      --dv-font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: var(--dv-font);
+      color: var(--dv-text);
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(255,255,255,.08), transparent 60%),
+                  radial-gradient(900px 600px at 90% 20%, rgba(255,255,255,.05), transparent 55%),
+                  var(--dv-bg);
+      line-height:1.5;
+    }
+
+    a{ color: inherit; text-decoration:none; }
+    .container{
+      width: min(100% - 40px, var(--dv-max));
+      margin-inline:auto;
+    }
+
+    /* NAV (optionnel) */
+    .dv-nav{
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+      background: rgba(11,15,20,.72);
+      border-bottom: 1px solid var(--dv-border);
+    }
+    .dv-nav__inner{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 14px 0;
+      gap: 18px;
+    }
+    .dv-brand{ font-weight: 700; letter-spacing:.2px; }
+    .dv-nav__links{
+      display:flex; align-items:center; gap: 14px;
+      color: var(--dv-muted);
+      font-size: 14px;
+      flex-wrap: wrap;
+      justify-content:flex-end;
+    }
+    .dv-nav__links a:hover{ color: var(--dv-text); }
+
+    /* BUTTONS */
+    .dv-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--dv-border);
+      font-weight: 650;
+      font-size: 14px;
+      gap: 10px;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease, opacity .12s ease;
+      user-select:none;
+      white-space: nowrap;
+    }
+    .dv-btn:active{ transform: translateY(1px); }
+    .dv-btn--primary{
+      background: var(--dv-primary);
+      color: var(--dv-primary-text);
+      border-color: rgba(255,255,255,.8);
+    }
+    .dv-btn--primary:hover{ opacity:.92; }
+    .dv-btn--secondary{
+      background: transparent;
+      color: var(--dv-text);
+    }
+    .dv-btn--secondary:hover{
+      background: rgba(255,255,255,.06);
+      border-color: rgba(255,255,255,.18);
+    }
+    .dv-link{
+      color: var(--dv-muted);
+      font-size: 14px;
+    }
+    .dv-link:hover{ color: var(--dv-text); text-decoration: underline; }
+
+    /* SECTIONS */
+    .dv-section{
+      padding: var(--dv-section-pad) 0;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .dv-section header{
+      margin-bottom: 28px;
+    }
+    .dv-section h2{
+      font-size: clamp(28px, 3.2vw, 44px);
+      letter-spacing: -0.6px;
+      line-height: 1.15;
+      margin: 0 0 10px 0;
+    }
+    .dv-lead{
+      margin: 0;
+      color: var(--dv-muted);
+      font-size: 16px;
+      max-width: 66ch;
+    }
+
+    /* HERO placeholder */
+    .dv-hero{
+      min-height: calc(100vh - 62px);
+      display:flex;
+      align-items:center;
+      padding: 56px 0;
+    }
+    .dv-hero__wrap{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 34px;
+      align-items:center;
+    }
+    .dv-hero h1{
+      font-size: clamp(34px, 4.4vw, 56px);
+      line-height: 1.05;
+      letter-spacing:-0.9px;
+      margin:0 0 12px 0;
+    }
+    .dv-hero p{
+      margin:0 0 22px 0;
+      color: var(--dv-muted);
+      font-size: 16px;
+      max-width: 62ch;
+    }
+    .dv-hero__panel{
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+      border: 1px solid var(--dv-border);
+      border-radius: var(--dv-radius);
+      padding: 18px;
+      box-shadow: var(--dv-shadow);
+      min-height: 260px;
+    }
+    .dv-badges{
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin-top: 14px;
+    }
+    .dv-badge{
+      font-size: 13px;
+      color: var(--dv-muted);
+      border: 1px solid var(--dv-border);
+      background: rgba(255,255,255,.04);
+      padding: 8px 10px;
+      border-radius: 999px;
+    }
+
+    /* POSITIONNEMENT */
+    .dv-position .dv-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--dv-gap);
+      align-items: stretch;
+    }
+    .dv-card{
+      background: var(--dv-card);
+      border: 1px solid var(--dv-border);
+      border-radius: var(--dv-radius);
+      padding: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.25);
+    }
+    .dv-card h3{
+      margin:0 0 10px 0;
+      font-size: 16px;
+      letter-spacing: -0.2px;
+    }
+    .dv-card p{ margin:0; color: var(--dv-muted); }
+    .dv-flow{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-top: 14px;
+    }
+    .dv-pill{
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--dv-border);
+      background: rgba(255,255,255,.04);
+      color: var(--dv-text);
+      font-weight: 650;
+      font-size: 13px;
+    }
+    .dv-arrow{ color: var(--dv-faint); }
+
+    /* PROOF hook (B2B) */
+    .proof-hook{
+      font-size: 18px;
+      font-style: normal;
+      color: var(--dv-muted);
+      margin: 12px 0 22px 0;
+      line-height: 1.4;
+      max-width: 66ch;
+    }
+
+    /* PREUVE */
+    .dv-proof .dv-proof__grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: var(--dv-gap);
+      align-items: start;
+    }
+    .dv-proof__visual{
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border: 1px solid var(--dv-border);
+      border-radius: var(--dv-radius);
+      padding: 16px;
+      box-shadow: var(--dv-shadow);
+    }
+    .dv-proof__visual .placeholder{
+      height: 320px;
+      border-radius: 14px;
+      border: 1px dashed rgba(255,255,255,.22);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color: var(--dv-faint);
+      text-align:center;
+      padding: 14px;
+    }
+    .dv-proof ul{
+      margin:0;
+      padding-left: 18px;
+      color: var(--dv-muted);
+    }
+    .dv-proof li{ margin: 10px 0; }
+    .dv-microcopy{
+      margin-top: 10px;
+      color: var(--dv-faint);
+      font-size: 13px;
+    }
+
+    /* CONVERSATION + CTA */
+    .dv-conversation-cta{
+      text-align:center;
+    }
+    .dv-conversation-cta .dv-center{
+      max-width: 760px;
+      margin-inline:auto;
+    }
+    .dv-conversation-cta .dv-hook{
+      margin: 0 auto 18px auto;
+      color: var(--dv-muted);
+      font-size: 16px;
+    }
+    .dv-conversation-cta .dv-transparency{
+      background: var(--dv-card2);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: var(--dv-radius);
+      padding: 16px;
+      margin: 22px auto;
+      max-width: 720px;
+      text-align: left;
+    }
+    .dv-actions{
+      display:flex;
+      justify-content:center;
+      gap: 12px;
+      flex-wrap:wrap;
+      margin-top: 18px;
+    }
+
+    /* FOOTER */
+    footer{
+      padding: 34px 0 50px;
+      color: var(--dv-faint);
+    }
+    .dv-footer{
+      display:flex;
+      justify-content:space-between;
+      gap: 12px;
+      flex-wrap:wrap;
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding-top: 18px;
+      font-size: 14px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 920px){
+      .dv-hero__wrap{ grid-template-columns: 1fr; }
+      .dv-position .dv-grid{ grid-template-columns: 1fr; }
+      .dv-proof .dv-proof__grid{ grid-template-columns: 1fr; }
+      .dv-section{ padding: 64px 0; }
+      .dv-conversation-cta .dv-transparency{ text-align:left; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- NAV (optionnel) -->
+  <div class="dv-nav">
+    <div class="container dv-nav__inner">
+      <div class="dv-brand">Dorevia-Vault</div>
+      <nav class="dv-nav__links" aria-label="Navigation">
+        <a href="#positionnement">Positionnement</a>
+        <a href="#demo">Preuve</a>
+        <a href="#conversation-cta">Contact</a>
+        <a href="/manifeste">Manifeste</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- HERO (placeholder : remplace par ton Hero actuel) -->
+  <header class="dv-hero" id="top">
+    <div class="container dv-hero__wrap">
+      <div>
+        <h1>Des chiffres prouvés.<br>Enfin.</h1>
+        <p>
+          Dorevia-Vault sécurise automatiquement vos événements financiers depuis votre ERP
+          et génère des preuves vérifiables en cas de contrôle.
+        </p>
+        <div class="dv-badges" aria-label="Points clés">
+          <span class="dv-badge">Preuves vérifiables</span>
+          <span class="dv-badge">Zéro manipulation</span>
+          <span class="dv-badge">ERP-agnostique</span>
+          <span class="dv-badge">Souverain</span>
+        </div>
+      </div>
+
+      <div class="dv-hero__panel" aria-label="Panneau hero">
+        <p style="margin:0 0 10px 0;color:var(--dv-muted);font-size:14px;">
+          (Tu remets ici ton visuel / cards 3V / animation existante.)
+        </p>
+        <div class="placeholder" style="height:210px;border-radius:14px;border:1px dashed rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;color:var(--dv-faint);">
+          HERO VISUAL
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2) POSITIONNEMENT -->
+  <section id="positionnement" class="dv-section dv-position">
+    <div class="container">
+      <header>
+        <h2>L’ERP est votre matière première.<br>Nous la transformons en vérité.</h2>
+
+        <p class="dv-lead">
+          Votre ERP (Odoo, etc.) produit en continu
+          des factures, paiements et écritures comptables.
+        </p>
+
+        <p style="margin: 14px 0; color: var(--dv-muted); font-size: 16px; max-width: 66ch;">
+          Aujourd'hui, ces données ne sont pas
+          <strong style="color:var(--dv-text);">nativement probantes</strong>.
+        </p>
+
+        <p style="margin: 14px 0; color: var(--dv-muted); font-size: 16px; max-width: 66ch;">
+          Dorevia-Vault transforme ces événements
+          en <strong style="color:var(--dv-text);">preuves financières exploitables</strong>,
+          conformes aux exigences <strong style="color:var(--dv-text);">LNE 2026 / NF525</strong>.
+        </p>
+      </header>
+
+      <div class="dv-grid" style="margin-top: 32px;">
+        <div class="dv-card">
+          <h3>ERP + événements</h3>
+          <p>
+            Votre ERP enregistre l’activité, mais la valeur probante n’est pas garantie
+            au moment où l’information est créée.
+          </p>
+
+          <div class="dv-flow" aria-label="Flux">
+            <span class="dv-pill">ERP</span><span class="dv-arrow">→</span>
+            <span class="dv-pill">Événements</span><span class="dv-arrow">→</span>
+            <span class="dv-pill">Preuves</span>
+          </div>
+        </div>
+
+        <div class="dv-card">
+          <h3>Preuve automatisée</h3>
+          <p>
+            Capture automatique des événements,
+            horodatage et empreinte cryptographique.
+            Les données deviennent fiables, traçables
+            et juridiquement opposables.
+          </p>
+        </div>
+      </div>
+
+      <div style="margin-top: 28px; text-align: center;">
+        <a href="#demo" class="dv-btn dv-btn--secondary">Voir la démo</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3) PREUVE -->
+  <section id="demo" class="dv-section dv-proof">
+    <div class="container">
+      <header>
+        <h2>Voir plutôt que croire</h2>
+        <p class="proof-hook">
+          Accédez à une démonstration réelle
+          sur une instance en production.
+        </p>
+      </header>
+
+      <div class="dv-proof__grid">
+        <div class="dv-proof__visual">
+          <!-- Remplace par capture(s) / vidéo courte / schéma -->
+          <div class="placeholder">
+            <div>
+              <div style="font-weight:700;color:var(--dv-text);margin-bottom:8px;">Assets de preuve</div>
+              <div>Capture Odoo réelle / schéma ERP → DVIG → Vault / aperçu UI Vault</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dv-card">
+          <h3>Ce que vous verrez</h3>
+          <ul>
+            <li>Instance Odoo réelle</li>
+            <li>Flux de production</li>
+            <li>Collecte automatique</li>
+            <li>Preuves horodatées et vérifiables</li>
+          </ul>
+
+          <p style="margin-top:14px;color:var(--dv-muted);">
+            L’interface Dorevia-Vault arrive ensuite pour exploiter ces preuves :
+            tableaux de bord, pilotage, vérification.
+          </p>
+
+          <div style="margin-top:16px;">
+            <a href="/demo" class="dv-btn dv-btn--primary">Voir la démo</a>
+            <div class="dv-microcopy">Instance réelle • 30 minutes • Sans engagement</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4) CONVERSATION + CTA -->
+  <section id="conversation-cta" class="dv-section dv-conversation-cta">
+    <div class="container dv-center">
+      <header>
+        <h2>Échangeons sur votre contexte</h2>
+        <p class="dv-hook">
+          ERP • Process • Volumétrie • Contraintes
+        </p>
+      </header>
+
+      <div class="dv-transparency">
+        <p style="margin:0 0 10px 0;color:var(--dv-muted);">
+          Chaque demande est analysée pour qualifier votre environnement
+          et valider l’adéquation produit.
+        </p>
+        <p style="margin:0;color:var(--dv-faint);">
+          Réponse rapide. Pas de spam.
+        </p>
+      </div>
+
+      <div class="dv-actions">
+        <a href="/demo" class="dv-btn dv-btn--primary">Voir la démo</a>
+        <a href="/contact" class="dv-btn dv-btn--secondary">Présenter votre projet</a>
+      </div>
+      <div class="dv-microcopy">30 minutes • sans engagement</div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container dv-footer">
+      <div>© <span id="y"></span> Dorevia-Vault</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <a class="dv-link" href="/manifeste">Manifeste</a>
+        <a class="dv-link" href="/pour-qui">Pour qui</a>
+        <a class="dv-link" href="/cas-usage">Cas d’usage</a>
+        <a class="dv-link" href="/conformite">Conformité</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

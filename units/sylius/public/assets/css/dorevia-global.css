@@ -1,0 +1,89 @@
+/* ============================================================
+   Dorevia-Vault — Styles globaux (typo + couleurs site-wide)
+   Aligné sur le design system Blog v3 / Korben-like.
+   Chargé sur toutes les pages via layout.html.twig.
+   ============================================================ */
+
+/* ---------- Tokens globaux (réutilisables partout) ---------- */
+:root {
+  --dorevia-font: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --dorevia-text: #111;
+  --dorevia-text-secondary: #374151;
+  --dorevia-muted: #6b7280;
+  --dorevia-muted-light: #9ca3af;
+  --dorevia-line-height: 1.75;
+  --dorevia-line-height-tight: 1.4;
+  --dorevia-radius: 12px;
+  --dorevia-radius-sm: 8px;
+  --dorevia-content-max: 860px;
+  --dorevia-content-max-sm: 720px;
+}
+
+/* ---------- Typographie de base (toutes les pages) ---------- */
+body {
+  font-family: var(--dorevia-font);
+  color: var(--dorevia-text);
+  font-size: 16px;
+  line-height: var(--dorevia-line-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (min-width: 601px) {
+  body {
+    font-size: 17px;
+  }
+}
+
+/* Titres : cohérence site-wide (surcharge possible par section) */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--dorevia-font);
+  color: var(--dorevia-text);
+  line-height: var(--dorevia-line-height-tight);
+  font-weight: 700;
+}
+
+h1 { font-size: clamp(1.75rem, 4vw, 2.25rem); }
+h2 { font-size: clamp(1.35rem, 3vw, 1.75rem); }
+h3 { font-size: clamp(1.15rem, 2vw, 1.35rem); }
+h4, h5, h6 { font-size: 1.1rem; }
+
+p {
+  margin: 0 0 1em 0;
+  color: var(--dorevia-text);
+}
+
+/* Liens : visibles et cohérents */
+a {
+  color: var(--dorevia-text);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Classe utilitaire : bloc de contenu lisible (colonne type blog) */
+.content-prose {
+  max-width: var(--dorevia-content-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1.5rem 1rem;
+  box-sizing: border-box;
+}
+
+@media (min-width: 601px) {
+  .content-prose {
+    padding: 2rem 1.5rem;
+  }
+}
+
+.content-prose p,
+.content-prose ul,
+.content-prose ol {
+  color: var(--dorevia-text);
+}
+
+.content-prose .muted {
+  color: var(--dorevia-muted);
+}

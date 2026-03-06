@@ -24,10 +24,10 @@
       "minItems": 1,
       "items": {
         "type": "string",
-        "enum": ["odoo", "pos", "sylius"]
+        "enum": ["odoo", "pos", "sylius", "suitecrm", "n8n"]
       },
       "uniqueItems": true,
-      "examples": [["odoo"], ["odoo", "pos"]]
+      "examples": [["odoo"], ["odoo", "pos"], ["odoo", "suitecrm", "n8n"]]
     },
     "environments": {
       "type": "array",
@@ -150,19 +150,19 @@
     },
     "units": {
       "type": "object",
-      "description": "Liste des units techniques à déployer par catégorie",
+      "description": "Liste des units techniques à déployer par catégorie. Note: platform peut être un tableau vide [] pour créer un tenant sans services platform (DVIG/Vault optionnels selon SPEC_DVIG_VAULT_OPTIONNELS_v1.0)",
       "required": ["platform"],
       "properties": {
         "platform": {
           "type": "array",
-          "description": "Units de la plateforme (services partagés)",
-          "minItems": 1,
+          "description": "Units de la plateforme (services partagés). Peut être vide pour créer un tenant sans services platform (DVIG/Vault optionnels).",
+          "minItems": 0,
           "items": {
             "type": "string",
             "enum": ["dvig", "vault", "postgres"]
           },
           "uniqueItems": true,
-          "examples": [["dvig", "vault", "postgres"]]
+          "examples": [["dvig", "vault", "postgres"], []]
         },
         "odoo": {
           "type": "array",
@@ -191,6 +191,26 @@
             "enum": ["sylius", "postgres"]
           },
           "uniqueItems": true
+        },
+        "suitecrm": {
+          "type": "array",
+          "description": "Units pour l'univers suitecrm",
+          "items": {
+            "type": "string",
+            "enum": ["suitecrm", "mariadb"]
+          },
+          "uniqueItems": true,
+          "examples": [["suitecrm", "mariadb"]]
+        },
+        "n8n": {
+          "type": "array",
+          "description": "Units pour l'univers n8n",
+          "items": {
+            "type": "string",
+            "enum": ["n8n", "postgres"]
+          },
+          "uniqueItems": true,
+          "examples": [["n8n", "postgres"]]
         }
       },
       "additionalProperties": false
@@ -228,13 +248,31 @@
           "type": "string",
           "description": "Image Docker Odoo",
           "pattern": "^[^:]+:[^:]+$",
-          "examples": ["odoo:18.0"]
+          "examples": ["odoo:18.0-20250819"]
         },
         "postgres": {
           "type": "string",
           "description": "Image Docker PostgreSQL",
           "pattern": "^[^:]+:[^:]+$",
           "examples": ["postgres:16"]
+        },
+        "suitecrm": {
+          "type": "string",
+          "description": "Image Docker SuiteCRM",
+          "pattern": "^[^:]+:[^:]+$",
+          "examples": ["bitnami/suitecrm:8"]
+        },
+        "mariadb": {
+          "type": "string",
+          "description": "Image Docker MariaDB (univers suitecrm)",
+          "pattern": "^[^:]+:[^:]+$",
+          "examples": ["mariadb:11"]
+        },
+        "n8n": {
+          "type": "string",
+          "description": "Image Docker n8n",
+          "pattern": "^[^:]+:[^:]+$",
+          "examples": ["n8nio/n8n:latest"]
         }
       },
       "additionalProperties": false

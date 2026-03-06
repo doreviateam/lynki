@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ page_title }}</title>
+    <meta name="description" content="{{ page_description }}" />
+    <meta name="theme-color" content="#F7D147" />
+    <meta name="x-tenant" content="lovable44" />
+
+    <meta property="og:title" content="Lov'Arbitre — Qui mérite le carton ?" />
+    <meta property="og:description" content="Ce n'est pas la vérité. C'est le tableau d'affichage." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="{{ app.request.schemeAndHttpHost }}{{ asset('assets/images/lovarbitre-logo.png') }}" />
+
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/lovarbitre-logo.png') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/lovarbitre.css') }}?v=20260122" />
+</head>
+
+<body>
+    <!-- HEADER STICKY -->
+    <header>
+        <div class="container">
+            <div class="nav" role="navigation" aria-label="Navigation principale">
+                <a class="brand" href="#top" aria-label="Retour en haut de page">
+                    <img src="{{ asset('assets/images/lovarbitre-logo.png') }}" alt="Logo Lov'Arbitre (cartons jaune/rouge, cœur et main)" />
+                    <div>
+                        <div class="title">Lov'Arbitre</div>
+                        <div class="tag">Arbitre IA — disputes en mode match</div>
+                    </div>
+                </a>
+
+                <nav aria-label="Ancres">
+                    <ul>
+                        <li><a href="#concept">Concept</a></li>
+                        <li><a href="#how">Comment ça marche</a></li>
+                        <li><a href="#stats">Stats</a></li>
+                        <li><a href="#faq">FAQ</a></li>
+                    </ul>
+                </nav>
+
+                <div class="nav-cta">
+                    <a class="btn btn-primary" href="#demo" aria-label="Aller à la démo et lancer le match">🟥 Lancer le match</a>
+                    <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mobileMenu">
+                        ☰ Menu
+                    </button>
+                </div>
+            </div>
+
+            <div class="mobile-menu" id="mobileMenu">
+                <a href="#concept">Concept</a>
+                <a href="#how">Comment ça marche</a>
+                <a href="#stats">Stats</a>
+                <a href="#faq">FAQ</a>
+                <a class="btn btn-primary" href="#demo" style="width:100%; margin-top: 10px;">🟥 Lancer le match</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO -->
+    <main id="top">
+        <section class="hero" aria-label="Hero">
+            <div class="container">
+                <div class="wrap">
+                    <div>
+                        <div class="signature" aria-label="Signature">
+                            <span style="font-size:1.1rem;">🏟️</span>
+                            <div>
+                                <div>"Ce n'est pas la vérité. <span style="color:var(--red);">C'est le tableau d'affichage.</span>"</div>
+                                <small>Lov'Arbitre : fun, assumé, jamais méchant.</small>
+                            </div>
+                        </div>
+
+                        <h1>Qui mérite le carton&nbsp;?</h1>
+                        <p class="subtitle">
+                            Transformez vos disputes en <b>match officiel</b> : l'IA siffle, les stats tranchent,
+                            et les cartons tombent <b>(gentiment)</b>.
+                        </p>
+
+                        <div class="cta-row" aria-label="Call to action principal">
+                            <a class="btn btn-primary" href="#demo">🟥 Lancer le match</a>
+                            <a class="btn btn-secondary" href="#demo" id="seeDemoBtn">⚡ Voir une démo</a>
+                            <a class="btn btn-ghost" href="#how">🎺 Comment ça marche</a>
+                        </div>
+
+                        <div class="disclaimer">
+                            🤝 Résultat non homologué par la FIFA ni opposable à ta belle-mère.
+                        </div>
+                    </div>
+
+                    <div class="hero-visual" aria-label="Visuel principal">
+                        <div class="logo-card">
+                            <img src="{{ asset('assets/images/lovarbitre-logo.png') }}" alt="Nouveau logo Lov'Arbitre sur fond jaune rayonnant" />
+                            <div style="display:flex; gap:10px; margin-top: 12px; flex-wrap:wrap; justify-content:center;">
+                                <span class="badge" style="background:rgba(2,1,1,.86); color:var(--offwhite); border-color:rgba(2,1,1,.86);">🟨 Carton jaune</span>
+                                <span class="badge" style="background:var(--red); color:var(--offwhite); border-color:rgba(201,57,37,.55);">🟥 Carton rouge</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONCEPT -->
+        <section id="concept" aria-label="Le concept">
+            <div class="container">
+                <div class="section-title">
+                    <span class="badge">🎽 Le concept</span>
+                    <h2 class="h2">Une dispute… mais en match de jour (avec arbitre, stats et cartons).</h2>
+                    <p class="lead">
+                        Lov'Arbitre transforme le chaos en règles simples. Pas thérapeutique. Pas moralisateur.
+                        Juste un <b>tableau d'affichage</b> qui rend la partie… jouable.
+                    </p>
+                </div>
+
+                <div class="cards" role="list">
+                    <article class="card" role="listitem">
+                        <div class="top">
+                            <div class="pict" aria-hidden="true">🔥</div>
+                            <h3>Ça s'emballe</h3>
+                        </div>
+                        <p>Le ton monte ? Les "toujours / jamais" débarquent ? Ok. On sort le sifflet. 🥲</p>
+                    </article>
+
+                    <article class="card" role="listitem">
+                        <div class="top">
+                            <div class="pict" aria-hidden="true">🧑‍⚖️</div>
+                            <h3>L'arbitre siffle</h3>
+                        </div>
+                        <p>Lov'Arbitre repère les fautes de jeu : interruption, mauvaise foi, hors‑sujet… et recadre.</p>
+                    </article>
+
+                    <article class="card" role="listitem">
+                        <div class="top">
+                            <div class="pict" aria-hidden="true">📊</div>
+                            <h3>Le tableau tranche</h3>
+                        </div>
+                        <p>Stats + cartons + verdict aux points. Vous n'êtes pas d'accord ? Ça se conteste… sportivement.</p>
+                    </article>
+                </div>
+
+                <div style="margin-top:18px; display:flex; flex-wrap:wrap; gap:10px;">
+                    <a class="btn btn-primary" href="#demo">🟥 Lancer le match</a>
+                    <a class="btn btn-secondary" href="#demo">⚡ Voir une démo</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOW IT WORKS -->
+        <section id="how" class="on-black" aria-label="Comment ça marche">
+            <div class="container">
+                <div class="section-title">
+                    <span class="badge">🧾 Comment ça marche</span>
+                    <h2 class="h2">Trois actions. Zéro psychodrame. Beaucoup de "ok j'avoue".</h2>
+                    <p class="lead">Le but : une partie plus claire, plus courte, et surtout… <b>jouable</b>.</p>
+                </div>
+
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-head">
+                            <span class="num">1</span>
+                            <h3>Décris la dispute</h3>
+                        </div>
+                        <p>En 2 phrases. Pas besoin d'un roman. (On n'est pas à la rentrée littéraire.)</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-head">
+                            <span class="num">2</span>
+                            <h3>Lov'Arbitre repère les fautes</h3>
+                        </div>
+                        <p>Interruption, mauvaise foi, attaque perso… Le cadre est posé, le jeu reprend.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-head">
+                            <span class="num">3</span>
+                            <h3>Cartons + stats + verdict</h3>
+                        </div>
+                        <p>Un score, des faits, une décision aux points. Pas une vérité absolue. Une fin de match.</p>
+                    </div>
+                </div>
+
+                <div class="accordion" aria-label="Règlement officiel">
+                    <details open>
+                        <summary>
+                            📜 Règlement officiel (tap pour ouvrir/fermer)
+                            <span class="chev">+</span>
+                        </summary>
+                        <div class="acc-body">
+                            <div class="rule">
+                                <span class="chip">FAUTE</span>
+                                <div>
+                                    <b>Interruption abusive</b>
+                                    <div>Couper la parole = possession contestée. Le sifflet adore ça.</div>
+                                </div>
+                            </div>
+
+                            <div class="rule">
+                                <span class="chip">FAUTE</span>
+                                <div>
+                                    <b>Mauvaise foi flagrante</b>
+                                    <div>"J'ai jamais dit ça" alors que… si. Carton possible. 😅</div>
+                                </div>
+                            </div>
+
+                            <div class="rule">
+                                <span class="chip">FAUTE</span>
+                                <div>
+                                    <b>Hors‑sujet stratégique</b>
+                                    <div>"Oui mais toi en 2019…" : rétro‑match détecté.</div>
+                                </div>
+                            </div>
+
+                            <div class="rule">
+                                <span class="chip">FAUTE</span>
+                                <div>
+                                    <b>Attaque personnelle</b>
+                                    <div>Pas d'insultes, pas de dénigrement. Ici on joue, on n'écrase pas.</div>
+                                </div>
+                            </div>
+
+                            <div class="rule">
+                                <span class="chip">VAR</span>
+                                <div>
+                                    <b>Ressortage d'un match de 2019</b>
+                                    <div>La VAR rembobine… puis propose de revenir au sujet. Promis.</div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:10px;">
+                                <a class="btn btn-primary" href="#demo">🟥 Lancer le match</a>
+                                <a class="btn btn-secondary inverse" href="#stats">📊 Voir les stats</a>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <!-- STATS -->
+        <section id="stats" aria-label="Stats et graphiques" style="background: linear-gradient(135deg, var(--y-main) 0%, var(--y-bright) 100%);">
+            <div class="container">
+                <div class="section-title">
+                    <span class="badge">📈 Stats & graphiques</span>
+                    <h2 class="h2">Le tableau de score qui calme (souvent) le match.</h2>
+                    <p class="lead">4 tuiles. Un style "scoreboard". Et une phrase qui résume tout.</p>
+                </div>
+
+                <div class="scoreboards">
+                    <div class="score">
+                        <div class="row">
+                            <div>
+                                <div class="label">Possession de la parole</div>
+                                <div class="kpi">58<span style="font-size:1.1rem;">%</span></div>
+                            </div>
+                            <div class="badge" style="background: rgba(250,227,88,.20); border-color: rgba(250,227,88,.38); color: var(--offwhite);">Joueur A</div>
+                        </div>
+                        <div class="mini" aria-hidden="true">
+                            <div class="bar" style="width:58%"></div>
+                            <div class="ticks"></div>
+                        </div>
+                    </div>
+
+                    <div class="score">
+                        <div class="row">
+                            <div>
+                                <div class="label">Fautes commises</div>
+                                <div class="kpi">4</div>
+                            </div>
+                            <div class="badge" style="background: rgba(201,57,37,.18); border-color: rgba(201,57,37,.38); color: var(--offwhite);">Attention</div>
+                        </div>
+                        <div class="mini" aria-hidden="true">
+                            <div class="bar" style="width:40%; background: linear-gradient(90deg, rgba(201,57,37,.92), rgba(250,227,88,.75));"></div>
+                            <div class="ticks"></div>
+                        </div>
+                    </div>
+
+                    <div class="score">
+                        <div class="row">
+                            <div>
+                                <div class="label">Indice de drama</div>
+                                <div class="kpi">7.2</div>
+                            </div>
+                            <div class="badge" style="background: rgba(2,1,1,.65); border-color: rgba(252,249,240,.18); color: var(--offwhite);">🔥 épicé</div>
+                        </div>
+                        <div class="mini" aria-hidden="true">
+                            <div class="bar" style="width:72%; background: linear-gradient(90deg, rgba(250,227,88,.92), rgba(2,1,1,.90));"></div>
+                            <div class="ticks"></div>
+                        </div>
+                    </div>
+
+                    <div class="score">
+                        <div class="row">
+                            <div>
+                                <div class="label">Cartons distribués</div>
+                                <div class="kpi">🟨2&nbsp;🟥1</div>
+                            </div>
+                            <div class="badge" style="background: rgba(250,227,88,.18); border-color: rgba(250,227,88,.35); color: var(--offwhite);">VAR</div>
+                        </div>
+                        <div class="mini" aria-hidden="true">
+                            <div class="bar" style="width:66%; background: linear-gradient(90deg, rgba(250,227,88,.95), rgba(201,57,37,.92));"></div>
+                            <div class="ticks"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signature-big">
+                    "Ce n'est pas la vérité. <span style="color:var(--red);">C'est le tableau d'affichage.</span>"
+                </div>
+
+                <div style="margin-top:16px; display:flex; flex-wrap:wrap; gap:10px;">
+                    <a class="btn btn-secondary" href="#demo">⚡ Voir une démo</a>
+                    <a class="btn btn-primary" href="#demo">🟥 Lancer le match</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- DEMO -->
+        <section id="demo" aria-label="Démo rapide" style="background: var(--offwhite);">
+            <div class="container">
+                <div class="section-title">
+                    <span class="badge">🎮 Démo rapide</span>
+                    <h2 class="h2">Fais comme si. Le rendu te donne l'impression que c'est déjà en prod.</h2>
+                    <p class="lead">Pas de backend ici : on simule un arbitrage cohérent (et drôle). Tu peux copier‑coller ton texte.</p>
+                </div>
+
+                <div class="demo">
+                    <div class="panel">
+                        <label for="dispute">Décris ta dispute en 2 phrases…</label>
+                        <textarea id="dispute" placeholder="Ex : "Tu m'as encore interrompu pendant que je parle. Et ensuite tu dis que je m'énerve pour rien…""></textarea>
+                        <div class="demo-actions">
+                            <button class="btn btn-primary" id="whistleBtn">📣 Siffler le match</button>
+                            <button class="btn btn-secondary" id="fillExampleBtn" type="button">✨ Mettre un exemple</button>
+                        </div>
+                        <p style="margin:10px 0 0; color:rgba(2,1,1,.72); font-weight:650;">
+                            Astuce : plus c'est court, plus l'arbitre est efficace. (Comme un bon sifflet.)
+                        </p>
+                    </div>
+
+                    <div class="panel black" aria-live="polite">
+                        <div class="result" id="result">
+                            <div class="pill"><span class="dot"></span> Verdict prêt à siffler</div>
+                            <div class="mini-card" style="border-color: rgba(250,227,88,.22);">
+                                <b>Verdict</b>
+                                <span>Écris 2 phrases à gauche, puis clique "Siffler le match".</span>
+                            </div>
+
+                            <div class="cards-mini">
+                                <div class="mini-card">
+                                    <b>Cartons</b>
+                                    <span>🟨 — / 🟥 —</span>
+                                </div>
+                                <div class="mini-card">
+                                    <b>Stats</b>
+                                    <span>Possession — / Fautes —</span>
+                                </div>
+                            </div>
+
+                            <div class="mini-card" style="border-color: rgba(201,57,37,.28);">
+                                <b>Note de l'arbitre</b>
+                                <span>"On reste fair‑play. Sinon, c'est carton direct."</span>
+                            </div>
+
+                            <a class="btn btn-secondary inverse" href="#how">📜 Revoir le règlement</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" aria-label="FAQ">
+            <div class="container">
+                <div class="section-title">
+                    <span class="badge">❓ FAQ</span>
+                    <h2 class="h2">Questions fréquentes (et réponses sans mauvaise foi).</h2>
+                    <p class="lead">Court, fun, rassurant : Lov'Arbitre est un outil ludique. Point.</p>
+                </div>
+
+                <div class="faq">
+                    <details>
+                        <summary>Lov'Arbitre prend‑il parti ? <span class="chev" style="border-color:rgba(2,1,1,.12); background:rgba(2,1,1,.06); color:var(--black);">+</span></summary>
+                        <div class="acc-body">
+                            Non. Il arbitre selon des règles simples (interruptions, attaques perso, hors‑sujet). Si tu veux un "juge", c'est pas ici. Ici, c'est un match.
+                        </div>
+                    </details>
+
+                    <details>
+                        <summary>Est‑ce que c'est sérieux ? <span class="chev" style="border-color:rgba(2,1,1,.12); background:rgba(2,1,1,.06); color:var(--black);">+</span></summary>
+                        <div class="acc-body">
+                            C'est sérieux comme un carton jaune : ça recadre… mais ça reste ludique. Pas thérapeutique, pas moralisateur, pas méchant.
+                        </div>
+                    </details>
+
+                    <details>
+                        <summary>Les données sont‑elles stockées ? <span class="chev" style="border-color:rgba(2,1,1,.12); background:rgba(2,1,1,.06); color:var(--black);">+</span></summary>
+                        <div class="acc-body">
+                            Sur cette démo : non (tout reste dans ton navigateur). Sur le produit : on vise "minimum nécessaire", clair et explicite. Pas de surprise.
+                        </div>
+                    </details>
+
+                    <details>
+                        <summary>Peut‑on contester une décision ? <span class="chev" style="border-color:rgba(2,1,1,.12); background:rgba(2,1,1,.06); color:var(--black);">+</span></summary>
+                        <div class="acc-body">
+                            Oui : "VAR" disponible. Tu reformules, tu précises, et l'arbitre rescelle la décision. Spoiler : le hors‑sujet stratégique perd souvent.
+                        </div>
+                    </details>
+
+                    <details>
+                        <summary>À qui s'adresse Lov'Arbitre ? <span class="chev" style="border-color:rgba(2,1,1,.12); background:rgba(2,1,1,.06); color:var(--black);">+</span></summary>
+                        <div class="acc-body">
+                            Aux couples qui veulent dédramatiser et avancer vite. Si vous cherchez une solution thérapeutique : ce n'est pas l'objectif.
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA FINAL -->
+        <section class="on-black" aria-label="Call to action final">
+            <div class="container">
+                <div class="final-cta">
+                    <div>
+                        <h2 class="h2" style="margin:0;">Prêt·e à lancer le match&nbsp;?</h2>
+                        <p>En moins de 30 secondes. Sans jugement. Juste un tableau de score qui aide à conclure.</p>
+                    </div>
+                    <div class="cta-row">
+                        <a class="btn btn-primary" href="#demo">🟥 Lancer le match</a>
+                        <a class="btn btn-secondary inverse" href="#demo">⚡ Voir une démo</a>
+                    </div>
+                    <div class="small">Micro‑texte : "En moins de 30 secondes. Sans jugement."</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-row">
+                <div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <img src="{{ asset('assets/images/lovarbitre-logo.png') }}" alt="Logo Lov'Arbitre (version compacte possible)" style="width:34px; height:34px; border-radius:10px; background:rgba(252,249,240,.06); padding:4px;" />
+                        <div style="font-weight:1000; letter-spacing:-.2px;">Lov'Arbitre</div>
+                    </div>
+                    <div class="small" style="margin-top:8px;">
+                        Lov'Arbitre est un outil ludique et expérimental. Il ne remplace pas un professionnel.
+                    </div>
+                </div>
+
+                <div>
+                    <div class="footer-links" aria-label="Liens footer">
+                        <a href="{{ path('privacy_index') }}">Mentions légales</a>
+                        <a href="{{ path('privacy_index') }}">Confidentialité</a>
+                        <a href="{{ path('contact') }}">Contact</a>
+                    </div>
+                    <div class="small" style="margin-top:10px;">
+                        Réseaux : <a href="#" onclick="alert('À brancher : Instagram/TikTok/X'); return false;">Instagram</a> ·
+                        <a href="#" onclick="alert('À brancher : TikTok'); return false;">TikTok</a> ·
+                        <a href="#" onclick="alert('À brancher : X'); return false;">X</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        menuBtn?.addEventListener('click', () => {
+            const isOpen = mobileMenu.classList.toggle('open');
+            menuBtn.setAttribute('aria-expanded', String(isOpen));
+        });
+        mobileMenu?.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+            mobileMenu.classList.remove('open');
+            menuBtn.setAttribute('aria-expanded', 'false');
+        }));
+
+        // Demo mock
+        const dispute = document.getElementById('dispute');
+        const whistleBtn = document.getElementById('whistleBtn');
+        const fillExampleBtn = document.getElementById('fillExampleBtn');
+        const result = document.getElementById('result');
+
+        const examples = [
+            "Tu m'as interrompu trois fois. Et après tu dis que je parle trop…",
+            "Tu dis que tu as compris, puis tu refais pareil. J'ai l'impression de parler à un mur.",
+            "Je te demande un truc simple, et ça finit en débat sur 2019. (La VAR chauffe.)"
+        ];
+
+        fillExampleBtn?.addEventListener('click', () => {
+            dispute.value = examples[Math.floor(Math.random() * examples.length)];
+            dispute.focus();
+        });
+
+        function clamp(n, a, b) {
+            return Math.max(a, Math.min(b, n));
+        }
+
+        function renderMock(text) {
+            const t = (text || "").toLowerCase();
+
+            // Heuristiques simples pour donner un rendu "outil réel"
+            let interruptions = (t.match(/interromp|coupe|coupé|couper/g) || []).length;
+            let alwaysNever = (t.match(/toujours|jamais/g) || []).length;
+            let past = (t.match(/2019|avant|l'autre fois|la dernière fois/g) || []).length;
+            let attaque = (t.match(/nul|stupid|idiot|ridicule|honte/g) || []).length;
+
+            let fautesA = 1 + interruptions + alwaysNever + past;
+            let fautesB = 1 + Math.floor((alwaysNever + past) / 2);
+
+            // Indice drama
+            let drama = 3.5 + interruptions * 0.8 + alwaysNever * 0.9 + attaque * 1.2 + past * 0.7;
+            drama = Math.round(clamp(drama, 0, 10) * 10) / 10;
+
+            // Possession (pseudo)
+            let possessionA = clamp(52 + interruptions * 3 + alwaysNever * 2 - past * 1, 35, 72);
+            let possessionB = 100 - possessionA;
+
+            // Cartons
+            let jauneA = clamp(Math.floor((fautesA) / 3), 0, 3);
+            let rougeA = (attaque > 0 || fautesA >= 7) ? 1 : 0;
+            let jauneB = clamp(Math.floor((fautesB) / 3), 0, 2);
+            let rougeB = (fautesB >= 7) ? 1 : 0;
+
+            // Verdict
+            const scoreA = (possessionA / 10) - (fautesA * 0.6) - (rougeA * 3) - (jauneA * 0.8);
+            const scoreB = (possessionB / 10) - (fautesB * 0.6) - (rougeB * 3) - (jauneB * 0.8);
+            const winner = scoreA >= scoreB ? "Joueur B" : "Joueur A"; // fun: celui qui commet le moins de fautes "gagne"
+            const note = past > 0
+                ? "VAR : rétro‑match détecté. Retour au sujet conseillé."
+                : (interruptions > 0 ? "Possession contestée : moins couper, plus marquer des points." : "Belle première mi‑temps : continuez à parler simple.");
+
+            function cartons(jaune, rouge) {
+                return "🟨".repeat(jaune) + (jaune === 0 ? "—" : "") + "  " + "🟥".repeat(rouge) + (rouge === 0 ? "—" : "");
+            }
+
+            result.innerHTML = `
+                <div class="pill"><span class="dot"></span> Arbitrage rendu (mock)</div>
+
+                <div class="mini-card" style="border-color: rgba(250,227,88,.22);">
+                    <b>Verdict</b>
+                    <span><b>Victoire aux points :</b> ${winner}</span><br/>
+                    <span style="opacity:.88;">(oui, c'est volontairement un peu taquin)</span>
+                </div>
+
+                <div class="cards-mini">
+                    <div class="mini-card">
+                        <b>Cartons</b>
+                        <span><b>Joueur A :</b> ${cartons(jauneA, rougeA)}<br/>
+                              <b>Joueur B :</b> ${cartons(jauneB, rougeB)}</span>
+                    </div>
+                    <div class="mini-card">
+                        <b>Stats</b>
+                        <span><b>Possession :</b> A ${possessionA}% / B ${possessionB}%<br/>
+                              <b>Fautes :</b> A ${fautesA} / B ${fautesB}<br/>
+                              <b>Drama :</b> ${drama}/10</span>
+                    </div>
+                </div>
+
+                <div class="mini-card" style="border-color: rgba(201,57,37,.28);">
+                    <b>Note de l'arbitre</b>
+                    <span>"${note}"</span>
+                </div>
+
+                <div style="display:flex; flex-wrap:wrap; gap:10px;">
+                    <a class="btn btn-primary" href="#demo">🟥 Rejouer</a>
+                    <a class="btn btn-secondary inverse" href="#stats">📊 Voir le tableau</a>
+                </div>
+            `;
+        }
+
+        whistleBtn?.addEventListener('click', () => {
+            const text = dispute.value.trim();
+            if (!text) {
+                dispute.focus();
+                dispute.setAttribute('aria-invalid', 'true');
+                renderMock("interrompu toujours 2019"); // small nudge
+                return;
+            }
+            dispute.removeAttribute('aria-invalid');
+            renderMock(text);
+        });
+    </script>
+</body>
+</html>

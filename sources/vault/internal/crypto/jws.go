@@ -3,8 +3,10 @@ package crypto
 import (
 	"context"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -253,4 +255,18 @@ func (s *Service) CurrentJWKS() ([]byte, error) {
 // GetKID retourne le kid (Key ID) actuel
 func (s *Service) GetKID() string {
 	return s.kid
+}
+
+// PublicKeyFingerprint retourne le fingerprint SHA-256 de la clé publique (SPKI DER), en hex.
+// Utilisé pour le bloc verification du format de preuve v1.1.
+func (s *Service) PublicKeyFingerprint() (string, error) {
+	if s.publicKey == nil {
+		return "", fmt.Errorf("public key not loaded")
+	}
+	der, err := x509.MarshalPKIXPublicKey(s.publicKey)
+	if err != nil {
+		return "", fmt.Errorf("marshal public key: %w", err)
+	}
+	h := sha256.Sum256(der)
+	return hex.EncodeToString(h[:]), nil
 }

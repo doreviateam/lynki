@@ -17,7 +17,7 @@
 
 ### Odoo LAB
 - **Container** : `odoo-odoo-1` (via docker-compose.lab.yml)
-- **Image** : `odoo:18.0`
+- **Image** : `odoo:18.0-20250819`
 - **Port** : `18069:8069`
 - **Base de données** : `core_lab`
 - **Modules installés** : 74-75 modules

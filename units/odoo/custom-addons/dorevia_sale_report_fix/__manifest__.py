@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Dorevia Sale Report Fix',
+    'name': 'Dorevia Sale Report Fix (nok)',
     'version': '1.0.0',
     'category': 'Sales',
     'summary': 'Correction du external_layout pour les rapports de devis/commandes',

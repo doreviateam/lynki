@@ -1,0 +1,7 @@
+<svg width="157" height="55" viewBox="0 0 157 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="10" width="35" height="35" rx="8" fill="#2f5cff"/>
+    <rect x="8.75" y="25" width="17.5" height="12.25" rx="2" stroke="white" stroke-width="2.5"/>
+    <path d="M12.25 25V20.625C12.25 17.7255 14.6005 15.375 17.5 15.375C20.3995 15.375 22.75 17.7255 22.75 20.625V25" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="45" y="37" font-family="Inter, sans-serif" font-size="22" font-weight="800" fill="#0f172a">Dorevia</text>
+    <text x="128" y="37" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#2f5cff">-Vault</text>
+</svg>

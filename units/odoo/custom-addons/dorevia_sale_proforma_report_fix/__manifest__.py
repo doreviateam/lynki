@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Dorevia Sale Proforma Report Fix',
+    'name': 'Dorevia Sale Proforma Report Fix (nok)',
     'version': '1.0.0',
     'category': 'Sales',
     'summary': 'Correction du external_layout pour les factures pro forma',

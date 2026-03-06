@@ -14,6 +14,9 @@ tokens_*.yml
 tenants/*/rendered/
 rendered/
 
+# Modèles LLM (GGUF) — non versionnés
+units/mistral/models/
+
 # Volumes Docker
 **/pgdata/
 **/storage/
@@ -72,6 +75,11 @@ ENV/
 htmlcov/
 .tox/
 .hypothesis/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
 
 # Docker
 docker-compose.override.yml

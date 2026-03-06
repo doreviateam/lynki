@@ -166,6 +166,8 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
   const [chartType, setChartType] = useState<ChartType>("bar");
   const handleChartTypeChange = useCallback((t: ChartType) => setChartType(t), []);
   useEffect(() => {
+    setData(null);
+    setLoading(true);
     const fetchPosSessions = () => {
       const params = new URLSearchParams({
         tenant: tenantId,

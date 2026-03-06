@@ -1,0 +1,30 @@
+# Docker Compose — Unit Appsmith CE (Dorevia-UI)
+# Usage : référence pour render ; test local avec réseau dorevia-network
+# Conventions : container_name appsmith_<env>_<tenant>
+# Port app : 80 (routage via Caddy uniquement)
+# SPEC : ZeDocs/web13/unit_appSmith.md
+
+services:
+  appsmith:
+    image: ${APPSMITH_IMAGE:-appsmith/appsmith-ce:release}
+    container_name: appsmith_${DEPLOY_ENV:-lab}_${TENANT_ID:-core}
+    restart: unless-stopped
+    environment:
+      APPSMITH_ENCRYPTION_PASSWORD: ${APPSMITH_ENCRYPTION_PASSWORD:?APPSMITH_ENCRYPTION_PASSWORD requis}
+      APPSMITH_ENCRYPTION_SALT: ${APPSMITH_ENCRYPTION_SALT:?APPSMITH_ENCRYPTION_SALT requis}
+      APPSMITH_INSTANCE_NAME: ${APPSMITH_INSTANCE_NAME:-Dorevia-UI}
+      TZ: ${TZ:-Europe/Paris}
+    volumes:
+      - appsmith_${DEPLOY_ENV:-lab}_${TENANT_ID:-core}_stacks:/appsmith-stacks
+    networks:
+      - dorevia-network
+
+volumes:
+  appsmith_lab_core_stacks:
+    name: appsmith_lab_core_stacks
+  appsmith_lab_sarl-la-platine_stacks:
+    name: appsmith_lab_sarl-la-platine_stacks
+
+networks:
+  dorevia-network:
+    external: true

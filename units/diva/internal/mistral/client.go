@@ -13,6 +13,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/doreviateam/diva/internal/facts"
 	"github.com/doreviateam/diva/internal/models"
 )
 
@@ -40,7 +41,7 @@ var forbiddenTerms = regexp.MustCompile(`(?i)(vous devez|il faut|obligatoire de|
 
 // englishDetect — cible les mots structurels anglais (articles, pronoms, modaux).
 // Les termes métier tolérés en français (cash, business, POS, KPI) ne sont PAS dans ce regex.
-var englishDetect = regexp.MustCompile(`(?i)\b(the |\.the | of the | and the | is | are | has been| have been| this | that | which | their | should | could | would | monitor | investigate | determine | ensure | remains | turnover)\b`)
+var englishDetect = regexp.MustCompile(`(?i)\b(the |\.the | of the | and the | is | are | has been| have been| this | that | which | their | should | could | would | monitor | investigate | determine | ensure | remains | turnover| need to | based on | due to | in order to | it is | there is | there are | as well as | for further | recommend | suggest | review | however | therefore | furthermore | additionally)\b`)
 
 // dateRangePatterns : supprime les plages de dates du headline (redondant avec le header).
 var dateRangePatterns = []*regexp.Regexp{
@@ -65,15 +66,15 @@ func NewClient() *Client {
 	return &Client{
 		baseURL: strings.TrimSuffix(base, "/"),
 		client: &http.Client{
-			Timeout: 120 * time.Second,
+			Timeout: 180 * time.Second,
 		},
 	}
 }
 
-// systemPrompt — DIVA v3.0 (spec v1.3.1 — mode neutre contrôlé)
-const systemPrompt = `Tu es un expert-comptable senior analysant les données financières de PME.
+// systemPrompt — DIVA v3.0 (spec v1.3.1 — mode card, legacy)
+const systemPrompt = `LANGUE OBLIGATOIRE : Tu t'exprimes EXCLUSIVEMENT en français. Aucun mot anglais. headline, what_i_see et to_check doivent être rédigés en français.
 
-LANGUE : français uniquement. Jamais d'anglais.
+Tu es un expert-comptable senior analysant les données financières de PME.
 
 FORMAT : réponds uniquement par un objet JSON valide, sans balises markdown, sans texte avant ni après :
 {
@@ -109,7 +110,39 @@ Règles sémantiques 12–16 :
 16. Si Trésorerie = 0 % validée ET flux opérationnels présents (Business, POS ou Cash), signaler : "flux opérationnels sans validation bancaire" — formulation chirurgicale, sans redondance.
 17. Quand les flux (cash, business, POS) sont modestes (< 10k€), proportionner le discours sur la discipline : signaler l'écart sans dramatiser comme pour des millions.`
 
-func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string, focusCardDetails map[string]interface{}, dashboardDetails map[string]interface{}) (models.Flash, error) {
+// systemPromptFactsPack — SPEC v1.2 §5 : reformulation uniquement, pas d'analyse.
+const systemPromptFactsPack = `LANGUE OBLIGATOIRE : Tu t'exprimes EXCLUSIVEMENT en français. Aucun mot anglais dans headline, what_i_see ou to_check.
+
+Tu reformules des faits financiers en langage naturel.
+Réponds STRICTEMENT en JSON :
+{
+  "headline": "...",
+  "what_i_see": ["...", "...", "..."],
+  "to_check": ["..."],
+  "confidence": "low|medium|high"
+}
+
+Règles :
+- Français exclusivement
+- Aucun calcul
+- Aucun conseil stratégique
+- Utilise UNIQUEMENT les faits fournis
+- Réponse concise`
+
+var maxTokensByOutputMode = map[string]int{
+	"short":        450, // ~1200–1500 car. — évite troncature mid-sentence (était 250)
+	"professional": 500,
+	"deep":        1024,
+}
+
+func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string, focusCardDetails map[string]interface{}, dashboardDetails map[string]interface{}, outputMode string, fp *facts.FactsPack) (models.Flash, error) {
+	if outputMode == "" {
+		outputMode = "short"
+	}
+	maxTokens := maxTokensByOutputMode[outputMode]
+	if maxTokens == 0 {
+		maxTokens = 450
+	}
 	effective := cards
 	if focusCard != "" {
 		for _, card := range cards {
@@ -119,7 +152,8 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 			}
 		}
 	}
-	if focusCard == "" {
+	isCockpit := focusCard == ""
+	if isCockpit {
 		biz, hasBiz := cardVal(cards, "business")
 		cash, hasCash := cardVal(cards, "cash")
 		taxes, hasTaxes := cardVal(cards, "taxes")
@@ -130,18 +164,26 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 		}
 	}
 
-	userPrompt := c.buildUserPrompt(ctx, effective, focusCard, focusCardDetails, dashboardDetails)
-	promptChars := utf8.RuneCountInString(userPrompt) + utf8.RuneCountInString(systemPrompt)
+	var userPrompt string
+	var sysPrompt string
+	if isCockpit && fp != nil {
+		userPrompt = c.buildUserPromptFromFactsPack(fp, outputMode)
+		sysPrompt = systemPromptFactsPack
+	} else {
+		userPrompt = c.buildUserPrompt(ctx, effective, focusCard, focusCardDetails, dashboardDetails)
+		sysPrompt = systemPrompt
+	}
+	promptChars := utf8.RuneCountInString(userPrompt) + utf8.RuneCountInString(sysPrompt)
 	genStart := time.Now()
 
 	payload := map[string]interface{}{
 		"model": "mistral",
 		"messages": []map[string]string{
-			{"role": "system", "content": systemPrompt},
+			{"role": "system", "content": sysPrompt},
 			{"role": "user", "content": userPrompt},
 		},
 		"temperature":       0.45,
-		"max_tokens":        1024,
+		"max_tokens":        maxTokens,
 		"top_p":             0.9,
 		"frequency_penalty": 0.3,
 		"presence_penalty":  0.1,
@@ -154,8 +196,6 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	isCockpit := focusCard == ""
-
 	logDegraded := func(reason string) {
 		slog.Warn("event=diva_gen", "gen", "degraded", "reason", reason,
 			"prompt_chars", promptChars, "llm_latency_ms", time.Since(genStart).Milliseconds())
@@ -166,13 +206,13 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 		if isTimeout(err) {
 			if isCockpit {
 				logDegraded("mistral_timeout")
-				return degradedFlash(cards, dashboardDetails), nil
+				return c.degradedFlashForCockpit(fp, cards, dashboardDetails), nil
 			}
 			return models.Flash{}, ErrMistralTimeout
 		}
 		if isCockpit {
 			logDegraded("mistral_unavailable")
-			return degradedFlash(cards, dashboardDetails), nil
+			return c.degradedFlashForCockpit(fp, cards, dashboardDetails), nil
 		}
 		return models.Flash{}, ErrMistralUnavailable
 	}
@@ -181,14 +221,14 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 	if resp.StatusCode == http.StatusRequestTimeout || resp.StatusCode == http.StatusGatewayTimeout {
 		if isCockpit {
 			logDegraded("mistral_gateway_timeout")
-			return degradedFlash(cards, dashboardDetails), nil
+			return c.degradedFlashForCockpit(fp, cards, dashboardDetails), nil
 		}
 		return models.Flash{}, ErrMistralTimeout
 	}
 	if resp.StatusCode != http.StatusOK {
 		if isCockpit {
 			logDegraded(fmt.Sprintf("mistral_http_%d", resp.StatusCode))
-			return degradedFlash(cards, dashboardDetails), nil
+			return c.degradedFlashForCockpit(fp, cards, dashboardDetails), nil
 		}
 		return models.Flash{}, ErrMistralUnavailable
 	}
@@ -203,14 +243,14 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 	if err := json.NewDecoder(resp.Body).Decode(&chatResp); err != nil {
 		if isCockpit {
 			logDegraded("bad_json_decode")
-			return degradedFlash(cards, dashboardDetails), nil
+			return c.degradedFlashForCockpit(fp, cards, dashboardDetails), nil
 		}
 		return fallbackFlash(), err
 	}
 	if len(chatResp.Choices) == 0 {
 		if isCockpit {
 			logDegraded("empty_choices")
-			return degradedFlash(cards, dashboardDetails), nil
+			return c.degradedFlashForCockpit(fp, cards, dashboardDetails), nil
 		}
 		return fallbackFlash(), nil
 	}
@@ -226,7 +266,7 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 
 	if isCockpit && flash.Headline == "Lecture DIVA temporairement indisponible." {
 		logDegraded("llm_output_rejected")
-		return degradedFlash(cards, dashboardDetails), nil
+		return c.degradedFlashForCockpit(fp, cards, dashboardDetails), nil
 	}
 
 	slog.Info("event=diva_gen", "gen", "called",
@@ -293,336 +333,25 @@ func fmtEUR(v float64) string {
 
 func absVal(v float64) float64 { return math.Abs(v) }
 
-func computeInsights(cards []models.Card, details map[string]interface{}) []string {
-	var insights []string
-
-	cash, hasCash := cardVal(cards, "cash")
-	biz, hasBiz := cardVal(cards, "business")
-	taxes, hasTaxes := cardVal(cards, "taxes")
-	treasury, hasTreasury := cardVal(cards, "treasury_validated_pct")
-	refunds, hasRefunds := cardVal(cards, "refunds")
-	creditNotes, hasCreditNotes := cardVal(cards, "credit_notes")
-	pos, hasPOS := cardVal(cards, "pos_shops")
-
-	// Règle 16 — Incohérence discipline : Trésorerie 0 %% + flux opérationnels = signal gouvernance
-	// Règle 17 — Nuance d'échelle : flux modeste (< 10k€) → formulation proportionnée
-	hasOperationalFlux := (hasCash && cash != 0) || (hasBiz && biz != 0) || (hasPOS && pos > 0)
-	totalFlux := absVal(cash)
-	if hasBiz {
-		totalFlux += absVal(biz)
-	}
-	if hasPOS && pos > 0 {
-		totalFlux += pos
-	}
-	fluxModeste := totalFlux > 0 && totalFlux < 10000
-
-	if hasTreasury && treasury == 0 && hasOperationalFlux {
-		// Formulation chirurgicale — règle 16
-		if fluxModeste {
-			if hasCash && cash > 0 {
-				insights = append(insights, fmt.Sprintf("POINT DOMINANT: cash modeste (%s) sans validation bancaire — rapprochement à effectuer", fmtEUR(cash)))
-			} else if hasPOS && pos > 0 {
-				insights = append(insights, fmt.Sprintf("POINT DOMINANT: POS %s sans validation bancaire — flux modeste, rapprochement à effectuer", fmtEUR(pos)))
-			} else if hasBiz && biz != 0 {
-				insights = append(insights, fmt.Sprintf("POINT DOMINANT: CA %s sans validation bancaire — flux modeste", fmtEUR(absVal(biz))))
-			}
-		} else {
-			msg := "POINT DOMINANT: flux opérationnels sans validation bancaire"
-			if hasCash && cash > 0 {
-				msg = fmt.Sprintf("POINT DOMINANT: cash %s — flux opérationnels sans validation bancaire", fmtEUR(cash))
-			} else if hasBiz && biz != 0 {
-				msg = fmt.Sprintf("POINT DOMINANT: CA %s — flux opérationnels sans validation bancaire", fmtEUR(absVal(biz)))
-			} else if hasPOS && pos > 0 {
-				msg = fmt.Sprintf("POINT DOMINANT: POS %s — flux opérationnels sans validation bancaire", fmtEUR(pos))
-			}
-			insights = append(insights, msg)
-		}
-	}
-
-	if hasCash && hasTaxes {
-		net := cash - taxes
-		if hasRefunds {
-			net += refunds
-		}
-		insights = append(insights, fmt.Sprintf("Position nette de trésorerie post-taxes: %s", fmtEUR(net)))
-	}
-
-	if hasTaxes && hasBiz && biz != 0 {
-		ratio := (taxes / absVal(biz)) * 100
-		insights = append(insights, fmt.Sprintf(
-			"Inducteur fiscal: les taxes (%s) représentent %s du CA et pèsent sur la trésorerie",
-			fmtEUR(taxes), fmtPct(ratio)))
-	}
-
-	totalCA := biz
-	if hasPOS && pos > 0 {
-		totalCA += pos
-	}
-	hasTotalCA := hasBiz || (hasPOS && pos > 0)
-
-	if hasBiz && biz == 0 && hasPOS && pos > 0 {
-		insights = append(insights, fmt.Sprintf(
-			"Activité commerciale: aucune facturation classique, le CA provient exclusivement du POS (%s)",
-			fmtEUR(pos)))
-	}
-
-	if hasCash && hasTotalCA {
-		spread := cash - totalCA
-		if spread > 0 {
-			insights = append(insights, fmt.Sprintf(
-				"Écart trésorerie/activité: le solde de trésorerie (%s) dépasse l'activité commerciale totale (%s) de %s",
-				fmtEUR(cash), fmtEUR(totalCA), fmtEUR(spread)))
-		} else if spread < 0 {
-			insights = append(insights, fmt.Sprintf(
-				"Écart trésorerie/activité: l'activité commerciale totale (%s) dépasse le solde de trésorerie (%s) de %s",
-				fmtEUR(totalCA), fmtEUR(cash), fmtEUR(absVal(spread))))
-		}
-	}
-
-	if hasRefunds && hasBiz && biz != 0 {
-		ratio := (absVal(refunds) / absVal(biz)) * 100
-		if ratio < 1.0 {
-			insights = append(insights, fmt.Sprintf("Remboursements: %s soit %s du CA, part marginale", fmtEUR(absVal(refunds)), fmtPct(ratio)))
-		} else {
-			insights = append(insights, fmt.Sprintf("Remboursements: %s soit %s du CA", fmtEUR(absVal(refunds)), fmtPct(ratio)))
-		}
-	}
-
-	// --- POS sessions enrichis ---
-	posDetails := extractPosDetails(details)
-	if posDetails != nil && posDetails.totalSessions > 0 {
-		if hasBiz && biz != 0 {
-			ratio := (pos / absVal(biz)) * 100
-			insights = append(insights, fmt.Sprintf(
-				"Inducteur POS: %d sessions, %d tickets, %s de ventes soit %s du CA",
-				posDetails.totalSessions, posDetails.totalTickets, fmtEUR(pos), fmtPct(ratio)))
-		} else if hasPOS && pos > 0 {
-			insights = append(insights, fmt.Sprintf(
-				"Inducteur POS: %d sessions, %d tickets, %s de ventes",
-				posDetails.totalSessions, posDetails.totalTickets, fmtEUR(pos)))
-		}
-
-		if posDetails.totalSessions > 0 && posDetails.totalTickets > 0 {
-			avgBasket := pos / float64(posDetails.totalTickets)
-			insights = append(insights, fmt.Sprintf("POS panier moyen: %s (%d tickets sur %d sessions)",
-				fmtEUR(avgBasket), posDetails.totalTickets, posDetails.totalSessions))
-		}
-
-		totalPayments := posDetails.cashTotal + posDetails.cardTotal
-		if totalPayments > 0 {
-			cashPct := (posDetails.cashTotal / totalPayments) * 100
-			cardPct := (posDetails.cardTotal / totalPayments) * 100
-			insights = append(insights, fmt.Sprintf("POS mix paiements: espèces %s (%s), carte %s (%s)",
-				fmtEUR(posDetails.cashTotal), fmtPct(cashPct), fmtEUR(posDetails.cardTotal), fmtPct(cardPct)))
-		}
-
-		if posDetails.anomalySessions > 0 {
-			insights = append(insights, fmt.Sprintf(
-				"POS ALERTE: %d session(s) avec écart de caisse, écart cumulé %s",
-				posDetails.anomalySessions, fmtEUR(absVal(posDetails.totalDifference))))
-		}
-
-		sealingRate := float64(posDetails.sealedSessions) / float64(posDetails.totalSessions) * 100
-		if sealingRate < 100 {
-			insights = append(insights, fmt.Sprintf(
-				"POS conformité: %d/%d sessions scellées (%s) — %d en attente",
-				posDetails.sealedSessions, posDetails.totalSessions, fmtPct(sealingRate), posDetails.pendingSessions))
-		} else if posDetails.sealedSessions > 0 {
-			insights = append(insights, fmt.Sprintf("POS conformité: %d sessions scellées (100 %%)", posDetails.sealedSessions))
-		}
-
-		if len(posDetails.shops) > 1 {
-			var parts []string
-			for _, shop := range posDetails.shops {
-				parts = append(parts, fmt.Sprintf("%s: %s (%d sessions)", shop.shopID, fmtEUR(shop.totalSales), shop.sessionsCount))
-			}
-			insights = append(insights, fmt.Sprintf("POS répartition: %s", strings.Join(parts, " | ")))
-		}
-	} else if hasPOS && hasBiz && biz != 0 {
-		ratio := (pos / absVal(biz)) * 100
-		insights = append(insights, fmt.Sprintf("POS: %s soit %s du CA", fmtEUR(pos), fmtPct(ratio)))
-	}
-
-	if (!hasCreditNotes || creditNotes == 0) && hasBiz && biz > 100000 {
-		insights = append(insights, fmt.Sprintf("Aucune note de crédit émise sur la période malgré un volume d'activité de %s", fmtEUR(biz)))
-	}
-
-	// --- AR by Partner (Encours & Retard) — 1 insight max (SPEC S4.2) ---
-	arDetails := extractARDetails(details)
-	if arDetails != nil && arDetails.overdueAmount > 0 {
-		msg := fmt.Sprintf("AR à risque: %s en retard sur %d partenaire(s)",
-			fmtEUR(arDetails.overdueAmount), arDetails.overdueCount)
-		if arDetails.topPartnerName != "" {
-			msg += fmt.Sprintf(", principal débiteur %s (%s)", arDetails.topPartnerName, fmtEUR(arDetails.topOverdueAmount))
-		}
-		msg += "."
-		insights = append(insights, msg)
-	}
-
-	// Synthèse de gouvernance — statuts déterministes transmis par Linky
-	var watchCards []string
-	var alertCards []string
-	for _, c := range cards {
-		switch c.Status {
-		case "watch":
-			watchCards = append(watchCards, fmt.Sprintf("%s (%s)", c.Label, c.StatusReason))
-		case "alert":
-			alertCards = append(alertCards, fmt.Sprintf("%s (%s)", c.Label, c.StatusReason))
-		}
-	}
-	if len(alertCards) > 0 {
-		insights = append(insights, fmt.Sprintf("GOUVERNANCE CRITIQUE: %s", strings.Join(alertCards, " | ")))
-	}
-	if len(watchCards) > 0 {
-		insights = append(insights, fmt.Sprintf("GOUVERNANCE — points d'attention: %s", strings.Join(watchCards, " | ")))
-	}
-
-	return insights
-}
-
-type posDetailsData struct {
-	totalSessions   int
-	sealedSessions  int
-	pendingSessions int
-	totalTickets    int
-	cashTotal       float64
-	cardTotal       float64
-	totalDifference float64
-	anomalySessions int
-	shops           []posShopData
-}
-
-type posShopData struct {
-	shopID        string
-	sessionsCount int
-	totalSales    float64
-}
-
-func extractPosDetails(details map[string]interface{}) *posDetailsData {
+func extractDataCompleteness(details map[string]interface{}) *facts.DataCompleteness {
 	if details == nil {
 		return nil
 	}
-	raw, ok := details["pos_shops"]
-	if !ok || raw == nil {
-		return nil
-	}
-	m, ok := raw.(map[string]interface{})
-	if !ok {
-		return nil
-	}
-
-	d := &posDetailsData{}
-	d.totalSessions = toInt(m["total_sessions"])
-	d.sealedSessions = toInt(m["sealed_sessions"])
-	d.pendingSessions = toInt(m["pending_sessions"])
-	d.totalTickets = toInt(m["total_tickets"])
-	d.cashTotal = toFloat(m["cash_total"])
-	d.cardTotal = toFloat(m["card_total"])
-	d.totalDifference = toFloat(m["total_difference"])
-	d.anomalySessions = toInt(m["anomaly_sessions"])
-
-	if shopsRaw, ok := m["shops"]; ok {
-		if shops, ok := shopsRaw.([]interface{}); ok {
-			for _, s := range shops {
-				if sm, ok := s.(map[string]interface{}); ok {
-					d.shops = append(d.shops, posShopData{
-						shopID:        toString(sm["shop_id"]),
-						sessionsCount: toInt(sm["sessions_count"]),
-						totalSales:    toFloat(sm["total_sales"]),
-					})
-				}
-			}
+	if dc, ok := details["data_completeness"].(map[string]interface{}); ok && dc != nil {
+		bhm := "absent"
+		if s, ok := dc["bank_health_metrics"].(string); ok && s != "" {
+			bhm = s
 		}
+		return &facts.DataCompleteness{BankHealthMetrics: bhm}
 	}
-	return d
-}
-
-type arDetailsData struct {
-	openAmount       float64
-	overdueAmount    float64
-	overdueCount     int
-	topPartnerName   string
-	topOverdueAmount float64
-}
-
-func extractARDetails(details map[string]interface{}) *arDetailsData {
-	if details == nil {
-		return nil
-	}
-	bus, ok := details["business"].(map[string]interface{})
-	if !ok || bus == nil {
-		return nil
-	}
-	ar, ok := bus["ar_by_partner"].(map[string]interface{})
-	if !ok || ar == nil {
-		return nil
-	}
-	totals, ok := ar["totals"].(map[string]interface{})
-	if !ok {
-		return nil
-	}
-	d := &arDetailsData{}
-	d.openAmount = toFloat(totals["open_amount"])
-	d.overdueAmount = toFloat(totals["overdue_amount"])
-	if d.overdueAmount <= 0 {
-		return d
-	}
-	partnersRaw, ok := ar["partners"].([]interface{})
-	if !ok {
-		return d
-	}
-	// Compter partenaires en retard et garder le plus gros
-	for _, p := range partnersRaw {
-		pm, ok := p.(map[string]interface{})
-		if !ok {
-			continue
+	if dc, ok := details["data_completeness"].(*models.DataCompleteness); ok && dc != nil {
+		bhm := dc.BankHealthMetrics
+		if bhm == "" {
+			bhm = "absent"
 		}
-		ov := toFloat(pm["overdue_amount"])
-		if ov > 0 {
-			d.overdueCount++
-			if ov > d.topOverdueAmount {
-				d.topOverdueAmount = ov
-				d.topPartnerName = toString(pm["partner_name"])
-				if d.topPartnerName == "" {
-					d.topPartnerName = toString(pm["partner_id"])
-				}
-			}
-		}
+		return &facts.DataCompleteness{BankHealthMetrics: bhm}
 	}
-	return d
-}
-
-func toInt(v interface{}) int {
-	switch n := v.(type) {
-	case float64:
-		return int(n)
-	case int:
-		return n
-	case json.Number:
-		i, _ := n.Int64()
-		return int(i)
-	}
-	return 0
-}
-
-func toFloat(v interface{}) float64 {
-	switch n := v.(type) {
-	case float64:
-		return n
-	case int:
-		return float64(n)
-	case json.Number:
-		f, _ := n.Float64()
-		return f
-	}
-	return 0
-}
-
-func toString(v interface{}) string {
-	if s, ok := v.(string); ok {
-		return s
-	}
-	return ""
+	return nil
 }
 
 func (c *Client) buildUserPrompt(ctx models.Context, cards []models.Card, focusCard string, focusCardDetails map[string]interface{}, dashboardDetails map[string]interface{}) string {
@@ -672,11 +401,16 @@ func (c *Client) buildUserPrompt(ctx models.Context, cards []models.Card, focusC
 	}
 
 	if mode == "cockpit" {
-		insights := computeInsights(cards, dashboardDetails)
-		if len(insights) > 10 {
-			insights = insights[:10]
+		ctxMeta := facts.ContextMeta{
+			Tenant:    ctx.Tenant,
+			CompanyID: ctx.CompanyID,
+			DateStart: ctx.DateStart,
+			DateEnd:   ctx.DateEnd,
+			Currency:  ctx.Currency,
 		}
-		payload.Insights = insights
+		dc := extractDataCompleteness(dashboardDetails)
+		fp := facts.BuildFactsPack(cards, dashboardDetails, dc, ctxMeta)
+		payload.Insights = fp.Messages()
 		// data_completeness — Cockpit v1.1 (bank_health_metrics: absent/partial/complete)
 		if dc, ok := dashboardDetails["data_completeness"].(map[string]interface{}); ok && dc != nil {
 			payload.DataCompleteness = dc
@@ -702,9 +436,52 @@ func (c *Client) buildUserPrompt(ctx models.Context, cards []models.Card, focusC
 
 func (c *Client) buildInstruction(mode, focusCard string) string {
 	if mode == "card" {
-		return "Mode: card. Analyse la carte ciblée. JSON strict."
+		return "Mode: card. Analyse la carte ciblée. Réponds UNIQUEMENT en français. JSON strict."
 	}
-	return "Mode: cockpit. Analyse globale à partir des données et insights pré-calculés. JSON strict."
+	return "Mode: cockpit. Analyse globale à partir des données et insights pré-calculés. Réponds UNIQUEMENT en français. JSON strict."
+}
+
+// factsPackPayload — payload compact pour Mistral (SPEC v1.2, sans cartes).
+type factsPackPayload struct {
+	OutputMode       string                 `json:"output_mode"`
+	Facts            []string               `json:"facts"`
+	DataCompleteness map[string]interface{} `json:"data_completeness"`
+}
+
+// buildUserPromptFromFactsPack construit le prompt user depuis FactsPack (payload facts uniquement).
+func (c *Client) buildUserPromptFromFactsPack(fp *facts.FactsPack, outputMode string) string {
+	if fp == nil {
+		return `{"output_mode":"short","facts":[],"error":"no facts"}`
+	}
+	if outputMode == "" {
+		outputMode = "short"
+	}
+	dc := map[string]interface{}{"bank_health_metrics": "absent"}
+	if fp.DataCompleteness != nil && fp.DataCompleteness.BankHealthMetrics != "" {
+		dc["bank_health_metrics"] = fp.DataCompleteness.BankHealthMetrics
+	}
+	payload := factsPackPayload{
+		OutputMode:       outputMode,
+		Facts:            fp.Messages(),
+		DataCompleteness: dc,
+	}
+	instruction := c.buildInstructionFactsPack(outputMode)
+	raw, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		return `{"output_mode":"` + outputMode + `","error":"marshal failed"}`
+	}
+	return instruction + "\n\n" + string(raw)
+}
+
+func (c *Client) buildInstructionFactsPack(outputMode string) string {
+	switch outputMode {
+	case "professional":
+		return "Mode: cockpit. Reformule les faits. what_i_see : 4–5 points. Réponds UNIQUEMENT en français. JSON strict."
+	case "deep":
+		return "Mode: cockpit. Synthèse étendue à partir des faits. Réponds UNIQUEMENT en français. JSON strict."
+	default:
+		return "Mode: cockpit. Reformule les faits. what_i_see : max 3 points. Réponds UNIQUEMENT en français. JSON strict."
+	}
 }
 
 // isHeadlineJSONGarbage — évite de renvoyer ou persister un headline contenant du JSON brut ({, ", etc.)
@@ -949,10 +726,11 @@ func fallbackFlash() models.Flash {
 	}
 }
 
-// enrichFlashWithInsights complète what_i_see et to_check à partir de computeInsights
+// enrichFlashWithInsights complète what_i_see et to_check à partir des facts
 // quand Mistral a retourné un JSON tronqué (headline seul). Ne modifie pas le headline.
 func enrichFlashWithInsights(flash models.Flash, cards []models.Card, details map[string]interface{}) models.Flash {
-	insights := computeInsights(cards, details)
+	fp := facts.BuildFactsPack(cards, details, extractDataCompleteness(details), facts.ContextMeta{})
+	insights := fp.Messages()
 	if len(insights) == 0 {
 		return flash
 	}
@@ -996,35 +774,53 @@ func enrichFlashWithInsights(flash models.Flash, cards []models.Card, details ma
 	return flash
 }
 
-func degradedFlash(cards []models.Card, details map[string]interface{}) models.Flash {
-	insights := computeInsights(cards, details)
-	if len(insights) == 0 {
+// degradedFlashForCockpit : utilise DegradedFlashFromFactsPack si fp disponible, sinon degradedFlash.
+func (c *Client) degradedFlashForCockpit(fp *facts.FactsPack, cards []models.Card, details map[string]interface{}) models.Flash {
+	if fp != nil && len(fp.Facts) > 0 {
+		return DegradedFlashFromFactsPack(fp, cards)
+	}
+	return degradedFlash(cards, details)
+}
+
+// DegradedFlashFromFactsPack produit une synthèse sans LLM à partir du FactsPack (SPEC v1.2.1).
+// headline = premier fait "POINT DOMINANT:" (sans préfixe), sinon Facts[0].Message
+// what_i_see = Facts[1:4] (max 3)
+// to_check = Facts Category==governance avec alerte/conformité/absence (max 2)
+func DegradedFlashFromFactsPack(fp *facts.FactsPack, cards []models.Card) models.Flash {
+	if fp == nil || len(fp.Facts) == 0 {
 		f := noDataFlash()
 		f.Degraded = true
 		return f
 	}
-
-	headline := insights[0]
+	msgs := fp.Messages()
+	headline := msgs[0]
 	if strings.HasPrefix(headline, "POINT DOMINANT: ") {
 		headline = strings.TrimPrefix(headline, "POINT DOMINANT: ")
 	}
 	headline = sanitizeHeadline(headline)
 
 	maxBody := 3
-	if len(insights) < maxBody {
-		maxBody = len(insights)
+	if len(msgs) < 2 {
+		maxBody = 0
+	} else if len(msgs) < 4 {
+		maxBody = len(msgs) - 1
 	}
-	whatISee := make([]string, maxBody)
-	copy(whatISee, insights[:maxBody])
+	whatISee := make([]string, 0, maxBody)
+	for i := 1; i < len(msgs) && len(whatISee) < maxBody; i++ {
+		whatISee = append(whatISee, msgs[i])
+	}
 
 	var toCheck []string
-	for _, ins := range insights {
+	for _, f := range fp.Facts {
 		if len(toCheck) >= 2 {
 			break
 		}
-		low := strings.ToLower(ins)
+		if f.Category != "governance" {
+			continue
+		}
+		low := strings.ToLower(f.Message)
 		if strings.Contains(low, "alerte") || strings.Contains(low, "conformité") || strings.Contains(low, "absence") {
-			toCheck = append(toCheck, ins)
+			toCheck = append(toCheck, f.Message)
 		}
 	}
 
@@ -1035,4 +831,9 @@ func degradedFlash(cards []models.Card, details map[string]interface{}) models.F
 		Confidence: computeConfidence(cards),
 		Degraded:   true,
 	}
+}
+
+func degradedFlash(cards []models.Card, details map[string]interface{}) models.Flash {
+	fp := facts.BuildFactsPack(cards, details, extractDataCompleteness(details), facts.ContextMeta{})
+	return DegradedFlashFromFactsPack(fp, cards)
 }

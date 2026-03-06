@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/doreviateam/dorevia-vault/internal/config"
@@ -30,6 +31,13 @@ type PaymentPayload struct {
 	IsRefund         bool                   `json:"is_refund"`         // Obligatoire
 	CompanyID        int                    `json:"company_id"`        // Obligatoire
 	Payment          map[string]interface{} `json:"payment"`           // Obligatoire (JSON brut)
+	IdempotencyKey   string                 `json:"idempotency_key"`   // Optionnel (SPEC Payments v1.1) ; clé normative
+	// Step 3 — SPEC v1.1 : source duale + allocations (optionnel)
+	BusinessSource   string                 `json:"business_source"`
+	TechnicalSource  string                 `json:"technical_source"`
+	CompanyName      string                 `json:"company_name"`
+	CompanyIDString  string                 `json:"company_id_string"`  // Format normatif ; prioritaire sur company_id pour persistance
+	Allocations      []services.AllocationItem `json:"allocations"`
 }
 
 // PaymentResponse représente la réponse standardisée
@@ -135,6 +143,11 @@ func PaymentsHandler(
 				"error": "Missing required field: method",
 			})
 		}
+		// P0.2 : normaliser en minuscule à l'ingestion (typage/casse)
+		payload.Method = strings.ToLower(strings.TrimSpace(payload.Method))
+		if payload.Method == "" {
+			payload.Method = "transfer"
+		}
 		if payload.Source == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Missing required field: source",
@@ -202,21 +215,37 @@ func PaymentsHandler(
 			payload.SourceSystem = "odoo"
 		}
 
+		// Validation optionnelle business_source (SPEC v1.1 Step 3)
+		if payload.BusinessSource != "" {
+			validBusiness := map[string]bool{"POS": true, "ACCOUNT": true, "ECOM": true, "PSP": true, "BANK": true}
+			if !validBusiness[payload.BusinessSource] {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": fmt.Sprintf("Invalid business_source: %s (must be one of: POS, ACCOUNT, ECOM, PSP, BANK)", payload.BusinessSource),
+				})
+			}
+		}
+
 		// Mapper handlers.PaymentPayload → services.PaymentInput
 		input := services.PaymentInput{
-			Tenant:           payload.Tenant,
-			SourceSystem:     payload.SourceSystem,
-			SourceModel:      payload.SourceModel,
-			SourceID:         payload.SourceID,
-			PaymentDate:      payload.PaymentDate,
-			Amount:           payload.Amount,
-			Currency:         payload.Currency,
-			Method:           payload.Method,
-			Source:           payload.Source,
-			PaymentDirection: payload.PaymentDirection,
-			IsRefund:         payload.IsRefund,
-			CompanyID:        payload.CompanyID,
-			Payment:          payload.Payment,
+			Tenant:            payload.Tenant,
+			SourceSystem:      payload.SourceSystem,
+			SourceModel:       payload.SourceModel,
+			SourceID:          payload.SourceID,
+			PaymentDate:       payload.PaymentDate,
+			Amount:            payload.Amount,
+			Currency:          payload.Currency,
+			Method:            payload.Method, // déjà normalisé (minuscule)
+			Source:            payload.Source,
+			PaymentDirection:  payload.PaymentDirection,
+			IsRefund:          payload.IsRefund,
+			CompanyID:         payload.CompanyID,
+			Payment:           payload.Payment,
+			IdempotencyKey:    payload.IdempotencyKey,
+			BusinessSource:    payload.BusinessSource,
+			TechnicalSource:   payload.TechnicalSource,
+			CompanyName:       payload.CompanyName,
+			CompanyIDString:   payload.CompanyIDString,
+			Allocations:       payload.Allocations,
 		}
 
 		// Appeler le service

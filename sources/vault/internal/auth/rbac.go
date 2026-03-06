@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -15,153 +16,126 @@ const (
 	RoleViewer   Role = "viewer"
 )
 
-// Permission représente une permission
+// Permission représente une permission RBAC
 type Permission string
 
 const (
-	PermissionReadDocuments    Permission = "documents:read"
-	PermissionWriteDocuments   Permission = "documents:write"
-	PermissionReadAudit        Permission = "audit:read"
-	PermissionReadLedger       Permission = "ledger:read"
-	PermissionVerifyDocuments  Permission = "documents:verify"
-	PermissionReconcile        Permission = "reconcile:execute"
-	PermissionManageUsers      Permission = "users:manage"
+	PermissionReadDocuments   Permission = "documents:read"
+	PermissionWriteDocuments  Permission = "documents:write"
+	PermissionReadAudit       Permission = "audit:read"
+	PermissionReadLedger      Permission = "ledger:read"
+	PermissionDocumentsVerify Permission = "documents:verify"
+	PermissionReconcileExecute Permission = "reconcile:execute"
+	PermissionManageUsers     Permission = "users:manage"
 )
 
-// RBACService gère les autorisations basées sur les rôles
+// RBACService gère les vérifications RBAC
 type RBACService struct {
 	rolePermissions map[Role][]Permission
 }
 
-// NewRBACService crée un nouveau service RBAC
+// NewRBACService crée un nouveau service RBAC avec les mappings par défaut
 func NewRBACService() *RBACService {
-	// Définir les permissions par rôle
-	rolePermissions := map[Role][]Permission{
-		RoleAdmin: {
-			PermissionReadDocuments,
-			PermissionWriteDocuments,
-			PermissionReadAudit,
-			PermissionReadLedger,
-			PermissionVerifyDocuments,
-			PermissionReconcile,
-			PermissionManageUsers,
-		},
-		RoleAuditor: {
-			PermissionReadDocuments,
-			PermissionReadAudit,
-			PermissionReadLedger,
-			PermissionVerifyDocuments,
-		},
-		RoleOperator: {
-			PermissionReadDocuments,
-			PermissionWriteDocuments,
-			PermissionReadAudit,
-		},
-		RoleViewer: {
-			PermissionReadDocuments,
-		},
-	}
-
 	return &RBACService{
-		rolePermissions: rolePermissions,
+		rolePermissions: map[Role][]Permission{
+			RoleAdmin: {
+				PermissionReadDocuments, PermissionWriteDocuments, PermissionReadAudit,
+				PermissionReadLedger, PermissionDocumentsVerify, PermissionReconcileExecute,
+				PermissionManageUsers,
+			},
+			RoleAuditor: {
+				PermissionReadDocuments, PermissionReadAudit, PermissionDocumentsVerify,
+			},
+			RoleOperator: {
+				PermissionReadDocuments, PermissionWriteDocuments, PermissionReadAudit,
+			},
+			RoleViewer: {
+				PermissionReadDocuments,
+			},
+		},
 	}
 }
 
-// HasPermission vérifie si un rôle a une permission
-func (r *RBACService) HasPermission(role Role, permission Permission) bool {
-	permissions, ok := r.rolePermissions[role]
+// HasPermission indique si un rôle possède une permission
+func (r *RBACService) HasPermission(role Role, perm Permission) bool {
+	perms, ok := r.rolePermissions[role]
 	if !ok {
 		return false
 	}
-
-	for _, p := range permissions {
-		if p == permission {
+	for _, p := range perms {
+		if p == perm {
 			return true
 		}
 	}
-
 	return false
 }
 
-// RequirePermission vérifie si un utilisateur a une permission (lève une erreur si non)
-func (r *RBACService) RequirePermission(userInfo *UserInfo, permission Permission) error {
+// RequirePermission vérifie que l'utilisateur a la permission ; retourne une erreur sinon
+func (r *RBACService) RequirePermission(userInfo *UserInfo, perm Permission) error {
 	if userInfo == nil {
-		return fmt.Errorf("user not authenticated")
+		return errors.New("user not authenticated")
 	}
-
-	role := Role(userInfo.Role)
-	if role == "" {
-		return fmt.Errorf("user role not specified")
+	role, err := ParseRole(userInfo.Role)
+	if err != nil {
+		return fmt.Errorf("invalid role: %w", err)
 	}
-
-	if !r.HasPermission(role, permission) {
-		return fmt.Errorf("permission denied: role %s does not have permission %s", role, permission)
+	if !r.HasPermission(role, perm) {
+		return fmt.Errorf("permission denied: role %s lacks %s", role, perm)
 	}
-
 	return nil
 }
 
-// GetRolePermissions retourne toutes les permissions d'un rôle
+// GetRolePermissions retourne la liste des permissions d'un rôle
 func (r *RBACService) GetRolePermissions(role Role) []Permission {
-	permissions, ok := r.rolePermissions[role]
-	if !ok {
-		return []Permission{}
+	perms := r.rolePermissions[role]
+	if perms == nil {
+		return nil
 	}
-	return permissions
+	result := make([]Permission, len(perms))
+	copy(result, perms)
+	return result
 }
 
-// IsValidRole vérifie si un rôle est valide
-func IsValidRole(role string) bool {
-	validRoles := []Role{RoleAdmin, RoleAuditor, RoleOperator, RoleViewer}
-	for _, validRole := range validRoles {
-		if Role(role) == validRole {
-			return true
-		}
+// ParseRole parse une chaîne en Role (insensible à la casse)
+func ParseRole(s string) (Role, error) {
+	norm := strings.ToLower(strings.TrimSpace(s))
+	switch norm {
+	case string(RoleAdmin):
+		return RoleAdmin, nil
+	case string(RoleAuditor):
+		return RoleAuditor, nil
+	case string(RoleOperator):
+		return RoleOperator, nil
+	case string(RoleViewer):
+		return RoleViewer, nil
+	default:
+		return "", fmt.Errorf("invalid role: %s", s)
 	}
-	return false
 }
 
-// ParseRole parse une chaîne en Role
-func ParseRole(roleStr string) (Role, error) {
-	roleStr = strings.ToLower(strings.TrimSpace(roleStr))
-	if !IsValidRole(roleStr) {
-		return "", fmt.Errorf("invalid role: %s", roleStr)
-	}
-	return Role(roleStr), nil
+// IsValidRole indique si la chaîne est un rôle valide
+func IsValidRole(s string) bool {
+	_, err := ParseRole(s)
+	return err == nil
 }
 
-// EndpointPermission mappe les endpoints aux permissions requises
-var EndpointPermission = map[string]Permission{
-	"/api/v1/invoices":        PermissionWriteDocuments,
-	"/api/v1/ledger/export":   PermissionReadLedger,
-	"/audit/export":           PermissionReadAudit,
-	"/api/v1/ledger/verify/:id": PermissionVerifyDocuments,
-	"/documents":              PermissionReadDocuments,
-	"/download/:id":           PermissionReadDocuments,
-}
-
-// GetRequiredPermission retourne la permission requise pour un endpoint
+// GetRequiredPermission mappe un endpoint à la permission requise
 func GetRequiredPermission(endpoint string) (Permission, error) {
-	// Normaliser l'endpoint (enlever les paramètres dynamiques)
-	normalized := normalizeEndpoint(endpoint)
-
-	permission, ok := EndpointPermission[normalized]
-	if !ok {
-		// Par défaut, nécessite la permission de lecture
+	path := strings.TrimRight(endpoint, "/")
+	switch {
+	case strings.HasPrefix(path, "/api/v1/invoices") || path == "/api/v1/invoices":
+		return PermissionWriteDocuments, nil
+	case strings.HasPrefix(path, "/api/v1/ledger/export") || path == "/api/v1/ledger/export":
+		return PermissionReadLedger, nil
+	case strings.HasPrefix(path, "/audit/export") || path == "/audit/export":
+		return PermissionReadAudit, nil
+	case strings.HasPrefix(path, "/api/v1/ledger/verify") || strings.Contains(path, "/ledger/verify/"):
+		return PermissionDocumentsVerify, nil
+	case strings.HasPrefix(path, "/documents") || path == "/documents":
 		return PermissionReadDocuments, nil
+	case strings.HasPrefix(path, "/download/"):
+		return PermissionReadDocuments, nil
+	default:
+		return "", fmt.Errorf("unknown endpoint: %s", endpoint)
 	}
-
-	return permission, nil
 }
-
-// normalizeEndpoint normalise un endpoint (remplace :id, :document_id, etc. par des placeholders)
-func normalizeEndpoint(endpoint string) string {
-	// Remplacer les paramètres dynamiques
-	endpoint = strings.ReplaceAll(endpoint, ":id", ":id")
-	endpoint = strings.ReplaceAll(endpoint, ":document_id", ":id")
-	
-	// Pour la correspondance exacte, on garde tel quel
-	// Mais on peut aussi faire une correspondance par pattern
-	return endpoint
-}
-

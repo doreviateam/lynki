@@ -45,7 +45,13 @@ class IrHttp(models.AbstractModel):
     def _set_linky_cookie(cls, response):
         """Pose le cookie dorevia_linky sur une Response HTML."""
         cookie_domain = cls._get_cookie_domain()
-        cookie_value = f'{COOKIE_NAME}={COOKIE_VALUE}; Path=/; Max-Age={COOKIE_MAX_AGE}; Secure; HttpOnly; SameSite=Lax'
+        secure = cls._is_https()
+        cookie_value = (
+            f'{COOKIE_NAME}={COOKIE_VALUE}; Path=/; Max-Age={COOKIE_MAX_AGE}; '
+            'HttpOnly; SameSite=Lax'
+        )
+        if secure:
+            cookie_value += '; Secure'
         if cookie_domain:
             cookie_value += f'; Domain={cookie_domain}'
         response.headers.add('Set-Cookie', cookie_value)
@@ -69,3 +75,14 @@ class IrHttp(models.AbstractModel):
             'dorevia_session_guard.cookie_domain', ''
         )
         return (param or '').strip()
+
+    @classmethod
+    def _is_https(cls):
+        """Indique si la requête est en HTTPS (direct ou via proxy)."""
+        req = request
+        if not getattr(req, 'httprequest', None):
+            return False
+        scheme = req.httprequest.headers.get('X-Forwarded-Proto') or getattr(
+            req.httprequest, 'scheme', 'http'
+        )
+        return (scheme or '').lower() == 'https'

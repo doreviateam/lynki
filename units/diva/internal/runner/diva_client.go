@@ -38,6 +38,7 @@ func CallDivaGenerate(divaURL, tenant string, companyID int, dateStart, dateEnd 
 		"dashboard":     dashboard,
 		"options": map[string]interface{}{
 			"mode":                  "flash",
+			"output_mode":           "short",
 			"force_refresh":         false,
 			"generated_from_runner": true,
 		},

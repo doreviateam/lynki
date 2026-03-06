@@ -1,0 +1,152 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ page_description }}{% endblock %}
+
+{% block body %}
+    <!-- ====== User Journey Start ====== -->
+    <section class="ud-about" style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 50%); padding: 120px 0;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-section-title mx-auto text-center" style="margin-bottom: 4rem;">
+                        <span class="tag" style="display: inline-block; padding: 8px 20px; background: linear-gradient(135deg, rgba(48, 86, 211, 0.1) 0%, rgba(23, 158, 238, 0.1) 100%); border-radius: 50px; color: var(--primary-color); font-weight: 600; font-size: 14px; margin-bottom: 1.5rem;">Parcours utilisateur</span>
+                        <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1.5rem; color: #1e293b;">Comment ça marche ?</h2>
+                        <div style="max-width: 700px; margin: 0 auto; padding: 1.5rem; background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%); border-radius: 16px; border-left: 4px solid var(--primary-color);">
+                            <p style="font-size: 1.1rem; color: #0c4a6e; margin: 0; line-height: 1.6;">
+                                <strong>Vous continuez à travailler normalement.</strong><br>
+                                Nous sécurisons tout en arrière-plan.<br>
+                                Vous obtenez une preuve légale.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    {# Timeline horizontale avec les 3 étapes #}
+                    <div style="position: relative; padding: 2rem 0;">
+                        {# Ligne de timeline horizontale #}
+                        <div style="position: absolute; top: 80px; left: 10%; right: 10%; height: 4px; background: linear-gradient(90deg, #667eea 0%, #10b981 50%, #f59e0b 100%); border-radius: 2px; z-index: 0;"></div>
+
+                        <div class="row g-4" style="position: relative; z-index: 1;">
+                            {# Étape 1 #}
+                            <div class="col-lg-4 col-md-6">
+                                <div class="step-card wow fadeInUp" data-wow-delay=".1s" style="position: relative; padding: 2.5rem; background: white; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); transition: all 0.3s ease; border-top: 4px solid #667eea; height: 100%; display: flex; flex-direction: column;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';">
+                                    <div style="position: absolute; top: -32px; left: 50%; transform: translateX(-50%); width: 64px; height: 64px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); border: 6px solid white; font-size: 32px; z-index: 2;">
+                                        🧾
+                                    </div>
+                                    <div style="flex: 1; display: flex; flex-direction: column;">
+                                        <div style="text-align: center; margin-bottom: 1.5rem; margin-top: 1rem;">
+                                            <span style="display: inline-block; padding: 6px 16px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-radius: 50px; color: #667eea; font-weight: 700; font-size: 14px;">Étape 1</span>
+                                        </div>
+                                        <h3 style="font-size: 1.5rem; font-weight: 800; color: #667eea; margin-bottom: 0.75rem; text-align: center;">Vous facturez normalement</h3>
+                                        <p style="font-size: 1rem; color: #64748b; margin-bottom: 1.5rem; font-weight: 600; text-align: center;">Vous continuez à travailler comme avant</p>
+                                        <div style="margin-bottom: 1.5rem; flex-grow: 1;">
+                                            <p style="font-size: 0.95rem; color: #475569; line-height: 1.7; margin-bottom: 0.75rem; text-align: center;">Dans Odoo, comme aujourd'hui.</p>
+                                            <p style="font-size: 0.95rem; color: #475569; line-height: 1.7; margin-bottom: 0.75rem; text-align: center;">Validation humaine.</p>
+                                            <p style="font-size: 0.95rem; color: #475569; line-height: 1.7; text-align: center;">Aucun changement de process.</p>
+                                        </div>
+                                        <div style="display: flex; justify-content: center; margin-top: auto;">
+                                            <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f1f5f9; border-radius: 50px; font-size: 14px; font-weight: 600; color: #475569;">
+                                                <span>🧑‍💼</span>
+                                                <span>Zéro formation nécessaire</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Étape 2 #}
+                            <div class="col-lg-4 col-md-6">
+                                <div class="step-card wow fadeInUp" data-wow-delay=".2s" style="position: relative; padding: 2.5rem; background: white; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); transition: all 0.3s ease; border-top: 4px solid #10b981; height: 100%; display: flex; flex-direction: column;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';">
+                                    <div style="position: absolute; top: -32px; left: 50%; transform: translateX(-50%); width: 64px; height: 64px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); border: 6px solid white; font-size: 32px; z-index: 2;">
+                                        ⚙️
+                                    </div>
+                                    <div style="flex: 1; display: flex; flex-direction: column;">
+                                        <div style="text-align: center; margin-bottom: 1.5rem; margin-top: 1rem;">
+                                            <span style="display: inline-block; padding: 6px 16px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); border-radius: 50px; color: #10b981; font-weight: 700; font-size: 14px;">Étape 2</span>
+                                        </div>
+                                        <h3 style="font-size: 1.5rem; font-weight: 800; color: #10b981; margin-bottom: 0.75rem; text-align: center;">Nous sécurisons automatiquement</h3>
+                                        <p style="font-size: 1rem; color: #64748b; margin-bottom: 1.5rem; font-weight: 600; text-align: center;">Tout est capturé en arrière-plan</p>
+                                        <div style="margin-bottom: 1.5rem; flex-grow: 1;">
+                                            <p style="font-size: 0.95rem; color: #475569; line-height: 1.7; margin-bottom: 0.75rem; text-align: center;">Dès qu'une facture est validée,</p>
+                                            <p style="font-size: 0.95rem; color: #475569; line-height: 1.7; margin-bottom: 1rem; text-align: center;">Dorevia capture automatiquement l'événement.</p>
+                                            <div style="padding: 1rem; background: #f0fdf4; border-radius: 12px; border-left: 3px solid #10b981;">
+                                                <ul style="list-style: none; padding: 0; margin: 0;">
+                                                    <li style="font-size: 0.9rem; color: #065f46; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="color: #10b981; font-weight: bold;">✓</span>
+                                                        <span>Aucun clic supplémentaire</span>
+                                                    </li>
+                                                    <li style="font-size: 0.9rem; color: #065f46; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="color: #10b981; font-weight: bold;">✓</span>
+                                                        <span>Aucune manipulation</span>
+                                                    </li>
+                                                    <li style="font-size: 0.9rem; color: #065f46; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="color: #10b981; font-weight: bold;">✓</span>
+                                                        <span>Zéro risque d'oubli</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Étape 3 #}
+                            <div class="col-lg-4 col-md-6">
+                                <div class="step-card wow fadeInUp" data-wow-delay=".3s" style="position: relative; padding: 2.5rem; background: white; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); transition: all 0.3s ease; border-top: 4px solid #f59e0b; height: 100%; display: flex; flex-direction: column;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';">
+                                    <div style="position: absolute; top: -32px; left: 50%; transform: translateX(-50%); width: 64px; height: 64px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); border: 6px solid white; font-size: 32px; z-index: 2;">
+                                        🔐
+                                    </div>
+                                    <div style="flex: 1; display: flex; flex-direction: column;">
+                                        <div style="text-align: center; margin-bottom: 1.5rem; margin-top: 1rem;">
+                                            <span style="display: inline-block; padding: 6px 16px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); border-radius: 50px; color: #f59e0b; font-weight: 700; font-size: 14px;">Étape 3</span>
+                                        </div>
+                                        <h3 style="font-size: 1.5rem; font-weight: 800; color: #f59e0b; margin-bottom: 0.75rem; text-align: center;">Vous obtenez une preuve légale</h3>
+                                        <p style="font-size: 1rem; color: #64748b; margin-bottom: 1.5rem; font-weight: 600; text-align: center;">Une preuve opposable en cas de contrôle</p>
+                                        <div style="margin-bottom: 1.5rem; flex-grow: 1;">
+                                            <p style="font-size: 0.95rem; color: #475569; line-height: 1.7; margin-bottom: 1rem; text-align: center;">Chaque facture est :</p>
+                                            <div style="padding: 1rem; background: #fffbeb; border-radius: 12px; border-left: 3px solid #f59e0b;">
+                                                <ul style="list-style: none; padding: 0; margin: 0;">
+                                                    <li style="font-size: 0.9rem; color: #92400e; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="color: #f59e0b; font-weight: bold;">•</span>
+                                                        <span>horodatée</span>
+                                                    </li>
+                                                    <li style="font-size: 0.9rem; color: #92400e; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="color: #f59e0b; font-weight: bold;">•</span>
+                                                        <span>scellée cryptographiquement</span>
+                                                    </li>
+                                                    <li style="font-size: 0.9rem; color: #92400e; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="color: #f59e0b; font-weight: bold;">•</span>
+                                                        <span>inscrite dans un registre immuable</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; justify-content: center; margin-top: auto;">
+                                            <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #fef3c7; border-radius: 50px; font-size: 14px; font-weight: 600; color: #92400e;">
+                                                <span>⚖️</span>
+                                                <span>Conforme exigences fiscales</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row" style="margin-top: 4rem;">
+                <div class="col-lg-12 text-center">
+                    <a href="{{ path('features') }}" class="ud-main-btn ud-border-btn">
+                        Voir les fonctionnalités <i class="lni lni-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ====== User Journey End ====== -->
+{% endblock %}

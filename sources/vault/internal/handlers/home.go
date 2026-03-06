@@ -49,6 +49,8 @@ func Home(c *fiber.Ctx) error {
     <div class="section-title">📄 Documents & Ledger</div>
     <ul>
       <li><a href="/api/v1/invoices" target="_blank">📤 /api/v1/invoices</a> — endpoint d'ingestion (POST)</li>
+      <li><a href="/api/v1/invoices/residual" target="_blank">🔄 /api/v1/invoices/residual</a> — événement invoice.residual.changed (POST, AR by Partner)</li>
+      <li><a href="/api/v1/events" target="_blank">📥 /api/v1/events</a> — événements DVIG (POST, SPEC v1.1)</li>
       <li><a href="/api/v1/ledger/export" target="_blank">📋 /api/v1/ledger/export</a> — export ledger</li>
       <li><a href="/api/v1/ledger/verify/:document_id" target="_blank">✅ /api/v1/ledger/verify/:id</a> — vérification intégrité</li>
       <li><a href="/documents" target="_blank">📚 /documents</a> — liste documents</li>

@@ -303,6 +303,24 @@ func InvoicesHandler(db *storage.DB, storageDir string, jwsService *crypto.Servi
 					}
 				}
 			}
+			// SPEC Company v1.1 — company_id pour filtres Linky (format odoo:X)
+			if companyIDRaw, ok := payload.Meta["company_id"]; ok && companyIDRaw != nil {
+				var cid int
+				switch v := companyIDRaw.(type) {
+				case float64:
+					cid = int(v)
+				case int:
+					cid = v
+				case int64:
+					cid = int(v)
+				default:
+					cid = 0
+				}
+				if cid > 0 {
+					s := fmt.Sprintf("odoo:%d", cid)
+					doc.CompanyID = &s
+				}
+			}
 		}
 
 		// Stocker le document avec JWS + Ledger (si configurés)

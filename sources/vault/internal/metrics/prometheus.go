@@ -178,6 +178,45 @@ var (
 			Help: "Nombre de connexions actives à la base de données",
 		},
 	)
+
+	// ============================================
+	// Métriques SPEC DVIG → Vault Forwarding v1.1
+	// ============================================
+
+	// EventsIngested compte le nombre total d'événements ingérés via /api/v1/events
+	// Labels:
+	//   - tenant: ID du tenant
+	//   - event_type: Type d'événement (invoice.posted, etc.)
+	EventsIngested = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "vault_events_ingested_total",
+			Help: "Nombre total d'événements ingérés via /api/v1/events",
+		},
+		[]string{"tenant", "event_type"},
+	)
+
+	// EventsIdempotent compte le nombre total d'événements idempotents
+	// Labels:
+	//   - tenant: ID du tenant
+	EventsIdempotent = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "vault_events_idempotent_total",
+			Help: "Nombre total d'événements idempotents (déjà vaultés)",
+		},
+		[]string{"tenant"},
+	)
+
+	// EventsFailed compte le nombre total d'événements échoués
+	// Labels:
+	//   - tenant: ID du tenant
+	//   - error_type: Type d'erreur (validation, storage, etc.)
+	EventsFailed = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "vault_events_failed_total",
+			Help: "Nombre total d'événements échoués lors de l'ingestion",
+		},
+		[]string{"tenant", "error_type"},
+	)
 )
 
 // Helper functions pour faciliter l'utilisation des métriques
@@ -276,5 +315,23 @@ func normalizeSource(source string) string {
 		}
 	}
 	return "unknown"
+}
+
+// RecordEventIngested enregistre un événement ingéré via /api/v1/events
+// SPEC DVIG → Vault Forwarding v1.1 - Sprint C
+func RecordEventIngested(tenant, eventType string) {
+	EventsIngested.WithLabelValues(tenant, eventType).Inc()
+}
+
+// RecordEventIdempotent enregistre un événement idempotent
+// SPEC DVIG → Vault Forwarding v1.1 - Sprint C
+func RecordEventIdempotent(tenant string) {
+	EventsIdempotent.WithLabelValues(tenant).Inc()
+}
+
+// RecordEventFailed enregistre un événement échoué
+// SPEC DVIG → Vault Forwarding v1.1 - Sprint C
+func RecordEventFailed(tenant, errorType string) {
+	EventsFailed.WithLabelValues(tenant, errorType).Inc()
 }
 

@@ -1,0 +1,225 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ page_description }}{% endblock %}
+
+{% block body %}
+    <!-- ====== Features Start ====== -->
+    <section class="ud-features" style="padding: 120px 0;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-section-title mx-auto text-center">
+                        <span>Fonctionnalités</span>
+                        <h2>Dorevia-Vault en détail</h2>
+                        <p>
+                            Dorevia-Vault n'est pas une GED. C'est une <strong>machine à produire de la preuve.</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row" style="margin-top: 3rem;">
+                <div class="col-lg-12">
+                    <div style="padding: 2rem; background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%); border-radius: 16px; border-left: 4px solid var(--primary-color); margin-bottom: 3rem;">
+                        <p style="font-size: 1.1rem; color: #0c4a6e; margin: 0; line-height: 1.6; text-align: center;">
+                            <strong>Odoo addict & ERP agnostique</strong><br>
+                            Dorevia-Vault s'intègre à votre ERP existant, qu'il soit Odoo ou autre.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {# Sections détaillées avec contenu enrichi #}
+            <div class="row" style="margin-top: 2rem;">
+                {# Capture automatique DVIG #}
+                <div class="col-lg-6 mb-4">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".1s" style="height: 100%; padding: 2rem; background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                        <div class="ud-feature-icon" style="margin-bottom: 1.5rem;">
+                            <i class="lni lni-shield" style="font-size: 48px; color: var(--primary-color);"></i>
+                        </div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title" style="font-size: 1.5rem; margin-bottom: 1rem;">Capture automatique (DVIG)</h3>
+                            <p class="ud-feature-desc" style="margin-bottom: 1.5rem;">
+                                Dès qu'une facture est validée dans votre ERP, <strong>DVIG (Dorevia Ingest Gateway)</strong> capture automatiquement l'événement en temps réel.
+                            </p>
+                            <div style="padding: 1rem; background: #f0f9ff; border-radius: 12px; border-left: 3px solid var(--primary-color);">
+                                <p style="font-size: 0.9rem; color: #0c4a6e; margin: 0; line-height: 1.6;">
+                                    <strong>Comment ça marche :</strong><br>
+                                    • Webhook automatique depuis Odoo<br>
+                                    • Traçabilité complète (correlation_id, timestamp)<br>
+                                    • Idempotence garantie (détection doublons)<br>
+                                    • Compatible tous ERP (Odoo, autres)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Ledger immuable #}
+                <div class="col-lg-6 mb-4">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".15s" style="height: 100%; padding: 2rem; background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                        <div class="ud-feature-icon" style="margin-bottom: 1.5rem;">
+                            <i class="lni lni-lock" style="font-size: 48px; color: #10b981;"></i>
+                        </div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title" style="font-size: 1.5rem; margin-bottom: 1rem;">Ledger immuable</h3>
+                            <p class="ud-feature-desc" style="margin-bottom: 1.5rem;">
+                                Chaque preuve est inscrite dans un <strong>registre hash-chaîné</strong> (PostgreSQL), garantissant l'intégrité et la traçabilité complète.
+                            </p>
+                            <div style="padding: 1rem; background: #f0fdf4; border-radius: 12px; border-left: 3px solid #10b981;">
+                                <p style="font-size: 0.9rem; color: #065f46; margin: 0; line-height: 1.6;">
+                                    <strong>Garanties :</strong><br>
+                                    • Hash SHA-256 de chaque document<br>
+                                    • Chaînage cryptographique (hash précédent)<br>
+                                    • Export JSON/CSV pour audit<br>
+                                    • Vérification indépendante possible
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Horodatage certifié #}
+                <div class="col-lg-6 mb-4">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".2s" style="height: 100%; padding: 2rem; background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                        <div class="ud-feature-icon" style="margin-bottom: 1.5rem;">
+                            <i class="lni lni-zip" style="font-size: 48px; color: #f59e0b;"></i>
+                        </div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title" style="font-size: 1.5rem; margin-bottom: 1rem;">Horodatage certifié</h3>
+                            <p class="ud-feature-desc" style="margin-bottom: 1.5rem;">
+                                Horodatage légal conforme aux exigences fiscales françaises et européennes, avec possibilité d'intégration TSA (Time Stamping Authority).
+                            </p>
+                            <div style="padding: 1rem; background: #fffbeb; border-radius: 12px; border-left: 3px solid #f59e0b;">
+                                <p style="font-size: 0.9rem; color: #92400e; margin: 0; line-height: 1.6;">
+                                    <strong>Conformité :</strong><br>
+                                    • Timestamp UTC ISO 8601<br>
+                                    • Option TSA (eIDAS compatible)<br>
+                                    • Preuve d'antériorité garantie<br>
+                                    • Acceptable en contrôle fiscal
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Auditabilité #}
+                <div class="col-lg-6 mb-4">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".25s" style="height: 100%; padding: 2rem; background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                        <div class="ud-feature-icon" style="margin-bottom: 1.5rem;">
+                            <i class="lni lni-world" style="font-size: 48px; color: #8b5cf6;"></i>
+                        </div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title" style="font-size: 1.5rem; margin-bottom: 1rem;">Auditabilité</h3>
+                            <p class="ud-feature-desc" style="margin-bottom: 1.5rem;">
+                                Consultation et vérification des preuves à tout moment via le portail dédié ou l'API de vérification.
+                            </p>
+                            <div style="padding: 1rem; background: #faf5ff; border-radius: 12px; border-left: 3px solid #8b5cf6;">
+                                <p style="font-size: 0.9rem; color: #6b21a8; margin: 0; line-height: 1.6;">
+                                    <strong>Outils disponibles :</strong><br>
+                                    • Portail web de consultation<br>
+                                    • API `/api/v1/ledger/verify/:id`<br>
+                                    • Export ledger complet<br>
+                                    • JWKS public pour vérification JWS
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Sécurité & souveraineté #}
+                <div class="col-lg-6 mb-4">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".3s" style="height: 100%; padding: 2rem; background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                        <div class="ud-feature-icon" style="margin-bottom: 1.5rem;">
+                            <i class="lni lni-plug" style="font-size: 48px; color: #ef4444;"></i>
+                        </div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title" style="font-size: 1.5rem; margin-bottom: 1rem;">Sécurité & souveraineté</h3>
+                            <p class="ud-feature-desc" style="margin-bottom: 1.5rem;">
+                                Hébergement France/UE, indépendance GAFAM, conformité RGPD, chiffrement end-to-end.
+                            </p>
+                            <div style="padding: 1rem; background: #fef2f2; border-radius: 12px; border-left: 3px solid #ef4444;">
+                                <p style="font-size: 0.9rem; color: #991b1b; margin: 0; line-height: 1.6;">
+                                    <strong>Engagements :</strong><br>
+                                    • 🇫🇷 Hébergement France/UE<br>
+                                    • 🔐 Chiffrement HTTPS + JWS<br>
+                                    • 📜 Conformité RGPD<br>
+                                    • 🚫 Indépendance GAFAM
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Intégrations #}
+                <div class="col-lg-6 mb-4">
+                    <div class="ud-single-feature wow fadeInUp" data-wow-delay=".35s" style="height: 100%; padding: 2rem; background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                        <div class="ud-feature-icon" style="margin-bottom: 1.5rem;">
+                            <i class="lni lni-list" style="font-size: 48px; color: #06b6d4;"></i>
+                        </div>
+                        <div class="ud-feature-content">
+                            <h3 class="ud-feature-title" style="font-size: 1.5rem; margin-bottom: 1rem;">Intégrations</h3>
+                            <p class="ud-feature-desc" style="margin-bottom: 1.5rem;">
+                                API REST complète pour intégration avec votre stack technique existante. Compatible Odoo, autres ERP, et systèmes personnalisés.
+                            </p>
+                            <div style="padding: 1rem; background: #ecfeff; border-radius: 12px; border-left: 3px solid #06b6d4;">
+                                <p style="font-size: 0.9rem; color: #164e63; margin: 0; line-height: 1.6;">
+                                    <strong>API disponible :</strong><br>
+                                    • REST JSON (endpoints standards)<br>
+                                    • Webhooks pour notifications<br>
+                                    • Documentation OpenAPI/Swagger<br>
+                                    • SDK (à venir)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Section technique supplémentaire : Règle des 3V #}
+            <div class="row" style="margin-top: 4rem;">
+                <div class="col-lg-12">
+                    <div style="padding: 3rem; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 20px; color: white; text-align: center;">
+                        <h3 style="font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem; color: white;">La règle des 3V</h3>
+                        <p style="font-size: 1.2rem; margin-bottom: 2rem; color: rgba(255,255,255,0.9);">
+                            Dorevia-Vault garantit la traçabilité complète selon la <strong>règle des 3V</strong>
+                        </p>
+                        <div class="row" style="margin-top: 2rem;">
+                            <div class="col-lg-4 mb-3">
+                                <div style="padding: 1.5rem; background: rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px);">
+                                    <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
+                                    <h4 style="color: white; font-size: 1.5rem; margin-bottom: 0.5rem;">Validé</h4>
+                                    <p style="color: rgba(255,255,255,0.8); margin: 0;">Document validé dans votre ERP (Odoo ou autre)</p>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                                <div style="padding: 1.5rem; background: rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px);">
+                                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔐</div>
+                                    <h4 style="color: white; font-size: 1.5rem; margin-bottom: 0.5rem;">Vaulté</h4>
+                                    <p style="color: rgba(255,255,255,0.8); margin: 0;">Hashé (SHA-256), signé (JWS), inscrit dans le ledger</p>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                                <div style="padding: 1.5rem; background: rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px);">
+                                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                                    <h4 style="color: white; font-size: 1.5rem; margin-bottom: 0.5rem;">Vérifiable</h4>
+                                    <p style="color: rgba(255,255,255,0.8); margin: 0;">Preuve indépendamment vérifiable (JWKS public, export ledger)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row" style="margin-top: 4rem;">
+                <div class="col-lg-12 text-center">
+                    <a href="{{ path('pricing') }}" class="ud-main-btn ud-border-btn">
+                        Voir les tarifs <i class="lni lni-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ====== Features End ====== -->
+{% endblock %}

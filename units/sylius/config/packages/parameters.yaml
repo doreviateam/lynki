@@ -1,0 +1,12 @@
+# Paramètres globaux de l'application Dorevia-Vault
+# Ces valeurs peuvent être surchargées via variables d'environnement
+
+parameters:
+    # WhatsApp - Format: 594XXXXXXXX (sans +, sans espaces)
+    app.whatsapp.number: '%env(default:WHATSAPP_NUMBER:594690123456)%'
+    
+    # Google Analytics - Format: G-XXXXXXXXXX
+    app.ga.measurement_id: '%env(default:GA_MEASUREMENT_ID:null)%'
+    
+    # Environnement
+    app.env: '%kernel.environment%'

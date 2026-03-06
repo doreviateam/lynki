@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "tenant_id": "laplatine2026",
+  "created_at": "2026-02-28T00:00:00Z",
+  "universes": ["odoo", "ui"],
+  "environments": ["lab"],
+  "domain_mode": "saas",
+  "units": {"odoo": ["odoo", "postgres"], "ui": ["linky"]},
+  "images": {"odoo": "odoo:18.0-20250819", "postgres": "postgres:16", "linky": "dorevia/linky:governance-2026-03-03"},
+  "linky_vault_url": "http://vault-core-stinger:8080",
+  "linky_company_display_names": {"odoo:1": "SARL La Platine"},
+  "linky_dvig_url": "http://dvig-core-stinger:8080",
+  "linky_dvig_internal_token": "dvig_internal_core-stinger_stinger"
+}

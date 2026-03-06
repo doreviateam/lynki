@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
+	"time"
 
+	"github.com/doreviateam/dorevia-vault/internal/cache"
 	"github.com/doreviateam/dorevia-vault/internal/config"
 	"github.com/doreviateam/dorevia-vault/internal/handlers"
 	"github.com/doreviateam/dorevia-vault/internal/replay"
@@ -17,13 +19,16 @@ func RegisterInvoicesResidualRoute(app *fiber.App, db *storage.DB, log *zerolog.
 		return
 	}
 	app.Post("/api/v1/invoices/residual", handlers.InvoicesResidualHandler(db, log))
+	app.Post("/api/v1/bank-reconciliation/events", handlers.BankReconciliationEventsHandler(db, log))
+	app.Post("/api/v1/bank-reconciliation/confirmation-events", handlers.BankReconciliationConfirmationHandler(db, log))
 }
 
 // RegisterUiAggregations enregistre les routes Linky (sales, purchases, payments, adjustments, treasury, companies).
 // SPEC : ZeDocs/web22, dashboard-metrics, RECONCIL
-func RegisterUiAggregations(app *fiber.App, db *storage.DB, cfg *config.Config) {
-	app.Get("/ui/aggregations/treasury", handlers.TreasuryAggregationHandler(db, cfg.OdooBankReconciliationURL))
-	app.Get("/ui/system/bank-reconciliation-health", handlers.BankReconciliationHealthHandler(cfg.OdooBankReconciliationURL))
+func RegisterUiAggregations(app *fiber.App, db *storage.DB, cfg *config.Config, log *zerolog.Logger) {
+	app.Get("/ui/aggregations/treasury", handlers.TreasuryAggregationHandler(db, cfg.OdooBankReconciliationURL, cfg, log))
+	app.Get("/ui/aggregations/payments-completeness", handlers.PaymentsCompletenessHandler(db, cfg.OdooBankReconciliationURL, cfg))
+	app.Get("/ui/system/bank-reconciliation-health", handlers.BankReconciliationHealthHandler(cfg.OdooBankReconciliationURL, cfg))
 	app.Get("/ui/aggregations/pos-sessions", handlers.PosSessionsAggregationHandler(db))
 	app.Get("/ui/aggregations/sales-by-partner", handlers.SalesByPartnerAggregationHandler(db))
 	app.Get("/ui/aggregations/ar-by-partner", handlers.ArByPartnerAggregationHandler(db))
@@ -36,6 +41,9 @@ func RegisterUiAggregations(app *fiber.App, db *storage.DB, cfg *config.Config) 
 	app.Get("/ui/aggregations/payments-out", handlers.PaymentsOutAggregationHandler(db))
 	app.Get("/ui/aggregations/adjustments", handlers.AdjustmentsAggregationHandler(db))
 	app.Get("/ui/companies", handlers.CompaniesHandler(db))
+	// T2.7 : Cache 5 s pour GET /ui/completeness-snapshot (clé: tenant+company_id+date_debut+date_fin)
+	snapshotCache := cache.NewCompletenessSnapshotCache(5 * time.Second)
+	app.Get("/ui/completeness-snapshot", handlers.CompletenessSnapshotHandler(db, snapshotCache))
 }
 
 // RegisterReplayRoutes enregistre les routes replay ERP (E4-US2, E4-US3, E5, E7-US1)

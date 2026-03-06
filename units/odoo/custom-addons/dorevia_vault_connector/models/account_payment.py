@@ -11,6 +11,7 @@ Flow CRON (fallback) : idem mais piloté par CRONs toutes les 2-5 min
 import hashlib
 import json
 import logging
+import time
 import requests
 from datetime import datetime, timedelta
 
@@ -27,7 +28,8 @@ VAULT_STATUS_SELECTION = [
     ('failed_hard', 'Échec définitif'),
 ]
 
-ELIGIBLE_PAYMENT_STATES = ('posted', 'in_process', 'sent', 'reconciled')
+# Odoo 18 : account.payment utilise 'paid' ; Odoo 17- : 'posted'
+ELIGIBLE_PAYMENT_STATES = ('posted', 'paid', 'in_process', 'sent', 'reconciled')
 
 
 class AccountPayment(models.Model):
@@ -177,13 +179,25 @@ class AccountPayment(models.Model):
             "vault_job_send_dvig_ok payment_id=%s event_id=%s", self.id, event_id
         )
 
+        dvig_service = self.env['dorevia.dvig.service']
+        if hasattr(dvig_service, 'with_delay'):
+            db_name = self.env.cr.dbname
+            tenant = self.env['ir.config_parameter'].sudo().get_param('dorevia.tenant', 'default')
+            try:
+                dvig_service.with_delay(
+                    channel='dorevia_vault',
+                    identity_key=f"dvig_trigger_pay:{db_name}:{tenant}",
+                ).trigger_worker(limit=50)
+            except Exception:
+                pass
+
         if hasattr(self, 'with_delay'):
             db_name = self.env.cr.dbname
             try:
                 self.with_delay(
                     channel='dorevia_vault',
                     identity_key=f"proof_pay:{db_name}:{self.id}:r0",
-                    eta=15,
+                    eta=5,
                 )._job_fetch_proof(retry_count=0)
             except Exception:
                 pass
@@ -204,7 +218,7 @@ class AccountPayment(models.Model):
         if self.dorevia_vault_status == 'pending_proof' and retry_count < 3:
             if hasattr(self, 'with_delay'):
                 db_name = self.env.cr.dbname
-                delay = [10, 20, 30][retry_count]
+                delay = [3, 6, 10][retry_count]
                 try:
                     self.with_delay(
                         channel='dorevia_vault',
@@ -213,6 +227,42 @@ class AccountPayment(models.Model):
                     )._job_fetch_proof(retry_count=retry_count + 1)
                 except Exception:
                     pass
+
+    # ── Backfill — Initialiser tous les paiements éligibles non encore marqués ─
+
+    @api.model
+    def backfill_vault_todo(self, payment_type=None):
+        """Initialise vault pour les paiements déjà validés non encore traités.
+
+        Utile pour les paiements fournisseurs/clients validés avant l'activation du connector.
+        payment_type : None (tous), 'inbound' (clients), 'outbound' (fournisseurs).
+        """
+        if not self._should_vault():
+            return 0
+        domain = [
+            ('state', 'in', list(ELIGIBLE_PAYMENT_STATES)),
+            ('dorevia_vault_status', 'in', [False, 'todo']),
+            ('dorevia_vault_idempotency_key', '=', False),
+        ]
+        if payment_type:
+            domain.append(('payment_type', '=', payment_type))
+        payments = self.search(domain, limit=500)
+        count = 0
+        for payment in payments:
+            try:
+                key = payment._compute_payment_idempotency_key()
+                payment.write({
+                    'dorevia_vault_status': 'todo',
+                    'dorevia_vault_idempotency_key': key,
+                    'dorevia_vault_attempt_count': 0,
+                    'dorevia_vault_next_retry_at': fields.Datetime.now(),
+                })
+                count += 1
+            except Exception as e:
+                _logger.warning("backfill_vault_todo payment_id=%s error=%s", payment.id, e)
+        if count > 0:
+            _logger.info("backfill_vault_todo initialized %d payments (payment_type=%s)", count, payment_type)
+        return count
 
     # ── CRON #1 — Envoi paiements vers DVIG /ingest (fallback) ─
 
@@ -235,6 +285,7 @@ class AccountPayment(models.Model):
         if not cfg['dvig_url'] or not cfg['dvig_token']:
             return
 
+        sent_count = 0
         for payment in payments:
             try:
                 payload = payment._build_dvig_payload(cfg)
@@ -260,6 +311,7 @@ class AccountPayment(models.Model):
                     "vault_send_payment_dvig_ok payment_id=%s event_id=%s",
                     payment.id, event_id
                 )
+                sent_count += 1
             except Exception as e:
                 attempt = payment.dorevia_vault_attempt_count + 1
                 next_retry = payment._calculate_next_retry(attempt)
@@ -274,6 +326,26 @@ class AccountPayment(models.Model):
                     "vault_send_payment_dvig_error payment_id=%s error=%s",
                     payment.id, e
                 )
+        if sent_count > 0:
+            try:
+                self.env['dorevia.dvig.service'].trigger_worker(limit=50)
+            except Exception:
+                pass
+
+    def _vault_payment_method(self):
+        """Mappe journal + payment_method Odoo vers method Vault (minuscule).
+        cash → cash ; check → check ; bank/general/autre → transfer.
+        """
+        if self.journal_id and self.journal_id.type == 'cash':
+            return 'cash'
+        code = None
+        if self.payment_method_line_id:
+            code = getattr(self.payment_method_line_id, 'code', None)
+        if not code and self.payment_method_id:
+            code = getattr(self.payment_method_id, 'code', None)
+        if code and str(code).lower() == 'check':
+            return 'check'
+        return 'transfer'
 
     def _build_dvig_payload(self, cfg):
         """Construit le payload pour DVIG /ingest."""
@@ -282,6 +354,10 @@ class AccountPayment(models.Model):
             idemp_key = self._compute_payment_idempotency_key()
             self.write({'dorevia_vault_idempotency_key': idemp_key})
 
+        # P0.2 : mapping espèces / virements / chèque (minuscule, SPEC Payments v1.1)
+        # journal cash → cash ; payment_method check → check ; bank/general → transfer
+        # card : non identifié sans config dédiée (reste transfer)
+        method = self._vault_payment_method()
         return {
             'source': cfg['dvig_source'],
             'event_type': 'payment.posted',
@@ -297,7 +373,7 @@ class AccountPayment(models.Model):
                 'partner_id': self.partner_id.id,
                 'partner_name': self.partner_id.name or '',
                 'payment_type': self.payment_type,
-                'method': 'transfer',
+                'method': method,
                 'is_refund': False,
                 'company_id': self.company_id.id or 1,
                 'memo': '',
@@ -408,6 +484,14 @@ class AccountPayment(models.Model):
         if self.dorevia_vault_status == 'pending_proof':
             if not cfg['vault_url']:
                 raise UserError(_("Configuration Vault manquante."))
+            # Réinitialiser l'événement outbox si échec 404 (route Vault déployée après coup)
+            idemp_key = self.dorevia_vault_idempotency_key
+            tenant = cfg.get('tenant') or self.env['ir.config_parameter'].sudo().get_param('dorevia.tenant', 'default')
+            if idemp_key and tenant:
+                dvig = self.env['dorevia.dvig.service']
+                if dvig.retry_outbox_event(tenant, idemp_key):
+                    dvig.trigger_worker(limit=50)
+                    time.sleep(3)
             self._fetch_and_apply_proof(cfg['vault_url'])
 
     def action_download_payment_attestation(self):

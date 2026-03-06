@@ -197,7 +197,7 @@ La spécification v1.1 introduit des **concepts nouveaux** (notion de "site", PR
   "images": {
     "dvig": "dorevia/dvig:0.1.2-auth",
     "vault": "dorevia/vault:v1.3.0",
-    "odoo": "odoo:18.0"
+    "odoo": "odoo:18.0-20250819"
   }
 }
 ```

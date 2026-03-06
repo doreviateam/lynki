@@ -133,3 +133,36 @@ func TestCanonicalizeJSON_InvalidJSON(t *testing.T) {
 	}
 }
 
+func TestComputeHash(t *testing.T) {
+	data := []byte(`{"a":1,"b":2}`)
+	hash := ComputeHash(data)
+	assert.Len(t, hash, 64, "SHA-256 hex should be 64 chars")
+	assert.Regexp(t, `^[a-f0-9]+$`, hash)
+	// Même input → même hash
+	assert.Equal(t, ComputeHash(data), ComputeHash(data))
+}
+
+func TestCanonicalJSONAndHash(t *testing.T) {
+	// Même contenu sémantique, encodages différents → même hash
+	inputs := []string{
+		`{"b":2,"a":1}`,
+		`{"a":1,"b":2.0}`,
+		`{"a":1.0,"b":2}`,
+	}
+	var firstHash string
+	for i, input := range inputs {
+		canonical, hashHex, err := CanonicalJSONAndHash([]byte(input))
+		require.NoError(t, err)
+		assert.Len(t, hashHex, 64)
+		if i == 0 {
+			firstHash = hashHex
+		} else {
+			assert.Equal(t, firstHash, hashHex, "Same semantic content → same hash")
+		}
+		// canonical doit être valide
+		var check interface{}
+		err = json.Unmarshal(canonical, &check)
+		assert.NoError(t, err)
+	}
+}
+

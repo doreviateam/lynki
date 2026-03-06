@@ -25,6 +25,7 @@
     'depends': [
         'base',
         'account',
+        'account_reconcile_oca',  # reconcile_bank_line / unreconcile_bank_line pour RECONCIL temps réel
     ],
     'external_dependencies': {
         'python': ['requests'],
@@ -32,6 +33,7 @@
     'data': [
         'security/ir.model.access.csv',
         'data/ir_model_data.xml',
+        'data/ir_actions_server.xml',
         'data/ir_cron.xml',
         'views/account_move_views.xml',
         'views/account_payment_views.xml',
