@@ -149,8 +149,10 @@ export async function GET(request: NextRequest) {
       base.completeness_check = { ok: false, badge: "Données incomplètes", message: "Contrôle de complétude indisponible (Odoo inaccessible)" };
     }
 
-    // V4.1 : position/process/flags (Linky consomme position/process si présents)
-    if (raw.position) base.position = raw.position;
+    // V4.1 : position/process/flags — Linky reprend telles quelles les valeurs du Vault (source unique).
+    if (raw.position) {
+      base.position = { ...raw.position };
+    }
     if (raw.process) base.process = raw.process;
     // SPEC Carte Paiements Option A — confirmation (A/B paiements depuis financial_recon_deltas)
     if (raw.confirmation) base.confirmation = raw.confirmation;
@@ -169,14 +171,28 @@ export async function GET(request: NextRequest) {
       (raw.confirmation.confirmed_amount_abs != null || raw.confirmation.unconfirmed_amount_abs != null);
     if (useConfirmationForPayments && raw.confirmation) {
       const conf = raw.confirmation;
-      const a = conf.unconfirmed_amount_abs ?? 0;
-      const b = conf.confirmed_amount_abs ?? 0;
-      const tot = a + b;
-      base.reconciled = b;
+      const tot = conf.total_amount_abs ?? ((conf.unconfirmed_amount_abs ?? 0) + (conf.confirmed_amount_abs ?? 0));
+      // Le signal de confirmation peut rester à 0 sur certains runs alors qu'un volume
+      // rapproché existe déjà via la projection trésorerie. On réconcilie les deux.
+      const confirmedFromConfirmation = conf.confirmed_amount_abs ?? 0;
+      const confirmedFromProcess = raw.process?.reconciled_volume ?? 0;
+      const b = Math.max(confirmedFromConfirmation, confirmedFromProcess, 0);
+      const boundedConfirmed = Math.min(b, Math.max(tot, 0));
+      const a = Math.max(Math.max(tot, 0) - boundedConfirmed, 0);
+      base.reconciled = boundedConfirmed;
       base.unreconciled = a;
       base.total = tot;
       base.reconciliation_rate =
-        tot > 0 ? (conf.confirmation_rate != null ? conf.confirmation_rate * 100 : (b / tot) * 100) : null;
+        tot > 0 ? ((boundedConfirmed / tot) * 100) : null;
+      // La carte Paiements doit afficher le périmètre des flux paiements (confirmation),
+      // pas le proxy trésorerie global qui inclut des lignes ERP hors scope de la carte.
+      base.reconciliation_metrics = {
+        generated_at: raw.reconciliation_metrics?.generated_at ?? raw.generated_at,
+        total_amount_abs: Math.max(tot, 0),
+        reconciled_amount_abs: boundedConfirmed,
+        remaining_amount_abs: a,
+        remaining_ratio: tot > 0 ? a / tot : 0,
+      };
     } else {
       base.total = raw.accounting_balance ?? raw.total ?? 0;
       base.reconciled = raw.reconciled_balance ?? raw.reconciled ?? (raw.process?.reconciled_volume ?? 0);
@@ -196,8 +212,7 @@ export async function GET(request: NextRequest) {
     base.oldest_unreconciled_date = raw.oldest_unreconciled_date ?? null;
     base.unreconciled_lines_count = raw.unreconciled_entries ?? null;
 
-    // Couverture structurelle (SPEC Masse Salariale P0) — calcul dérivé gouvernance
-    // Position négative → 0 mois (pas de couverture possible)
+    // Couverture structurelle (SPEC Masse Salariale P0) — calcul dérivé gouvernance (position = valeur Vault).
     const masseSalariale = getMasseSalarialeMensuelle();
     const validatedBalance = raw.position?.validated_balance ?? null;
     if (masseSalariale > 0 && validatedBalance != null && Number.isFinite(validatedBalance)) {

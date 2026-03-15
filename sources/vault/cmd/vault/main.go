@@ -24,6 +24,12 @@ func main() {
 		return
 	}
 
+	// Sous-commande migrate : applique les migrations SQL puis quitte (sans démarrer le serveur)
+	if len(os.Args) >= 2 && os.Args[1] == "migrate" {
+		runMigrate()
+		return
+	}
+
 	cfg := config.LoadOrDie()
 	log := logger.New(cfg.LogLevel)
 
@@ -130,4 +136,20 @@ func runBackfillPaymentMethods() {
 		Bool("dry_run", *dryRun).
 		Dur("duration", result.Duration).
 		Msg("Backfill completed")
+}
+
+func runMigrate() {
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		fmt.Fprintln(os.Stderr, "DATABASE_URL is required for migrate")
+		os.Exit(1)
+	}
+	log := logger.New("info")
+	ctx := context.Background()
+	db, err := storage.NewDB(ctx, dbURL, log)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Database connection failed, migrations not applied")
+	}
+	db.Close()
+	log.Info().Msg("Migrations applied successfully")
 }

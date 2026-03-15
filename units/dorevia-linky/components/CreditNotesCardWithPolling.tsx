@@ -12,6 +12,7 @@ import {
 import type { ChartType } from "@/app/lib/chart-type";
 
 const POLL_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+const ENABLE_LIVE_POLLING = process.env.NEXT_PUBLIC_LINKY_ENABLE_LIVE_POLLING === "1";
 
 export interface PeriodRange {
   from: string;
@@ -28,6 +29,8 @@ interface CreditNotesCardWithPollingProps {
   tenantId?: string;
   onFocusRequest?: () => void;
   footer?: React.ReactNode;
+  cardId?: import("@/app/types/linky-tiles").CardId;
+  onNavigateToCard?: (cardId: import("@/app/types/linky-tiles").CardId) => void;
 }
 
 export function CreditNotesCardWithPolling({
@@ -40,6 +43,8 @@ export function CreditNotesCardWithPolling({
   tenantId,
   onFocusRequest,
   footer,
+  cardId,
+  onNavigateToCard,
 }: CreditNotesCardWithPollingProps) {
   const [clientData, setClientData] = useState<AdjustmentsAggregation | null>(initialClientData);
   const [supplierData, setSupplierData] = useState<AdjustmentsAggregation | null>(initialSupplierData);
@@ -114,8 +119,10 @@ export function CreditNotesCardWithPolling({
     };
 
     fetchBoth();
-    const intervalId = setInterval(fetchBoth, POLL_INTERVAL_MS);
-    return () => clearInterval(intervalId);
+    const intervalId = ENABLE_LIVE_POLLING ? setInterval(fetchBoth, POLL_INTERVAL_MS) : null;
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [period.from, period.to, companyId, chartGranularity]);
 
   return (
@@ -138,6 +145,8 @@ export function CreditNotesCardWithPolling({
       }}
       onFocusRequest={onFocusRequest}
       footer={footer}
+      cardId={cardId}
+      onNavigateToCard={onNavigateToCard}
     />
   );
 }

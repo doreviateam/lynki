@@ -1,11 +1,21 @@
 "use client";
 
+import { useMemo } from "react";
 import type { PaymentsAggregation } from "@/app/types/aggregations";
-import { formatSignedAmount } from "@/app/lib/format";
+import { formatSignedAmount, formatAmount } from "@/app/lib/format";
 import { toPositiveSeries } from "@/app/lib/chart-utils";
+import { computeFluxNetInsight } from "@/app/lib/flux-net-insight";
 import { DualSeriesChart } from "@/components/DualSeriesChart";
-import { CardChartSection, type WhyContent } from "@/components/CardChartSection";
+import { CardChartSection, type WhyContent, type InterpretationOverride } from "@/components/CardChartSection";
 import { IconCash } from "@/components/CardIcons";
+import {
+  INSTRUMENT_CARD_BASE,
+  InstrumentCardHeader,
+  InstrumentCardNav,
+  InstrumentCardStatusBadge,
+  InstrumentCardFooter,
+} from "@/components/InstrumentCardChrome";
+import type { CardId } from "@/app/types/linky-tiles";
 import type { ChartGranularity } from "@/app/lib/chart-granularity";
 import type { ChartType } from "@/app/lib/chart-type";
 
@@ -24,10 +34,9 @@ interface FluxCashCardProps {
   onFocusRequest?: () => void;
   /** Slot rendu en bas de la carte (ex. DivaFlashBlock) */
   footer?: React.ReactNode;
+  cardId?: CardId;
+  onNavigateToCard?: (cardId: CardId) => void;
 }
-
-const CARD_BASE =
-  "rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow-card)] border-l-4";
 
 export function FluxCashCard({
   paymentsIn,
@@ -43,19 +52,30 @@ export function FluxCashCard({
   whyContent,
   onFocusRequest,
   footer,
+  cardId,
+  onNavigateToCard,
 }: FluxCashCardProps) {
   const error = errorIn || errorOut;
 
+  const iconNode = onFocusRequest ? (
+    <button type="button" onClick={onFocusRequest} className="flex cursor-pointer rounded p-1 -m-1 hover:bg-[var(--accent-soft)]/30 transition-colors" aria-label="Ouvrir la card FLUX NET">
+      <IconCash className="h-6 w-6 shrink-0 text-[var(--accent)]" />
+    </button>
+  ) : (
+    <IconCash className="h-6 w-6 shrink-0 text-[var(--accent)]" />
+  );
+
   if (loading) {
     return (
-      <section className={`${CARD_BASE} border-l-[var(--muted)]`}>
-        <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <IconCash className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-            <span className="text-lg font-bold uppercase tracking-wide text-[var(--accent)]">Cash</span>
-          </div>
-          <div className="skeleton h-5 w-28" />
-        </div>
+      <section className={INSTRUMENT_CARD_BASE}>
+        {cardId && onNavigateToCard && (
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        )}
+        <InstrumentCardHeader
+          icon={iconNode}
+          title="FLUX NET"
+          kpiValue={<div className="skeleton h-6 w-28" />}
+        />
         <div className="space-y-3">
           <div className="flex justify-between">
             <div className="skeleton h-4 w-28" />
@@ -72,11 +92,11 @@ export function FluxCashCard({
 
   if (error) {
     return (
-      <section className={`${CARD_BASE} border-l-[var(--negative)] border-[var(--border-error)] bg-[var(--negative-soft)]`}>
-        <div className="flex items-center gap-2 border-b border-[var(--border)] pb-3 mb-4">
-          <IconCash className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-          <span className="text-lg font-bold uppercase tracking-wide text-[var(--accent)]">Cash</span>
-        </div>
+      <section className={`${INSTRUMENT_CARD_BASE} bg-[var(--negative-soft)]`}>
+        {cardId && onNavigateToCard && (
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        )}
+        <InstrumentCardHeader icon={iconNode} title="FLUX NET" />
         <p className="text-[var(--negative)]">{error}</p>
       </section>
     );
@@ -88,73 +108,97 @@ export function FluxCashCard({
   const net = inTotal - outTotal;
   const currency = paymentsIn?.currency ?? paymentsOut?.currency ?? "EUR";
 
-  // Espèces / Banque (aligné Odoo)
+  // Espèces / Banque (SPEC §5.4 — libellés lisibles "Espèces : X €", "Banque : Y €")
   const hasByMethod =
     (paymentsIn?.by_method && Object.keys(paymentsIn.by_method).length > 0) ||
     (paymentsOut?.by_method && Object.keys(paymentsOut.by_method).length > 0);
-  const cashIn = paymentsIn?.by_method?.cash ?? 0;
-  const transferIn = paymentsIn?.by_method?.transfer ?? 0;
-  const cashOut = paymentsOut?.by_method?.cash ?? 0;
-  const transferOut = paymentsOut?.by_method?.transfer ?? 0;
-  const checkIn = paymentsIn?.by_method?.check ?? 0;
-  const checkOut = paymentsOut?.by_method?.check ?? 0;
-  const hasCheck = checkIn > 0 || checkOut > 0;
+  const inflowsCash = paymentsIn?.by_method?.cash ?? 0;
+  const inflowsBank = (paymentsIn?.by_method?.transfer ?? 0) + (paymentsIn?.by_method?.check ?? 0);
+  const outflowsCash = paymentsOut?.by_method?.cash ?? 0;
+  const outflowsBank = (paymentsOut?.by_method?.transfer ?? 0) + (paymentsOut?.by_method?.check ?? 0);
+  const hasInflowsBreakdown = inflowsCash > 0 || inflowsBank > 0;
+  const hasOutflowsBreakdown = outflowsCash > 0 || outflowsBank > 0;
+
+  const seriesIn = paymentsIn?.series ?? [];
+  const seriesOut = paymentsOut?.series ?? [];
+  const { primary: insightPrimary, statusLabel } = useMemo(
+    () => computeFluxNetInsight(inTotal, outTotal, seriesIn, seriesOut, chartGranularity),
+    [inTotal, outTotal, seriesIn, seriesOut, chartGranularity]
+  );
+  const interpretationOverride: InterpretationOverride = { primary: insightPrimary };
+
+  const fluxBadgeSeverity =
+    statusLabel && /négatif|défavorable/i.test(statusLabel)
+      ? ("alert" as const)
+      : statusLabel && /volatil|surveillance|exposé/i.test(statusLabel)
+        ? ("vigilance" as const)
+        : ("success" as const);
+
+  // SPEC FLUX NET v1.1 §4 : Semaine = courbes, Mois = barres (type piloté par granularité)
+  const effectiveChartType = chartGranularity === "week" ? "line" : "bar";
 
   return (
-    <section
-      className={`${CARD_BASE} ${net >= 0 ? "border-l-[var(--positive)]" : "border-l-[var(--negative)]"}`}
-    >
-      <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] pb-3 mb-4">
-        <div className="flex items-center gap-2 min-w-0">
-          {onFocusRequest ? (
-            <button type="button" onClick={onFocusRequest} className="flex cursor-pointer rounded p-1 -m-1 hover:bg-[var(--accent-soft)]/30 transition-colors" aria-label="Ouvrir la card Cash">
-              <IconCash className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-            </button>
-          ) : (
-            <IconCash className="h-6 w-6 shrink-0 text-[var(--accent)]" />
+    <section className={`${INSTRUMENT_CARD_BASE} ${net >= 0 ? "border-[var(--positive)]" : "border-[var(--negative)]"}`}>
+      {cardId && onNavigateToCard && (
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+      )}
+      <InstrumentCardHeader
+        icon={iconNode}
+        title="FLUX NET"
+        badges={
+          statusLabel ? (
+            <InstrumentCardStatusBadge label={statusLabel} severity={fluxBadgeSeverity} />
+          ) : undefined
+        }
+        kpiLabel="Flux net"
+        kpiValue={
+          <span className={net >= 0 ? "text-[var(--positive)]" : "text-[var(--negative)]"}>
+            {formatSignedAmount(net, currency)}
+          </span>
+        }
+      />
+      <div className="space-y-3 text-sm font-semibold text-[var(--text-secondary)]">
+        <div>
+          <div className="flex justify-between items-baseline">
+            <span>Encaissements</span>
+            <span className="tabular-nums text-[var(--text)]">{formatAmount(inTotal, currency)}</span>
+          </div>
+          {hasByMethod && hasInflowsBreakdown && (
+            <div className="pl-4 mt-0.5 space-y-0.5 text-[11px] font-normal text-[var(--text-muted)]">
+              <div className="flex justify-between">
+                <span>Espèces</span>
+                <span className="tabular-nums">{formatAmount(inflowsCash, currency)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Banque</span>
+                <span className="tabular-nums">{formatAmount(inflowsBank, currency)}</span>
+              </div>
+            </div>
           )}
-          <span className="text-lg font-bold uppercase tracking-wide text-[var(--accent)]">Cash</span>
         </div>
-        <span className={`text-lg font-bold tabular-nums shrink-0 ${net >= 0 ? "text-[var(--positive)]" : "text-[var(--negative)]"}`}>
-          {formatSignedAmount(net)}
-        </span>
-      </div>
-      <div className="space-y-2 text-sm font-semibold text-[var(--text-secondary)]">
-        <div className="flex justify-between">
-          <span>Encaissements</span>
-          <span className="tabular-nums">{formatSignedAmount(inTotal)}</span>
-        </div>
-        {hasByMethod && (cashIn > 0 || transferIn > 0 || checkIn > 0) && (
-          <div className="flex justify-between pl-3 text-xs text-[var(--text-muted)] font-normal">
-            <span>
-              Espèces / Banque{hasCheck ? " / Chèques" : ""}
-            </span>
-            <span className="tabular-nums">
-              {formatSignedAmount(cashIn)} / {formatSignedAmount(transferIn)}
-              {hasCheck ? ` / ${formatSignedAmount(checkIn)}` : ""}
-            </span>
+        <div>
+          <div className="flex justify-between items-baseline">
+            <span>Décaissements</span>
+            <span className="tabular-nums text-[var(--text)]">{formatAmount(outTotal, currency)}</span>
           </div>
-        )}
-        <div className="flex justify-between">
-          <span>Décaissements</span>
-          <span className="tabular-nums">{formatSignedAmount(-outTotal)}</span>
+          {hasByMethod && hasOutflowsBreakdown && (
+            <div className="pl-4 mt-0.5 space-y-0.5 text-[11px] font-normal text-[var(--text-muted)]">
+              <div className="flex justify-between">
+                <span>Espèces</span>
+                <span className="tabular-nums">{formatAmount(outflowsCash, currency)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Banque</span>
+                <span className="tabular-nums">{formatAmount(outflowsBank, currency)}</span>
+              </div>
+            </div>
+          )}
         </div>
-        {hasByMethod && (cashOut > 0 || transferOut > 0 || checkOut > 0) && (
-          <div className="flex justify-between pl-3 text-xs text-[var(--text-muted)] font-normal">
-            <span>
-              Espèces / Banque{hasCheck ? " / Chèques" : ""}
-            </span>
-            <span className="tabular-nums">
-              {formatSignedAmount(-cashOut)} / {formatSignedAmount(-transferOut)}
-              {hasCheck ? ` / ${formatSignedAmount(-checkOut)}` : ""}
-            </span>
-          </div>
-        )}
         {hasByMethod &&
           inTotal + outTotal > 0 &&
-          cashIn === 0 &&
-          cashOut === 0 &&
-          (transferIn > 0 || transferOut > 0) && (
+          inflowsCash === 0 &&
+          outflowsCash === 0 &&
+          (inflowsBank > 0 || outflowsBank > 0) && (
             <p className="mt-2 text-xs text-[var(--text-muted)] italic">
               Ventilation Espèces/Banque disponible pour les paiements postérieurs au 2026-02-28.
             </p>
@@ -164,12 +208,14 @@ export function FluxCashCard({
       <CardChartSection
         storageKey="linky-cash-chart-expanded"
         sectionTitle="Évolution"
-        chartType={chartType}
+        chartType={effectiveChartType}
         onChartTypeChange={onChartTypeChange ?? (() => {})}
         chartGranularity={chartGranularity}
         onChartGranularityChange={onChartGranularityChange ?? (() => {})}
         availableGranularities={availableGranularities}
         whyContent={whyContent}
+        interpretationOverride={interpretationOverride}
+        hideChartTypeSelector
       >
         <DualSeriesChart
           series1={toPositiveSeries(paymentsIn?.series ?? [])}
@@ -179,10 +225,11 @@ export function FluxCashCard({
           label1="Encaissements"
           label2="Décaissements"
           granularity={chartGranularity}
-          chartType={chartType}
+          chartType={effectiveChartType}
           currency={currency}
         />
       </CardChartSection>
+      <InstrumentCardFooter meta="Période : exercice à date · Source Odoo + POS" />
       {footer}
     </section>
   );

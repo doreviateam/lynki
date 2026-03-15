@@ -48,6 +48,7 @@ try:
         record_forward_failed_soft,
         record_forward_failed_hard,
         record_forward_duration,
+        record_erp_to_vault_duration,
         update_outbox_backlog,
         record_dead_letter
     )
@@ -58,6 +59,7 @@ except ImportError:
     def record_forward_failed_soft(*args, **kwargs): pass
     def record_forward_failed_hard(*args, **kwargs): pass
     def record_forward_duration(*args, **kwargs): pass
+    def record_erp_to_vault_duration(*args, **kwargs): pass
     def update_outbox_backlog(*args, **kwargs): pass
     def record_dead_letter(*args, **kwargs): pass
 
@@ -276,6 +278,40 @@ def format_vault_payload_events(event: OutboxEvent) -> dict:
     }
 
 
+def format_vault_payload_payroll(event: OutboxEvent) -> dict:
+    """Format pour POST /api/v1/payroll (charges de personnel).
+
+    Transforme le payload payroll.charge.posted en format Vault PayrollIngestPayload :
+    {name, employee_id, employee_name, total_charges, net_salary, employer_cost,
+     currency, date_from, date_to, company_id, idempotency_key}
+    """
+    payload = event.payload
+    data = payload.get('data', {})
+
+    def _extract_id(val):
+        if isinstance(val, (int, float)):
+            return int(val)
+        if isinstance(val, (list, tuple)) and len(val) >= 1:
+            return int(val[0])
+        if isinstance(val, str) and val.isdigit():
+            return int(val)
+        return 0
+
+    return {
+        "name": data.get('name', ''),
+        "employee_id": _extract_id(data.get('employee_id')),
+        "employee_name": data.get('employee_name', ''),
+        "total_charges": float(data.get('total_charges', 0)),
+        "net_salary": float(data.get('net_salary', 0)),
+        "employer_cost": float(data.get('employer_cost', 0)),
+        "currency": data.get('currency', 'EUR'),
+        "date_from": data.get('date_from', ''),
+        "date_to": data.get('date_to', ''),
+        "company_id": _extract_id(data.get('company_id')),
+        "idempotency_key": event.idempotency_key or '',
+    }
+
+
 def format_vault_payload_payment(event: OutboxEvent) -> dict:
     """Format pour POST /api/v1/payments (paiements Odoo).
 
@@ -293,6 +329,12 @@ def format_vault_payload_payment(event: OutboxEvent) -> dict:
     payment_date = data.get('date', '')
     if payment_date and 'T' not in payment_date:
         payment_date = f"{payment_date}T00:00:00Z"
+    erp_event_captured_at = (
+        data.get('erp_event_captured_at')
+        or payload.get('erp_event_captured_at')
+        or payload.get('timestamp')
+    )
+    dvig_ingested_at = event.created_at.isoformat() + "Z" if event.created_at else None
 
     return {
         "tenant": event.tenant,
@@ -308,6 +350,8 @@ def format_vault_payload_payment(event: OutboxEvent) -> dict:
         "is_refund": bool(data.get('is_refund', False)),
         "company_id": int(data.get('company_id', 1)),
         "idempotency_key": event.idempotency_key,
+        "erp_event_captured_at": erp_event_captured_at,
+        "dvig_ingested_at": dvig_ingested_at,
         "payment": {
             "db": data.get('db', ''),
             "id": data.get('id'),
@@ -318,6 +362,8 @@ def format_vault_payload_payment(event: OutboxEvent) -> dict:
             "partner_id": data.get('partner_id'),
             "partner_name": data.get('partner_name', ''),
             "memo": data.get('memo', ''),
+            "erp_event_captured_at": erp_event_captured_at,
+            "dvig_ingested_at": dvig_ingested_at,
         },
     }
 
@@ -328,9 +374,12 @@ def _resolve_vault_endpoint(event: OutboxEvent) -> tuple[str, dict, dict]:
     """Détermine l'URL Vault, le payload et les headers selon l'event_type.
 
     Routage :
-      invoice.posted → POST /api/v1/invoices  (format invoices, meta.partner_name)
-      payment.posted → POST /api/v1/payments   (format spécialisé)
-      *              → POST /api/v1/events     (fallback générique)
+      invoice.posted           → POST /api/v1/invoices  (format invoices, meta.partner_name)
+      payment.posted           → POST /api/v1/payments   (format spécialisé)
+      payroll.charge.posted    → POST /api/v1/payroll    (charges personnel → documents hr.payslip)
+      bank.move.reconciled     → POST /api/v1/bank-reconciliation/events
+      bank.move.unreconciled   → POST /api/v1/bank-reconciliation/events
+      *                        → POST /api/v1/events     (fallback générique)
 
     Returns:
         (url, payload, extra_headers)
@@ -350,6 +399,13 @@ def _resolve_vault_endpoint(event: OutboxEvent) -> tuple[str, dict, dict]:
         payload = format_vault_payload_invoices(event)
         extra_headers = {"X-Tenant": event.tenant}
         log.debug("route_invoice", event_id=event.event_id, url=url)
+        return url, payload, extra_headers
+
+    if event_type == 'payroll.charge.posted':
+        url = f"{vault_base}/api/v1/payroll"
+        payload = format_vault_payload_payroll(event)
+        extra_headers = {"X-Tenant": event.tenant}
+        log.debug("route_payroll", event_id=event.event_id, url=url)
         return url, payload, extra_headers
 
     if event_type in ('bank.move.reconciled', 'bank.move.unreconciled'):
@@ -402,6 +458,26 @@ def _error_class_from_exc(e: Exception) -> str:
     if isinstance(e, (httpx.ConnectError, httpx.NetworkError)):
         return "network_error"
     return f"unknown_{type(e).__name__}"
+
+
+def _compute_erp_to_vault_ms(event: OutboxEvent) -> Optional[int]:
+    payload = event.payload if isinstance(event.payload, dict) else {}
+    data = payload.get("data", {}) if isinstance(payload.get("data", {}), dict) else {}
+    captured_raw = (
+        data.get("erp_event_captured_at")
+        or payload.get("erp_event_captured_at")
+        or payload.get("timestamp")
+    )
+    if not captured_raw:
+        return None
+    try:
+        captured_at = datetime.fromisoformat(str(captured_raw).replace("Z", "+00:00"))
+        now = datetime.now(timezone.utc)
+        if captured_at.tzinfo is None:
+            captured_at = captured_at.replace(tzinfo=timezone.utc)
+        return int((now - captured_at).total_seconds() * 1000)
+    except Exception:
+        return None
 
 
 async def forward_to_vault(event: OutboxEvent) -> Tuple[dict, str]:
@@ -579,6 +655,9 @@ async def process_event(db: Session, event: OutboxEvent) -> bool:
         if METRICS_AVAILABLE:
             record_forward_success(event.tenant, event.env)
             record_forward_duration(event.tenant, event.env, duration)
+        erp_to_vault_ms = _compute_erp_to_vault_ms(event)
+        if METRICS_AVAILABLE and erp_to_vault_ms is not None and erp_to_vault_ms >= 0:
+            record_erp_to_vault_duration(event.tenant, event.env, erp_to_vault_ms / 1000.0)
 
         log.info(
             "outbox_event_forwarded",
@@ -590,6 +669,7 @@ async def process_event(db: Session, event: OutboxEvent) -> bool:
             attempt_count=event.attempt_count,
             vault_id=vault_id,
             duration_seconds=duration,
+            erp_to_vault_ms=erp_to_vault_ms,
             route=event.payload.get('event_type', 'unknown'),
         )
         return True

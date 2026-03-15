@@ -1,0 +1,10 @@
+# Remet les paiements 1,2,3,4 en todo et déclenche le cron (une fois)
+Payment = env["account.payment"].sudo()
+pays = Payment.browse([1, 2, 3, 4])
+pays = pays.filtered(lambda p: p.state in ("posted", "paid", "in_process", "sent", "reconciled"))
+for p in pays:
+    p.write({"dorevia_vault_status": "todo", "dorevia_vault_next_retry_at": False})
+print("Remis en todo:", len(pays), "paiement(s)")
+env.cr.commit()
+env.ref("dorevia_vault_connector.ir_cron_vault_send_payments").method_direct_trigger()
+print("Cron Vault Send Payments exécuté.")

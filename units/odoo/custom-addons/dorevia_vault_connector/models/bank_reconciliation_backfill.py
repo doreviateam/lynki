@@ -37,30 +37,19 @@ class BankReconciliationBackfill(models.Model):
         :param company_id: ID de la société (optionnel). Si absent, utilise la société courante.
         :return: dict avec sent, errors, duration_sec, message
         """
-        icp = self.env["ir.config_parameter"].sudo()
-        tenant = icp.get_param("dorevia.tenant", "") or icp.get_param(
-            "dorevia.dvig.source", ""
-        )
-        if tenant and "." in tenant:
-            # dorevia.dvig.source = "odoo.stinger.sarl-la-platine" -> extraire tenant
-            tenant = tenant.split(".")[-1] if "." in tenant else tenant
-
-        dvig_url = icp.get_param("dorevia.dvig.url", "").rstrip("/")
-        dvig_token = icp.get_param("dorevia.dvig.token", "")
-        dvig_source = icp.get_param("dorevia.dvig.source", "")
+        cfg = self.env["dorevia.dvig.service"].get_dvig_config()
+        tenant = cfg["tenant"]
+        dvig_url = cfg["dvig_url"]
+        dvig_token = cfg["dvig_token"]
+        dvig_source = cfg["dvig_source"]
 
         if not dvig_url or not dvig_token:
             return {
                 "sent": 0,
                 "errors": 0,
                 "duration_sec": 0,
-                "message": "Configuration DVIG manquante (dorevia.dvig.url, dorevia.dvig.token)",
+                "message": "Configuration DVIG manquante (dorevia.dvig.url/token ou ODOO_DVIG_URL/ODOO_DVIG_TOKEN)",
             }
-
-        if not tenant:
-            tenant = "default"
-        if not dvig_source:
-            dvig_source = f"odoo.stinger.{tenant}"
 
         # Société
         if company_id:

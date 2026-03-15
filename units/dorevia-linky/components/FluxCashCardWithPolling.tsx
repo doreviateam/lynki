@@ -12,6 +12,7 @@ import {
 import type { ChartType } from "@/app/lib/chart-type";
 
 const POLL_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+const ENABLE_LIVE_POLLING = process.env.NEXT_PUBLIC_LINKY_ENABLE_LIVE_POLLING === "1";
 
 export interface PeriodRange {
   from: string;
@@ -29,6 +30,8 @@ interface FluxCashCardWithPollingProps {
   onEffectivePeriodChange?: (from: string, to: string) => void;
   onFocusRequest?: () => void;
   footer?: React.ReactNode;
+  cardId?: import("@/app/types/linky-tiles").CardId;
+  onNavigateToCard?: (cardId: import("@/app/types/linky-tiles").CardId) => void;
 }
 
 export function FluxCashCardWithPolling({
@@ -42,6 +45,8 @@ export function FluxCashCardWithPolling({
   onEffectivePeriodChange,
   onFocusRequest,
   footer,
+  cardId,
+  onNavigateToCard,
 }: FluxCashCardWithPollingProps) {
   const [dataIn, setDataIn] = useState<PaymentsAggregation | null>(initialDataIn);
   const [dataOut, setDataOut] = useState<PaymentsAggregation | null>(initialDataOut);
@@ -115,8 +120,10 @@ export function FluxCashCardWithPolling({
     };
 
     fetchBoth();
-    const intervalId = setInterval(fetchBoth, POLL_INTERVAL_MS);
-    return () => clearInterval(intervalId);
+    const intervalId = ENABLE_LIVE_POLLING ? setInterval(fetchBoth, POLL_INTERVAL_MS) : null;
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [tenantId, period.from, period.to, companyId, chartGranularity, onEffectivePeriodChange]);
 
   return (
@@ -139,6 +146,8 @@ export function FluxCashCardWithPolling({
       }}
       onFocusRequest={onFocusRequest}
       footer={footer}
+      cardId={cardId}
+      onNavigateToCard={onNavigateToCard}
     />
   );
 }

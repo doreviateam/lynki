@@ -26,8 +26,9 @@ class AccountBankStatementLine(models.Model):
     _inherit = "account.bank.statement.line"
 
     def reconcile_bank_line(self):
-        """Override OCA : émettre bank.move.reconciled après lettrage."""
-        res = super().reconcile_bank_line()
+        """Override OCA (si installé) : émettre bank.move.reconciled après lettrage."""
+        parent = super()
+        res = parent.reconcile_bank_line() if hasattr(parent, "reconcile_bank_line") else True
         for line in self:
             try:
                 impacted = line._traverse_to_impacted_documents()
@@ -41,12 +42,13 @@ class AccountBankStatementLine(models.Model):
         return res
 
     def unreconcile_bank_line(self):
-        """Override OCA : capturer impacted_documents AVANT délettrage puis émettre bank.move.unreconciled."""
+        """Override OCA (si installé) : capturer impacted_documents AVANT délettrage puis émettre bank.move.unreconciled."""
         impacted_per_line = {}
         for line in self:
             if line.is_reconciled:
                 impacted_per_line[line.id] = line._traverse_to_impacted_documents()
-        res = super().unreconcile_bank_line()
+        parent = super()
+        res = parent.unreconcile_bank_line() if hasattr(parent, "unreconcile_bank_line") else True
         for line in self:
             try:
                 line._emit_reconciliation_event(False, impacted_per_line.get(line.id, []))
@@ -302,21 +304,14 @@ class AccountBankStatementLine(models.Model):
     def _emit_reconciliation_event(self, is_reconciled, impacted_documents=None):
         """Envoie bank.move.reconciled ou bank.move.unreconciled vers DVIG (format v1.2)."""
         self.ensure_one()
-        icp = self.env["ir.config_parameter"].sudo()
-        dvig_url = icp.get_param("dorevia.dvig.url", "").rstrip("/")
-        dvig_token = icp.get_param("dorevia.dvig.token", "")
-        dvig_source = icp.get_param("dorevia.dvig.source", "")
+        cfg = self.env["dorevia.dvig.service"].get_dvig_config()
+        dvig_url = cfg["dvig_url"]
+        dvig_token = cfg["dvig_token"]
+        dvig_source = cfg["dvig_source"]
+        tenant = cfg["tenant"]
 
         if not dvig_url or not dvig_token:
             return
-
-        tenant = icp.get_param("dorevia.tenant", "")
-        if not tenant and dvig_source:
-            tenant = dvig_source.split(".")[-1] if "." in dvig_source else dvig_source
-        if not tenant:
-            tenant = "default"
-        if not dvig_source:
-            dvig_source = f"odoo.stinger.{tenant}"
 
         event_type = "bank.move.reconciled" if is_reconciled else "bank.move.unreconciled"
         occurred_at = datetime.now(timezone.utc)

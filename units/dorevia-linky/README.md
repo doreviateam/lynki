@@ -3,6 +3,7 @@
 Interface de consultation d’indicateurs certifiés (ventes, encaissements, trésorerie). Lecture seule, alimentée par le **Dorevia Vault** via proxy serveur.
 
 - **Spec** : `ZeDocs/web14/SPEC_DOREVIA_LINKY_UI_v2.0.md`
+- **Données à la demande (Vault)** : `ZeDocs/web39/LINKY_DONNEES_VAULT_A_LA_DEMANDE.md` — cartographie des API Linky → Vault, récolte à la demande uniquement.
 - **Stack** : Next.js 14 (App Router), TypeScript, Tailwind CSS. PWA prévue en v2.
 
 ## Prérequis
@@ -39,6 +40,8 @@ npm start
 |----------|-------------|--------|
 | `VAULT_URL` | URL du Vault (appelée côté serveur uniquement) | `http://localhost:8080` |
 | `TENANT_ID` | Tenant pour les agrégations | `core` |
+| `NEXT_PUBLIC_FORCE_COMPANY_ID` | Force une société (`company_id`) sur tous les fetch dashboard/cartes (anti-dérive multi-sociétés) | — |
+| `NEXT_PUBLIC_LINKY_ENABLE_LIVE_POLLING` | Active le polling automatique des cartes (`1` = live, sinon mode snapshot manuel) | `0` |
 | `NEXT_PUBLIC_APP_URL` | URL publique de l’app (optionnel) | — |
 
 ## API exposée (proxy)

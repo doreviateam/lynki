@@ -43,6 +43,8 @@ func BankReconciliationHealthHandler(odooURL string, cfg *config.Config) fiber.H
 		if cfg != nil {
 			if tenant == "laplatine2026" && cfg.OdooBankReconciliationURLLaplatine2026 != "" {
 				effectiveURL = cfg.OdooBankReconciliationURLLaplatine2026
+			} else if tenant == "o19" && cfg.OdooBankReconciliationURLO19 != "" {
+				effectiveURL = cfg.OdooBankReconciliationURLO19
 			} else if tenant == cfg.OdooBankReconciliationTenant {
 				effectiveURL = odooURL
 			}

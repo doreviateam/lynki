@@ -4,6 +4,7 @@ const VAULT_URL = process.env.VAULT_URL || "http://localhost:8080";
 const DVIG_URL = process.env.DVIG_URL || "";
 const DVIG_INTERNAL_TOKEN = process.env.DVIG_INTERNAL_TOKEN || "";
 const DEFAULT_TENANT = process.env.TENANT_ID || "core";
+const LOCKED_TENANT = (process.env.TENANT_ID || "").trim();
 const TIMEOUT_MS = 5000; // Réactivité footer — ne pas bloquer l'affichage
 
 export const revalidate = 0;
@@ -16,7 +17,19 @@ type IntegrityState = "STATE_OK" | "STATE_PARTIAL" | "STATE_ALERT";
  * Dérive integrity_state à partir des données disponibles.
  */
 export async function GET(request: NextRequest) {
-  const tenant = new URL(request.url).searchParams.get("tenant") ?? DEFAULT_TENANT;
+  const requestedTenant = new URL(request.url).searchParams.get("tenant");
+  if (LOCKED_TENANT && requestedTenant && requestedTenant !== LOCKED_TENANT) {
+    return NextResponse.json(
+      {
+        error: "tenant_mismatch",
+        message: `This Linky deployment is locked to tenant '${LOCKED_TENANT}'.`,
+        requested_tenant: requestedTenant,
+        effective_tenant: LOCKED_TENANT,
+      },
+      { status: 400 }
+    );
+  }
+  const tenant = LOCKED_TENANT || requestedTenant || DEFAULT_TENANT;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -38,7 +51,10 @@ export async function GET(request: NextRequest) {
       });
       const res = await fetch(`${base}/ui/completeness-snapshot?${params}`, {
         cache: "no-store",
-        headers: { Accept: "application/json" },
+        headers: {
+          Accept: "application/json",
+          "X-Tenant": tenant,
+        },
         signal: controller.signal,
       });
       if (!res.ok) return null;
@@ -72,7 +88,10 @@ export async function GET(request: NextRequest) {
         try {
           const vaultUrl = `${VAULT_URL.replace(/\/$/, "")}/ui/system/vault-health?tenant=${encodeURIComponent(tenant)}`;
           let r = await fetch(vaultUrl, {
-            headers: { Accept: "application/json" },
+            headers: {
+              Accept: "application/json",
+              "X-Tenant": tenant,
+            },
             cache: "no-store",
             signal: controller.signal,
           });

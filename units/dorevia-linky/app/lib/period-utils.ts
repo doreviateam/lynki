@@ -97,15 +97,19 @@ export function getKeyAndYearFromPeriod(from: string, to: string): { key: string
     if (from === "2000-01-01" && to === "2030-12-31") {
       return { key: "all", year: new Date().getFullYear() };
     }
+    // Si la plage est exactement la période par défaut (Exercice à date), toujours renvoyer ytd
+    const def = getDefaultPeriod();
+    if (from === def.from && to === def.to) {
+      return { key: "ytd", year: new Date().getFullYear() };
+    }
     const [y, m] = from.split("-").map(Number);
     const year = y;
     const jan1 = `${year}-01-01`;
-    // Exercice à date : 1er janv. → aujourd'hui (année courante)
+    // Exercice à date : 1er janv. → aujourd'hui (année courante) — même convention date locale que getPeriodFromKeyAndYear
     if (from === jan1 && year === new Date().getFullYear()) {
       const now = new Date();
-      const today = now.toISOString().slice(0, 10);
-      const ytdTo = today;
-      if (to === ytdTo) return { key: "ytd", year };
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      if (to >= jan1 && to <= today) return { key: "ytd", year };
     }
     const lastDayOfMonth = new Date(year, m, 0);
     const expectedTo = `${year}-${String(m).padStart(2, "0")}-${String(lastDayOfMonth.getDate()).padStart(2, "0")}`;

@@ -8,6 +8,7 @@ Métriques exposées :
 - dvig_forward_failed_soft_total{tenant,env} : Nombre d'erreurs soft (retriable)
 - dvig_forward_failed_hard_total{tenant,env} : Nombre d'erreurs hard (non-retriable)
 - dvig_forward_duration_seconds{tenant,env} : Durée des forwardings (histogram)
+- dvig_erp_to_vault_duration_seconds{tenant,env} : Durée bout en bout ERP->Vault (histogram)
 - dvig_dead_letters_total{tenant,env} : Nombre d'événements en dead letter queue
 """
 try:
@@ -76,6 +77,13 @@ if PROMETHEUS_AVAILABLE:
         ['tenant', 'env'],
         buckets=[0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0]
     )
+    # Durée bout en bout : ERP captured -> Vault sealed
+    erp_to_vault_duration_seconds = Histogram(
+        'dvig_erp_to_vault_duration_seconds',
+        'End-to-end latency from ERP event capture to Vault sealing',
+        ['tenant', 'env'],
+        buckets=[0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0, 20.0, 30.0, 60.0]
+    )
     
     # Dead letters : Événements en dead letter queue
     dead_letters_total = Counter(
@@ -105,6 +113,7 @@ else:
     forward_failed_soft_total = Counter()
     forward_failed_hard_total = Counter()
     forward_duration_seconds = Histogram()
+    erp_to_vault_duration_seconds = Histogram()
     dead_letters_total = Counter()
     internal_trigger_total = Counter()
     internal_trigger_duration_ms = Histogram()
@@ -132,6 +141,12 @@ def record_forward_duration(tenant: str, env: str, duration_seconds: float):
     """Enregistrer la durée d'un forwarding"""
     if PROMETHEUS_AVAILABLE:
         forward_duration_seconds.labels(tenant=tenant, env=env).observe(duration_seconds)
+
+
+def record_erp_to_vault_duration(tenant: str, env: str, duration_seconds: float):
+    """Enregistrer la latence bout en bout ERP -> Vault."""
+    if PROMETHEUS_AVAILABLE:
+        erp_to_vault_duration_seconds.labels(tenant=tenant, env=env).observe(duration_seconds)
 
 
 def update_outbox_backlog(tenant: str, env: str, count: int):

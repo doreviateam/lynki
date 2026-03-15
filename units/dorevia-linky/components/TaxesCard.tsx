@@ -5,6 +5,13 @@ import { formatSignedAmount } from "@/app/lib/format";
 import { TaxesChart } from "@/components/TaxesChart";
 import { CardChartSection, type WhyContent } from "@/components/CardChartSection";
 import { IconTaxes } from "@/components/CardIcons";
+import {
+  INSTRUMENT_CARD_BASE,
+  InstrumentCardHeader,
+  InstrumentCardNav,
+  InstrumentCardFooter,
+} from "@/components/InstrumentCardChrome";
+import type { CardId } from "@/app/types/linky-tiles";
 import type { ChartGranularity } from "@/app/lib/chart-granularity";
 import type { ChartType } from "@/app/lib/chart-type";
 
@@ -22,12 +29,9 @@ interface TaxesCardProps {
   whyContent?: WhyContent;
   onFocusRequest?: () => void;
   footer?: React.ReactNode;
+  cardId?: CardId;
+  onNavigateToCard?: (cardId: CardId) => void;
 }
-
-const CARD_BASE =
-  "rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow-card)] border-l-4";
-const SECTION_TITLE_TEXT =
-  "text-lg font-bold uppercase tracking-wide text-[var(--accent)]";
 
 export function TaxesCard({
   salesData,
@@ -43,25 +47,26 @@ export function TaxesCard({
   whyContent,
   onFocusRequest,
   footer,
+  cardId,
+  onNavigateToCard,
 }: TaxesCardProps) {
   const error = errorSales || errorPurchases;
 
+  const iconNode = onFocusRequest ? (
+    <button type="button" onClick={onFocusRequest} className="flex cursor-pointer rounded p-1 -m-1 hover:bg-[var(--accent-soft)]/30 transition-colors" aria-label="Ouvrir la card Taxes">
+      <IconTaxes className="h-6 w-6 shrink-0 text-[var(--accent)]" />
+    </button>
+  ) : (
+    <IconTaxes className="h-6 w-6 shrink-0 text-[var(--accent)]" />
+  );
+
   if (loading) {
     return (
-      <section className={`${CARD_BASE} border-l-[var(--muted)]`}>
-        <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            {onFocusRequest ? (
-              <button type="button" onClick={onFocusRequest} className="flex cursor-pointer rounded p-1 -m-1 hover:bg-[var(--accent-soft)]/30 transition-colors" aria-label="Ouvrir la card Taxes">
-                <IconTaxes className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-              </button>
-            ) : (
-              <IconTaxes className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-            )}
-            <span className={SECTION_TITLE_TEXT}>Taxes</span>
-          </div>
-          <div className="skeleton h-5 w-28" />
-        </div>
+      <section className={INSTRUMENT_CARD_BASE}>
+        {cardId && onNavigateToCard && (
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        )}
+        <InstrumentCardHeader icon={iconNode} title="TAXES" kpiValue={<div className="skeleton h-6 w-28" />} />
         <div className="space-y-3">
           <div className="flex justify-between">
             <div className="skeleton h-4 w-28" />
@@ -78,17 +83,11 @@ export function TaxesCard({
 
   if (error) {
     return (
-      <section className={`${CARD_BASE} border-l-[var(--negative)] border-[var(--border-error)] bg-[var(--negative-soft)]`}>
-        <div className="flex items-center gap-2 border-b border-[var(--border)] pb-3 mb-4">
-          {onFocusRequest ? (
-            <button type="button" onClick={onFocusRequest} className="flex cursor-pointer rounded p-1 -m-1 hover:bg-[var(--accent-soft)]/30 transition-colors" aria-label="Ouvrir la card Taxes">
-              <IconTaxes className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-            </button>
-          ) : (
-            <IconTaxes className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-          )}
-          <span className={SECTION_TITLE_TEXT}>Taxes</span>
-        </div>
+      <section className={`${INSTRUMENT_CARD_BASE} bg-[var(--negative-soft)]`}>
+        {cardId && onNavigateToCard && (
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        )}
+        <InstrumentCardHeader icon={iconNode} title="TAXES" />
         <p className="text-[var(--negative)]">{error}</p>
       </section>
     );
@@ -102,24 +101,20 @@ export function TaxesCard({
   const currency = salesData?.currency ?? purchasesData?.currency ?? "EUR";
 
   return (
-    <section
-      className={`${CARD_BASE} ${flux === 0 ? "border-l-[var(--accent-soft)]" : "border-l-[var(--accent)]"}`}
-    >
-      <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] pb-3 mb-4">
-        <div className="flex items-center gap-2 min-w-0">
-          {onFocusRequest ? (
-            <button type="button" onClick={onFocusRequest} className="flex cursor-pointer rounded p-1 -m-1 hover:bg-[var(--accent-soft)]/30 transition-colors" aria-label="Ouvrir la card Taxes">
-              <IconTaxes className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-            </button>
-          ) : (
-            <IconTaxes className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-          )}
-          <span className={SECTION_TITLE_TEXT}>Taxes</span>
-        </div>
-        <span className={`text-lg font-bold tabular-nums shrink-0 ${flux === 0 ? "text-[var(--accent-soft)]" : "text-[var(--accent)]"}`}>
-          {formatSignedAmount(flux)}
-        </span>
-      </div>
+    <section className={INSTRUMENT_CARD_BASE}>
+      {cardId && onNavigateToCard && (
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+      )}
+      <InstrumentCardHeader
+        icon={iconNode}
+        title="TAXES"
+        kpiLabel="Solde taxes"
+        kpiValue={
+          <span className={flux === 0 ? "text-[var(--text-secondary)]" : "text-[var(--accent)]"}>
+            {formatSignedAmount(flux)}
+          </span>
+        }
+      />
       <div className="space-y-2 text-sm font-semibold text-[var(--text-secondary)]">
         <div className="flex justify-between">
           <span>Taxes collectées</span>
@@ -153,6 +148,7 @@ export function TaxesCard({
           currency={currency}
         />
       </CardChartSection>
+      <InstrumentCardFooter meta="Période : exercice à date · Source Odoo / Vault" />
       {footer}
     </section>
   );

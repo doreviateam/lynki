@@ -92,6 +92,8 @@ type Config struct {
 	OdooBankReconciliationTenant string `env:"ODOO_BANK_RECONCILIATION_TENANT" envDefault:"sarl-la-platine"`
 	// URL Odoo dédiée pour laplatine2026 (optionnel). Si renseignée, laplatine2026 utilise son Odoo LAB.
 	OdooBankReconciliationURLLaplatine2026 string `env:"ODOO_BANK_RECONCILIATION_URL_LAPLATINE2026" envDefault:""`
+	// URL Odoo dédiée pour tenant o19 (Odoo 19 lab). Si renseignée, o19 utilise cet Odoo pour trésorerie / complétude paiements.
+	OdooBankReconciliationURLO19 string `env:"ODOO_BANK_RECONCILIATION_URL_O19" envDefault:""`
 
 	// SPEC ERP Reconnect v1.2 - Replay feed (E2-US1, E2-US2)
 	ReplayEventsLimitMax   int    `env:"REPLAY_EVENTS_LIMIT_MAX" envDefault:"500"`

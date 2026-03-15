@@ -1,0 +1,32 @@
+# Docker Compose - ui lab o19
+# Généré automatiquement depuis manifest Phase 1
+# Source attendue: ui.lab.o19
+# DB name: ui_lab_o19
+# Compose project: dorevia_ui_lab_o19
+
+name: dorevia_ui_lab_o19
+
+services:
+  linky:
+    image: dorevia/linky:o19-2026-03-15
+    container_name: linky_lab_o19
+    restart: unless-stopped
+    environment:
+      VAULT_URL: ${VAULT_URL:-http://vault-core-stinger:8080}
+      TENANT_ID: o19
+      NEXT_PUBLIC_FORCE_COMPANY_ID: "odoo:1"
+      TZ: ${TZ:-Europe/Paris}
+      DVIG_URL: http://dvig-core-stinger:8080
+      DVIG_INTERNAL_TOKEN: ${DVIG_INTERNAL_TOKEN:-dvig_internal_core-stinger_stinger}
+      COMPANY_DISPLAY_NAMES: "{\"odoo:1\":\"Ma Société\"}"
+      DIVA_URL: ${DIVA_URL:-http://diva:8010}
+      DLP_URL: ${DLP_URL:-http://dlp:8020}
+    networks:
+      - dorevia-network
+    # Port 3000 en interne (routage via Caddy)
+
+volumes: {}
+
+networks:
+  dorevia-network:
+    external: true

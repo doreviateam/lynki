@@ -8,6 +8,8 @@ interface PlatformStatus {
   integrity_state: IntegrityState;
   tooltip_cause: string | null;
   sealed_pct: number | null;
+  /** Même source que le footer — pour afficher 8 partout (header = footer) */
+  sealed_count_total: number | null;
 }
 
 const LABELS: Record<IntegrityState, string> = {
@@ -45,12 +47,13 @@ export function IntegrityBadge({ tenantId, sealedCount, sealedCountComplete = tr
             integrity_state: d.integrity_state,
             tooltip_cause: d.tooltip_cause ?? null,
             sealed_pct: d.sealed_pct ?? d.sealed_ratio != null ? Math.round((d.sealed_ratio ?? 0) * 100) : null,
+            sealed_count_total: typeof d.sealed_count_total === "number" ? d.sealed_count_total : null,
           });
         }
       })
         .catch(() => {
         if (!cancelled) {
-          setStatus({ integrity_state: "STATE_ALERT", tooltip_cause: "Service indisponible", sealed_pct: null });
+          setStatus({ integrity_state: "STATE_ALERT", tooltip_cause: "Service indisponible", sealed_pct: null, sealed_count_total: null });
         }
       });
     return () => {
@@ -71,14 +74,17 @@ export function IntegrityBadge({ tenantId, sealedCount, sealedCountComplete = tr
 
   const state = status.integrity_state;
   const baseLabel = LABELS[state];
-  const hasCount = sealedCount != null && sealedCount >= 0;
+  const countFromStatus = status.sealed_count_total != null && status.sealed_count_total >= 0 ? status.sealed_count_total : null;
+  /** Une seule source : priorité au prop (dashboard-metrics) pour aligner header et footer, sinon platform/status */
+  const displayCount = typeof sealedCount === "number" && sealedCount >= 0 ? sealedCount : countFromStatus;
+  const hasCount = displayCount != null;
   const pct = status.sealed_pct;
   const complete = sealedCountComplete !== false;
   const label =
-    hasCount
+    hasCount && displayCount != null
       ? complete
-        ? `${sealedCount} preuves scellées`
-        : `${sealedCount} preuves (partiel)`
+        ? `${displayCount} preuves scellées`
+        : `${displayCount} preuves (partiel)`
       : pct != null && (state === "STATE_OK" || state === "STATE_PARTIAL")
         ? `${pct} % couverts`
         : baseLabel;
@@ -115,7 +121,7 @@ export function IntegrityBadge({ tenantId, sealedCount, sealedCountComplete = tr
             e.stopPropagation();
             onRefresh();
           }}
-          className="ml-0.5 rounded p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
+          className="ml-0.5 rounded p-0.5 hover:bg-black/10 hover:bg-white/10"
           title="Rafraîchir le nombre de preuves"
           aria-label="Rafraîchir"
         >

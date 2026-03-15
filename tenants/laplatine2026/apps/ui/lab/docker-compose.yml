@@ -4,9 +4,11 @@
 # DB name: ui_lab_laplatine2026
 # Compose project: dorevia_ui_lab_laplatine2026
 
+name: dorevia_ui_lab_laplatine2026
+
 services:
   linky:
-    image: dorevia/linky:governance-2026-03-03
+    image: dorevia/linky:laplatine-ebe-od-2026-03-15
     container_name: linky_lab_laplatine2026
     restart: unless-stopped
     environment:

@@ -4,19 +4,38 @@ const VAULT_URL = process.env.VAULT_URL || "http://localhost:8080";
 const DEFAULT_TENANT = process.env.TENANT_ID || "core";
 const AGG_TIMEOUT_MS = 10000;
 
+function getDefaultCompanyId(): string {
+  const raw = process.env.COMPANY_DISPLAY_NAMES;
+  if (!raw) return "";
+  try {
+    const parsed = JSON.parse(raw) as Record<string, string>;
+    const keys = Object.keys(parsed);
+    return keys.length === 1 ? keys[0] : "";
+  } catch {
+    return "";
+  }
+}
+
+function normalizeCompanyId(raw: string): string {
+  const v = raw.trim();
+  const m = v.match(/^odoo:(\d+)$/);
+  return m ? m[1] : v;
+}
+
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/sales — proxy vers Vault GET /ui/aggregations/sales
+ * GET /api/sales — proxy vers Vault GET /ui/aggregations/sales.
+ * Linky ne voit que le Vault.
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const tenant = searchParams.get("tenant") ?? DEFAULT_TENANT;
+  const tenant = searchParams.get("tenant") ?? process.env.TENANT_ID ?? DEFAULT_TENANT;
   const date_debut = searchParams.get("date_debut") ?? "2000-01-01";
   const date_fin = searchParams.get("date_fin") ?? "2030-12-31";
   const granularity = searchParams.get("granularity") ?? "month";
-  const company_id = searchParams.get("company_id") ?? "";
+  const company_id = normalizeCompanyId(searchParams.get("company_id") ?? getDefaultCompanyId());
 
   const params = new URLSearchParams({
     tenant,

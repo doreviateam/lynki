@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linky — Wireframe style Fygr v1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --linky-bg: #0F1B2D;
+      --linky-bg-secondary: #14243A;
+      --linky-surface: #1A2E47;
+      --linky-border: #223B5B;
+      --linky-text: #E6EEF8;
+      --linky-muted: #9FB3C8;
+      --linky-hover: #1F3653;
+      --linky-success: #22C55E;
+      --linky-warning: #F59E0B;
+      --linky-danger: #EF4444;
+      --linky-info: #3B82F6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      background: var(--linky-bg);
+      color: var(--linky-text);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .layout { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* Header */
+    .header {
+      background: var(--linky-bg-secondary);
+      border-bottom: 1px solid var(--linky-border);
+      padding: 16px 0;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .logo { font-size: 18px; font-weight: 600; color: var(--linky-text); }
+    .logo-tagline { font-size: 12px; color: var(--linky-muted); font-weight: 400; margin-top: 2px; }
+    .header-filters {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .filter-label { font-size: 12px; color: var(--linky-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .filter-value {
+      padding: 6px 12px;
+      background: var(--linky-surface);
+      border: 1px solid var(--linky-border);
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--linky-text);
+      cursor: pointer;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-ok { background: rgba(34, 197, 94, 0.15); color: var(--linky-success); }
+    .badge-watch { background: rgba(249, 115, 22, 0.15); color: var(--linky-warning); }
+
+    /* Main */
+    .main { padding: 24px 0 48px; }
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--linky-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+
+    /* KPI Grid — Hiérarchie 1 */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .kpi-grid { grid-template-columns: 1fr; } }
+    .kpi-card {
+      background: var(--linky-surface);
+      border: 1px solid var(--linky-border);
+      border-radius: 12px;
+      padding: 16px;
+      transition: background 150ms ease-out;
+      cursor: pointer;
+    }
+    .kpi-card:hover { background: var(--linky-hover); }
+    .kpi-card:focus-visible { outline: 2px solid var(--linky-info); outline-offset: 2px; }
+    .kpi-icon { width: 24px; height: 24px; color: var(--linky-muted); margin-bottom: 8px; flex-shrink: 0; }
+    .kpi-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .kpi-label { font-size: 13px; color: var(--linky-muted); }
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+    .kpi-value.positive { color: var(--linky-success); }
+    .kpi-value.accent { color: var(--linky-info); }
+    .kpi-value.neutral { color: var(--linky-text); }
+    .kpi-status { margin-top: 8px; font-size: 12px; color: var(--linky-muted); }
+
+    /* Badge intégrité — Hiérarchie 2 */
+    .health-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding: 12px 16px;
+      background: var(--linky-bg-secondary);
+      border-radius: 12px;
+    }
+    .health-label { font-size: 13px; color: var(--linky-muted); }
+    .health-value { font-size: 14px; font-weight: 600; color: var(--linky-text); }
+
+    /* Carte détaillée — Hiérarchie 3 */
+    .card-detail {
+      background: var(--linky-surface);
+      border: 1px solid var(--linky-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--linky-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+    }
+    .card-content { display: flex; gap: 32px; flex-wrap: wrap; }
+    .card-metric { display: flex; flex-direction: column; gap: 4px; }
+    .card-metric-label { font-size: 12px; color: var(--linky-muted); }
+    .card-metric-value {
+      font-size: 28px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--linky-text);
+    }
+    .card-metric-value.positive { color: var(--linky-success); }
+    .amount { font-variant-numeric: tabular-nums; }
+    .amount::before { content: ''; }
+    .amount::after { content: ' €'; }
+
+    /* Footer */
+    .footer {
+      background: var(--linky-bg-secondary);
+      border-top: 1px solid var(--linky-border);
+      padding: 12px 0;
+      margin-top: auto;
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--linky-muted);
+    }
+    .footer-sources { display: flex; gap: 16px; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="layout header-inner">
+      <div>
+        <div class="logo">DOREVIA Linky</div>
+        <div class="logo-tagline">Décidez sur des données vérifiables. En temps réel.</div>
+      </div>
+      <div class="header-filters">
+        <div class="filter-group">
+          <div class="filter-label">Société</div>
+          <div class="filter-value">Ma Société</div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Période</div>
+          <div class="filter-value">Exercice à date</div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Année</div>
+          <div class="filter-value">2026</div>
+        </div>
+        <span class="badge badge-ok">496 preuves scellées ✓</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="layout">
+      <!-- Hiérarchie 1 : KPI globaux -->
+      <h2 class="section-title">Vue d'ensemble</h2>
+      <div class="kpi-grid">
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-header">
+            <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9L12 4L21 9"/><line x1="4" y1="9" x2="20" y2="9"/><line x1="7" y1="9" x2="7" y2="17"/><line x1="12" y1="9" x2="12" y2="17"/><line x1="17" y1="9" x2="17" y2="17"/><line x1="4" y1="17" x2="20" y2="17"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
+            <span class="kpi-label">Paiements</span>
+          </div>
+          <div class="kpi-value accent">43 228,60 €</div>
+          <div class="kpi-status">30,9 % à rapprocher</div>
+        </div>
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-header">
+            <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h20v8H2z"/><path d="M6 12h2M10 12h2M14 12h2"/></svg>
+            <span class="kpi-label">Cash</span>
+          </div>
+          <div class="kpi-value positive">+ 8 053,09 €</div>
+          <div class="kpi-status">Partiellement validé</div>
+        </div>
+        <a href="WIREFRAME_LINKY_BUSINESS_CARD_v1.html" class="kpi-card" tabindex="0" style="text-decoration:none;color:inherit;">
+          <div class="kpi-header">
+            <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18v-6M8 18v-4M12 18v-8M16 18v-3M20 18v-5"/><path d="M4 12h16"/></svg>
+            <span class="kpi-label">Business</span>
+          </div>
+          <div class="kpi-value positive">+ 94 663,78 €</div>
+          <div class="kpi-status">Facturation active</div>
+        </a>
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-header">
+            <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7l14 14"/><circle cx="8" cy="7" r="2.5"/><circle cx="16" cy="17" r="2.5"/></svg>
+            <span class="kpi-label">Taxes</span>
+          </div>
+          <div class="kpi-value neutral">- 1 234,56 €</div>
+          <div class="kpi-status">Charges fiscales</div>
+        </div>
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-header">
+            <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M8 14h8"/></svg>
+            <span class="kpi-label">Notes de crédit</span>
+          </div>
+          <div class="kpi-value neutral">0 €</div>
+          <div class="kpi-status">Aucune</div>
+        </div>
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-header">
+            <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h14M3 12l4-4M3 12l4 4"/><path d="M21 12a6 6 0 11-12 0 6 6 0 0112 0z"/></svg>
+            <span class="kpi-label">Remboursements</span>
+          </div>
+          <div class="kpi-value neutral">0 €</div>
+          <div class="kpi-status">Aucun</div>
+        </div>
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-header">
+            <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V9l7-4 7 4v12"/><path d="M9 21v-6h6v6"/><path d="M9 9h6"/></svg>
+            <span class="kpi-label">Points de vente</span>
+          </div>
+          <div class="kpi-value positive">12 450 €</div>
+          <div class="kpi-status">8 sessions scellées</div>
+        </div>
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-header">
+            <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M8 12h8M8 16h6"/></svg>
+            <span class="kpi-label">Z de caisse</span>
+          </div>
+          <div class="kpi-value neutral">—</div>
+          <div class="kpi-status">Non renseigné</div>
+        </div>
+      </div>
+
+      <!-- Hiérarchie 2 : Indicateurs de santé -->
+      <h2 class="section-title">Confiance des données</h2>
+      <div class="health-row">
+        <span class="health-label">Source :</span>
+        <span class="health-value">Vault</span>
+        <span class="badge badge-ok">496 preuves ✓</span>
+        <span class="health-label">Dernier scellé :</span>
+        <span class="health-value">il y a 2 min</span>
+        <span class="health-label">Sources :</span>
+        <span class="health-value">Odoo ✓ Pos ✓</span>
+      </div>
+
+      <!-- Hiérarchie 3 : Flux financiers (exemple carte Trésorerie) -->
+      <h2 class="section-title">Détail par axe</h2>
+      <div class="card-detail">
+        <div class="card-title">Paiements — Trésorerie</div>
+        <div class="card-content">
+          <div class="card-metric">
+            <span class="card-metric-label">Position validée (Vault)</span>
+            <span class="card-metric-value">62 480 €</span>
+          </div>
+          <div class="card-metric">
+            <span class="card-metric-label">Solde comptable (ERP)</span>
+            <span class="card-metric-value">—</span>
+          </div>
+          <div class="card-metric">
+            <span class="card-metric-label">Couverture probante</span>
+            <span class="card-metric-value positive">100 %</span>
+          </div>
+          <div class="card-metric">
+            <span class="card-metric-label">Reste à rapprocher</span>
+            <span class="card-metric-value">43 228,60 €</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="layout footer-inner">
+      <span>Powered by Dorevia Vault — données financières vérifiables</span>
+      <div class="footer-sources">
+        <span>Source : Vault</span>
+        <span>Preuves scellées : 496 ✓</span>
+        <span>UX P95 : 853 ms</span>
+        <span>Sources : Odoo ✓ Pos ✓</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

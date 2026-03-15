@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Dorevia Linky Cockpit</title>
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+background:#0F1B2D;
+color:#E6EEF8;
+font-family:"IBM Plex Sans",system-ui;
+margin:0;
+padding:24px;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:24px;
+}
+
+.header-left{
+font-size:20px;
+font-weight:600;
+letter-spacing:0.2px;
+}
+
+.header-right{
+font-size:14px;
+color:#9FB3C8;
+display:flex;
+align-items:center;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.badge{
+padding:4px 8px;
+border-radius:6px;
+font-size:12px;
+font-weight:600;
+}
+
+.success{
+background:rgba(34,197,94,0.15);
+color:#22C55E;
+}
+
+.warning{
+background:rgba(245,158,11,0.15);
+color:#F59E0B;
+}
+
+.danger{
+background:rgba(239,68,68,0.15);
+color:#EF4444;
+}
+
+.info{
+background:rgba(59,130,246,0.15);
+color:#3B82F6;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:16px;
+margin-bottom:24px;
+}
+
+.card{
+background:#1A2E47;
+border:1px solid #223B5B;
+border-radius:12px;
+padding:16px;
+transition:background 150ms ease-out;
+}
+
+.card:hover{
+background:#1F3653;
+}
+
+section.card{
+margin-bottom:24px;
+}
+
+.card h3{
+font-size:14px;
+color:#9FB3C8;
+margin:0 0 8px 0;
+}
+
+.kpi{
+font-size:44px;
+font-weight:600;
+margin-bottom:6px;
+}
+
+.small{
+font-size:13px;
+color:#9FB3C8;
+}
+
+.insight{
+background:#14243A;
+border:1px solid #223B5B;
+border-left:4px solid #F59E0B;
+padding:16px;
+border-radius:6px;
+margin-bottom:24px;
+}
+
+.chart{
+height:200px;
+display:flex;
+align-items:flex-end;
+gap:12px;
+border-top:1px solid #223B5B;
+padding-top:16px;
+position:relative;
+}
+
+.chart::after{
+content:"";
+position:absolute;
+bottom:0;
+left:0;
+width:100%;
+height:1px;
+background:#223B5B;
+}
+
+.bar{
+width:30px;
+background:#22C55E;
+border-radius:4px 4px 0 0;
+}
+
+.bar.orange{
+background:#F59E0B;
+}
+
+.table{
+margin-top:20px;
+width:100%;
+border-collapse:collapse;
+}
+
+.table th{
+text-align:left;
+font-size:13px;
+font-weight:500;
+color:#9FB3C8;
+padding-bottom:10px;
+}
+
+.table td:last-child{
+text-align:right;
+}
+
+.table td{
+padding:12px 0;
+border-bottom:1px solid #223B5B;
+height:40px;
+box-sizing:border-box;
+}
+
+.table tbody tr:hover{
+background:#14243A;
+}
+
+.table tbody tr{
+transition:background 150ms ease-out;
+}
+
+*:focus-visible{
+outline:2px solid #3B82F6;
+outline-offset:2px;
+}
+
+@media (max-width:1023px){
+.grid{
+grid-template-columns:repeat(2,1fr);
+}
+}
+
+@media (max-width:767px){
+.grid{
+grid-template-columns:1fr;
+}
+body{
+padding:16px;
+}
+.header{
+flex-direction:column;
+align-items:flex-start;
+gap:8px;
+}
+}
+
+</style>
+
+</head>
+
+<body>
+
+<main class="container">
+
+<header class="header">
+
+<div class="header-left">
+Linky — Cockpit financier
+</div>
+
+<div class="header-right">
+<span>Tenant : La Platine • Mars 2026</span>
+<span class="badge success">Flux validés</span>
+<span class="badge info">Source Vault</span>
+</div>
+
+</header>
+
+<section class="insight">
+
+<strong>Insight</strong><br>
+Trésorerie partiellement validée — couverture probante insuffisante
+
+<span class="badge warning">Couverture partielle</span>
+
+</section>
+
+<section class="grid">
+
+<div class="card">
+
+<h3>Trésorerie</h3>
+
+<div class="kpi">62 480 €</div>
+
+<div class="small">
+Flux couverts : 78 %
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>Marge</h3>
+
+<div class="kpi">58.4 %</div>
+
+<div class="small">
+Ventes 94k • Achats 39k
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>Encours clients</h3>
+
+<div class="kpi">23 292 €</div>
+
+<div class="small">
+2 clients principaux
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>Retard paiement</h3>
+
+<div class="kpi">41 %</div>
+
+<span class="badge danger">Risque</span>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h3>Flux ventes vs achats</h3>
+
+<div class="chart">
+
+<div class="bar" style="height:80px"></div>
+<div class="bar" style="height:120px"></div>
+<div class="bar" style="height:150px"></div>
+<div class="bar orange" style="height:70px"></div>
+<div class="bar orange" style="height:90px"></div>
+<div class="bar orange" style="height:110px"></div>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h3>Encours clients</h3>
+
+<table class="table">
+
+<tr>
+<th>Partenaire</th>
+<th>Encours</th>
+<th>Retard</th>
+</tr>
+
+<tr>
+<td>EMD</td>
+<td>10 703 €</td>
+<td><span class="badge warning">37 %</span></td>
+</tr>
+
+<tr>
+<td>Export My Island</td>
+<td>12 589 €</td>
+<td><span class="badge danger">43 %</span></td>
+</tr>
+
+</table>
+
+</section>
+
+</main>
+
+</body>
+</html>

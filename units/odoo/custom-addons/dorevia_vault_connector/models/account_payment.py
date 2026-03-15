@@ -51,6 +51,11 @@ class AccountPayment(models.Model):
     dorevia_vault_last_try_at = fields.Datetime(string='Dernière tentative', copy=False)
     dorevia_vault_next_retry_at = fields.Datetime(string='Prochain essai', copy=False)
     dorevia_vault_last_error = fields.Text(string='Dernière erreur', copy=False)
+    dorevia_erp_event_captured_at = fields.Datetime(
+        string="ERP event captured at",
+        readonly=True,
+        copy=False,
+    )
 
     # ── Helpers ────────────────────────────────────────────────
 
@@ -113,6 +118,7 @@ class AccountPayment(models.Model):
                     'dorevia_vault_idempotency_key': key,
                     'dorevia_vault_attempt_count': 0,
                     'dorevia_vault_next_retry_at': fields.Datetime.now(),
+                    'dorevia_erp_event_captured_at': fields.Datetime.now(),
                 })
                 payment._enqueue_send_to_dvig()
             except Exception as e:
@@ -168,6 +174,15 @@ class AccountPayment(models.Model):
         resp.raise_for_status()
         data = resp.json()
         event_id = data.get('event_id', '')
+        erp_to_dvig_ack_ms = None
+        captured_iso = payload.get('data', {}).get('erp_event_captured_at')
+        if captured_iso:
+            try:
+                captured_dt = datetime.fromisoformat(captured_iso.replace('Z', '+00:00'))
+                now_dt = datetime.utcnow().replace(tzinfo=captured_dt.tzinfo)
+                erp_to_dvig_ack_ms = int((now_dt - captured_dt).total_seconds() * 1000)
+            except Exception:
+                pass
 
         self.write({
             'dorevia_vault_status': 'pending_proof',
@@ -176,7 +191,10 @@ class AccountPayment(models.Model):
             'dorevia_vault_last_error': False,
         })
         _logger.info(
-            "vault_job_send_dvig_ok payment_id=%s event_id=%s", self.id, event_id
+            "vault_job_send_dvig_ok payment_id=%s event_id=%s erp_to_dvig_ack_ms=%s",
+            self.id,
+            event_id,
+            erp_to_dvig_ack_ms,
         )
 
         dvig_service = self.env['dorevia.dvig.service']
@@ -256,6 +274,7 @@ class AccountPayment(models.Model):
                     'dorevia_vault_idempotency_key': key,
                     'dorevia_vault_attempt_count': 0,
                     'dorevia_vault_next_retry_at': fields.Datetime.now(),
+                    'dorevia_erp_event_captured_at': fields.Datetime.now(),
                 })
                 count += 1
             except Exception as e:
@@ -353,6 +372,11 @@ class AccountPayment(models.Model):
         if not idemp_key:
             idemp_key = self._compute_payment_idempotency_key()
             self.write({'dorevia_vault_idempotency_key': idemp_key})
+        captured_at = self.dorevia_erp_event_captured_at or fields.Datetime.now()
+        if not self.dorevia_erp_event_captured_at:
+            self.write({'dorevia_erp_event_captured_at': captured_at})
+        # Timestamp ISO UTC pour la mesure SLA ERP->Vault.
+        captured_at_iso = fields.Datetime.to_string(captured_at).replace(' ', 'T') + 'Z'
 
         # P0.2 : mapping espèces / virements / chèque (minuscule, SPEC Payments v1.1)
         # journal cash → cash ; payment_method check → check ; bank/general → transfer
@@ -361,6 +385,7 @@ class AccountPayment(models.Model):
         return {
             'source': cfg['dvig_source'],
             'event_type': 'payment.posted',
+            'timestamp': captured_at_iso,
             'idempotency_key': idemp_key,
             'data': {
                 'db': self.env.cr.dbname,
@@ -377,6 +402,7 @@ class AccountPayment(models.Model):
                 'is_refund': False,
                 'company_id': self.company_id.id or 1,
                 'memo': '',
+                'erp_event_captured_at': captured_at_iso,
             },
         }
 
@@ -415,8 +441,13 @@ class AccountPayment(models.Model):
 
     def _fetch_and_apply_proof(self, vault_url):
         """Récupère la preuve depuis GET /api/v1/proof/account_payment/:id."""
+        tenant = self.env['ir.config_parameter'].sudo().get_param('dorevia.vault.tenant', '')
+        headers = {}
+        if tenant:
+            headers['X-Tenant'] = tenant
         resp = requests.get(
             f"{vault_url}/api/v1/proof/account_payment/{self.id}",
+            headers=headers,
             timeout=15,
         )
         if resp.status_code == 404:

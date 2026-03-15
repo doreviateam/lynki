@@ -1,0 +1,13 @@
+# Platform o19 — utilise core-stinger (Vault/DVIG partagés)
+# Service minimal pour satisfaire apply (o19 n'a pas de platform dédiée)
+
+services:
+  _placeholder:
+    image: alpine:3.19
+    command: ["sleep", "infinity"]
+    networks:
+      - dorevia-network
+
+networks:
+  dorevia-network:
+    external: true

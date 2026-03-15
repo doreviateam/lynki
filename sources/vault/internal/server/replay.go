@@ -32,9 +32,18 @@ func RegisterUiAggregations(app *fiber.App, db *storage.DB, cfg *config.Config, 
 	app.Get("/ui/aggregations/pos-sessions", handlers.PosSessionsAggregationHandler(db))
 	app.Get("/ui/aggregations/sales-by-partner", handlers.SalesByPartnerAggregationHandler(db))
 	app.Get("/ui/aggregations/ar-by-partner", handlers.ArByPartnerAggregationHandler(db))
+	app.Post("/ui/ar-payment-history/backfill", handlers.ArPaymentHistoryBackfillHandler(db))
+	app.Get("/ui/aggregations/ap-by-partner", handlers.ApByPartnerAggregationHandler(db))
+	app.Get("/ui/aggregations/payroll", handlers.PayrollAggregationHandler(db, log))
 	if db == nil {
 		return
 	}
+	app.Get("/ui/aggregations/treasury-series", handlers.TreasurySeriesHandler(db))
+	app.Post("/ui/jobs/treasury-snapshot", handlers.TreasurySnapshotJobHandler(db, cfg.OdooBankReconciliationURL, cfg, log))
+	app.Get("/ui/aggregations/ar-series", handlers.ArSeriesHandler(db))
+	app.Post("/ui/jobs/ar-snapshot", handlers.ArSnapshotJobHandler(db, log))
+	app.Get("/ui/aggregations/bfr-series", handlers.BfrSeriesHandler(db))
+	app.Post("/ui/jobs/ap-snapshot", handlers.ApSnapshotJobHandler(db, log))
 	app.Get("/ui/aggregations/sales", handlers.SalesAggregationHandler(db))
 	app.Get("/ui/aggregations/purchases", handlers.PurchasesAggregationHandler(db))
 	app.Get("/ui/aggregations/payments-in", handlers.PaymentsInAggregationHandler(db))

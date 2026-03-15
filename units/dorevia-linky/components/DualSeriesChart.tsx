@@ -14,6 +14,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Rectangle,
 } from "recharts";
 import type { SeriesPoint } from "@/app/types/aggregations";
 import { formatAmount } from "@/app/lib/format";
@@ -41,6 +42,10 @@ interface DualSeriesChartProps {
   showSeries2?: boolean;
   /** Mode Gouvernance — couleur slice 2 (à rapprocher) : orange >30 %, jaune 10–30 % */
   pieColor2?: string;
+  /** Période sélectionnée (ex. "2026-01") — met en évidence le point/barre correspondant */
+  selectedPeriod?: string | null;
+  /** Appelé quand l'utilisateur clique sur un point/barre (période) */
+  onPeriodSelect?: (period: string) => void;
 }
 
 /** Formate le libellé d'une période selon la granularité */
@@ -148,6 +153,8 @@ export function DualSeriesChart({
   celebrating100 = false,
   showSeries2 = true,
   pieColor2,
+  selectedPeriod = null,
+  onPeriodSelect,
 }: DualSeriesChartProps) {
   // prefers-reduced-motion : désactivé ici (hooks causaient React #310 sur certains runtimes).
   // Les animations sont légères (350ms) ; fallback stable pour éviter crash.
@@ -247,10 +254,54 @@ export function DualSeriesChart({
     ? (value: number) => `${value.toFixed(1)} %`
     : (value: number) => formatAmount(value, currency);
 
+  const handleChartClick = (data: { activePayload?: Array<{ payload: ChartRow }> } | undefined) => {
+    const period = data?.activePayload?.[0]?.payload?.period;
+    if (period && onPeriodSelect) onPeriodSelect(period);
+  };
+
   if (chartType === "line") {
+    const renderDot1 = (props: { cx?: number; cy?: number; payload?: ChartRow; index?: number }) => {
+      const { cx = 0, cy = 0, payload } = props;
+      const isSelected = payload && selectedPeriod !== null && selectedPeriod !== undefined && payload.period === selectedPeriod;
+      return (
+        <circle
+          cx={cx}
+          cy={cy}
+          r={isSelected ? 5 : 3}
+          fill={isSelected ? "var(--accent)" : "var(--positive)"}
+          stroke={isSelected ? "var(--text)" : "var(--positive)"}
+          strokeWidth={isSelected ? 2 : 0}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (payload?.period && onPeriodSelect) onPeriodSelect(payload.period);
+          }}
+          style={{ cursor: onPeriodSelect ? "pointer" : "default" }}
+          aria-label={payload ? `Mois ${payload.label}${isSelected ? ", sélectionné" : ""}` : undefined}
+        />
+      );
+    };
+    const renderDot2 = (props: { cx?: number; cy?: number; payload?: ChartRow }) => {
+      const { cx = 0, cy = 0, payload } = props;
+      const isSelected = payload && selectedPeriod !== null && selectedPeriod !== undefined && payload.period === selectedPeriod;
+      return (
+        <circle
+          cx={cx}
+          cy={cy}
+          r={isSelected ? 5 : 3}
+          fill={isSelected ? "var(--accent)" : "var(--warning)"}
+          stroke={isSelected ? "var(--text)" : "var(--warning)"}
+          strokeWidth={isSelected ? 2 : 0}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (payload?.period && onPeriodSelect) onPeriodSelect(payload.period);
+          }}
+          style={{ cursor: onPeriodSelect ? "pointer" : "default" }}
+        />
+      );
+    };
     return (
       <ResponsiveContainer width="100%" height={220}>
-        <LineChart data={seriesData} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
+        <LineChart data={seriesData} margin={{ top: 8, right: 8, left: 0, bottom: 4 }} onClick={handleChartClick}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis
             dataKey="label"
@@ -271,17 +322,25 @@ export function DualSeriesChart({
             formatter={tooltipFormatter}
           />
           <Legend wrapperStyle={{ fontSize: 12 }} />
-          <Line type="monotone" dataKey={key1} stroke="var(--positive)" strokeWidth={2} dot={{ r: 3 }} name={label1} />
-          {showSeries2 && <Line type="monotone" dataKey={key2} stroke="var(--warning)" strokeWidth={2} dot={{ r: 3 }} name={label2} />}
+          <Line type="monotone" dataKey={key1} stroke="var(--positive)" strokeWidth={2} dot={renderDot1} name={label1} />
+          {showSeries2 && <Line type="monotone" dataKey={key2} stroke="var(--warning)" strokeWidth={2} dot={renderDot2} name={label2} />}
         </LineChart>
       </ResponsiveContainer>
     );
   }
 
   if (chartType === "bar") {
+    const barShape1 = (props: { payload?: ChartRow; fill?: string; x?: number; y?: number; width?: number; height?: number; radius?: number | [number, number, number, number] }) => {
+      const fill = props.payload && selectedPeriod != null && props.payload.period === selectedPeriod ? "var(--accent)" : "var(--positive)";
+      return <Rectangle {...props} fill={fill} radius={showSeries2 ? 0 : [2, 2, 0, 0]} />;
+    };
+    const barShape2 = (props: { payload?: ChartRow; fill?: string; x?: number; y?: number; width?: number; height?: number; radius?: number | [number, number, number, number] }) => {
+      const fill = props.payload && selectedPeriod != null && props.payload.period === selectedPeriod ? "var(--accent)" : "var(--warning)";
+      return <Rectangle {...props} fill={fill} radius={[2, 2, 0, 0]} />;
+    };
     return (
       <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={seriesData} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
+        <BarChart data={seriesData} margin={{ top: 8, right: 8, left: 0, bottom: 4 }} onClick={handleChartClick}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis
             dataKey="label"
@@ -304,13 +363,49 @@ export function DualSeriesChart({
           <Legend wrapperStyle={{ fontSize: 12 }} />
           {relativeTo100 ? (
             <>
-              <Bar dataKey={key1} stackId="stack" fill="var(--positive)" radius={showSeries2 ? 0 : [2, 2, 0, 0]} name={label1} />
-              {showSeries2 && <Bar dataKey={key2} stackId="stack" fill="var(--warning)" radius={[2, 2, 0, 0]} name={label2} />}
+              <Bar
+                dataKey={key1}
+                stackId="stack"
+                fill="var(--positive)"
+                shape={barShape1}
+                name={label1}
+                onClick={(data: ChartRow) => data?.period && onPeriodSelect?.(data.period)}
+                style={{ cursor: onPeriodSelect ? "pointer" : "default" }}
+              />
+              {showSeries2 && (
+                <Bar
+                  dataKey={key2}
+                  stackId="stack"
+                  fill="var(--warning)"
+                  shape={barShape2}
+                  name={label2}
+                  onClick={(data: ChartRow) => data?.period && onPeriodSelect?.(data.period)}
+                  style={{ cursor: onPeriodSelect ? "pointer" : "default" }}
+                />
+              )}
             </>
           ) : (
             <>
-              <Bar dataKey={key1} fill="var(--positive)" radius={[2, 2, 0, 0]} name={label1} />
-              {showSeries2 && <Bar dataKey={key2} fill="var(--warning)" radius={[2, 2, 0, 0]} name={label2} />}
+              <Bar
+                dataKey={key1}
+                fill="var(--positive)"
+                shape={barShape1}
+                radius={[2, 2, 0, 0]}
+                name={label1}
+                onClick={(data: ChartRow) => data?.period && onPeriodSelect?.(data.period)}
+                style={{ cursor: onPeriodSelect ? "pointer" : "default" }}
+              />
+              {showSeries2 && (
+                <Bar
+                  dataKey={key2}
+                  fill="var(--warning)"
+                  shape={barShape2}
+                  radius={[2, 2, 0, 0]}
+                  name={label2}
+                  onClick={(data: ChartRow) => data?.period && onPeriodSelect?.(data.period)}
+                  style={{ cursor: onPeriodSelect ? "pointer" : "default" }}
+                />
+              )}
             </>
           )}
         </BarChart>

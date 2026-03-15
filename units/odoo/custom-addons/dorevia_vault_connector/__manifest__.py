@@ -25,8 +25,9 @@
     'depends': [
         'base',
         'account',
-        'account_reconcile_oca',  # reconcile_bank_line / unreconcile_bank_line pour RECONCIL temps réel
+        'account_reconcile_oca',  # Port O19 (web39) : reconcile_bank_line / unreconcile_bank_line pour RECONCIL temps réel
     ],
+    # Paie (hr.payslip → Vault) : installer l'addon optionnel dorevia_vault_connector_hr_payroll
     'external_dependencies': {
         'python': ['requests'],
     },

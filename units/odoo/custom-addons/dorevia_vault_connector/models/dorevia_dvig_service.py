@@ -8,6 +8,7 @@ SPEC : Alimentation expected_count (Phase DVIG) — POST /internal/expected-coun
 """
 
 import logging
+import os
 from datetime import datetime, timezone, timedelta
 from dateutil.relativedelta import relativedelta
 
@@ -22,15 +23,38 @@ class DoreviaDvigService(models.Model):
     _name = 'dorevia.dvig.service'
     _description = 'Service DVIG Dorevia'
 
+    @api.model
+    def get_dvig_config(self):
+        """
+        Retourne la config DVIG (url, token, source, tenant).
+        Fallback : variables d'environnement ODOO_DVIG_URL, ODOO_DVIG_TOKEN, ODOO_DVIG_SOURCE, ODOO_DVIG_TENANT.
+        Permet de configurer o19 via le compose sans passer par les paramètres Odoo.
+        """
+        icp = self.env['ir.config_parameter'].sudo()
+        dvig_url = (icp.get_param('dorevia.dvig.url', '') or os.environ.get('ODOO_DVIG_URL', '')).rstrip('/')
+        dvig_token = icp.get_param('dorevia.dvig.token', '') or os.environ.get('ODOO_DVIG_TOKEN', '')
+        dvig_source = icp.get_param('dorevia.dvig.source', '') or os.environ.get('ODOO_DVIG_SOURCE', '')
+        tenant = icp.get_param('dorevia.tenant', '') or os.environ.get('ODOO_DVIG_TENANT', '') or os.environ.get('ODOO_TENANT', '')
+        if not tenant and dvig_source and '.' in dvig_source:
+            tenant = dvig_source.split('.')[-1]
+        if not dvig_source and tenant:
+            dvig_source = f"odoo.lab.{tenant}"
+        return {
+            'dvig_url': dvig_url,
+            'dvig_token': dvig_token,
+            'dvig_source': dvig_source,
+            'tenant': tenant or 'default',
+        }
+
     def _get_internal_request_params(self):
         """Retourne (base_url, token) pour les appels internes DVIG."""
         icp = self.env['ir.config_parameter'].sudo()
-        internal_url = icp.get_param('dorevia.dvig.internal.url', '')
+        internal_url = icp.get_param('dorevia.dvig.internal.url', '') or os.environ.get('ODOO_DVIG_INTERNAL_URL', '')
         if not internal_url:
-            dvig_url = icp.get_param('dorevia.dvig.url', '').rstrip('/')
-            if dvig_url:
-                internal_url = f"{dvig_url}/internal/outbox/process"
-        internal_token = icp.get_param('dorevia.dvig.internal.token', '') or icp.get_param('dorevia.dvig.token', '')
+            cfg = self.get_dvig_config()
+            if cfg['dvig_url']:
+                internal_url = f"{cfg['dvig_url']}/internal/outbox/process"
+        internal_token = icp.get_param('dorevia.dvig.internal.token', '') or icp.get_param('dorevia.dvig.token', '') or os.environ.get('ODOO_DVIG_TOKEN', '')
         return internal_url or '', internal_token or ''
 
     def retry_outbox_event(self, tenant, idempotency_key):

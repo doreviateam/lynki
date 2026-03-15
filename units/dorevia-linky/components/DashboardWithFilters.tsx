@@ -14,20 +14,44 @@ import { CreditNotesCardWithPolling } from "@/components/CreditNotesCardWithPoll
 import { RefundsCardWithPolling } from "@/components/RefundsCardWithPolling";
 import { LinkyFooter } from "@/components/LinkyFooter";
 import { IconGrid, type CardId } from "@/components/IconGrid";
+import { WorkingCapitalCardWithPolling } from "@/components/WorkingCapitalCardWithPolling";
+import { EncoursCardWithPolling } from "@/components/EncoursCardWithPolling";
+import { EbeCardWithPolling } from "@/components/EbeCardWithPolling";
 import { DivaFlashBlock } from "@/components/DivaFlashBlock";
 import { DecisionsBlock } from "@/components/DecisionsBlock";
 import { SyncInProgress } from "@/components/SyncInProgress";
 import { getDefaultPeriod, type PeriodRange } from "@/app/lib/period-utils";
 import type { DashboardMetricsResponse } from "@/app/api/dashboard-metrics/route";
+import { recordUxSample } from "@/app/lib/ux-metrics";
 
 const COMPANIES_TIMEOUT_MS = 5000;
 const DASHBOARD_METRICS_POLL_MS = 2 * 60 * 1000; // 2 min
 const INCOMPLETE_RETRY_MS = 2000; // Si sealed_count_complete=false, retry une fois après 2 s
+const ENABLE_LIVE_POLLING = process.env.NEXT_PUBLIC_LINKY_ENABLE_LIVE_POLLING === "1";
+/** Feature flag : utiliser le Metric Engine (GET /api/instruments) à la place de dashboard-metrics */
+const USE_METRIC_ENGINE = process.env.NEXT_PUBLIC_LINKY_USE_METRIC_ENGINE === "1";
+const FORCED_COMPANY_ID =
+  typeof process.env.NEXT_PUBLIC_FORCE_COMPANY_ID === "string" && process.env.NEXT_PUBLIC_FORCE_COMPANY_ID.trim()
+    ? process.env.NEXT_PUBLIC_FORCE_COMPANY_ID.trim()
+    : null;
 const TREASURY_UNBLOCK_AFTER_MS = 5000; // Après 5 s d'incomplétude : libérer carte Trésorerie en priorité (Option C)
 const METRICS_CACHE_KEY = "linky_dashboard_metrics";
-const METRICS_CACHE_TTL_MS = 90 * 1000; // 90 s — affichage instantané si retour sur la même vue
+const METRICS_CACHE_TTL_MS = Number(process.env.NEXT_PUBLIC_LINKY_METRICS_CACHE_TTL_MS ?? "0"); // 0 = cache désactivé par défaut
+
+function deriveTenantFromHost(): string {
+  if (typeof window === "undefined") return DEFAULT_TENANT;
+  const host = window.location.hostname; // ex: ui.lab.o19.doreviateam.com
+  const parts = host.split(".");
+  // Pattern attendu: ui.<env>.<tenant>.doreviateam.com
+  if (parts.length >= 5 && parts[0] === "ui") {
+    const tenant = parts[2];
+    if (tenant) return tenant;
+  }
+  return DEFAULT_TENANT;
+}
 
 function getCachedMetrics(tenantId: string, companyId: string | null, period: { from: string; to: string }): DashboardMetricsResponse | null {
+  if (!Number.isFinite(METRICS_CACHE_TTL_MS) || METRICS_CACHE_TTL_MS <= 0) return null;
   if (typeof window === "undefined") return null;
   try {
     const raw = sessionStorage.getItem(METRICS_CACHE_KEY);
@@ -61,6 +85,36 @@ function clearCachedMetrics() {
     sessionStorage.removeItem(METRICS_CACHE_KEY);
   } catch { /* ignore */ }
 }
+
+/**
+ * Adaptateur Phase 2 (SPEC §9.2) :
+ * Convertit la réponse de GET /api/instruments vers DashboardMetricsResponse
+ * pour assurer la compatibilité avec IconGrid et les cards existantes.
+ */
+function adaptInstrumentsToDashboard(
+  instruments: Record<string, import("@/app/api/dashboard-metrics/route").KpiMetric>
+): DashboardMetricsResponse {
+  const empty = { value: null, formatted: "—", valueKind: "neutral" as const };
+  return {
+    treasury: instruments.treasury ?? empty,
+    treasury_position: instruments.treasury_position ?? empty,
+    cash: instruments.cash ?? empty,
+    business: instruments.business ?? empty,
+    taxes: instruments.taxes ?? empty,
+    credit_notes: instruments.credit_notes ?? empty,
+    refunds: instruments.refunds ?? empty,
+    pos_shops: instruments.pos_shops ?? empty,
+    pos_z: instruments.pos_z ?? { value: null, formatted: "—", valueKind: "placeholder" as const },
+    working_capital: instruments.working_capital ?? empty,
+    encours: instruments.encours ?? empty,
+    ebitda: instruments.ebitda ?? empty,
+    // Champs non disponibles via Metric Engine (Phase 2) — inchangés
+    sealed_count_complete: true, // Metric Engine ne bloque pas sur sealed_count
+    sealed_count: undefined,
+    generated_at: undefined,
+  };
+}
+
 const DEFAULT_TENANT = "core";
 
 interface CompanyItem {
@@ -70,7 +124,8 @@ interface CompanyItem {
 }
 
 export function DashboardWithFilters() {
-  const [tenantId, setTenantId] = useState(DEFAULT_TENANT);
+  const [tenantId, setTenantId] = useState<string>(() => deriveTenantFromHost());
+  const [primarySource, setPrimarySource] = useState<"erp" | "vault">("vault");
   const [companies, setCompanies] = useState<CompanyItem[]>([]);
   const [companiesLoading, setCompaniesLoading] = useState(true);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
@@ -84,12 +139,16 @@ export function DashboardWithFilters() {
   const [metricsError, setMetricsError] = useState(false);
   const [attemptCount, setAttemptCount] = useState(0);
   const [showTreasuryAfterIncomplete, setShowTreasuryAfterIncomplete] = useState(false);
+  const [userBypassIncomplete, setUserBypassIncomplete] = useState(false);
   const prevScopeRef = useRef("");
 
   useEffect(() => {
     fetch("/api/tenant")
       .then((r) => r.json())
-      .then((d) => setTenantId(d?.tenant_id ?? DEFAULT_TENANT))
+      .then((d) => {
+        setTenantId(d?.tenant_id ?? DEFAULT_TENANT);
+        setPrimarySource(d?.primary_source === "erp" ? "erp" : "vault");
+      })
       .catch(() => {});
   }, []);
 
@@ -141,9 +200,17 @@ export function DashboardWithFilters() {
 
   // Fetch dashboard-metrics : pour IconGrid/Diva quand vue "all", et sealed_count pour le badge (toujours)
   const showIconGrid = viewMode === "all" && !focusedCardId;
-  const scopeKey = `${tenantId}|${selectedCompanyId ?? ""}|${period.from}|${period.to}`;
+  const effectiveCompanyId =
+    FORCED_COMPANY_ID ??
+    selectedCompanyId ??
+    (companies.length > 0 && companies.some((c) => c.documents_count > 0) ? companies[0].company_id : null);
+  const scopeKey = `${tenantId}|${effectiveCompanyId ?? ""}|${period.from}|${period.to}`;
   const fetchMetricsRef = useRef<() => void>(() => {});
   useEffect(() => {
+    if (companiesLoading) return;
+    const hasVaultData = companies.some((c) => c.documents_count > 0);
+    if (hasVaultData && !effectiveCompanyId) return;
+
     let cancelled = false;
     const retryTimeoutRef = { id: null as ReturnType<typeof setTimeout> | null };
     const retryCountRef = { count: 0 };
@@ -151,10 +218,11 @@ export function DashboardWithFilters() {
     // T1.8 — Invalider le cache au changement de scope (anti-stale)
     if (prevScopeRef.current && prevScopeRef.current !== scopeKey) {
       clearCachedMetrics();
+      setUserBypassIncomplete(false);
     }
     prevScopeRef.current = scopeKey;
 
-    const cached = getCachedMetrics(tenantId, selectedCompanyId, period);
+    const cached = getCachedMetrics(tenantId, effectiveCompanyId, period);
     if (cached) {
       setDashboardMetrics(cached);
       setMetricsLoading(false);
@@ -170,19 +238,38 @@ export function DashboardWithFilters() {
         tenant: tenantId,
         date_debut: period.from,
         date_fin: period.to,
-        ...(selectedCompanyId && { company_id: selectedCompanyId }),
-        ...(showIconGrid && { minimal: "1" }), // Vue grille : skip sales-by-partner, ar-by-partner (allège payload)
+        ...(effectiveCompanyId && { company_id: effectiveCompanyId }),
+        ...(!USE_METRIC_ENGINE && showIconGrid && { minimal: "1" }),
       });
-      fetch(`/api/dashboard-metrics?${params}`, { cache: "no-store", headers: { Accept: "application/json" } })
+
+      // Phase 2 (SPEC §9.2) : si le Metric Engine est activé, consommer /api/instruments
+      const apiPath = USE_METRIC_ENGINE ? `/api/instruments?${params}` : `/api/dashboard-metrics?${params}`;
+
+      const fetchStart = Date.now();
+      fetch(apiPath, { cache: "no-store", headers: { Accept: "application/json" } })
         .then((r) => r.json())
-        .then((d) => {
+        .then((raw) => {
+          // UX metrics : latence mesurée dès la réponse reçue
+          recordUxSample({
+            tenant: tenantId,
+            company: effectiveCompanyId ?? "",
+            periodFrom: period.from,
+            periodTo: period.to,
+            latencyMs: Date.now() - fetchStart,
+          });
+
+          // Adaptateur : si le Metric Engine est actif, convertir vers DashboardMetricsResponse
+          const d: DashboardMetricsResponse | null = USE_METRIC_ENGINE && raw?.instruments
+            ? adaptInstrumentsToDashboard(raw.instruments)
+            : raw;
+
           if (!cancelled && d && typeof d === "object" && typeof d.treasury === "object") {
             setAttemptCount((c) => c + 1);
             setDashboardMetrics(d);
-            setCachedMetrics(tenantId, selectedCompanyId, period, d);
+            setCachedMetrics(tenantId, effectiveCompanyId, period, d);
             setMetricsLoading(false);
             setMetricsError(false);
-            if (d.sealed_count_complete === false && retryCountRef.count < 1) {
+            if (ENABLE_LIVE_POLLING && !USE_METRIC_ENGINE && d.sealed_count_complete === false && retryCountRef.count < 1) {
               retryCountRef.count += 1;
               retryTimeoutRef.id = setTimeout(() => {
                 retryTimeoutRef.id = null;
@@ -202,20 +289,21 @@ export function DashboardWithFilters() {
     };
     fetchMetricsRef.current = fetchMetrics;
     fetchMetrics();
-    const pollId = setInterval(fetchMetrics, DASHBOARD_METRICS_POLL_MS);
+    const pollId = ENABLE_LIVE_POLLING ? setInterval(fetchMetrics, DASHBOARD_METRICS_POLL_MS) : null;
     return () => {
       cancelled = true;
-      clearInterval(pollId);
+      if (pollId) clearInterval(pollId);
       if (retryTimeoutRef.id) clearTimeout(retryTimeoutRef.id);
     };
-  }, [tenantId, selectedCompanyId, period.from, period.to, showIconGrid]);
+  }, [tenantId, selectedCompanyId, effectiveCompanyId, period.from, period.to, showIconGrid, companiesLoading, companies]);
 
-  // Spec §4.1 — Aucune carte si incomplet OU loading OU erreur
+  // Spec §4.1 — Aucune carte si incomplet OU loading OU erreur (sauf bypass utilisateur)
   const showCards =
-    dashboardMetrics?.sealed_count_complete === true &&
+    (dashboardMetrics?.sealed_count_complete === true || userBypassIncomplete) &&
+    dashboardMetrics != null &&
     !metricsLoading &&
     !metricsError;
-  const isIncomplete = !metricsLoading && !metricsError && (dashboardMetrics?.sealed_count_complete === false);
+  const isIncomplete = !metricsLoading && !metricsError && (dashboardMetrics?.sealed_count_complete === false) && !userBypassIncomplete;
 
   // Option C : après 5 s d'incomplétude, libérer la carte Trésorerie en priorité
   useEffect(() => {
@@ -233,12 +321,17 @@ export function DashboardWithFilters() {
     fetchMetricsRef.current();
   }, []);
 
+  const handleViewAnyway = useCallback(() => {
+    setUserBypassIncomplete(true);
+  }, []);
+
   const handlePeriodChange = useCallback((p: PeriodRange) => setPeriod(p), []);
 
   const isPosView = viewMode === "pos_shops" || viewMode === "pos_z";
   const showCard = (cardId: CardId) => !focusedCardId || focusedCardId === cardId;
   const showWhenFocused = (cardId: CardId) => focusedCardId === cardId;
   const onFocusRequest = useCallback((cardId: CardId) => setFocusedCardId(cardId), []);
+  const onNavigateToCard = useCallback((cardId: CardId) => setFocusedCardId(cardId), []);
   const showPosShops = viewMode === "pos_shops";
   const showPosZ = viewMode === "pos_z";
   const posPeriod: PeriodRange =
@@ -253,6 +346,9 @@ export function DashboardWithFilters() {
   const showTaxes = !isPosView && (viewMode === "all" || viewMode === "business");
   const showCreditNotes = !isPosView && (viewMode === "all" || viewMode === "corrections");
   const showRefunds = !isPosView && (viewMode === "all" || viewMode === "cash" || viewMode === "corrections");
+  const showWorkingCapital = !isPosView && (viewMode === "all" || viewMode === "business");
+  const showEncours = !isPosView && (viewMode === "all" || viewMode === "business");
+  const showEbe = !isPosView && (viewMode === "all" || viewMode === "business");
 
   return (
     <ChartExpandedProvider>
@@ -277,6 +373,11 @@ export function DashboardWithFilters() {
       <main className="mx-auto flex min-h-0 flex-1 w-full max-w-4xl flex-col px-4 py-6 pb-16">
         {showCards ? (
         <>
+        {userBypassIncomplete && (
+          <div className="mb-4 rounded-lg border border-[var(--warning)]/50 bg-[var(--warning)]/10 px-4 py-2 text-sm text-[var(--text)]">
+            Données partiellement synchronisées — certaines métriques peuvent être incomplètes.
+          </div>
+        )}
         {focusedCardId && (
           <button
             type="button"
@@ -288,18 +389,10 @@ export function DashboardWithFilters() {
         )}
         {showIconGrid ? (
           <div className="flex flex-1 min-h-0 flex-col items-center pt-6">
-            {!isPosView && (
-              <div className="w-full max-w-4xl mb-6">
-                <TresoreriePositionCardWithPolling
-                  tenantId={tenantId}
-                  companyId={selectedCompanyId}
-                />
-              </div>
-            )}
-            <div className="flex items-start justify-center">
+            <div className="w-full">
               <IconGrid
                 tenantId={tenantId}
-                companyId={selectedCompanyId}
+                companyId={effectiveCompanyId}
                 period={period}
                 metrics={dashboardMetrics}
                 metricsLoading={metricsLoading}
@@ -309,7 +402,7 @@ export function DashboardWithFilters() {
             {!metricsLoading && (
               <DivaFlashBlock
                 tenantId={tenantId}
-                companyId={selectedCompanyId}
+                companyId={effectiveCompanyId}
                 period={{ from: period.from, to: period.to }}
                 dashboardMetrics={dashboardMetrics}
               />
@@ -321,18 +414,24 @@ export function DashboardWithFilters() {
           {showPosZ && (
             <PosComingSoonView title="Z de caisse" />
           )}
-          {!isPosView && (
+          {!isPosView && (viewMode === "all" || showWhenFocused("treasury")) && showCard("treasury") && (
             <TresoreriePositionCardWithPolling
               tenantId={tenantId}
-              companyId={selectedCompanyId}
+              companyId={effectiveCompanyId}
+              period={{ from: period.from, to: period.to }}
+              cardId="treasury"
+              onNavigateToCard={onNavigateToCard}
             />
           )}
-          {(showCash || showWhenFocused("treasury")) && showCard("treasury") && (
+          {(showCash || showWhenFocused("treasury_position")) && showCard("treasury_position") && (
             <TreasuryCardWithPolling
               period={period}
-              companyId={selectedCompanyId}
+              companyId={effectiveCompanyId}
               tenantId={tenantId}
-              onFocusRequest={() => onFocusRequest("treasury")}
+              primarySource={primarySource}
+              onFocusRequest={() => onFocusRequest("treasury_position")}
+              cardId="treasury_position"
+              onNavigateToCard={onNavigateToCard}
             />
           )}
           {(showCash || showWhenFocused("cash")) && showCard("cash") && (
@@ -340,9 +439,11 @@ export function DashboardWithFilters() {
               initialDataIn={null}
               initialDataOut={null}
               period={period}
-              companyId={selectedCompanyId}
+              companyId={effectiveCompanyId}
               tenantId={tenantId}
               onFocusRequest={() => onFocusRequest("cash")}
+              cardId="cash"
+              onNavigateToCard={onNavigateToCard}
             />
           )}
           {(showBusiness || showWhenFocused("business")) && showCard("business") && (
@@ -350,9 +451,44 @@ export function DashboardWithFilters() {
               initialSalesData={null}
               initialPurchasesData={null}
               period={period}
-              companyId={selectedCompanyId}
+              companyId={effectiveCompanyId}
               tenantId={tenantId}
+              primarySource={primarySource}
+              dashboardSnapshot={focusedCardId === "business" ? null : dashboardMetrics}
               onFocusRequest={() => onFocusRequest("business")}
+              cardId="business"
+              onNavigateToCard={onNavigateToCard}
+            />
+          )}
+          {(showWorkingCapital || showWhenFocused("working_capital")) && showCard("working_capital") && (
+            <WorkingCapitalCardWithPolling
+              period={period}
+              companyId={effectiveCompanyId}
+              tenantId={tenantId}
+              onFocusRequest={() => onFocusRequest("working_capital")}
+              cardId="working_capital"
+              onNavigateToCard={onNavigateToCard}
+            />
+          )}
+          {(showEncours || showWhenFocused("encours")) && showCard("encours") && (
+            <EncoursCardWithPolling
+              period={period}
+              companyId={effectiveCompanyId}
+              tenantId={tenantId}
+              onFocusRequest={() => onFocusRequest("encours")}
+              cardId="encours"
+              onNavigateToCard={onNavigateToCard}
+            />
+          )}
+          {(showEbe || showWhenFocused("ebitda")) && showCard("ebitda") && (
+            <EbeCardWithPolling
+              period={period}
+              companyId={effectiveCompanyId}
+              tenantId={tenantId}
+              dashboardSnapshot={dashboardMetrics}
+              onFocusRequest={() => onFocusRequest("ebitda")}
+              cardId="ebitda"
+              onNavigateToCard={onNavigateToCard}
             />
           )}
           {(viewMode === "all" || viewMode === "pos_shops" || showWhenFocused("pos_shops")) && showCard("pos_shops") && (
@@ -361,6 +497,8 @@ export function DashboardWithFilters() {
               period={posPeriod}
               companies={companies}
               onFocusRequest={() => onFocusRequest("pos_shops")}
+              cardId="pos_shops"
+              onNavigateToCard={onNavigateToCard}
             />
           )}
           {(showTaxes || showWhenFocused("taxes")) && showCard("taxes") && (
@@ -368,9 +506,11 @@ export function DashboardWithFilters() {
               initialSalesData={null}
               initialPurchasesData={null}
               period={period}
-              companyId={selectedCompanyId}
+              companyId={effectiveCompanyId}
               tenantId={tenantId}
               onFocusRequest={() => onFocusRequest("taxes")}
+              cardId="taxes"
+              onNavigateToCard={onNavigateToCard}
             />
           )}
           {(showCreditNotes || showWhenFocused("credit_notes")) && showCard("credit_notes") && (
@@ -378,9 +518,11 @@ export function DashboardWithFilters() {
               initialClientData={null}
               initialSupplierData={null}
               period={period}
-              companyId={selectedCompanyId}
+              companyId={effectiveCompanyId}
               tenantId={tenantId}
               onFocusRequest={() => onFocusRequest("credit_notes")}
+              cardId="credit_notes"
+              onNavigateToCard={onNavigateToCard}
             />
           )}
           {(showRefunds || showWhenFocused("refunds")) && showCard("refunds") && (
@@ -388,15 +530,19 @@ export function DashboardWithFilters() {
               initialClientData={null}
               initialSupplierData={null}
               period={period}
-              companyId={selectedCompanyId}
+              companyId={effectiveCompanyId}
               tenantId={tenantId}
               onFocusRequest={() => onFocusRequest("refunds")}
+              cardId="refunds"
+              onNavigateToCard={onNavigateToCard}
             />
           )}
           {(viewMode === "all" || showWhenFocused("pos_z")) && showCard("pos_z") && (
             <PosComingSoonView
               title="Z de caisse"
               onFocusRequest={() => onFocusRequest("pos_z")}
+              cardId="pos_z"
+              onNavigateToCard={onNavigateToCard}
             />
           )}
         </section>
@@ -411,7 +557,8 @@ export function DashboardWithFilters() {
                 </p>
                 <TresoreriePositionCardWithPolling
                   tenantId={tenantId}
-                  companyId={selectedCompanyId}
+                  companyId={effectiveCompanyId}
+                  period={{ from: period.from, to: period.to }}
                 />
               </div>
             )}
@@ -421,6 +568,7 @@ export function DashboardWithFilters() {
               expectedCount={dashboardMetrics?.expected_count}
               generatedAt={dashboardMetrics?.generated_at}
               onRetry={handleRefreshMetrics}
+              onViewAnyway={handleViewAnyway}
               loading={metricsLoading}
               attemptCount={attemptCount}
             />
@@ -432,12 +580,13 @@ export function DashboardWithFilters() {
             expectedCount={dashboardMetrics?.expected_count}
             generatedAt={dashboardMetrics?.generated_at}
             onRetry={handleRefreshMetrics}
+            onViewAnyway={handleViewAnyway}
             loading={metricsLoading}
             attemptCount={attemptCount}
           />
         )}
       </main>
-      <LinkyFooter tenantId={tenantId} />
+      <LinkyFooter tenantId={tenantId} primarySource={primarySource} sealedCountTotal={dashboardMetrics?.sealed_count} />
     </div>
     </ChartExpandedProvider>
   );

@@ -8,6 +8,8 @@ export interface SyncInProgressProps {
   sealedCountComplete?: boolean;
   /** Callback déclenché au clic sur "Réessayer" */
   onRetry?: () => void;
+  /** Callback pour afficher le dashboard malgré l'incomplétude */
+  onViewAnyway?: () => void;
   /** true = fetch en cours (spinner) */
   loading?: boolean;
   /** Nombre de tentatives effectuées (>= 1 → afficher Réessayer si incomplet) */
@@ -32,12 +34,14 @@ export function SyncInProgress({
   sealedCount,
   sealedCountComplete,
   onRetry,
+  onViewAnyway,
   loading = false,
   attemptCount = 0,
   expectedCount,
   generatedAt,
 }: SyncInProgressProps) {
   const canRetry = !sealedCountComplete && attemptCount >= 1 && onRetry;
+  const canViewAnyway = !sealedCountComplete && attemptCount >= 1 && onViewAnyway;
   const hasCount = sealedCount != null && sealedCount >= 0;
   const totalStr = expectedCount != null ? String(expectedCount) : "—";
   const progression = hasCount ? `${sealedCount} / ${totalStr} preuves scellées` : null;
@@ -70,16 +74,28 @@ export function SyncInProgress({
           Dernière synchronisation : {formatGeneratedAt(generatedAt)}
         </p>
       )}
-      {canRetry && (
-        <button
-          type="button"
-          onClick={onRetry}
-          className="rounded-md border border-[var(--accent)] bg-transparent px-4 py-2 text-sm font-medium text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors"
-          data-testid="sync-retry-button"
-        >
-          Réessayer
-        </button>
-      )}
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        {canRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="rounded-md border border-[var(--accent)] bg-transparent px-4 py-2 text-sm font-medium text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors"
+            data-testid="sync-retry-button"
+          >
+            Réessayer
+          </button>
+        )}
+        {canViewAnyway && (
+          <button
+            type="button"
+            onClick={onViewAnyway}
+            className="rounded-md border border-[var(--muted)] bg-transparent px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--muted)]/20 transition-colors"
+            data-testid="sync-view-anyway-button"
+          >
+            Voir le dashboard
+          </button>
+        )}
+      </div>
     </div>
   );
 }

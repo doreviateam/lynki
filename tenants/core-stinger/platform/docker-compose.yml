@@ -6,7 +6,7 @@
 services:
   # DVIG - Service partagé
   dvig:
-    image: dorevia/dvig:completude-2026-03-03
+    image: dorevia/dvig:payroll-2026-03-13
     container_name: dvig-core-stinger
     restart: unless-stopped
     networks:
@@ -78,7 +78,7 @@ services:
 
   # Vault - Service partagé
   vault:
-    image: dorevia/vault:governance-2026-03-03
+    image: dorevia/vault:ebe-od-payroll-2026-03-15
     container_name: vault-core-stinger
     restart: unless-stopped
     networks:
@@ -88,6 +88,8 @@ services:
       - PORT=8080
       # Trésorerie laplatine2026 : proxy Odoo LAB pour solde comptable + taux rapprochement
       - ODOO_BANK_RECONCILIATION_URL_LAPLATINE2026=http://odoo_lab_laplatine2026:8069/dorevia/vault/linky_bank_reconciliation
+      # Trésorerie / complétude paiements o19 : Odoo 19 lab (réseau Docker dorevia-network)
+      - ODOO_BANK_RECONCILIATION_URL_O19=http://odoo_lab_o19:8069/dorevia/vault/linky_bank_reconciliation
     volumes:
       # Volumes persistants pour stockage Vault (Phase 6 - Ops Hardening)
       - vault_storage_core-stinger:/opt/dorevia-vault/storage

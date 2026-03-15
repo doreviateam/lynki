@@ -73,26 +73,53 @@ class LinkyBankReconciliationController(http.Controller):
 
             # Odoo 18 : inclure TOUTES les lignes bancaires postées (avec ou sans statement_id)
             # Les lignes sans statement sont des transactions non encore regroupées dans un relevé
+            # Filtre période : alignement Linky (date_debut/date_fin) ↔ Odoo (date_from/date_to)
             line_domain = [
                 ("state", "=", "posted"),
                 ("journal_id.company_id", "=", company.id),
             ]
+            date_from = kwargs.get("date_from")
+            date_to = kwargs.get("date_to")
+            if date_from:
+                line_domain.append(("date", ">=", date_from))
+            if date_to:
+                line_domain.append(("date", "<=", date_to))
             lines = Line.search(line_domain)
 
             # Agrégations sur bank statement lines
             unreconciled = lines.filtered(lambda l: not l.is_reconciled)
             unreconciled_entries = len(unreconciled)
+            # Odoo 19 / OCA : inclure aussi les écritures comptables (account.move.line) non rapprochées,
+            # pour que le nombre reflète ce que l'utilisateur voit dans l'écran de rapprochement.
+            unreconciled_aml_count = self._get_unreconciled_move_lines_count(
+                env, company, date_from=date_from, date_to=date_to
+            )
+            if unreconciled_aml_count is not None and unreconciled_aml_count > unreconciled_entries:
+                unreconciled_entries = unreconciled_aml_count
             unreconciled_amount = sum(unreconciled.mapped("amount")) if unreconciled else 0.0
             total_amount = sum(lines.mapped("amount")) or 0.0
             reconciled_stmt = total_amount - unreconciled_amount
 
-            # Paiements = Encaisseements - Décaissements (avoirs clients + remboursements fournisseurs inclus)
-            paiements_net = self._get_payments_net(env, company)
+            # Paiements = Encaisseements - Décaissements sur la période (alignement Total période / À rapprocher)
+            paiements_net = self._get_payments_net(env, company, date_from=date_from, date_to=date_to)
             total_activity_stmt = sum(abs(x) for x in lines.mapped("amount")) if lines else 0.0
             total_activity_ledger = self._get_bank_total_activity(env, company)
+            # Complétude paiements (pour fallback total_activity et pour la réponse)
+            list_ids = kwargs.get("list_ids") in ("1", 1, True)
+            completeness = self._get_payments_posted_completeness(
+                env, company, date_from, date_to, list_ids=list_ids
+            )
             total_activity = paiements_net if (paiements_net is not None and abs(paiements_net) > 1e-9) else None
             if total_activity is None:
                 total_activity = total_activity_ledger if (total_activity_ledger or 0) > 1e-9 else total_activity_stmt
+            # Fallback o19 : si total_activity est 0 ou faible alors qu'il y a des paiements postés (ex. journal non bank),
+            # utiliser la somme des paiements postés pour Total période / À rapprocher.
+            if (total_activity is None or abs(total_activity) < 1e-9) and completeness.get("count", 0) > 0:
+                if abs(completeness.get("sum_amount_signed") or 0) > 1e-9:
+                    total_activity = abs(completeness["sum_amount_signed"])
+            elif completeness.get("count", 0) > 0 and abs(completeness.get("sum_amount_signed") or 0) > abs(total_activity or 0) + 1.0:
+                # Total paiements postés > total relevé : privilégier les paiements (ex. o19)
+                total_activity = abs(completeness["sum_amount_signed"])
 
             # Logique Linky : En attente = Paiements - Trésorerie validée (montant rapproché).
             bank_balance = self._get_bank_balance(env, company)
@@ -102,7 +129,14 @@ class LinkyBankReconciliationController(http.Controller):
                 total_amount = total_activity
                 reconciled_amount = reconciled_base
                 unreconciled_amount = max(0, total_activity - reconciled_base)
-                unreconciled_entries = len(unreconciled) if unreconciled_amount > 0.01 else (max(unreconciled_entries, 1) if unreconciled_amount > 0.01 else 0)
+                _stmt_entries = len(unreconciled) if unreconciled_amount > 0.01 else (max(unreconciled_entries, 1) if unreconciled_amount > 0.01 else 0)
+                unreconciled_entries = max(unreconciled_entries, _stmt_entries)
+            else:
+                # Pas de total_activity (paiements_net, etc.) : utiliser reconciled_base pour éviter 0 rapproché quand le solde bancaire reflète déjà le rapprochement (ex. is_reconciled non à jour).
+                reconciled_amount = reconciled_base
+                unreconciled_amount = max(0.0, total_amount - reconciled_base)
+                if unreconciled_amount < 0.02 and (unreconciled_aml_count or 0) == 0:
+                    unreconciled_entries = 0
 
             # Pas de lignes du tout : fallback move_line
             if not lines:
@@ -141,13 +175,7 @@ class LinkyBankReconciliationController(http.Controller):
             # erp_balance = bank_balance (SPEC Trésorerie v4.1 §5.2) — périmètre §5.2.1
             erp_balance_val = round(bank_balance, 2) if bank_balance is not None else None
 
-            # SPEC Carte Paiements v1.1 — contrôle complétude (payment_date, account.payment uniquement)
-            list_ids = kwargs.get("list_ids") in ("1", 1, True)
-            completeness = self._get_payments_posted_completeness(
-                env, company,
-                kwargs.get("date_from"), kwargs.get("date_to"),
-                list_ids=list_ids,
-            )
+            # SPEC Carte Paiements v1.1 — contrôle complétude (completeness déjà calculé plus haut)
 
             resp = {
                 # Bank-reconciliation-health (Linky détail)
@@ -187,6 +215,7 @@ class LinkyBankReconciliationController(http.Controller):
                     "company_id": company.id,
                     "company_name": company.name,
                     "lignes_releve_count": len(lines),
+                    "unreconciled_move_lines_count": unreconciled_aml_count,
                     "paiements_net": round(paiements_net, 2) if paiements_net is not None else None,
                     "paiements_inbound_count": len(inbound),
                     "paiements_outbound_count": len(outbound),
@@ -271,11 +300,12 @@ class LinkyBankReconciliationController(http.Controller):
                 out["ids"] = []
             return out
 
-    def _get_payments_net(self, env, company):
+    def _get_payments_net(self, env, company, date_from=None, date_to=None):
         """
-        Paiements = Encaisseements - Décaissements (account.payment).
+        Paiements = Encaisseements - Décaissements (account.payment) sur la période.
         Inclut : paiements clients, remboursements fournisseurs (inbound),
                  paiements fournisseurs, avoirs clients (outbound).
+        Filtre optionnel date (payment date) pour aligner Total période / À rapprocher (ex. 4 387 - 996).
         """
         try:
             Payment = env["account.payment"].sudo()
@@ -284,6 +314,10 @@ class LinkyBankReconciliationController(http.Controller):
                 ("journal_id.company_id", "=", company.id),
                 ("journal_id.type", "=", "bank"),
             ]
+            if date_from:
+                base_domain.append(("date", ">=", date_from))
+            if date_to:
+                base_domain.append(("date", "<=", date_to))
             inbound = Payment.search(base_domain + [("payment_type", "=", "inbound")])
             outbound = Payment.search(base_domain + [("payment_type", "=", "outbound")])
             encaissements = sum(inbound.mapped("amount")) or 0.0
@@ -319,6 +353,35 @@ class LinkyBankReconciliationController(http.Controller):
             return total if total > 1e-9 else None
         except Exception as e:
             _logger.warning("_get_bank_total_activity failed: %s", e)
+            return None
+
+    def _get_unreconciled_move_lines_count(self, env, company, date_from=None, date_to=None):
+        """
+        Nombre d'écritures comptables (account.move.line) non rapprochées, journal bancaire.
+        Aligne le compteur avec ce que l'utilisateur voit dans l'écran de rapprochement o19.
+        """
+        try:
+            AML = env["account.move.line"].sudo()
+            base_domain = [
+                ("move_id.state", "=", "posted"),
+                ("move_id.journal_id.type", "=", "bank"),
+                ("move_id.journal_id.company_id", "=", company.id),
+                ("reconciled", "=", False),
+            ]
+            if date_from:
+                base_domain.append(("move_id.date", ">=", date_from))
+            if date_to:
+                base_domain.append(("move_id.date", "<=", date_to))
+            # Exclure lignes section/note
+            unreconciled = AML.search(
+                base_domain,
+                order="id",
+            ).filtered(
+                lambda l: getattr(l, "display_type", None) not in ("line_section", "line_note")
+            )
+            return len(unreconciled)
+        except Exception as e:
+            _logger.warning("_get_unreconciled_move_lines_count failed: %s", e)
             return None
 
     def _unreconciled_from_move_lines(self, env, company):

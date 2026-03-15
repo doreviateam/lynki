@@ -1,0 +1,1125 @@
+# SPECIFICATION UI - LINKY v2
+
+**Document**: `SPEC_UI_LINKY_v2_composant_par_composant.md`  
+**Version**: 1.2  
+**Date**: 13 mars 2026  
+**Produit**: Dorevia Linky  
+**Statut** : Specification UI/UX detaillee — version figee pour refonte visuelle  
+
+| Version | Date | Modifications |
+|---------|------|---------------|
+| 1.0 | 13 mars 2026 | Version initiale |
+| 1.1 | 13 mars 2026 | Corrections post-implémentation : EBE, rouge, tuile→card, N-1, DIVA, LinkyFooter, priorités |
+| 1.2 | 13 mars 2026 | Numérotation corrigée, terminologie harmonisée (FR), responsive, accessibilité, règles A/B/C normées, phrase directrice, règle Insight cockpit. Polissage : Trust layer→Couche de confiance, statut renforcé, règle cockpit normative, Z de caisse « En attente d'alimentation », implémentation uniformisée |
+
+---
+
+## 1. Objet du document
+
+Cette specification definit la refonte **UI Linky v2** composant par composant.
+
+L'objectif de Linky v2 n'est pas d'embellir un dashboard existant, mais d'installer un **veritable cockpit de gouvernance financiere** :
+- credible pour dirigeants, DAF, RAF, controle de gestion
+- coherent avec le positionnement **donnees financieres verifiables**
+- lisible malgre une densite d'information importante
+- premium, sobre, precis, non ostentatoire
+- plus proche d'un **poste de pilotage financier** que d'un ERP ou d'un dashboard marketing
+
+Cette spec sert de base de travail pour :
+- design system Linky
+- implementation front
+- priorisation build
+- alignement produit / UX / DA
+
+---
+
+## 2. Positionnement visuel vise
+
+### 2.1 Ce que Linky doit evoquer
+
+Linky doit evoquer :
+- un cockpit financier de controle
+- un poste de supervision fiable
+- un environnement de decision assistee
+- un outil de pilotage de donnees scellees
+
+### 2.2 Ce que Linky ne doit pas evoquer
+
+Linky ne doit pas evoquer :
+- un ERP classique
+- une console d'admin generique
+- un dashboard startup flashy
+- une interface gadget orientee animation
+
+### 2.3 Sensation recherchee
+
+Le ressenti global doit etre :
+- calme
+- maitrise
+- precision
+- confiance
+- densite organisee
+- puissance retenue
+
+### 2.4 References implicites
+
+Inspirations possibles :
+- Bloomberg Terminal pour la rigueur et la densite maitrisee
+- cockpit fintech premium
+- consoles de supervision
+- outils de trading modernes, mais sans surbrillance excessive
+
+---
+
+## 3. Diagnostic de l'etat actuel
+
+L'ecran actuel presente deja plusieurs points forts :
+- dark mode credible
+- grille KPI claire
+- branding coherent
+- badge "preuves scellees" pertinent
+- bloc insight present
+- debut de zone d'action avec "Decisions actives"
+
+Mais plusieurs limites freinent encore l'effet "cockpit premium" :
+
+1. **Hierarchie insuffisante** *(toujours valide)*  
+   Les cartes KPI ont un poids visuel trop proche.  
+   La classification A/B/C existe dans la spec mais n'est pas encore traduite visuellement (tailles, bordures, poids typographique).
+
+2. **Langage visuel encore trop uniforme** *(toujours valide)*  
+   Beaucoup de blocs ressemblent a des "cards" UI modernes plutot qu'a des instruments.
+
+3. **Manque d'autorite du panneau d'analyse** *(toujours valide)*  
+   Le bloc insight (implémenté via `DivaFlashBlock`) ressemble encore a un encart texte ameliore.
+
+4. **Module de decision encore trop faible** *(toujours valide)*  
+   Le bloc "Decisions actives" (`DecisionsBlock`) ne porte pas encore assez sa promesse conceptuelle.
+
+5. **Couche de confiance sous-exploitee** *(partiellement adresse)*  
+   Le composant `LinkyFooter` expose déjà : Source Vault, Preuves scellées, UX P95, Sources Odoo/POS, Version.  
+   Il reste a renforcer la mise en scene visuelle de cette couche.
+
+6. **Modele de navigation tuile → card absent de la spec initiale** *(nouveau — adresse en implémentation)*  
+   La distinction entre tuiles cockpit (grille) et cartes detaillees (vue focalisee) a ete implementee.  
+   Voir §6.3bis pour la formalisation.
+
+---
+
+## 4. Principes directeurs de refonte
+
+### 4.1 Principe 1 - Hierarchie avant decoration
+
+La valeur d'un cockpit se lit d'abord par la hierarchie de ses informations.
+Le design doit rendre visible :
+- ce qui est central
+- ce qui explique
+- ce qui contextualise
+- ce qui manque
+
+### 4.2 Principe 2 - Modules, pas simples cartes
+
+Chaque composant majeur doit etre pense comme un **instrument de lecture** :
+- nom
+- valeur ou statut principal
+- contexte
+- fiabilite / source / fraicheur
+
+### 4.3 Principe 3 - La confiance fait partie de l'UI
+
+La notion de preuve ne doit pas rester un detail technique.  
+Elle doit etre visible dans l'interface via :
+- le badge preuves
+- les sources
+- la fraicheur
+- les niveaux de confiance
+- les statuts systeme
+
+### 4.4 Principe 4 - Densite maitrisee
+
+Linky peut etre dense, mais pas confus.  
+Il faut accepter une certaine densite visuelle tout en gardant :
+- alignements stricts
+- typographie claire
+- espacement coherent
+- zones bien delimitees
+
+### 4.5 Principe 5 - Premium sobre
+
+Le premium ne vient pas d'effets voyants.  
+Il vient de :
+- la precision
+- le rythme
+- la retenue
+- la lisibilite
+- la coherence de systeme
+
+---
+
+## 5. Architecture cible de l'ecran
+
+L'ecran Linky v2 doit se lire verticalement en 5 strates :
+
+1. **Barre de contexte**
+   - marque
+   - slogan
+   - tenant
+   - navigation / menu
+
+2. **Barre de pilotage**
+   - perimetre
+   - horizon temporel
+   - annee / exercice
+   - statut des preuves / synchronisation
+
+3. **Grille d'instruments KPI**
+   - lecture immediate
+   - hierarchisation par importance
+
+4. **Zone d'analyse et d'action**
+   - insight principal
+   - details de lecture
+   - refresh
+   - decisions actives
+
+5. **Barre de confiance systeme**
+   - sources
+   - preuves
+   - ux p95
+   - connecteurs actifs
+   - version
+
+---
+
+## 6. Specification composant par composant
+
+# 6.1 Barre de contexte (header top)
+
+## Role
+
+Installer la marque, le statut produit et le ton general de l'application.
+
+## Problemes actuels
+
+- header propre mais un peu sage
+- manque de densite statutaire
+- separation encore faible entre contexte produit et pilotage courant
+
+## Intentions visuelles
+
+Le header doit suggerer :
+- stabilite
+- sobriete premium
+- produit serieux
+- environnement de supervision
+
+## Contenu attendu
+
+- logo / nom `DOREVIA Linky`
+- baseline courte
+- badge tenant courant
+- bouton menu / navigation secondaire
+
+## Regles UI
+
+- hauteur compacte et stable
+- baseline discrète, plus fine que le nom produit
+- tenant en badge secondaire, non dominant
+- bouton menu dessine comme un controle de console, pas comme un bouton mobile grand public
+
+## Recommandations de style
+
+- fond un peu plus distinct que le corps principal
+- bordure inferieure fine
+- contraste contenu / fond eleve mais pas agressif
+- espacement horizontal strict et constant
+
+## Comportement
+
+- sticky possible si l'ecran est long
+- ne doit jamais varier de hauteur entre les vues principales
+
+---
+
+# 6.2 Barre de pilotage (filtres de contexte)
+
+## Role
+
+Permettre a l'utilisateur de definir le **cadre de lecture** des donnees.
+
+## Problemes actuels
+
+- les filtres existent mais restent visuellement proches d'inputs generiques
+- la distinction entre perimetre, periode et statut systeme reste insuffisante
+
+## Intentions visuelles
+
+Faire sentir que l'utilisateur regle un **poste de lecture**, pas un simple formulaire.
+
+## Sous-composants
+
+### a. Selecteur d'organisation / entite
+Exemple : `SARL La Platine`
+
+### b. Indicateur de scope secondaire
+Exemple : `Tout`
+
+### c. Selecteur de periode de lecture
+Exemple : `Exercice a date`
+
+### d. Selecteur d'annee
+Exemple : `2026`
+
+### e. Badge de preuves / synchro
+Exemple : `496 preuves scellees`
+
+## Regles UI
+
+- tous les controles doivent avoir la meme hauteur systeme
+- le selecteur organisation est prioritaire visuellement sur le scope secondaire
+- le badge de preuves est traite comme un element de confiance, pas comme un filtre
+- les controles doivent etre compactes et alignes au pixel pres
+
+## Recommandations de style
+
+- contour fin et net
+- fond legerement plus clair que le body
+- etat hover discret
+- etat focus propre, visible, premium
+
+## Donnees complementaires a terme
+
+Le badge de preuves peut evoluer vers un mini composant enrichi :
+- nombre de preuves
+- etat sync
+- horodatage de derniere actualisation
+- niveau de confiance
+
+---
+
+# 6.3 Grille KPI - vision d'ensemble
+
+## Role
+
+Donner en quelques secondes une lecture de la situation financiere.
+
+## Probleme principal
+
+La grille actuelle est lisible, mais trop uniforme.  
+Toutes les cartes ont presque la meme autorite visuelle.
+
+## Objectif de refonte
+
+Transformer la grille en **grille d'instruments**, avec niveaux de lecture explicites.
+
+## Regle structurante
+
+Les KPI doivent etre repartis en 3 classes visuelles.
+
+### Classe A - KPI de pilotage immediat
+Cartes dominantes.
+
+Exemples :
+- Tresorerie
+- Business
+- Flux net
+
+### Classe B - KPI d'explication
+Cartes intermediaires.
+
+Exemples :
+- Paiements
+- BFR
+- Encours
+- Taxes
+- **EBE** *(amendement v1.1 : déplacé de Classe C vers Classe B)*
+
+> **Note v1.1** : EBE (Excédent Brut d'Exploitation) est un indicateur de performance opérationnelle de premier rang pour un dirigeant.  
+> Sa classification initiale en Classe C était erronée.  
+> EBE passe en Classe B. Il affiche "—" tant que les données de paie ne sont pas transmises au Vault, mais son emplacement et son autorité visuelle doivent rester de niveau B.
+
+### Classe C - KPI de contexte ou disponibilite
+Cartes plus discretes.
+
+Exemples :
+- Notes de credit
+- Remboursements
+- Z de caisse
+- Points de vente
+
+## Mapping complet des 12 instruments (état v1.1)
+
+| Instrument | Classe | Valeur affichée | Couleur valeur |
+|---|---|---|---|
+| TRÉSORERIE | A | Solde validé Vault | Vert (ok) / Orange (watch) |
+| BUSINESS | A | CA ventes HT | Vert |
+| FLUX NET | A | Encaissements − décaissements | Vert / Orange |
+| PAIEMENTS | B | Montant à rapprocher | Orange (watch) |
+| BFR | B | AR open − AP open | Bleu neutre |
+| ENCOURS | B | AR open | Bleu neutre |
+| TAXES | B | TVA collectée − déductible | Bleu |
+| EBE | B | Marge − charges personnel | Vert (si dispo) / Gris |
+| NOTES DE CRÉDIT | C | Flux net ajustements | Bleu |
+| REMBOURSEMENTS | C | Flux net remboursements | Bleu |
+| POINTS DE VENTE | C | CA POS scellé | Neutre |
+| Z DE CAISSE | C | Non disponible | Gris |
+
+## Regles de composition — normes actionnables *(v1.2)*
+
+### Classe A — regles absolues
+- Valeur principale la plus grande de toutes les tuiles
+- Contour le plus visible (bordure, accent)
+- Priorite de placement : ligne 1 de la grille
+- Meta-donnee (source, fraicheur) visible des le cockpit si disponible
+
+### Classe B — regles absolues
+- Taille intermediaire (entre A et C)
+- Statut visible mais moins dominant que la valeur
+- Lecture d'explication : comprendre le « pourquoi » du chiffre
+- Placement lignes 2–3
+
+### Classe C — regles absolues
+- Style plus silencieux, moins d'autorite visuelle
+- Priorite faible : contexte ou disponibilite
+- Etat / disponibilite avant intensite de la valeur
+- Placement ligne 3 ou 4
+
+### Regles transversales
+- Classe A : plus grande presence, valeur plus forte, bordure plus marquee
+- Classe B : presence moyenne, lecture fonctionnelle
+- Classe C : plus sobre, plus silencieuse visuellement
+
+## Structure d'une carte KPI cible
+
+Chaque carte doit idealement contenir 4 niveaux :
+
+1. **Label / type d'instrument**
+2. **Valeur principale**
+3. **Variation ou statut**
+4. **Meta-info** : source, fraicheur, confiance
+
+Si les donnees ne sont pas encore disponibles, la carte doit au minimum etre preparee pour accueillir cette structure.
+
+---
+
+---
+
+# 6.3bis Modele de navigation cockpit *(section ajoutée v1.1)*
+
+## Principe
+
+Le cockpit Linky suit un modèle à trois niveaux :
+
+```
+Cockpit (grille de tuiles)
+      ↓ clic sur une tuile
+Carte detaillee
+      ↓ liens internes
+Vue analytique (graphiques, séries, détail partenaire)
+```
+
+## Règles de navigation
+
+1. **En vue cockpit** : seule la grille de tuiles est affichée. Aucune carte détaillée n'est visible.
+2. **Clic sur une tuile** → vue focalisée : uniquement la carte détaillée correspondante.
+3. **Retour au cockpit** : bouton "← Retour au cockpit" en haut de la vue focalisée.
+
+## Correspondance tuile → carte détaillée
+
+| Tuile | Carte détaillée |
+|---|---|
+| TRÉSORERIE | `TresoreriePositionCard` (solde, couverture, fiabilité) |
+| PAIEMENTS | `TreasuryCardWithPolling` (rapprochement bancaire, gouvernance) |
+| BUSINESS | `BusinessCard` (CA, achats, marge, Pareto clients) |
+| FLUX NET | `FluxCashCard` (encaissements, décaissements, méthode) |
+| BFR | `WorkingCapitalCard` (AR open, AP open, BFR calculé) |
+| ENCOURS | `EncoursCard` (créances ouvertes, retards, Pareto) |
+| TAXES | `TaxesCard` (TVA collectée/déductible) |
+| EBE | `EbeCard` (proxy ou complet selon disponibilité paie) |
+| NOTES DE CRÉDIT | `CreditNotesCard` |
+| REMBOURSEMENTS | `RefundsCard` |
+| POINTS DE VENTE | `PosShopsView` |
+| Z DE CAISSE | `PosComingSoonView` |
+
+## Règle clé
+
+> Une tuile n'ouvre qu'**une seule** carte détaillée.  
+> Une carte détaillée n'est **jamais** affichée en vue cockpit.
+
+---
+
+# 6.4 Carte KPI - structure detaillee
+
+## Role
+
+Presenter un indicateur financier comme un instrument exploitable.
+
+## Probleme actuel
+
+La carte actuelle repose surtout sur :
+- icone
+- label
+- valeur
+
+Cette structure est elegante mais encore trop minimale pour un cockpit.
+
+## Structure cible
+
+### Zone 1 - Badge icone
+- taille stable
+- fond dedie
+- contour semantique
+- ne doit pas voler l'attention a la valeur
+
+### Zone 2 - Libelle KPI
+- en capitales ou petites capitales si le systeme le permet
+- faible poids, forte lisibilite
+- tracking legerement ouvert possible
+
+### Zone 3 - Valeur principale
+- plus forte hierarchie typographique de la carte
+- alignement tres propre
+- euro plus discret que la valeur
+- espaces de milliers impeccables
+
+### Zone 4 - Sous-information
+Exemples possibles :
+- `+3,2 % vs N-1` *(voir contrainte ci-dessous)*
+- `mis a jour il y a 2 min`
+- `Source Vault + Banque`
+- `Fiabilite elevee`
+
+> **Contrainte v1.1 — Comparaison N-1** :  
+> La comparaison avec l'exercice précédent (`vs N-1`) n'est pas disponible dans l'implémentation actuelle.  
+> Le Vault stocke les événements financiers en flux continu sans segmentation explicite par exercice.  
+> La comparaison N-1 nécessitera une évolution du Vault (requête bornée par exercice fiscal) ou un calcul Linky-side avec deux appels datés.  
+> À prévoir en P2 / évolution future.
+
+### Zone 5 - Etat de donnees
+Selon le cas :
+- disponible
+- incomplet
+- non alimente
+- non applicable
+
+## Regles de mise en forme
+
+- eviter l'impression de vide excessif au centre
+- eviter l'effet "bloc trop mou"
+- rythmer verticalement les informations
+- separer clairement valeur et meta-donnees
+
+## Rayon / contour / profondeur
+
+- rayon legerement reduit par rapport a une card SaaS generique
+- contour plus net
+- ombre tres subtile, si utile
+- eventuelle lumiere interne tres discrete
+
+---
+
+# 6.5 Systeme semantique de couleur
+
+## Role
+
+Faire porter aux couleurs une signification metier stable.
+
+## Probleme actuel
+
+La couleur participe a la beaute generale, mais elle n'est pas encore totalement systemique.
+
+## Regles proposees
+
+### Bleu
+Usage :
+- neutre
+- volume
+- flux standards
+- information principale sans polarite positive / negative marquee
+
+### Vert
+Usage :
+- creation nette de valeur
+- situation favorable
+- progression positive
+- signal de confiance / statut bon
+
+### Orange
+Usage :
+- attention
+- friction cash
+- point de vigilance
+- poste sensible
+
+### Gris / bleu desature
+Usage :
+- indisponible
+- non alimente
+- en attente
+- faible priorite
+
+### Rouge *(amendement v1.1 — absent délibérément)*
+
+> **Décision d'implémentation** : le rouge est **intentionnellement absent** de la grille de tuiles KPI.  
+> Motif : dans un cockpit financier, une valeur élevée (ex : Encours 50 000 €) n'est pas une erreur.  
+> Le rouge crée une anxiété non justifiée pour des données qui sont informatives.  
+> **Le rouge est réservé à** : erreurs système, sources indisponibles, états bloquants.  
+> Pour les alertes métier (rapprochement insuffisant, retards), utiliser **orange** via le statut de contour.
+
+## Contraintes
+
+- ne jamais utiliser la couleur seule pour porter tout le sens
+- toujours coupler avec label, wording ou statut
+- conserver une moderation globale : Linky doit rester sombre, stable, non criard
+- **ne pas utiliser le rouge sur les valeurs KPI** : réserver aux erreurs système uniquement
+
+---
+
+# 6.6 Typographie des KPI
+
+## Role
+
+Donner de l'autorite a la lecture numerique.
+
+## Objectif
+
+Faire ressentir que la valeur est l'element dominant de la carte.
+
+## Regles
+
+- valeur principale plus grande que dans la version actuelle
+- symbole euro plus discret
+- poids fort mais pas massif
+- interlettrage maitrise
+- alignement constant d'une carte a l'autre
+
+## Recommandations
+
+- les nombres doivent etre les objets les plus lisibles de l'ecran
+- eviter les ruptures d'alignement entre cartes voisines
+- stabiliser la hauteur des blocs de valeurs pour eviter les sauts visuels
+
+## Cas speciaux
+
+### Valeur nulle
+Exemple : `0,00 EUR`
+Doit rester lisible sans paraitre en erreur.
+
+### Valeur indisponible
+Exemple : `-`
+Doit etre traitee comme un etat explicite, pas comme un bug.
+
+### Valeur positive
+Peut etre prefixee par `+` si pertinent metier.
+
+### Valeur negative
+A traiter avec convention claire, stable et explicite.
+
+---
+
+# 6.7 Etats KPI
+
+## Etats a prevoir pour toutes les cartes
+
+1. **Charge / normal**
+2. **Chargement**
+3. **Partiel**
+4. **Indisponible**
+5. **Erreur / source indisponible**
+6. **Vide mais valide**
+
+## Regles
+
+- un KPI sans donnees ne doit jamais ressembler a un composant casse
+- les skeletons doivent reprendre la geometrie finale de la carte
+- les etats d'erreur doivent etre sobres mais explicites
+- les cartes "partielles" doivent expliquer pourquoi la lecture est incomplete
+
+---
+
+# 6.8 Panneau Insight principal
+
+## Role
+
+Transformer la donnee en lecture exploitable.  
+C'est le pont entre chiffres et interpretation.
+
+## Implémentation actuelle *(ajout v1.1)*
+
+Le composant `DivaFlashBlock` implémente le panneau insight.  
+Il s'appuie sur le service DIVA (LLM financier Dorevia) pour générer une synthèse textuelle à partir des métriques du cockpit.
+
+Structure actuelle de `DivaFlashBlock` :
+- Zone 1 : absent (titre de module non affiché)
+- Zone 2 : message principal généré par DIVA (1-2 phrases)
+- Zone 3 : écart clé partiel (non systématique)
+- Zone 4 : données utilisées — bloc "why" accessible sur les cartes détaillées
+- Zone 5 : bouton "Rafraîchir" présent
+
+Delta avec la spec : les zones 1, 3 et 4 restent partielles.
+
+## Probleme actuel
+
+Le bloc existe deja, mais il ressemble encore a une carte informative.  
+Il n'a pas encore l'autorite d'un vrai **moteur d'analyse**.
+
+## Ambition
+
+Le panneau insight doit devenir un composant signature de Linky.
+
+## Structure cible
+
+### Zone 1 - Titre de module
+Exemple :
+- `Insight principal`
+- `Lecture du jour`
+- `Analyse prioritaire`
+
+### Zone 2 - Message principal
+Une phrase courte, forte, structurante.
+
+> En vue cockpit, le panneau Insight ne doit jamais depasser deux phrases : une phrase principale et une phrase d'ecart structurant.
+
+Exemple :
+`Le solde net de tresorerie apres impots ressort a 7 448,61 EUR.`
+
+### Zone 3 - Detail ou ecart cle
+Exemple :
+`L'activite commerciale totale atteint 94 663,78 EUR, soit un ecart de 86 610,69 EUR.`
+
+### Zone 4 - Donnees utilisees
+Bloc pliable / depliable contenant :
+- perimetre
+- instruments utilises
+- niveau de confiance
+- source(s)
+- limites de lecture
+
+### Zone 5 - Actions locales
+Exemples :
+- Rafraichir
+- Voir le detail
+- Ouvrir la preuve
+- Comprendre le calcul
+
+## Regles visuelles
+
+- traitement plus fort que la carte actuelle
+- hierarchie typographique nette
+- distinction claire entre insight principal et metadata
+- surface plus "intelligente" que simple encart
+
+## Ton editorial
+
+- analytique
+- sobre
+- assertif mais prudent
+- jamais sensationnaliste
+
+---
+
+# 6.9 Bloc "Donnees utilisees"
+
+## Role
+
+Rendre la lecture explicable et verifiable.
+
+## Importance
+
+Ce bloc est crucial pour la promesse Dorevia :  
+une interpretation doit pouvoir etre rattachee a des donnees, a un perimetre et a un niveau de confiance.
+
+## Contenu cible
+
+- liste des instruments mobilises
+- sources connectees
+- niveau de confiance
+- eventuels angles morts
+- date / heure de fraicheur
+
+## Regles UI
+
+- ton plus discret que l'insight principal
+- structure en lignes ou puces courtes
+- facilite de scan immediate
+
+## Etat minimal acceptable
+
+Meme si la logique de details n'est pas completee au debut, il faut deja prevoir l'emplacement et le style du composant.
+
+---
+
+# 6.10 Bouton "Rafraichir"
+
+## Role
+
+Permettre a l'utilisateur d'actualiser la lecture.
+
+## Probleme actuel
+
+Le bouton est utile, mais trop isole semantiquement.
+On ne comprend pas encore clairement ce qu'il rafraichit ni dans quel cadre systeme.
+
+## Recommandation
+
+Le lier a une ligne d'etat explicite.
+
+Exemple :
+`Derniere synchro 14:32:08 - 496 preuves - Odoo + POS`
+
+Puis bouton `Rafraichir`
+
+## Regles UI
+
+- taille moderee
+- forme compatible avec les autres controles du cockpit
+- etat loading visible lors du refresh
+- idealement associe a un timestamp ou statut de synchro
+
+---
+
+# 6.11 Module "Decisions actives"
+
+## Role
+
+Faire le lien entre lecture financiere et gouvernance.  
+C'est l'un des differentiants potentiels majeurs de Linky.
+
+## Probleme actuel
+
+Le composant ressemble encore a un formulaire integre.  
+Il ne porte pas encore assez sa promesse conceptuelle.
+
+## Ambition
+
+Le module doit ressembler a un **registre strategique vivant**.
+
+## Objectifs UX
+
+- formaliser une decision
+- l'ancrer dans une lecture de situation
+- permettre un suivi dans le temps
+- relier intention et impact
+
+## Structure cible
+
+### Zone 1 - Titre et compteur
+Exemple :
+`Decisions actives` + compteur
+
+### Zone 2 - Statut du module
+Exemple :
+- `Aucune decision suivie`
+- `2 decisions en suivi`
+- `1 decision en vigilance`
+
+### Zone 3 - Saisie d'une nouvelle decision
+Champ texte clair avec placeholder qualitatif.
+
+### Zone 4 - Aide contextuelle
+Texte court de promesse fonctionnelle.
+
+Exemple :
+`Chaque decision suivie relie une intention de gestion a des signaux mesurables.`
+
+### Zone 5 - Liste des decisions existantes
+A prevoir pour les versions suivantes :
+- statut
+- date
+- porteur
+- signaux lies
+- trajectoire
+
+## Regles visuelles
+
+- bloc plus structure que formulaire brut
+- plus de presence que maintenant
+- compteur plus visible
+- promesse fonctionnelle explicite meme a vide
+
+## Etats a prevoir
+
+- vide
+- saisie en cours
+- enregistrement
+- liste peuplee
+- erreur validation
+
+---
+
+# 6.12 Barre de confiance / footer systeme
+
+## Role
+
+Rendre visible la couche de confiance du produit.
+
+## Implémentation actuelle *(ajout v1.1)*
+
+Le composant `LinkyFooter.tsx` implémente la trust bar.  
+Contenu déjà présent en production (laplatine2026) :
+- `Source : Vault` ✓
+- `Preuves scellées : 496 ✓` ✓
+- `UX P95 : 958 ms` ✓ (valeur en temps réel depuis les UX metrics)
+- `Sources : Odoo ✓ Pos ✓` ✓
+- `Powered by Dorevia Vault — données financières vérifiables · 1.0.0` ✓
+
+Delta avec la spec : la **mise en scène visuelle** reste insuffisante (bas de page sobre, pas encore une trust bar à part entière).
+
+## Probleme actuel
+
+Le footer contient des informations tres fortes mais reste traite comme un simple bas de page technique.
+
+## Ambition
+
+En faire une **trust bar** :
+- source(s)
+- preuves
+- performance
+- connecteurs actifs
+- version
+
+## Contenu attendu
+
+- `Source : Vault`
+- `Preuves scellees : 496`
+- `UX P95 : ~960 ms` *(valeur observée sur laplatine2026)*
+- `Sources : Odoo / POS`
+- version produit
+
+## Regles visuelles
+
+- plus de lisibilite
+- meilleure separation des items
+- ton systeme / fiabilite / observabilite
+- discret mais assume
+
+## Valeur produit
+
+Cette barre rappelle silencieusement :
+- que les chiffres ne viennent pas de nulle part
+- qu'ils sont traces
+- qu'ils sont relies a des systemes reels
+
+---
+
+# 6.13 Iconographie
+
+## Role
+
+Fournir des reperes rapides sans surcharger l'ecran.
+
+## Regles
+
+- style lineaire coherent
+- poids visuel constant
+- taille stable dans les badges d'icone
+- pas d'illustration decorative gratuite
+
+## Recommandations
+
+- les icones servent d'amorce, pas de centre d'attention
+- le vrai centre de gravite reste la valeur et le statut
+
+---
+
+# 6.14 Espacement et grille
+
+## Role
+
+Faire tenir la densite sans confusion.
+
+## Regles
+
+- marge horizontale stable sur tout l'ecran
+- ecarts systemiques entre blocs
+- alignement strict des cartes sur une grille commune
+- respiration visible entre grille KPI, insight et gouvernance
+
+## Problèmes a eviter
+
+- gaps irrationnels
+- blocs qui semblent flotter sans ancrage
+- footer colle au contenu ou trop detache
+- sensation de vide accidentel
+
+---
+
+# 6.15 Etats globaux de page
+
+## Etats obligatoires a specifier
+
+1. page chargee normale
+2. page en chargement initial
+3. page partiellement chargee
+4. page en rafraichissement
+5. page sans donnees sur la periode
+6. page avec erreur source
+
+## Regles UX
+
+- l'utilisateur doit toujours comprendre si l'absence de valeur est normale ou anormale
+- les erreurs doivent etre contextualisees
+- le chargement ne doit pas casser la structure generale de lecture
+
+---
+
+# 6.16 Regles responsive *(v1.2)*
+
+## Priorite des cibles
+
+Linky vise un cockpit dense. Les breakpoints doivent assumer explicitement cette priorite.
+
+| Cible | Priorite | Comportement |
+|---|---|---|
+| **Desktop large** (> 1280 px) | P0 | Vue de reference. Grille 4 colonnes, densite maximale, toutes les strates visibles. |
+| **Laptop** (1024–1280 px) | P0 | Grille 3–4 colonnes, legere adaptation des espacements. |
+| **Tablette** (768–1024 px) | P1 | Grille 2 colonnes, cartes adaptees, scroll vertical acceptable. |
+| **Mobile** (< 768 px) | P2 | Support limite. Le cockpit complet n'est pas la vue de reference. Navigation simplifiee, tuiles empilees. |
+
+## Regles
+
+- Le desktop est prioritaire : tout design doit etre valide d'abord en large.
+- La tablette est une adaptation, pas une refonte.
+- Le mobile n'est pas la vue de reference pour le cockpit complet.
+- Les cartes detaillees peuvent etre plus adaptatives que la grille (scroll, empilement).
+
+---
+
+# 6.17 Accessibilite *(v1.2)*
+
+## Exigences minimales
+
+- **Contraste** : respecter WCAG 2.1 niveau AA (4,5:1 pour le texte, 3:1 pour les elements graphiques).
+- **Etats focus** : tous les elements interactifs (tuiles, boutons, liens) doivent avoir un focus visible et distinct.
+- **Sens par la couleur** : ne jamais porter le sens par la couleur seule. Toujours coupler avec label, wording ou statut (deja en §6.5).
+- **Libelles lecteurs d'ecran** : `aria-label` ou texte alternatif pour les tuiles, icones, boutons d'action.
+- **Skeletons** : les etats de chargement ne doivent pas etre trompeurs (geometrie finale, pas de faux contenu).
+
+## Ton
+
+Pas un chapitre exhaustif, mais une section courte qui renforce le serieux du document et donne des garde-fous au front.
+
+---
+
+## 7. Hierarchie de priorite d'implémentation
+
+### Priorite P0 - impact maximal
+
+1. **Hierarchiser les KPI en classes A / B / C** *(partiellement adresse v1.1)*  
+   — Labels corrects, 12 tuiles en place, classification A/B/C documentée  
+   — Restant : différenciation visuelle réelle (tailles, bordures, typographie) entre classes A, B, C
+
+2. **Modele de navigation tuile → card** *(adresse en v1.1)*  
+   — Chaque tuile ouvre exclusivement sa carte détaillée  
+   — Voir §6.3bis
+
+3. **Refondre le panneau Insight en vrai module d'analyse** *(en cours — DIVA existant)*
+
+4. **Rehausser le module Decisions actives**
+
+### Priorite P1 - consolidation du langage Linky
+
+5. **Mettre en scene la trust bar** *(contenu en place, mise en scène à renforcer)*
+6. **Durcir la structure des cartes KPI** (zones 1 à 5 de §6.4)
+7. **Clarifier les etats de donnees** (§6.7)
+
+### Priorite P2 - raffinement premium
+
+8. **Affiner typographie des montants**
+9. **Uniformiser les contours / rayons / profondeurs**
+10. **Renforcer les meta-donnees de fraicheur / source / confiance**
+11. **Comparaison N-1** *(voir contrainte §6.4 Zone 4)*
+
+---
+
+## 8. Definition of Done UI Linky v2
+
+La refonte pourra etre consideree comme visuellement satisfaisante si :
+
+1. l'oeil identifie en moins de 3 secondes les KPI dominants
+2. la page ne ressemble plus a un simple mur de cartes
+3. le panneau insight a une vraie autorite visuelle
+4. le module decisions actives exprime une promesse produit claire
+5. la couche de confiance est visible sans surcharger l'ecran
+6. l'ensemble evoque un cockpit financier premium, sobre et fiable
+
+---
+
+## 9. Phrase directrice de design
+
+> Linky ne doit pas se contenter d'afficher des chiffres.  
+> Linky doit mettre l'utilisateur en position de piloter une situation financiere verifiable.
+
+---
+
+---
+
+## 10. Etat d'implémentation au 13 mars 2026
+
+Tenant de référence : **laplatine2026** — `ui.lab.laplatine2026.doreviateam.com`
+
+### Strate 1 — Barre de contexte
+| Élément | Statut |
+|---|---|
+| Logo DOREVIA Linky | ✓ |
+| Baseline | ✓ |
+| Badge tenant | ✓ |
+| Bouton menu | ✓ |
+
+### Strate 2 — Barre de pilotage
+| Élément | Statut |
+|---|---|
+| Sélecteur entité | ✓ |
+| Sélecteur période | ✓ |
+| Sélecteur année | ✓ |
+| Badge preuves scellées (496) | ✓ |
+
+### Strate 3 — Grille d'instruments (12 tuiles)
+| Tuile | Valeur (13/03/2026) | Classe | Statut |
+|---|---|---|---|
+| TRÉSORERIE | 118 179,42 € | A | ✓ |
+| PAIEMENTS | 43 228,60 € | B | ✓ |
+| BUSINESS | + 94 663,78 € | A | ✓ |
+| FLUX NET | + 8 053,09 € | A | ✓ |
+| BFR | 50 200,89 € | B | ✓ |
+| TAXES | + 604,48 € | B | ✓ |
+| ENCOURS | 50 200,89 € | B | ✓ |
+| POINTS DE VENTE | 0,00 € | C | ✓ |
+| NOTES DE CRÉDIT | + 961,70 € | C | ✓ |
+| REMBOURSEMENTS | + 0,00 € | C | ✓ |
+| Z DE CAISSE | — | C | En attente d'alimentation |
+| EBE | — | B | En attente données paie |
+
+> Hiérarchie visuelle A/B/C : labels corrects, différenciation visuelle à implémenter.
+
+### Strate 4 — Zone d'analyse et d'action
+| Composant | Statut |
+|---|---|
+| DivaFlashBlock (Insight DIVA) | ✓ partiel |
+| DecisionsBlock | ✓ partiel |
+| Bouton Rafraîchir | ✓ |
+
+### Strate 5 — Barre de confiance
+| Élément | Statut |
+|---|---|
+| Source Vault | ✓ |
+| Preuves scellées : 496 | ✓ |
+| UX P95 : ~960 ms | ✓ |
+| Sources Odoo / POS | ✓ |
+| Version 1.0.0 | ✓ |
+| Mise en scène visuelle premium | À faire (P1) |
+
+---
+
+## 11. Suite recommandee
+
+Apres cette specification UI v2, la suite logique est une specification encore plus implementation-ready, par composant, avec :
+- tokens visuels
+- variantes
+- props d'etat
+- regles Tailwind / design system
+- grille responsive
+- exemples de structure React
+
+Nom conseille :
+`SPEC_UI_LINKY_v3_BUILD_READY.md`

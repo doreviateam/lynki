@@ -79,6 +79,7 @@ export function ReportHeader({
   });
 
   // Synchroniser period prop → state local (si period vient d'une source externe)
+  // getKeyAndYearFromPeriod reconnaît la période par défaut comme "ytd" pour éviter d'afficher "Janvier"
   useEffect(() => {
     const { key, year } = getKeyAndYearFromPeriod(period.from, period.to);
     setPeriodKey((prev) => (prev !== key ? key : prev));
@@ -101,6 +102,7 @@ export function ReportHeader({
       if (!set.has(periodYear)) set.add(periodYear);
       return Array.from(set).sort((a, b) => b - a);
     }
+    // Fallback (tenant sans données dans years-with-data, ex. laplatine2026) : année courante + passées
     return getAvailableYears();
   }, [availableYears, periodYear]);
 
@@ -114,6 +116,7 @@ export function ReportHeader({
       const filtered = months.filter((opt) => monthSet.has(parseInt(opt.value, 10)));
       return [allOpt, ytd, ...filtered];
     }
+    // Pas de données par mois (ex. tenant laplatine2026, API vide) : afficher toutes les options pour permettre "Exercice à date"
     return PERIOD_OPTIONS;
   }, [monthsWithDataByYear, periodYear]);
 
@@ -139,7 +142,7 @@ export function ReportHeader({
   const moduleActif = VIEW_MODE_LABELS[viewMode];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-sm shadow-sm dark:border-b dark:border-white/[0.04] dark:bg-[#0F172A]/95 max-h-[110px]">
+    <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg-secondary)]/95 backdrop-blur-sm shadow-sm max-h-[110px]">
       <div className="mx-auto max-w-4xl px-4 py-3">
         {/* Ligne 1 — Logo (gauche) | Tagline (centre) | Badge + Menu (droite) */}
         <div className="relative flex items-center justify-between gap-3">
@@ -149,11 +152,11 @@ export function ReportHeader({
             aria-label="Retour à l'accueil"
           >
             <h1 className="flex items-baseline gap-1.5 text-base sm:gap-2 sm:text-lg">
-              <span className="text-[0.9em] font-medium uppercase tracking-[0.18em] text-[#64748b] dark:text-[#94A3B8]">
+              <span className="text-[0.9em] font-medium uppercase tracking-[0.18em] text-[var(--text-secondary)]">
                 DOREVIA
               </span>
-              <span className="text-base font-semibold tracking-[-0.01em] text-[#0f172a] dark:text-[#FFFFFF] sm:text-lg">
-                Link<span className="dark:text-[#F1F5F9]">y</span>
+              <span className="text-base font-semibold tracking-[-0.01em] text-[var(--text)] sm:text-lg">
+                Linky
               </span>
             </h1>
           </a>
@@ -201,7 +204,7 @@ export function ReportHeader({
                   onClick={() => setMenuOpen(false)}
                 />
                 <nav
-                  className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--card)] py-2 shadow-lg"
+                  className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg"
                   role="menu"
                 >
                     <div className="border-b border-[var(--border)] px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
@@ -327,7 +330,7 @@ export function ReportHeader({
                     onClick={() => setMenuOpen(false)}
                   />
                   <nav
-                    className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--card)] py-2 shadow-lg"
+                    className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg"
                     role="menu"
                   >
                     <div className="border-b border-[var(--border)] px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
@@ -435,7 +438,7 @@ export function ReportHeader({
               disabled={companiesLoading}
               value={selectedCompanyId ?? ""}
               onChange={(e) => onCompanyChange(e.target.value || null)}
-              className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
               aria-label="Société"
             >
               <option value="">Toutes les sociétés</option>
@@ -457,7 +460,7 @@ export function ReportHeader({
               id="period-key"
               value={periodKey}
               onChange={(e) => setPeriodKey(e.target.value)}
-              className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
             >
               {periodOptionsToShow.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -469,7 +472,7 @@ export function ReportHeader({
               aria-label="Année"
               value={periodYear}
               onChange={(e) => setPeriodYear(Number(e.target.value))}
-              className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
             >
               {yearsToShow.map((y) => (
                 <option key={y} value={y}>
@@ -499,7 +502,7 @@ export function ReportHeader({
             disabled={companiesLoading}
             value={selectedCompanyId ?? ""}
             onChange={(e) => onCompanyChange(e.target.value || null)}
-            className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
             aria-label="Société"
           >
             <option value="">Toutes les sociétés</option>
@@ -516,7 +519,7 @@ export function ReportHeader({
             id="period-key-mobile"
             value={periodKey}
             onChange={(e) => setPeriodKey(e.target.value)}
-            className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
           >
             {periodOptionsToShow.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -528,7 +531,7 @@ export function ReportHeader({
             aria-label="Année"
             value={periodYear}
             onChange={(e) => setPeriodYear(Number(e.target.value))}
-            className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
           >
             {yearsToShow.map((y) => (
               <option key={y} value={y}>

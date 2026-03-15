@@ -1,7 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import { formatAmount, formatNumber } from "@/app/lib/format";
 import { IconTreasury } from "@/components/CardIcons";
+import {
+  INSTRUMENT_CARD_BASE,
+  InstrumentCardHeader,
+  InstrumentCardNav,
+  InstrumentCardStatusBadge,
+  InstrumentCardFooter,
+} from "@/components/InstrumentCardChrome";
+import type { CardId } from "@/app/types/linky-tiles";
+import { InstrumentCardEvolutionBlock } from "@/components/InstrumentCardEvolutionBlock";
+import { EVOLUTION_EMPTY_MESSAGE } from "@/app/lib/evolution-block-constants";
+import { DualSeriesChart } from "@/components/DualSeriesChart";
+import type { SeriesPoint } from "@/app/types/aggregations";
+import type { ChartType } from "@/app/lib/chart-type";
 
 export interface TresoreriePositionData {
   position?: {
@@ -25,11 +39,16 @@ interface TresoreriePositionCardProps {
   data: TresoreriePositionData | null;
   loading: boolean;
   onRefresh?: () => void;
+  /** Slot rendu après le footer standard (ex. DivaFlashBlock) */
   footer?: React.ReactNode;
+  /** Navigation card → card (lien Précédent / Suivant en haut) */
+  cardId?: CardId;
+  onNavigateToCard?: (cardId: CardId) => void;
+  /** Série Évolution (snapshots trésorerie) — si ≥ 2 points, bloc en available (spec §10.2) */
+  treasurySeries?: SeriesPoint[];
+  evolutionError?: boolean;
+  onEvolutionRetry?: () => void;
 }
-
-const CARD_BASE =
-  "rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow-card)] border-l-4";
 
 function formatSnapshotDate(iso: string | null | undefined): string {
   if (!iso || typeof iso !== "string") return "—";
@@ -64,7 +83,18 @@ function getUiState(
   return "normal";
 }
 
-export function TresoreriePositionCard({ data, loading, onRefresh, footer }: TresoreriePositionCardProps) {
+export function TresoreriePositionCard({
+  data,
+  loading,
+  onRefresh,
+  footer,
+  cardId,
+  onNavigateToCard,
+  treasurySeries = [],
+  evolutionError = false,
+  onEvolutionRetry,
+}: TresoreriePositionCardProps) {
+  const [chartType, setChartType] = useState<ChartType>("bar");
   const currency = data?.currency ?? "EUR";
   const pos = data?.position;
   const erpBalance = pos?.erp_balance;
@@ -84,117 +114,143 @@ export function TresoreriePositionCard({ data, loading, onRefresh, footer }: Tre
       ? formatNumber(couvertureMois, { minFraction: 0, maxFraction: 2 })
       : "—";
 
-  const borderClass =
-    uiState === "no_data"
-      ? "border-l-[var(--muted)]"
-      : uiState === "tension"
-        ? "border-l-[var(--warning)]"
-        : uiState === "vigilance"
-          ? "border-l-[var(--warning)]"
-          : "border-l-[var(--accent)]";
+  const hasVigilance = uiState === "vigilance" || uiState === "tension";
+  const statusLabel =
+    uiState === "tension" ? "Validation partielle" : uiState === "vigilance" ? "Écart à analyser" : null;
+  const footerStatusLabel = hasVigilance ? statusLabel : "Validée";
+  const badgeSeverity = uiState === "tension" ? "vigilance" : uiState === "vigilance" ? "vigilance" : undefined;
+
+  const couvertureDisplay =
+    couvertureMois != null && Number.isFinite(couvertureMois)
+      ? `${couvertureFormatted} mois`
+      : "Non disponible";
 
   if (loading && !data) {
     return (
-      <section className={`${CARD_BASE} border-l-[var(--muted)]`}>
-        <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-            <span className="text-lg font-bold uppercase tracking-wide text-[var(--accent)]">Trésorerie</span>
-          </div>
-        </div>
+      <section className={`${INSTRUMENT_CARD_BASE} border-[var(--warning)]`}>
+        {cardId && onNavigateToCard && (
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        )}
+        <InstrumentCardHeader
+          icon={<IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" />}
+          title="TRÉSORERIE"
+        />
         <div className="space-y-3">
           <div className="skeleton h-8 w-32" />
           <div className="skeleton h-4 w-40" />
           <div className="skeleton h-4 w-24" />
         </div>
-        <p className="mt-3 text-xs text-[var(--text-secondary)]">Dernière mise à jour : —</p>
+        <InstrumentCardFooter meta="Dernière mise à jour : —" />
       </section>
     );
   }
 
   return (
-    <section className={`${CARD_BASE} ${borderClass}`}>
-      <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] pb-3 mb-4">
-        <div className="flex items-center gap-2">
-          <IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-          <span className="text-lg font-bold uppercase tracking-wide text-[var(--accent)]">Trésorerie</span>
-        </div>
-        {onRefresh && (
-          <button
-            type="button"
-            onClick={onRefresh}
-            className="rounded px-2 py-1 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--accent-soft)]/30 hover:text-[var(--accent)] transition-colors"
-            aria-label="Rafraîchir la position"
-          >
-            Rafraîchir
-          </button>
-        )}
-      </div>
+    <section className={`${INSTRUMENT_CARD_BASE} border-[var(--warning)]`}>
+      {cardId && onNavigateToCard && (
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+      )}
+      <InstrumentCardHeader
+        icon={<IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" />}
+        title="TRÉSORERIE"
+        badges={
+          statusLabel ? (
+            <InstrumentCardStatusBadge
+              label={statusLabel}
+              severity={badgeSeverity}
+              title="Niveau de validation des flux"
+            />
+          ) : undefined
+        }
+        kpiLabel="Trésorerie validée Vault"
+        kpiValue={
+          <span className="text-[var(--warning)]">{noData ? "—" : formatAmount(validatedBalance, currency)}</span>
+        }
+      />
 
       {uiState === "no_data" && (
         <p className="mb-3 text-sm text-[var(--text-secondary)] italic">Aucune donnée disponible</p>
       )}
-      {uiState === "tension" && (
-        <div className="mb-3 rounded bg-[var(--warning)]/20 px-2 py-1 text-xs font-medium text-[var(--warning)]">
-          Validation partielle
-        </div>
-      )}
-      {uiState === "vigilance" && (
-        <div className="mb-3 rounded bg-[var(--warning)]/20 px-2 py-1 text-xs font-medium text-[var(--warning)]">
-          Écart à analyser
-        </div>
-      )}
 
+      {/* Body : lignes secondaires — libellés courts */}
       <div className="space-y-2 text-sm">
         {erpBalance != null && (
           <div
-            className="flex justify-between items-baseline"
+            className="flex justify-between items-baseline gap-4"
             title="Solde banque issu de la comptabilité (ERP)"
           >
-            <span className="text-[var(--text-secondary)]">💰 Solde comptable (ERP)</span>
-            <span className="text-xl font-bold tabular-nums text-[var(--text)]">
+            <span className="text-[var(--text-secondary)]">Solde comptable ERP</span>
+            <span className="font-semibold tabular-nums text-[var(--text)]">
               {formatAmount(erpBalance, currency)}
             </span>
           </div>
         )}
         {erpBalance == null && (
-          <p className="text-xs text-[var(--text-secondary)] italic">Solde comptable : non configuré</p>
+          <div className="flex justify-between items-baseline gap-4">
+            <span className="text-[var(--text-secondary)]">Solde comptable ERP</span>
+            <span className="text-xs italic text-[var(--text-secondary)]">Non configuré</span>
+          </div>
         )}
 
         <div
-          className="flex justify-between items-baseline"
-          title="Montant confirmé par rapprochement bancaire"
+          className="flex justify-between items-baseline gap-4"
+          title="Pourcentage des flux couverts par preuve bancaire"
         >
-          <span className="text-[var(--text-secondary)]">🔐 Position validée (Vault)</span>
+          <span className="text-[var(--text-secondary)]">Couverture probante</span>
           <span className="font-semibold tabular-nums text-[var(--text)]">
-            {noData ? "—" : formatAmount(validatedBalance, currency)}
+            {noData ? "—" : rateRounded != null ? `${rateRounded} %` : "—"}
           </span>
         </div>
 
         <div
-          className="flex justify-between items-baseline"
-          title={rateRounded == null ? "Taux indisponible" : "Pourcentage des flux couverts par preuve bancaire"}
-        >
-          <span className="text-[var(--text-secondary)]">📊 Couverture probante des flux</span>
-          <span className="font-semibold tabular-nums text-[var(--text)]">
-            {noData ? "—" : rateRounded != null ? `${rateRounded} %` : "— %"}
-          </span>
-        </div>
-
-        <div
-          className="flex justify-between items-baseline"
+          className="flex justify-between items-baseline gap-4"
           title="Position validée ÷ masse salariale mensuelle (mois de trésorerie)"
         >
-          <span className="text-[var(--text-secondary)]">💼 Couverture structurelle</span>
+          <span className="text-[var(--text-secondary)]">Couverture structurelle</span>
           <span className="font-semibold tabular-nums text-[var(--text)]">
-            {couvertureFormatted} mois
+            {couvertureDisplay}
           </span>
         </div>
       </div>
 
-      <p className="mt-3 text-xs text-[var(--text-secondary)]">
-        {dateStr !== "—" ? `Au ${dateStr}` : "Dernière mise à jour : —"}
-      </p>
+      <InstrumentCardEvolutionBlock
+        storageKey="linky-tresorerie-position-evolution"
+        state={treasurySeries.length >= 2 ? "available" : evolutionError ? "error" : "empty"}
+        onRetry={onEvolutionRetry}
+        emptyMessage={EVOLUTION_EMPTY_MESSAGE}
+        chartType={chartType}
+        onChartTypeChange={setChartType}
+        chartGranularity="month"
+        onChartGranularityChange={() => {}}
+        availableGranularities={["month"]}
+      >
+        {treasurySeries.length >= 2 && (
+          <DualSeriesChart
+            series1={treasurySeries}
+            series2={[]}
+            total1={treasurySeries.reduce((s, p) => s + p.amount, 0)}
+            total2={0}
+            label1="Trésorerie validée"
+            label2=""
+            granularity="month"
+            chartType={chartType}
+            currency={currency}
+            showSeries2={false}
+          />
+        )}
+      </InstrumentCardEvolutionBlock>
+
+      <InstrumentCardFooter
+        meta={
+          <>
+            {dateStr !== "—" ? `Lecture au ${dateStr}` : "Lecture : —"}
+            <span className="mx-1.5">·</span>
+            Source Vault + ERP
+            <span className="mx-1.5">·</span>
+            {footerStatusLabel}
+          </>
+        }
+      />
 
       {footer}
     </section>

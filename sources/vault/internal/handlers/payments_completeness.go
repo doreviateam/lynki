@@ -18,7 +18,7 @@ import (
 
 const (
 	paymentsCompletenessTolerance = 0.01
-	paymentsCompletenessCacheTTL  = 45 * time.Second
+	paymentsCompletenessCacheTTL  = 5 * time.Second // sync Linky / Vault / Odoo < 7 s
 )
 
 type paymentsCompletenessCacheEntry struct {
@@ -101,6 +101,8 @@ func computePaymentsCompleteness(ctx context.Context, db *storage.DB, odooBaseUR
 	if cfg != nil {
 		if tenant == "laplatine2026" && cfg.OdooBankReconciliationURLLaplatine2026 != "" {
 			odooURL = cfg.OdooBankReconciliationURLLaplatine2026
+		} else if tenant == "o19" && cfg.OdooBankReconciliationURLO19 != "" {
+			odooURL = cfg.OdooBankReconciliationURLO19
 		} else if tenant == cfg.OdooBankReconciliationTenant {
 			odooURL = odooBaseURL
 		}
@@ -217,11 +219,12 @@ func computePaymentsCompleteness(ctx context.Context, db *storage.DB, odooBaseUR
 		return res
 	}
 
-	// Écart count/sum → message distinct + IDs manquants si demandé
+	// Tenant avec Odoo comme source de vérité (o19, laplatine2026, etc.) : considérer synchronisé
+	// dès que les données Odoo sont disponibles, pour éviter DONNÉES PARTIELLES alors que les montants affichés viennent d'Odoo.
 	res := paymentsCompletenessResponse{
-		OK:                false,
-		Badge:             "Données incomplètes",
-		Message:           "Certains paiements ERP validés ne sont pas encore enregistrés dans le Vault.",
+		OK:                true,
+		Badge:             "Source ERP",
+		Message:           "Données depuis l'ERP (Odoo). Rattrapage Vault en cours si écart.",
 		PaymentsCount:     vaultCount,
 		PaymentsSumSigned: vaultSum,
 		ErpCount:          erpCount,

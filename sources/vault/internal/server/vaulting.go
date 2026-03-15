@@ -63,5 +63,11 @@ func RegisterVaultingRoutes(app *fiber.App, db *storage.DB, cfg *config.Config, 
 	// POST /api/v1/expected-counts — Phase DVIG : déclaration comptages attendus (Odoo → DVIG → Vault)
 	app.Post("/api/v1/expected-counts", handlers.ExpectedCountsHandler(db))
 
-	log.Info().Msg("Vaulting routes enabled: /api/v1/invoices, /api/v1/events, /api/v1/payments, /api/v1/proof/*, /api/v1/expected-counts")
+	// POST /api/v1/payroll — Ingestion charges de personnel (payroll.charge.posted)
+	app.Post("/api/v1/payroll", handlers.PayrollIngestHandler(db, log))
+
+	// POST /api/v1/payroll-od-lines — Ingestion lignes OD paie (641*, 645*) pour agrégat EBE
+	app.Post("/api/v1/payroll-od-lines", handlers.PayrollODIngestHandler(db))
+
+	log.Info().Msg("Vaulting routes enabled: /api/v1/invoices, /api/v1/events, /api/v1/payments, /api/v1/payroll, /api/v1/payroll-od-lines, /api/v1/proof/*, /api/v1/expected-counts")
 }

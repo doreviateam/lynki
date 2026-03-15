@@ -122,6 +122,65 @@ type SalesByPartnerItem struct {
 	CumulativePct  float64 `json:"cumulative_pct"`
 }
 
+// PayrollAggregationResponse réponse GET /ui/aggregations/payroll
+// Charges de personnel : source payslip (hr.payslip) ou od (OD comptables 641*/645*) ou none.
+// SPEC EBE OD payroll v1.0 — payroll_source, payroll_unavailable, breakdown.
+type PayrollAggregationResponse struct {
+	Tenant             string               `json:"tenant"`
+	TotalCharges       float64              `json:"total_charges"`
+	Total              float64              `json:"total"` // alias pour compatibilité spec §9.2
+	PayslipCount       int                  `json:"payslip_count"`
+	Currency           string               `json:"currency"`
+	From               string               `json:"from"`
+	To                 string               `json:"to"`
+	Granularity        string               `json:"granularity"`
+	Series             []SeriesPoint        `json:"series"`
+	PayrollSource      string               `json:"payroll_source"`       // "payslip" | "od" | "none"
+	PayrollUnavailable bool                 `json:"payroll_unavailable"`   // true si source = none
+	Breakdown          *PayrollODBreakdown  `json:"breakdown,omitempty"`  // optionnel, présent si source = od
+}
+
+// PayrollODBreakdown détail 641 / 645 pour source OD
+type PayrollODBreakdown struct {
+	Accounts641 float64 `json:"accounts_641"`
+	Accounts645 float64 `json:"accounts_645"`
+}
+
+// ApByPartnerResponse réponse GET /ui/aggregations/ap-by-partner (dettes fournisseurs)
+// Miroir de ArByPartnerResponse pour move_type = 'in_invoice'.
+type ApByPartnerResponse struct {
+	Totals   ApByPartnerTotals   `json:"totals"`
+	Partners []ApByPartnerItem   `json:"partners"`
+	Meta     ApByPartnerMeta     `json:"meta"`
+}
+
+// ApByPartnerTotals totaux dettes fournisseurs
+type ApByPartnerTotals struct {
+	OpenAmount           float64 `json:"open_amount"`
+	OverdueAmount        float64 `json:"overdue_amount"`
+	OpenCountInvoices    int     `json:"open_count_invoices"`
+	OverdueCountInvoices int     `json:"overdue_count_invoices"`
+	MissingDueDateCount  int     `json:"missing_due_date_count"`
+}
+
+// ApByPartnerItem fournisseur avec dettes ouvertes
+type ApByPartnerItem struct {
+	PartnerID    string  `json:"partner_id"`
+	PartnerName  string  `json:"partner_name,omitempty"`
+	OpenAmount   float64 `json:"open_amount"`
+	OverdueAmount float64 `json:"overdue_amount"`
+	OpenCount    int     `json:"open_count_invoices"`
+	OverdueCount int     `json:"overdue_count_invoices"`
+	SharePercent float64 `json:"share_percent"`
+}
+
+// ApByPartnerMeta métadonnées AP
+type ApByPartnerMeta struct {
+	Freshness   string   `json:"freshness"`
+	Warnings    []string `json:"warnings,omitempty"`
+	DataQuality string   `json:"data_quality,omitempty"`
+}
+
 // ArByPartnerResponse réponse GET /ui/aggregations/ar-by-partner (SPEC AR by Partner v1.0.3)
 type ArByPartnerResponse struct {
 	Totals   ArByPartnerTotals   `json:"totals"`
@@ -129,24 +188,33 @@ type ArByPartnerResponse struct {
 	Meta     ArByPartnerMeta     `json:"meta"`
 }
 
-// ArByPartnerTotals totaux encours / retard
+// ArByPartnerTotals totaux encours / retard + temporalité du retard (SPEC v1.0.4)
 type ArByPartnerTotals struct {
-	OpenAmount            float64 `json:"open_amount"`
-	OverdueAmount         float64 `json:"overdue_amount"`
-	OpenCountInvoices     int     `json:"open_count_invoices"`
-	OverdueCountInvoices  int     `json:"overdue_count_invoices"`
-	MissingDueDateCount   int     `json:"missing_due_date_count"`
+	OpenAmount           float64 `json:"open_amount"`
+	OverdueAmount        float64 `json:"overdue_amount"`
+	OpenCountInvoices    int     `json:"open_count_invoices"`
+	OverdueCountInvoices int     `json:"overdue_count_invoices"`
+	MissingDueDateCount  int     `json:"missing_due_date_count"`
+	// OverdueAvgDays : retard moyen pondéré par montant (jours au-delà de l'échéance)
+	OverdueAvgDays float64 `json:"overdue_avg_days,omitempty"`
+	// OverdueMaxDays : plus ancien retard en jours
+	OverdueMaxDays int `json:"overdue_max_days,omitempty"`
 }
 
-// ArByPartnerItem partenaire avec encours et retard
+// ArByPartnerItem partenaire avec encours, retard, temporalité et priorité (SPEC Priorisation v1.0)
 type ArByPartnerItem struct {
-	PartnerID       string  `json:"partner_id"`
-	PartnerName     string  `json:"partner_name,omitempty"`
-	OpenAmount      float64 `json:"open_amount"`
-	OverdueAmount   float64 `json:"overdue_amount"`
-	OpenCount       int     `json:"open_count_invoices"`
-	OverdueCount    int     `json:"overdue_count_invoices"`
-	SharePercent    float64 `json:"share_percent"`
+	PartnerID          string  `json:"partner_id"`
+	PartnerName        string  `json:"partner_name,omitempty"`
+	OpenAmount         float64 `json:"open_amount"`
+	OverdueAmount      float64 `json:"overdue_amount"`
+	OpenCount          int     `json:"open_count_invoices"`
+	OverdueCount       int     `json:"overdue_count_invoices"`
+	SharePercent       float64 `json:"share_percent"`
+	OverdueAvgDays     float64 `json:"overdue_avg_days,omitempty"`
+	OverdueMaxDays     int     `json:"overdue_max_days,omitempty"`
+	PaymentDelayAvgDays *int    `json:"payment_delay_avg_days,omitempty"` // n.d. si null (historique non dispo)
+	PriorityScore      int     `json:"priority_score,omitempty"`         // 0-9 (montant + ancienneté + historique)
+	PriorityLabel      string  `json:"priority_label,omitempty"`         // Faible | Moyenne | Élevée | Critique
 }
 
 // ArByPartnerMeta métadonnées (freshness, warnings)

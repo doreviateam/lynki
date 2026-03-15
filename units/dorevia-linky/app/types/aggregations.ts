@@ -107,6 +107,10 @@ export interface ArByPartnerTotals {
   open_count_invoices: number;
   overdue_count_invoices: number;
   missing_due_date_count: number;
+  /** Retard moyen pondéré par montant (jours au-delà de l'échéance) */
+  overdue_avg_days?: number;
+  /** Plus ancien retard en jours */
+  overdue_max_days?: number;
 }
 
 export interface ArByPartnerItem {
@@ -117,6 +121,16 @@ export interface ArByPartnerItem {
   open_count_invoices: number;
   overdue_count_invoices: number;
   share_percent: number;
+  /** Jours de retard moyen pondéré (pour ce partenaire) */
+  overdue_avg_days?: number;
+  /** Pire retard en jours (pour ce partenaire) */
+  overdue_max_days?: number;
+  /** Délai moyen de paiement (historique) — n.d. si absent */
+  payment_delay_avg_days?: number | null;
+  /** Score priorité relance 0–9 (SPEC Priorisation v1.0) */
+  priority_score?: number;
+  /** Faible | Moyenne | Élevée | Critique */
+  priority_label?: string;
 }
 
 export interface ArByPartnerMeta {

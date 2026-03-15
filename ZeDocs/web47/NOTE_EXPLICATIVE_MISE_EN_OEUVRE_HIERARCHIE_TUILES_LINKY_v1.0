@@ -1,0 +1,228 @@
+# NOTE_EXPLICATIVE_MISE_EN_OEUVRE_HIERARCHIE_TUILES_LINKY_v1.0
+
+**Produit :** Dorevia Linky
+**Date :** 14 mars 2026
+**Objet :** Mise en œuvre de la hiérarchie visuelle des tuiles sur la vue **Synthèse**
+
+---
+
+## 1. Objectif
+
+Cette note précise la logique de mise en œuvre de la hiérarchie visuelle des tuiles sur l’écran de synthèse Linky.
+
+L’objectif n’est pas seulement esthétique.
+Il s’agit de permettre à un dirigeant, un RAF ou un contrôleur de gestion de comprendre en quelques secondes :
+
+* quels sont les **indicateurs maîtres**,
+* quels sont les **indicateurs secondaires**,
+* et comment lire l’écran sans confusion.
+
+La règle centrale retenue est simple :
+
+> **Seules les tuiles structurantes de pilotage sont encadrées.**
+> Les autres tuiles restent non encadrées et servent de compléments de lecture.
+
+---
+
+## 2. Principe de lecture retenu
+
+La vue Synthèse ne doit pas donner le même poids à tous les indicateurs.
+
+Tous les chiffres sont utiles, mais tous ne doivent pas capter l’attention au même niveau.
+L’écran doit donc instaurer une hiérarchie stable, visuelle et immédiatement compréhensible.
+
+La convention retenue est la suivante :
+
+* **tuile encadrée** = KPI majeur de synthèse
+* **tuile non encadrée** = KPI secondaire, indicateur d’appui ou détail opérationnel
+
+Cette règle doit être **stable dans le temps** et **constante sur toute la vue Synthèse**.
+
+---
+
+## 3. Tuiles concernées par l’encadrement
+
+Dans l’état actuel de conception, les tuiles encadrées sont :
+
+* **Trésorerie**
+* **Business**
+* **Flux net**
+
+Ces tuiles constituent le premier niveau de lecture.
+
+Elles représentent :
+
+* la position financière immédiate,
+* la dynamique d’activité,
+* la respiration réelle du système.
+
+Les autres tuiles, même importantes métier, ne doivent pas entrer en concurrence visuelle avec ce trio directeur.
+
+---
+
+## 4. Règle d’implémentation visuelle
+
+### 4.1 Encadrement
+
+L’encadrement sert exclusivement à signaler une tuile de rang supérieur.
+
+Conséquences :
+
+* une tuile encadrée doit être perçue comme prioritaire,
+* une tuile non encadrée ne doit jamais visuellement rivaliser avec elle,
+* le cadre devient un marqueur de hiérarchie, non un effet décoratif.
+
+### 4.2 Couleur du cadre
+
+La couleur du cadre peut porter un sens complémentaire, à condition de rester cohérente :
+
+* **orange** : sujet de pilotage, vigilance, tension ou attention forte
+* **vert** : dynamique favorable, performance positive
+* **bleu / neutre** : absence d’accent majeur
+
+Important :
+la couleur ne doit pas annuler la règle principale.
+La hiérarchie doit être portée d’abord par **l’encadrement**, pas par une surenchère de couleurs sur toutes les tuiles.
+
+---
+
+## 5. Règle de traitement des tuiles non encadrées
+
+Les tuiles non encadrées doivent rester lisibles, mais plus calmes.
+
+Elles ne doivent pas détourner la lecture prioritaire de la synthèse.
+
+### Consigne de mise en œuvre
+
+Pour les tuiles non encadrées :
+
+* conserver la structure standard de la carte,
+* garder une icône visible mais non dominante,
+* afficher la valeur de manière plus sobre,
+* éviter d’utiliser une couleur d’accent forte par défaut.
+
+### Exception
+
+Une tuile non encadrée peut ponctuellement recevoir une couleur d’alerte si une anomalie métier réelle le justifie, mais cela doit rester **exceptionnel**.
+
+Exemple :
+une couleur orange sur une tuile secondaire ne doit pas devenir un régime normal d’affichage, sinon la hiérarchie visuelle devient confuse.
+
+---
+
+## 6. Risque identifié à éviter
+
+Le principal risque de design observé est le suivant :
+
+> si les tuiles non encadrées utilisent elles aussi des valeurs très accentuées visuellement, l’utilisateur lit deux hiérarchies contradictoires :
+>
+> * le cadre dit “prioritaire”
+> * la couleur forte dit “prioritaire aussi”
+
+Cela produit une lecture brouillée.
+
+### Consigne de correction
+
+* **le cadre reste le marqueur principal de priorité**
+* **la couleur des valeurs secondaires reste modérée**
+* **les accents forts sur les secondaires sont réservés aux cas métier réellement exceptionnels**
+
+---
+
+## 7. Intention produit
+
+Cette hiérarchie répond à une intention produit claire :
+
+Linky ne doit pas être perçu comme une mosaïque de widgets équivalents.
+Il doit être perçu comme un **instrument de pilotage**.
+
+L’utilisateur doit comprendre sans effort :
+
+1. ce qu’il faut regarder en premier,
+2. ce qui explique ou complète cette lecture,
+3. ce qui relève d’un niveau plus opérationnel.
+
+Autrement dit, la synthèse doit fonctionner comme un cockpit :
+
+* une lecture immédiate,
+* une structure stable,
+* une montée progressive dans le détail.
+
+---
+
+## 8. Recommandations de mise en œuvre front
+
+### 8.1 Structure
+
+Conserver une grille homogène, mais appliquer une hiérarchie par style :
+
+* tuiles maîtresses : encadrées
+* tuiles secondaires : non encadrées
+
+### 8.2 Intensité visuelle
+
+Créer une différence nette mais élégante entre les deux niveaux :
+
+* contour plus visible pour les tuiles maîtresses,
+* valeur plus affirmée pour les tuiles maîtresses,
+* contraste légèrement atténué pour les autres.
+
+### 8.3 Stabilité
+
+Ne pas faire varier arbitrairement les tuiles encadrées selon des détails de contexte.
+La vue Synthèse doit rester prévisible.
+
+### 8.4 Évolutivité
+
+La logique doit pouvoir être réutilisée plus tard sur d’autres écrans Linky :
+
+* vue synthèse,
+* vue direction,
+* vue business,
+* vue trésorerie.
+
+Mais la règle doit être explicitée dès maintenant comme convention design produit.
+
+---
+
+## 9. Règle produit à formaliser
+
+La formulation de référence peut être la suivante :
+
+> **Dans Linky, les tuiles encadrées portent les indicateurs maîtres de pilotage.
+> Les tuiles non encadrées complètent la lecture sans concurrencer la synthèse.**
+
+Cette phrase peut servir :
+
+* dans une spec UI,
+* dans une note d’implémentation front,
+* dans une charte de cohérence produit.
+
+---
+
+## 10. Critères d’acceptation
+
+La mise en œuvre sera considérée correcte si :
+
+* l’utilisateur identifie immédiatement les KPI majeurs sans aide textuelle ;
+* seules les tuiles structurantes sont encadrées ;
+* les tuiles secondaires restent visuellement plus discrètes ;
+* les couleurs d’accent sont cohérentes avec leur signification ;
+* la hiérarchie visuelle reste stable d’un écran à l’autre ;
+* la synthèse est lisible en quelques secondes.
+
+---
+
+## 11. Conclusion
+
+Le choix d’encadrer uniquement les tuiles majeures est pertinent, car il installe une grammaire visuelle simple, robuste et immédiatement compréhensible.
+
+La réussite de cette approche dépend maintenant d’une discipline de mise en œuvre :
+
+* ne pas banaliser l’encadrement,
+* ne pas suraccentuer les secondaires,
+* conserver une hiérarchie stable.
+
+Ce principe permet à Linky de quitter une logique de dashboard générique pour entrer dans une logique de **cockpit de pilotage financier**.
+
+---

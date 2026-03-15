@@ -45,6 +45,8 @@ func TreasuryAggregationHandler(db *storage.DB, odooURL string, cfg *config.Conf
 		if cfg != nil {
 			if tenant == "laplatine2026" && cfg.OdooBankReconciliationURLLaplatine2026 != "" {
 				odooURLForTenant = cfg.OdooBankReconciliationURLLaplatine2026
+			} else if tenant == "o19" && cfg.OdooBankReconciliationURLO19 != "" {
+				odooURLForTenant = cfg.OdooBankReconciliationURLO19
 			} else if tenant == cfg.OdooBankReconciliationTenant {
 				odooURLForTenant = odooURL
 			}
@@ -60,63 +62,88 @@ func TreasuryAggregationHandler(db *storage.DB, odooURL string, cfg *config.Conf
 	}
 }
 
-// treasuryFromProjectionAndOdoo agrège projection RECONCIL + erp_balance Odoo → réponse v4.1.
-func treasuryFromProjectionAndOdoo(ctx context.Context, db *storage.DB, odooURL string, cfg *config.Config, tenant, companyID, dateDebut, dateFin string, log *zerolog.Logger) fiber.Map {
-	// 1. Lecture projection RECONCIL
+// TreasurySnapshotData contient les valeurs nécessaires pour un snapshot Phase 3 (E2, ADR-0010).
+// Utilisé par le job de snapshotting et par treasuryFromProjectionAndOdoo.
+type TreasurySnapshotData struct {
+	ValidatedBalance   float64
+	ErpBalance         *float64
+	Reconciled         float64
+	Unreconciled       float64
+	Currency           string
+	BankAccountsCount  *int
+	LastStatementDate  *string
+	OldestUnreconciled *string
+}
+
+// ComputeTreasurySnapshotData calcule les valeurs trésorerie pour un (tenant, company_id).
+// Un seul appel Odoo si odooURL != "". Réutilisé par le job de snapshotting (POST /ui/jobs/treasury-snapshot).
+func ComputeTreasurySnapshotData(ctx context.Context, db *storage.DB, odooURL string, cfg *config.Config, tenant, companyID, dateDebut, dateFin string, log *zerolog.Logger) (*TreasurySnapshotData, error) {
 	proj, err := db.GetBankReconciliationProjectionSums(ctx, tenant, companyID)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-
 	vb := proj.ValidatedBalance
-	_ = proj.UnreconciledBalance // réservé (optionnel future)
 	rv := proj.ReconciledVolume
 	uv := proj.UnreconciledVolume
-
-	// Règle : À traiter et Traité proviennent UNIQUEMENT du Vault. Pas de proxy Odoo.
-	// Si projection vide mais paiements vaultés → À traiter = volume des paiements vaultés (données Vault).
 	if rv == 0 && uv == 0 {
 		if vol, err := db.GetVaultedPaymentsVolumeTotal(ctx, tenant, companyID); err == nil && vol > 0 {
-			uv = vol // À traiter = paiements vaultés en attente de rapprochement
+			uv = vol
 		}
 	}
-
-	// 2. Appel Odoo pour erp_balance + health (bank_accounts_count, last_statement_date, etc.)
 	var erpBalance *float64
-	var bankAccountsCount *int
-	var lastStatementDate, oldestUnreconciledDate *string
+	var bac *int
+	var lastStmt, oldestUnrec *string
 	if odooURL != "" {
-		var odooReconciled, odooUnreconciled float64
-		erpBalance, bankAccountsCount, lastStatementDate, oldestUnreconciledDate, odooReconciled, odooUnreconciled = fetchOdooTreasuryData(ctx, odooURL, tenant, companyID, cfg)
-		_ = odooReconciled
-		_ = odooUnreconciled
+		erpBalance, bac, lastStmt, oldestUnrec, rv, uv = fetchOdooTreasuryData(ctx, odooURL, tenant, companyID, dateDebut, dateFin, cfg)
+	} else {
+		if metrics, err := db.GetReconciliationMetrics(ctx, tenant, dateDebut, dateFin, companyID); err == nil {
+			rv = metrics.ReconciledAmountAbs
+			uv = metrics.RemainingAmountAbs
+		}
 	}
+	if vb == 0 && rv > 0 {
+		vb = rv
+	}
+	return &TreasurySnapshotData{
+		ValidatedBalance:   utils.RoundMoney2(vb),
+		ErpBalance:         erpBalance,
+		Reconciled:         utils.RoundMoney2(rv),
+		Unreconciled:       utils.RoundMoney2(uv),
+		Currency:           "EUR",
+		BankAccountsCount:  bac,
+		LastStatementDate:   lastStmt,
+		OldestUnreconciled: oldestUnrec,
+	}, nil
+}
 
-	// 3. last_reconcil_event_at (optionnel)
+// treasuryFromProjectionAndOdoo agrège projection RECONCIL + erp_balance Odoo → réponse v4.1.
+func treasuryFromProjectionAndOdoo(ctx context.Context, db *storage.DB, odooURL string, cfg *config.Config, tenant, companyID, dateDebut, dateFin string, log *zerolog.Logger) fiber.Map {
+	data, err := ComputeTreasurySnapshotData(ctx, db, odooURL, cfg, tenant, companyID, dateDebut, dateFin, log)
+	if err != nil || data == nil {
+		return nil
+	}
 	var lastReconcilAt *time.Time
 	if last, err := db.GetLastReconcilEventAt(ctx, tenant, companyID); err == nil {
 		lastReconcilAt = last
 	}
-
-	// 4. Confirmation bancaire (SPEC v1.3) — agrégation depuis financial_recon_deltas
 	var confirmation *storage.ConfirmationAggregation
 	if agg, err := db.GetConfirmationAggregation(ctx, tenant, companyID); err == nil {
 		confirmation = agg
 	}
-
-	// 5. Reconciliation metrics « Reste à rapprocher » (SPEC web38)
 	var reconMetrics *storage.ReconciliationMetricsResult
-	if metrics, err := db.GetReconciliationMetrics(ctx, tenant, dateDebut, dateFin, companyID); err == nil {
-		reconMetrics = metrics
-	} else if log != nil {
-		log.Warn().Err(err).Str("tenant", tenant).Str("company_id", companyID).Msg("GetReconciliationMetrics failed, reconciliation_metrics omitted")
+	totalAbs := data.Reconciled + data.Unreconciled
+	if totalAbs > 1e-9 {
+		reconMetrics = &storage.ReconciliationMetricsResult{
+			TotalAmountAbs:      totalAbs,
+			ReconciledAmountAbs: data.Reconciled,
+			RemainingAmountAbs:  data.Unreconciled,
+			RemainingRatio:      data.Unreconciled / totalAbs,
+		}
 	}
-
-	// 6. Construction réponse v4.1 + confirmation + reconciliation_metrics
-	return buildTreasuryResponse(vb, rv, uv, erpBalance, lastReconcilAt, companyID, bankAccountsCount, lastStatementDate, oldestUnreconciledDate, confirmation, reconMetrics, log)
+	return buildTreasuryResponse(data.ValidatedBalance, data.Reconciled, data.Unreconciled, data.ErpBalance, lastReconcilAt, companyID, data.BankAccountsCount, data.LastStatementDate, data.OldestUnreconciled, confirmation, reconMetrics, log)
 }
 
-func fetchOdooTreasuryData(ctx context.Context, baseURL, tenant, companyID string, cfg *config.Config) (*float64, *int, *string, *string, float64, float64) {
+func fetchOdooTreasuryData(ctx context.Context, baseURL, tenant, companyID, dateFrom, dateTo string, cfg *config.Config) (*float64, *int, *string, *string, float64, float64) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, nil, nil, nil, 0, 0
@@ -125,6 +152,12 @@ func fetchOdooTreasuryData(ctx context.Context, baseURL, tenant, companyID strin
 	q.Set("tenant", tenant)
 	if companyID != "" {
 		q.Set("company_id", companyID)
+	}
+	if dateFrom != "" {
+		q.Set("date_from", dateFrom)
+	}
+	if dateTo != "" {
+		q.Set("date_to", dateTo)
 	}
 	u.RawQuery = q.Encode()
 

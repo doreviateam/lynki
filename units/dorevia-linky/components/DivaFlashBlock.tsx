@@ -17,6 +17,7 @@ const CACHE_KEY_PREFIX = "diva_flash_";
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 min
 const POLL_INTERVAL_MS = 6000; // 6s (réduit saturation navigateur)
 const POLL_MAX_ATTEMPTS = 12; // ~72 s max, moins de requêtes
+const ENABLE_LIVE_POLLING = process.env.NEXT_PUBLIC_LINKY_ENABLE_LIVE_POLLING === "1";
 
 function extractNumericCompanyId(raw: string | null): string {
   if (!raw) return "0";
@@ -102,6 +103,35 @@ function toDisplayHeadline(raw: string | undefined): string {
   return s;
 }
 
+/** SPEC v3 : cockpit = max 2 phrases. Découpe sur . ? ! et garde les 2 premières. */
+function takeFirstTwoSentences(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed) return trimmed;
+  const parts = trimmed.split(/(?<=[.!?])\s+/);
+  if (parts.length <= 2) return trimmed;
+  return parts.slice(0, 2).join(" ").trim();
+}
+
+/** Normalisation éditoriale : termes EN → FR + épargne → trésorerie (langage cockpit). */
+function normalizeInsightFr(text: string): string {
+  return text
+    .replace(/\bépargne\b/gi, "trésorerie")
+    .replace(/d'épargne\b/gi, "de trésorerie")
+    .replace(/\breceivables\b/gi, "créances")
+    .replace(/\bAR\b/g, "créances clients")
+    .replace(/\bretardades\b/gi, "retards")
+    .replace(/\bpayables\b/gi, "dettes fournisseurs")
+    .replace(/\bAP\b/g, "dettes fournisseurs")
+    .replace(/\bpost-impôts\b/gi, "après impôts");
+}
+
+/** Headline prêt pour affichage cockpit : 2 phrases max + normalisation FR. */
+function cockpitHeadline(raw: string | undefined): string {
+  const displayed = toDisplayHeadline(raw);
+  const normalized = normalizeInsightFr(displayed);
+  return takeFirstTwoSentences(normalized);
+}
+
 /** Extrait le headline propre si l'API renvoie du JSON brut dans le champ headline. */
 function normalizeFlash(flash: DivaFlash): DivaFlash {
   let headline = flash.headline?.trim() ?? "";
@@ -147,6 +177,12 @@ function setCachedFlash(key: string, flash: DivaFlash) {
   }
 }
 
+const CONFIDENCE_LABELS: Record<string, string> = {
+  high: "Élevé",
+  medium: "Moyen",
+  low: "Faible",
+};
+
 function ConfidenceBadge({ confidence }: { confidence: string }) {
   const style =
     confidence === "high"
@@ -154,12 +190,13 @@ function ConfidenceBadge({ confidence }: { confidence: string }) {
       : confidence === "medium"
         ? "bg-[var(--warning)]/20 text-[var(--warning)]"
         : "bg-[var(--muted)]/30 text-[var(--text-secondary)]";
+  const label = CONFIDENCE_LABELS[confidence] ?? confidence;
   return (
     <span
       className={`rounded-full px-2 py-0.5 text-xs font-medium ${style}`}
-      title={`Confiance : ${confidence}`}
+      title={`Niveau de confiance : ${label}`}
     >
-      {confidence}
+      {label}
     </span>
   );
 }
@@ -380,7 +417,7 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
   }, [isPending, dashboardMetricsProp, tenantId, companyId, period.from, period.to, focusCardId]);
 
   useEffect(() => {
-    if (!isPending) return;
+    if (!isPending || !ENABLE_LIVE_POLLING) return;
     let mounted = true;
     pollAttemptRef.current = 0;
     const id = setInterval(() => {
@@ -464,11 +501,33 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
     : "mt-8 w-full max-w-2xl";
   const innerClass = embedded
     ? "pt-2"
-    : "rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[var(--shadow-card)]";
+    : "rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-[var(--shadow-card)]";
 
   return (
     <div className={wrapperClass}>
       <div className={innerClass}>
+
+        {/* Zone 1 — Titre du module */}
+        {!embedded && (
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
+              Insight principal
+            </span>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={loading}
+              className="flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-1 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-50"
+              title="Rafraîchir l'analyse"
+              aria-label="Rafraîchir l'analyse"
+            >
+              <span aria-hidden className={loading ? "animate-spin inline-block" : ""}>↻</span>
+              <span>Rafraîchir</span>
+            </button>
+          </div>
+        )}
+
+        {/* Chargement initial */}
         {loading && !flash && (
           <div className="flex items-center gap-2 text-[var(--text-secondary)]">
             <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
@@ -497,42 +556,52 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
 
         {flash && (
           <>
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--text)]" title={capitalizeFirst(toDisplayHeadline(flash.headline))}>
-              {formatAmountsInText(capitalizeFirst(toDisplayHeadline(flash.headline)))}
+            {/* Zone 2 — SPEC v3 cockpit : 2 phrases max (phrase principale + phrase d'écart) */}
+            <p
+              className="whitespace-pre-wrap text-base font-medium leading-relaxed text-[var(--text)]"
+              title={capitalizeFirst(toDisplayHeadline(flash.headline))}
+            >
+              {formatAmountsInText(capitalizeFirst(cockpitHeadline(flash.headline)))}
             </p>
+
             <hr className="my-3 border-t border-[var(--border)]" aria-hidden />
-            {flash.what_i_see && flash.what_i_see.length > 0 && (
-              <details className="group mt-2">
+
+            {/* Zone 3 — Données utilisées + to_check (tout dans le dépliable, cockpit resserré) */}
+            {(flash.what_i_see?.length > 0 || flash.to_check?.length > 0) ? (
+              <details className="group">
                 <summary className="flex cursor-pointer list-none items-center gap-2 py-1 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text)]">
-                  <span className="transition-transform group-open:rotate-90" aria-hidden>
-                    ▶
-                  </span>
+                  <span className="transition-transform group-open:rotate-90" aria-hidden>▶</span>
                   <span>Données utilisées</span>
                   <ConfidenceBadge confidence={flash.confidence} />
                 </summary>
-                <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-0.5 pl-4 text-xs text-[var(--text-secondary)]">
-                  {flash.what_i_see.map((item, i) => (
-                    <li key={i}>{formatAmountsInText(item)}</li>
-                  ))}
-                </ul>
+                <div className="mt-2 pl-4 space-y-2">
+                  {flash.to_check && flash.to_check.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-[var(--text-secondary)] mb-1">Points de vigilance</p>
+                      <ul className="grid grid-cols-1 gap-y-0.5 text-xs text-[var(--text-secondary)]">
+                        {flash.to_check.map((item, i) => (
+                          <li key={i}>{formatAmountsInText(normalizeInsightFr(item))}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {flash.what_i_see && flash.what_i_see.length > 0 && (
+                    <ul className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-[var(--text-secondary)]">
+                      {flash.what_i_see.map((item, i) => (
+                        <li key={i}>{formatAmountsInText(item)}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </details>
-            )}
-            {(!flash.what_i_see || flash.what_i_see.length === 0) && (
-              <div className="mt-2">
+            ) : (
+              <div className="mt-1">
                 <ConfidenceBadge confidence={flash.confidence} />
               </div>
             )}
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              {flash.to_check && flash.to_check.length > 0 && (
-                <ul className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-[var(--text-secondary)]">
-                  {flash.to_check.map((item, i) => (
-                    <li key={i}>{formatAmountsInText(item)}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
+
             {loading && (
-              <div className="mt-2 flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
                 <span className="h-3 w-3 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
                 <span>Mise à jour…</span>
               </div>
@@ -541,28 +610,41 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
         )}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-[var(--text-secondary)]">
-          {computedAt && formatComputedAgo(computedAt) ? (
-            <>
-              <span title={computedAt}>{formatComputedAgo(computedAt)}</span>
-              <span className="mx-1.5">·</span>
-            </>
-          ) : null}
+      {/* Pied du bloc : horodatage + bouton Rafraîchir (mode embedded ou si pas de titre) */}
+      {(embedded || !flash) && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-[var(--text-secondary)]">
+            {computedAt && formatComputedAgo(computedAt) ? (
+              <>
+                <span title={computedAt}>{formatComputedAgo(computedAt)}</span>
+                <span className="mx-1.5">·</span>
+              </>
+            ) : null}
+            Lecture assistée par DIVA. L&apos;analyse finale relève de l&apos;utilisateur.
+          </p>
+          {embedded && (
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={loading}
+              className="shrink-0 flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-50"
+              title="Rafraîchir l'analyse"
+              aria-label="Rafraîchir l'analyse"
+            >
+              <span aria-hidden>↻</span>
+              <span>Rafraîchir</span>
+            </button>
+          )}
+        </div>
+      )}
+      {/* Mode non-embedded avec flash : horodatage discret sous le bouton dans le titre */}
+      {!embedded && flash && computedAt && formatComputedAgo(computedAt) && (
+        <p className="mt-2 text-xs text-[var(--text-secondary)]">
+          <span title={computedAt}>{formatComputedAgo(computedAt)}</span>
+          <span className="mx-1.5">·</span>
           Lecture assistée par DIVA. L&apos;analyse finale relève de l&apos;utilisateur.
         </p>
-        <button
-          type="button"
-          onClick={handleRefresh}
-          disabled={loading}
-          className="shrink-0 flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-50"
-          title="Rafraîchir l'analyse"
-          aria-label="Rafraîchir l'analyse"
-        >
-          <span aria-hidden>↻</span>
-          <span>Rafraîchir</span>
-        </button>
-      </div>
+      )}
     </div>
   );
 }

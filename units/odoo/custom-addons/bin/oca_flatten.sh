@@ -8,9 +8,8 @@ echo "[oca_flatten] OCA_ROOT=$OCA_ROOT"
 echo "[oca_flatten] DEST=$DEST"
 
 mkdir -p "$DEST"
-
-# Supprime uniquement les symlinks (on ne touche pas au reste)
-find "$DEST" -maxdepth 1 -type l -delete 2>/dev/null || true
+# Vidage complet pour éviter anciens modules, symlinks obsolètes et conflits (recommandé prod)
+[ -n "$DEST" ] && [ "$DEST" != "/" ] && rm -rf "${DEST:?}"/* 2>/dev/null || true
 
 # Lien direct de chaque module (dossier avec __manifest__.py)
 find "$OCA_ROOT" -mindepth 2 -maxdepth 4 -name "__manifest__.py" | while read -r manifest; do

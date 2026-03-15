@@ -5,6 +5,14 @@ import type { PeriodRange } from "@/app/lib/period-utils";
 import { formatNumber, formatSignedAmount } from "@/app/lib/format";
 import { CardChartSection } from "@/components/CardChartSection";
 import { IconPosShops } from "@/components/CardIcons";
+import {
+  INSTRUMENT_CARD_BASE,
+  InstrumentCardHeader,
+  InstrumentCardNav,
+  InstrumentCardStatusBadge,
+  InstrumentCardFooter,
+} from "@/components/InstrumentCardChrome";
+import type { CardId } from "@/app/types/linky-tiles";
 import { DualSeriesChart } from "@/components/DualSeriesChart";
 import { PosSessionChart } from "@/components/PosSessionChart";
 import {
@@ -56,6 +64,8 @@ interface PosShopsViewProps {
   companies?: CompanyItem[];
   onFocusRequest?: () => void;
   footer?: React.ReactNode;
+  cardId?: CardId;
+  onNavigateToCard?: (cardId: CardId) => void;
 }
 
 function toPeriod(date: Date, granularity: ChartGranularity): string {
@@ -141,6 +151,7 @@ function formatSessionTime(value: string | undefined): string {
 }
 
 const POLL_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+const ENABLE_LIVE_POLLING = process.env.NEXT_PUBLIC_LINKY_ENABLE_LIVE_POLLING === "1";
 
 const VAULT_STATUS_LABEL: Record<string, string> = {
   sealed: "✓ Scellée",
@@ -149,7 +160,7 @@ const VAULT_STATUS_LABEL: Record<string, string> = {
   missing: "⚠ Non vaultée",
 };
 
-export function PosShopsView({ tenantId, period, companies = [], onFocusRequest, footer }: PosShopsViewProps) {
+export function PosShopsView({ tenantId, period, companies = [], onFocusRequest, footer, cardId, onNavigateToCard }: PosShopsViewProps) {
   const [data, setData] = useState<PosSessionsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedDetailShops, setExpandedDetailShops] = useState<Set<string>>(new Set());
@@ -181,26 +192,31 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
         .finally(() => setLoading(false));
     };
     fetchPosSessions();
-    const intervalId = setInterval(fetchPosSessions, POLL_INTERVAL_MS);
-    return () => clearInterval(intervalId);
+    const intervalId = ENABLE_LIVE_POLLING ? setInterval(fetchPosSessions, POLL_INTERVAL_MS) : null;
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [tenantId, period.from, period.to]);
+
+  const IconWrap = onFocusRequest
+    ? ({ children }: { children: React.ReactNode }) => (
+        <button type="button" onClick={onFocusRequest} className="flex cursor-pointer rounded p-1 -m-1 hover:bg-[var(--accent-soft)]/30 transition-colors" aria-label="Ouvrir la card Points de vente">
+          {children}
+        </button>
+      )
+    : ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
   if (loading) {
     return (
-      <section className="rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow-card)] border-l-4 border-l-[var(--muted)]">
-        <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            {onFocusRequest ? (
-              <button type="button" onClick={onFocusRequest} className="flex cursor-pointer rounded p-1 -m-1 hover:bg-[var(--accent-soft)]/30 transition-colors" aria-label="Ouvrir la card Points de vente">
-                <IconPosShops className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-              </button>
-            ) : (
-              <IconPosShops className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-            )}
-            <span className="text-lg font-bold uppercase tracking-wide text-[var(--accent)]">Points de vente</span>
-          </div>
-          <div className="skeleton h-5 w-28" />
-        </div>
+      <section className={INSTRUMENT_CARD_BASE} role="region" aria-label="Instrument Points de vente — chargement">
+        {cardId && onNavigateToCard && (
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        )}
+        <InstrumentCardHeader
+          icon={<IconWrap><IconPosShops className="h-6 w-6 shrink-0 text-[var(--accent)]" /></IconWrap>}
+          title="POINTS DE VENTE"
+          kpiValue={<div className="skeleton h-5 w-28" />}
+        />
         <div className="skeleton h-24 w-full" />
       </section>
     );
@@ -216,35 +232,22 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
   const totalTickets = items.reduce((acc, i) => acc + (i.total_tickets ?? 0), 0);
 
   return (
-    <section
-      className={`rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow-card)] border-l-4 ${
-        verdict === "OK" ? "border-l-[var(--positive)]" : "border-l-[var(--warning)]"
-      }`}
-    >
-      <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] pb-3 mb-4">
-        <div className="flex items-center gap-2 min-w-0">
-          {onFocusRequest ? (
-            <button type="button" onClick={onFocusRequest} className="flex cursor-pointer rounded p-1 -m-1 hover:bg-[var(--accent-soft)]/30 transition-colors" aria-label="Ouvrir la card Points de vente">
-              <IconPosShops className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-            </button>
-          ) : (
-            <IconPosShops className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-          )}
-          <span className="text-lg font-bold uppercase tracking-wide text-[var(--accent)]">Points de vente</span>
-        </div>
-      </div>
-      <div className="mb-4">
-        <span
-          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-            verdict === "OK"
-              ? "bg-[var(--positive)]/15 text-[var(--positive)]"
-              : "bg-orange-500/10 text-orange-600 dark:text-orange-400"
-          }`}
-          role="status"
-        >
-          {verdict === "OK" ? "Région opérationnelle" : "Session à sécuriser"}
-        </span>
-      </div>
+    <section className={INSTRUMENT_CARD_BASE} role="region" aria-label="Instrument Points de vente">
+      {cardId && onNavigateToCard && (
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+      )}
+      <InstrumentCardHeader
+        icon={<IconWrap><IconPosShops className="h-6 w-6 shrink-0 text-[var(--accent)]" /></IconWrap>}
+        title="POINTS DE VENTE"
+        badges={
+          <InstrumentCardStatusBadge
+            label={verdict === "OK" ? "Région opérationnelle" : "Session à sécuriser"}
+            severity={verdict === "OK" ? "success" : "vigilance"}
+          />
+        }
+        kpiLabel="Sessions"
+        kpiValue={<span className="font-semibold tabular-nums">{totalSessions}</span>}
+      />
       <div className="mb-4 flex flex-wrap gap-4 text-sm items-center">
         <span className="font-semibold text-[var(--text)]">{shops.length} magasin{shops.length > 1 ? "s" : ""} actif{shops.length > 1 ? "s" : ""}</span>
         <span className="text-[var(--text-secondary)]">•</span>
@@ -254,7 +257,7 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
         {unsealedSessions > 0 && (
           <>
             <span className="text-[var(--text-secondary)]">•</span>
-            <span className="text-amber-600 dark:text-amber-400">{unsealedSessions} non scellée{unsealedSessions > 1 ? "s" : ""}</span>
+            <span className="text-amber-400">{unsealedSessions} non scellée{unsealedSessions > 1 ? "s" : ""}</span>
           </>
         )}
       </div>
@@ -307,7 +310,7 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
                     <span>{shop.total_sessions} session{shop.total_sessions > 1 ? "s" : ""}</span>
                     <span className="text-[var(--positive)]">✔ {shop.sealed_sessions} scellée{shop.sealed_sessions > 1 ? "s" : ""}</span>
                     {shopUnsealed > 0 && (
-                      <span className="text-amber-600 dark:text-amber-400">
+                      <span className="text-amber-400">
                         ⚠ {shopUnsealed} non scellée{shopUnsealed > 1 ? "s" : ""}
                       </span>
                     )}
@@ -378,7 +381,7 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
                             <div>{shop.total_sessions} session{shop.total_sessions > 1 ? "s" : ""} • {shop.total_tickets} ticket{shop.total_tickets > 1 ? "s" : ""} compté{shop.total_tickets > 1 ? "s" : ""}</div>
                             <div className="text-[var(--positive)]">✓ {shop.sealed_sessions} scellée{shop.sealed_sessions > 1 ? "s" : ""}</div>
                             {shopUnsealed > 0 && (
-                              <div className="text-amber-600 dark:text-amber-400">{shopUnsealed} non scellée{shopUnsealed > 1 ? "s" : ""}</div>
+                              <div className="text-amber-400">{shopUnsealed} non scellée{shopUnsealed > 1 ? "s" : ""}</div>
                             )}
                             <div className="flex flex-wrap gap-x-4 gap-y-0.5">
                               {shop.total_sessions > 0 && (
@@ -434,6 +437,7 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
           })}
         </ul>
       )}
+      <InstrumentCardFooter meta="Données : instantané · Source POS (Vault)" />
       {footer}
     </section>
   );

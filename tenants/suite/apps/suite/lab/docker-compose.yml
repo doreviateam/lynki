@@ -1,0 +1,21 @@
+# Docker Compose - Suite (Landing + Contact)
+# URL: suite.doreviateam.com
+# Spec: ZeDocs/web41/spec_dorevia_landing_implementation.md
+# Réseau: dorevia-network (routage via Caddy / reverse proxy)
+
+services:
+  suite:
+    image: dorevia/suite:latest
+    container_name: suite_lab
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+    networks:
+      - dorevia-network
+    # Port 3000 en interne — Caddy reverse_proxy vers suite_lab:3000
+
+volumes: {}
+
+networks:
+  dorevia-network:
+    external: true

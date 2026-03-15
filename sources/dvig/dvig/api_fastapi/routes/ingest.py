@@ -125,12 +125,16 @@ def ingest(
             }
         
         # 6. Construction du payload pour stockage
+        event_data = dict(evt.data or {})
+        erp_event_captured_at = event_data.get("erp_event_captured_at") or ts
+        event_data["erp_event_captured_at"] = erp_event_captured_at
         payload = {
             "event_type": evt.event_type,
             "source": evt.source,
             "timestamp": ts,
-            "data": evt.data,
-            "idempotency_key": idempotency_key
+            "data": event_data,
+            "idempotency_key": idempotency_key,
+            "erp_event_captured_at": erp_event_captured_at,
         }
         
         # 7. Persistance dans outbox_events

@@ -14,6 +14,14 @@ import (
 	"github.com/rs/zerolog"
 )
 
+func proofTenant(c *fiber.Ctx) string {
+	tenant := c.Get("X-Tenant")
+	if tenant == "" {
+		tenant = c.Query("tenant")
+	}
+	return tenant
+}
+
 // ProofResponse représente la réponse standardisée pour les preuves (format v1.0)
 type ProofResponse struct {
 	ID          string  `json:"id"`
@@ -31,14 +39,14 @@ type ProofResponse struct {
 // Référence : ZeDocs/web12/AMENDEMENTS_FORMAT_PREUVE_DOREVIA_VAULT_v1.1.md
 // — Séparation hashes / proof.attestation_jws ; canonicalization ; verification ; ledger ; event ; status.
 type ProofResponseV11 struct {
-	ID              string                 `json:"id"`
-	Canonicalization string               `json:"canonicalization,omitempty"` // ex: "internal_v1"
-	Hashes          ProofHashesV11         `json:"hashes"`
-	Proof           ProofBlockV11         `json:"proof"`
-	Ledger          *ProofLedgerV11        `json:"ledger,omitempty"`
-	Verification    *ProofVerificationV11  `json:"verification,omitempty"`
-	Event           ProofEventV11          `json:"event"`
-	Status          string                 `json:"status"`
+	ID               string                `json:"id"`
+	Canonicalization string                `json:"canonicalization,omitempty"` // ex: "internal_v1"
+	Hashes           ProofHashesV11        `json:"hashes"`
+	Proof            ProofBlockV11         `json:"proof"`
+	Ledger           *ProofLedgerV11       `json:"ledger,omitempty"`
+	Verification     *ProofVerificationV11 `json:"verification,omitempty"`
+	Event            ProofEventV11         `json:"event"`
+	Status           string                `json:"status"`
 }
 
 type ProofHashesV11 struct {
@@ -50,7 +58,7 @@ type ProofBlockV11 struct {
 	ProofID            string  `json:"proof_id"`
 	SealedAt           string  `json:"sealed_at"`
 	AttestationJWS     *string `json:"attestation_jws,omitempty"`
-	SignatureAlg      string  `json:"signature_alg"`
+	SignatureAlg       string  `json:"signature_alg"`
 	KeyID              string  `json:"key_id"`
 	ProofFormatVersion string  `json:"proof_format_version"`
 }
@@ -62,8 +70,8 @@ type ProofLedgerV11 struct {
 }
 
 type ProofVerificationV11 struct {
-	JWKSUri               string `json:"jwks_uri"`
-	PublicKeyFingerprint  string `json:"public_key_fingerprint,omitempty"`
+	JWKSUri              string `json:"jwks_uri"`
+	PublicKeyFingerprint string `json:"public_key_fingerprint,omitempty"`
 }
 
 type ProofEventV11 struct {
@@ -80,7 +88,7 @@ type BulkProofRequest struct {
 // ProofRequest représente une requête de preuve dans un bulk
 type ProofRequest struct {
 	Type string `json:"type"` // account_move, account_payment, pos_order, etc.
-	ID   string `json:"id"`    // ID Odoo
+	ID   string `json:"id"`   // ID Odoo
 }
 
 // BulkProofResponse représente la réponse bulk
@@ -116,7 +124,7 @@ func buildProofResponse(doc *models.Document, db *storage.DB) ProofResponse {
 	if db != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
-		
+
 		ledgerEntry, err := db.GetLedgerEntryByDocumentID(ctx, doc.ID.String())
 		if err == nil && ledgerEntry != nil {
 			prevHash = ledgerEntry.PrevHash
@@ -231,7 +239,7 @@ func buildProofResponseV11(doc *models.Document, db *storage.DB, jwsService *cry
 // mapTypeToSourceModel mappe le type de requête vers source_model
 func mapTypeToSourceModel(proofType string) string {
 	mapping := map[string]string{
-		"account_move":   "account.move",
+		"account_move":    "account.move",
 		"account_payment": "account.payment",
 		"pos_order":       "pos.order",
 		"pos_payment":     "pos.payment",
@@ -246,7 +254,7 @@ func GetProofAccountMove(db *storage.DB, jwsService *crypto.Service, log *zerolo
 	return func(c *fiber.Ctx) error {
 		start := time.Now()
 		traceID := middleware.GetTraceID(c)
-		tenant := c.Get("X-Tenant")
+		tenant := proofTenant(c)
 		modelIn := "account_move"
 		modelNormalized := "account.move"
 		odooID := c.Params("id")
@@ -266,7 +274,13 @@ func GetProofAccountMove(db *storage.DB, jwsService *crypto.Service, log *zerolo
 		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
 		defer cancel()
 
-		doc, err := db.GetDocumentBySourceID(ctx, "account.move", odooID)
+		var doc *models.Document
+		var err error
+		if tenant != "" {
+			doc, err = db.GetDocumentBySourceIDAndTenant(ctx, "account.move", odooID, tenant)
+		} else {
+			doc, err = db.GetDocumentBySourceID(ctx, "account.move", odooID)
+		}
 		durationMs := int(time.Since(start).Milliseconds())
 
 		if err != nil {
@@ -352,7 +366,14 @@ func GetProofAccountPayment(db *storage.DB, jwsService *crypto.Service) fiber.Ha
 		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
 		defer cancel()
 
-		doc, err := db.GetDocumentBySourceID(ctx, "account.payment", odooID)
+		tenant := proofTenant(c)
+		var doc *models.Document
+		var err error
+		if tenant != "" {
+			doc, err = db.GetDocumentBySourceIDAndTenant(ctx, "account.payment", odooID, tenant)
+		} else {
+			doc, err = db.GetDocumentBySourceID(ctx, "account.payment", odooID)
+		}
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to retrieve proof",
@@ -393,7 +414,14 @@ func GetProofPosOrder(db *storage.DB, jwsService *crypto.Service) fiber.Handler 
 		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
 		defer cancel()
 
-		doc, err := db.GetDocumentBySourceID(ctx, "pos.order", odooID)
+		tenant := proofTenant(c)
+		var doc *models.Document
+		var err error
+		if tenant != "" {
+			doc, err = db.GetDocumentBySourceIDAndTenant(ctx, "pos.order", odooID, tenant)
+		} else {
+			doc, err = db.GetDocumentBySourceID(ctx, "pos.order", odooID)
+		}
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to retrieve proof",
@@ -434,7 +462,14 @@ func GetProofPosPayment(db *storage.DB, jwsService *crypto.Service) fiber.Handle
 		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
 		defer cancel()
 
-		doc, err := db.GetDocumentBySourceID(ctx, "pos.payment", odooID)
+		tenant := proofTenant(c)
+		var doc *models.Document
+		var err error
+		if tenant != "" {
+			doc, err = db.GetDocumentBySourceIDAndTenant(ctx, "pos.payment", odooID, tenant)
+		} else {
+			doc, err = db.GetDocumentBySourceID(ctx, "pos.payment", odooID)
+		}
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to retrieve proof",
@@ -574,4 +609,3 @@ func GetProofEvent(db *storage.DB, jwsService *crypto.Service) fiber.Handler {
 		return c.JSON(buildProofResponse(doc, db))
 	}
 }
-

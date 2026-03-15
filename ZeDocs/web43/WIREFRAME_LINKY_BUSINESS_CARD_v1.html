@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linky — Carte Business</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0F1B2D;
+      --bg-secondary: #14243A;
+      --surface: #1A2E47;
+      --border: #223B5B;
+      --text: #E6EEF8;
+      --muted: #9FB3C8;
+      --hover: #1F3653;
+      --success: #22C55E;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --accent: #3B82F6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "IBM Plex Sans", sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.4; }
+    .header-bar { background: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 12px 0; }
+    .container { max-width: 900px; margin: auto; padding: 0 24px; }
+    .back-link { font-size: 13px; color: var(--muted); text-decoration: none; }
+    .back-link:hover { color: var(--accent); }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-top: 24px; overflow: hidden; }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-header-left { display: flex; align-items: flex-start; gap: 12px; }
+    .card-icon { width: 28px; height: 28px; color: var(--muted); flex-shrink: 0; }
+    .title { font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .value { font-size: 40px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--success); letter-spacing: -0.02em; }
+    .subtitle { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .card-header-right { text-align: right; }
+    .card-header-right .subtitle { margin-top: 2px; }
+
+    .kpi-row { display: flex; gap: 32px; flex-wrap: wrap; padding: 16px 24px; border-bottom: 1px solid var(--border); }
+    .kpi { display: flex; flex-direction: column; gap: 2px; }
+    .kpi-label { font-size: 12px; color: var(--muted); }
+    .kpi-value { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .section { padding: 24px; border-bottom: 1px solid var(--border); }
+    .section:last-child { border-bottom: none; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .section-meta { font-size: 12px; color: var(--muted); }
+    .section-link { font-size: 12px; color: var(--muted); cursor: pointer; }
+    .section-link:hover { color: var(--accent); }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab {
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .tab:hover { color: var(--text); background: var(--hover); }
+    .tab.active { background: rgba(59, 130, 246, 0.15); color: var(--accent); border-color: var(--accent); }
+
+    .chart-area {
+      height: 180px;
+      display: flex;
+      align-items: flex-end;
+      gap: 24px;
+      padding: 16px 0;
+    }
+    .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .chart-bar { width: 100%; max-width: 80px; border-radius: 4px 4px 0 0; min-height: 20px; }
+    .chart-bar.sales { background: var(--success); height: 85%; }
+    .chart-bar.purchases { background: var(--warning); height: 38%; }
+    .chart-bar-label { font-size: 11px; color: var(--muted); }
+    .chart-legend { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+    .chart-legend-item { display: flex; align-items: center; gap: 6px; }
+    .chart-legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+    .chart-legend-dot.green { background: var(--success); }
+    .chart-legend-dot.orange { background: var(--warning); }
+    .chart-note { font-size: 11px; color: var(--muted); margin-top: 8px; }
+
+    .snapshot-warning { font-size: 12px; color: var(--warning); margin-bottom: 12px; }
+    .snapshot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 12px; }
+    @media (max-width: 600px) { .snapshot-grid { grid-template-columns: 1fr; } }
+    .snapshot-item { display: flex; justify-content: space-between; gap: 12px; }
+    .snapshot-label { font-size: 13px; color: var(--muted); }
+    .snapshot-value { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
+    .snapshot-value.warning { color: var(--warning); }
+    .risk-badge {
+      display: inline-flex;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(249, 115, 22, 0.15);
+      color: var(--warning);
+      margin-top: 8px;
+    }
+
+    .pareto { display: flex; flex-direction: column; gap: 10px; }
+    .pareto-row { display: flex; flex-direction: column; gap: 4px; }
+    .pareto-label { display: flex; justify-content: space-between; font-size: 13px; color: var(--text); }
+    .pareto-bar { height: 10px; background: var(--warning); border-radius: 4px; min-width: 2%; }
+
+    .table-wrap { overflow-x: auto; }
+    .table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .table th { text-align: left; padding: 10px 12px; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--border); }
+    .table th.text-right { text-align: right; }
+    .table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+    .table td.text-right { text-align: right; }
+    .table tr:hover td { background: var(--hover); }
+    .amount-warning { color: var(--warning); }
+
+    .accordion-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 12px 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+    }
+    .accordion-trigger:hover { color: var(--text); }
+    .accordion-trigger .amount { color: var(--warning); }
+
+    .insight {
+      background: rgba(249, 115, 22, 0.15);
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--warning);
+      line-height: 1.5;
+    }
+    .insight strong { color: var(--text); }
+  </style>
+</head>
+<body>
+  <header class="header-bar">
+    <div class="container">
+      <a href="WIREFRAME_LINKY_FYGR_v1.html" class="back-link">← Retour au cockpit</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 18v-6M8 18v-4M12 18v-8M16 18v-3M20 18v-5"/><path d="M4 12h16"/>
+          </svg>
+          <div>
+            <div class="title">Business</div>
+            <div class="value">+ 55 260,02 €</div>
+            <div class="subtitle">Marge brute — Exercice à date</div>
+          </div>
+        </div>
+        <div class="card-header-right">
+          <div class="subtitle">Données vérifiées</div>
+          <div class="subtitle">Vault ✓ 36 factures</div>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi"><span class="kpi-label">Taux de marge</span><span class="kpi-value">58,4 %</span></div>
+        <div class="kpi"><span class="kpi-label">Ventes HT</span><span class="kpi-value">94 663,78 €</span></div>
+        <div class="kpi"><span class="kpi-label">Achats HT</span><span class="kpi-value">39 403,76 €</span></div>
+        <div class="kpi"><span class="kpi-label">Clients actifs</span><span class="kpi-value">36</span></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Évolution</span>
+          <span class="section-link">Réduire</span>
+        </div>
+        <div class="tabs">
+          <button class="tab active">Barres</button>
+          <button class="tab">Lignes</button>
+          <button class="tab">Historique</button>
+          <button class="tab active">Mois</button>
+          <button class="tab">Semaine</button>
+          <button class="tab active">Montants</button>
+          <button class="tab">Répartition %</button>
+        </div>
+        <div class="chart-area">
+          <div class="chart-bar-wrap">
+            <div class="chart-bar sales" title="Ventes TTC ~96k"></div>
+            <span class="chart-bar-label">Ventes TTC</span>
+          </div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar purchases" title="Achats TTC ~40k"></div>
+            <span class="chart-bar-label">Achats TTC</span>
+          </div>
+        </div>
+        <div class="chart-legend">
+          <span class="chart-legend-item"><span class="chart-legend-dot green"></span> Ventes TTC</span>
+          <span class="chart-legend-item"><span class="chart-legend-dot orange"></span> Achats TTC</span>
+        </div>
+        <p class="chart-note">Lecture : volumes mensuels en €.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Clients Pareto (80/20)</span>
+          <span class="section-meta">36 partenaires · Top 5 ≈ 80 % CA</span>
+        </div>
+        <p class="snapshot-warning">Donnée snapshot (dernière mise à jour au posting)</p>
+        <div class="snapshot-grid">
+          <div class="snapshot-item">
+            <span class="snapshot-label">Encours client</span>
+            <span class="snapshot-value">50 200,89 €</span>
+          </div>
+          <div class="snapshot-item">
+            <span class="snapshot-label">Dont en retard</span>
+            <span class="snapshot-value warning">28 681,34 €</span>
+          </div>
+          <div class="snapshot-item">
+            <span class="snapshot-label">1 client concentre</span>
+            <span class="snapshot-value">43,9 % du retard</span>
+          </div>
+        </div>
+        <span class="risk-badge">Marge partiellement exposée</span>
+        <div class="pareto" style="margin-top: 16px;">
+          <div class="pareto-row">
+            <div class="pareto-label"><span>EMD</span><span>43 %</span></div>
+            <div class="pareto-bar" style="width: 43%"></div>
+          </div>
+          <div class="pareto-row">
+            <div class="pareto-label"><span>EXPORT MY ISLAND</span><span>38 %</span></div>
+            <div class="pareto-bar" style="width: 38%"></div>
+          </div>
+          <div class="pareto-row">
+            <div class="pareto-label"><span>SAVEUR KARAYB</span><span>17 %</span></div>
+            <div class="pareto-bar" style="width: 17%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <button type="button" class="accordion-trigger">
+          <span>Encours (client)</span>
+          <span>50 200,89 € · 5 partenaires ▲</span>
+        </button>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Partenaire</th>
+                <th class="text-right">Encours</th>
+                <th class="text-right">Retard</th>
+                <th class="text-right">%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>EMD</td>
+                <td class="text-right">20 871,55 €</td>
+                <td class="text-right amount-warning">10 703,36 €</td>
+                <td class="text-right">41,6 %</td>
+              </tr>
+              <tr>
+                <td>EXPORT MY ISLAND</td>
+                <td class="text-right">19 139,23 €</td>
+                <td class="text-right amount-warning">12 589,31 €</td>
+                <td class="text-right">38,1 %</td>
+              </tr>
+              <tr>
+                <td>SAVEUR KARAYB</td>
+                <td class="text-right">8 888,94 €</td>
+                <td class="text-right amount-warning">5 351,17 €</td>
+                <td class="text-right">17,7 %</td>
+              </tr>
+              <tr>
+                <td>SAVEURS DU PALAIS</td>
+                <td class="text-right">1 263,67 €</td>
+                <td class="text-right">—</td>
+                <td class="text-right">2,5 %</td>
+              </tr>
+              <tr>
+                <td>JRS DISTRIBUTION</td>
+                <td class="text-right">37,50 €</td>
+                <td class="text-right amount-warning">37,50 €</td>
+                <td class="text-right">0,1 %</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button type="button" class="accordion-trigger">
+          <span>Clients à risque (retard)</span>
+          <span class="amount">28 681,34 € · 4 partenaires</span>
+        </button>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Insight</div>
+        <div class="insight">
+          <strong>⚠ 1 client concentre 43 % du retard.</strong><br>
+          Impact potentiel sur la marge : 10 703 €.<br><br>
+          Action recommandée : relancer EMD.
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

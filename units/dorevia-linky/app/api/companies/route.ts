@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const VAULT_URL = process.env.VAULT_URL || "http://localhost:8080";
 const DEFAULT_TENANT = process.env.TENANT_ID || "core";
+const LOCKED_TENANT = (process.env.TENANT_ID || "").trim();
 const COMPANIES_TIMEOUT_MS = 5000;
 
 export const revalidate = 0;
@@ -22,7 +23,19 @@ interface EnrichedCompanyItem extends VaultCompanyItem {
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const tenant = searchParams.get("tenant") ?? DEFAULT_TENANT;
+  const requestedTenant = searchParams.get("tenant");
+  if (LOCKED_TENANT && requestedTenant && requestedTenant !== LOCKED_TENANT) {
+    return NextResponse.json(
+      {
+        error: "tenant_mismatch",
+        message: `This Linky deployment is locked to tenant '${LOCKED_TENANT}'.`,
+        requested_tenant: requestedTenant,
+        effective_tenant: LOCKED_TENANT,
+      },
+      { status: 400 }
+    );
+  }
+  const tenant = LOCKED_TENANT || requestedTenant || DEFAULT_TENANT;
 
   const url = `${VAULT_URL.replace(/\/$/, "")}/ui/companies?tenant=${encodeURIComponent(tenant)}`;
   const controller = new AbortController();
@@ -30,7 +43,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const res = await fetch(url, {
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        "X-Tenant": tenant,
+      },
       cache: "no-store",
       signal: controller.signal,
     });

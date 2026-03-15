@@ -1,0 +1,720 @@
+Voici une **spec complète de repositionnement éditorial et UX** pour adapter `suite.doreviateam.com` au positionnement validé :
+
+# SPEC — Repositionnement home page Dorevia Suite vers Linky
+
+**Document :** `SPEC_DOREVIA_SUITE_REPOSITIONNEMENT_LINKY_v1.0`
+**Date :** 14 mars 2026
+**Produit :** Dorevia Suite / Dorevia Linky
+**Statut :** Spécification de référence
+**Décision stratégique :** mettre **Linky** au premier plan comme produit public, et faire de la fiabilité / Vault / infrastructure une **preuve** et non plus le message d’ouverture.
+
+---
+
+## 1. Objet
+
+Cette spécification définit la refonte éditoriale, narrative et structurelle de la home page `suite.doreviateam.com` afin d’aligner la page avec le positionnement public suivant :
+
+**Dorevia Linky, l’assistant de contrôle de gestion des PME.**
+
+L’objectif n’est pas de changer l’ADN de Dorevia, mais de changer l’**ordre de lecture** de la page :
+
+* aujourd’hui, la page ouvre d’abord sur la **fiabilité des données** et la mécanique de plateforme ;
+* demain, elle doit ouvrir d’abord sur le **pilotage**, le **contrôle de gestion** et la **valeur métier** de Linky.
+
+Le site actuel ouvre sur “Pilotez votre entreprise sur des données financières fiables”, présente ensuite “Les chiffres existent déjà. La vérité financière, beaucoup moins.”, puis déroule “Capturer / Sceller / Piloter”, avec Dorevia Vault et DIVA explicitement visibles. ([Dorevia][1])
+
+---
+
+## 2. Enjeu produit et marketing
+
+La home ne doit plus être comprise d’abord comme :
+
+* une plateforme de fiabilisation de flux,
+* un coffre-fort financier,
+* un moteur de traçabilité,
+* une architecture multi-sources.
+
+Elle doit être comprise d’abord comme :
+
+**un produit de pilotage financier pour PME, incarné par Linky.**
+
+La promesse publique doit devenir simple à mémoriser :
+
+* **produit** : Dorevia Linky
+* **catégorie** : assistant de contrôle de gestion
+* **cible** : PME
+* **valeur** : piloter marge, trésorerie, BFR et risque client
+* **preuve** : données fiables, traçables, consolidées
+
+Cette réorientation est cohérente avec la page actuelle, qui contient déjà les briques de crédibilité nécessaires — flux ERP/POS/paiements/documents, cockpit financier, Vault, DIVA — mais les met aujourd’hui au premier plan narratif. ([Dorevia][1])
+
+---
+
+## 3. Objectifs de la refonte
+
+### 3.1 Objectif principal
+
+Faire comprendre en moins de 5 secondes :
+
+**Dorevia Linky aide les PME à piloter.**
+
+### 3.2 Objectifs secondaires
+
+Faire comprendre rapidement :
+
+* que Linky parle de **marge**, **trésorerie**, **BFR**, **encours**, **risque client** ;
+* que ce n’est **pas un ERP** ;
+* que ce n’est **pas un simple dashboard** ;
+* que la fiabilité de la donnée renforce la crédibilité du pilotage ;
+* que la démo peut être demandée facilement.
+
+### 3.3 Objectifs de conversion
+
+Augmenter la clarté du message pour :
+
+* dirigeants de PME,
+* RAF / DAF,
+* structures en croissance,
+* prospects qui n’achètent pas une “plateforme technique”, mais une **aide concrète au pilotage**.
+
+---
+
+## 4. Cible
+
+### 4.1 Cible primaire
+
+PME avec besoin de lecture financière plus structurée :
+
+* dirigeant,
+* RAF,
+* DAF,
+* responsable administratif et financier,
+* entreprise en croissance sans contrôle de gestion fortement outillé.
+
+### 4.2 Cible secondaire
+
+Partenaires, intégrateurs, accompagnateurs métier, prospects plus techniques qui auront besoin d’être rassurés par la profondeur de la couche Dorevia.
+
+### 4.3 Hypothèse centrale
+
+La cible achète plus facilement :
+
+* un **bénéfice métier lisible**,
+  que :
+* une **infrastructure de fiabilisation**, même solide.
+
+---
+
+## 5. Décision de positionnement
+
+### 5.1 Phrase étendard
+
+**Dorevia Linky, l’assistant de contrôle de gestion des PME.**
+
+### 5.2 Promesse courte
+
+**Pilotez la marge, la trésorerie, le BFR et le risque client à partir de données fiables.**
+
+### 5.3 Promesse développée
+
+**Dorevia Linky aide les dirigeants et équipes finance à transformer des données dispersées en lecture financière claire, priorisée et actionnable.**
+
+### 5.4 Formulation à éviter
+
+Ne pas ouvrir la page avec une formulation trop abstraite ou trop technique du type :
+
+* “plateforme de vérité financière”,
+* “coffre-fort d’événements financiers”,
+* “infrastructure probante”,
+* “traçabilité des flux multi-sources”.
+
+Ces éléments restent valables, mais doivent passer en **preuve** ou en **couche de crédibilité**, pas en message d’accroche.
+
+---
+
+## 6. Hiérarchie de message cible
+
+L’ordre de lecture cible doit être :
+
+1. **Linky est un assistant de contrôle de gestion**
+2. **Il aide les PME à piloter**
+3. **Il porte sur marge, trésorerie, BFR, risque client**
+4. **Il transforme des données dispersées en lecture claire**
+5. **Cette lecture est renforcée par une base fiable et traçable**
+6. **Dorevia / Vault / infrastructure expliquent pourquoi on peut y croire**
+
+---
+
+## 7. Structure cible de la home page
+
+La home doit être organisée dans l’ordre suivant :
+
+1. Navigation
+2. Hero
+3. Bloc de tension / problème
+4. Bloc promesse produit
+5. Bloc bénéfices métier
+6. Bloc “Comment ça marche”
+7. Bloc cibles / cas d’usage
+8. Bloc crédibilité
+9. CTA final
+
+Le site actuel contient déjà des blocs proches de cette logique, mais ils sont formulés avec une dominante “fiabilité / flux / preuve”, notamment dans le hero, le bloc “Les chiffres existent déjà…”, le bloc “Comment ça marche”, puis “Ce que Dorevia change au quotidien”. ([Dorevia][1])
+
+---
+
+## 8. Spécification détaillée des sections
+
+## 8.1 Navigation
+
+### Objectif
+
+Rendre la navigation plus orientée produit et moins générique.
+
+### Libellés cibles
+
+* Dorevia Suite
+* Comment ça marche
+* Voir Linky en action
+* Cas d’usage
+* Blog
+* FAQ
+* Demander une démo
+
+### Règle
+
+Le mot **Linky** doit apparaître clairement dans la navigation.
+
+### Remplacement conseillé
+
+Le CTA “Voir le cockpit” peut devenir :
+**Voir Linky en action**
+
+Motif : “cockpit” reste utile, mais “Linky” doit devenir le nom mémorisé.
+
+---
+
+## 8.2 Hero
+
+### Objectif
+
+Poser immédiatement la catégorie produit + la cible + la valeur.
+
+### Contenu cible
+
+**Eyebrow**
+Dorevia Linky
+
+**Titre H1**
+L’assistant de contrôle de gestion des PME
+
+**Sous-titre**
+Pilotez la marge, la trésorerie, le BFR et le risque client à partir de données fiables.
+
+**Texte d’appui**
+Linky aide les dirigeants et équipes finance à voir plus clairement, décider plus vite et agir plus tôt.
+
+**CTA principal**
+Demander une démo
+
+**CTA secondaire**
+Voir Linky en action
+
+**Bandeau de preuve courte**
+Marge · Trésorerie · BFR · Encours clients · Retards · Concentrations
+
+### Intention
+
+Le hero doit faire comprendre :
+
+* ce qu’est Linky,
+* pour qui il est fait,
+* ce qu’il aide à piloter.
+
+### Problème actuel
+
+Le hero actuel ouvre sur la fiabilité de la donnée et non sur la catégorie produit “assistant de contrôle de gestion”. ([Dorevia][1])
+
+---
+
+## 8.3 Bloc de tension / problème
+
+### Objectif
+
+Créer un diagnostic métier immédiatement compréhensible.
+
+### Titre
+
+**Les chiffres existent déjà. La lecture de pilotage, beaucoup moins.**
+
+### Texte
+
+Entre l’ERP, la banque, les paiements, les documents et les opérations, la réalité financière se fragmente.
+
+On voit des données.
+On voit moins vite :
+
+* où la marge se forme,
+* où le cash se tend,
+* quels clients concentrent le risque,
+* quelles priorités exigent une action.
+
+### Intention
+
+Ce bloc ne doit pas parler d’abord de technique.
+Il doit parler d’un **problème de lecture**, pas d’un problème de stockage.
+
+### Remarque
+
+La phrase actuelle “Les chiffres existent déjà. La vérité financière, beaucoup moins.” est forte, mais encore plus conceptuelle que métier. ([Dorevia][1])
+
+---
+
+## 8.4 Bloc promesse produit
+
+### Objectif
+
+Nommer clairement la nature du produit.
+
+### Titre
+
+**Linky transforme des flux dispersés en lecture financière claire.**
+
+### Texte
+
+Pas un dashboard de plus.
+Pas un simple reporting.
+
+Un assistant de contrôle de gestion qui aide les PME à :
+
+* lire plus vite,
+* hiérarchiser les signaux utiles,
+* sécuriser les décisions,
+* piloter avec plus de sérénité.
+
+### Intention
+
+Ce bloc doit installer la différence :
+
+* Linky ≠ ERP
+* Linky ≠ dashboard standard
+* Linky = outil de lecture et de priorisation de gestion
+
+---
+
+## 8.5 Bloc bénéfices métier
+
+### Objectif
+
+Passer de la promesse générale aux bénéfices concrets.
+
+### Titre
+
+**Ce que Linky vous aide à voir immédiatement**
+
+### Sous-blocs recommandés
+
+**Marge**
+Où elle se crée, où elle se dégrade, où elle mérite votre attention.
+
+**Trésorerie**
+Les tensions, les écarts et les signaux faibles à traiter avant qu’ils deviennent critiques.
+
+**BFR**
+Les encours, les retards, les concentrations et leur impact sur votre équilibre financier.
+
+**Risque client**
+Les dépendances, anomalies de portefeuille et priorités de recouvrement.
+
+### Intention
+
+Le visiteur doit se projeter dans des usages réels de contrôle de gestion.
+
+### Règle UX
+
+Le texte doit rester court, très lisible, avec une densité de sens élevée.
+
+---
+
+## 8.6 Bloc différenciation
+
+### Objectif
+
+Éviter l’assimilation à un dashboard classique.
+
+### Titre
+
+**Voir des chiffres ne suffit pas. Il faut pouvoir les lire.**
+
+### Texte
+
+Linky ne se contente pas d’afficher des indicateurs.
+
+Il aide à comprendre :
+
+* ce qui se passe,
+* pourquoi cela compte,
+* où agir en priorité.
+
+**Baseline de clôture**
+Moins de lecture brute. Plus de pilotage.
+
+### Intention
+
+Ce bloc doit faire sentir l’intelligence d’usage de Linky, sans surpromettre.
+
+---
+
+## 8.7 Bloc “Comment ça marche”
+
+### Objectif
+
+Conserver la crédibilité technique de Dorevia, mais avec une formulation métier-first.
+
+### Titre
+
+**Une lecture plus claire commence par une base plus fiable.**
+
+### Étapes
+
+**1. Connecter**
+ERP, paiements, banque, POS, documents, comptabilité.
+
+**2. Fiabiliser**
+Les événements utiles au pilotage sont consolidés, tracés et préparés.
+
+**3. Piloter**
+Linky restitue une lecture exploitable de la marge, du cash, du BFR et du risque client.
+
+### Phrase de preuve
+
+En arrière-plan, l’infrastructure Dorevia renforce la cohérence des données avant leur restitution dans Linky.
+
+### Ce qui change par rapport à l’existant
+
+Le site actuel met en avant “Capturer / Sceller / Piloter” et nomme explicitement Dorevia Vault comme couche de scellement. Cette logique doit être conservée fonctionnellement, mais reformulée avec une entrée davantage orientée usage et non mécanisme. ([Dorevia][1])
+
+---
+
+## 8.8 Bloc cibles / cas d’usage
+
+### Objectif
+
+Aider le visiteur à se reconnaître.
+
+### Titre
+
+**Pensé pour les PME qui veulent mieux piloter**
+
+### Sous-blocs
+
+**Dirigeants**
+Pour décider avec une vision plus claire de la performance et des tensions.
+
+**RAF / DAF**
+Pour structurer la lecture de gestion sans multiplier les retraitements.
+
+**PME en croissance**
+Pour garder la maîtrise malgré la complexité croissante des flux.
+
+### Intention
+
+Faire comprendre que Linky n’est pas réservé aux grands groupes ni aux profils très techniques.
+
+---
+
+## 8.9 Bloc crédibilité
+
+### Objectif
+
+Réintroduire Dorevia, Vault, traçabilité, fiabilité comme preuve.
+
+### Titre
+
+**Des décisions plus solides reposent sur des données plus fiables.**
+
+### Texte
+
+La valeur de Linky ne vient pas seulement de ce qu’il montre.
+Elle vient de la qualité de la lecture qu’il rend possible.
+
+Quand la donnée est plus cohérente, le pilotage devient :
+
+* plus lisible,
+* plus réactif,
+* plus crédible.
+
+### Intention
+
+Ce bloc doit rassurer sans ré-écraser la page avec une logique d’architecture.
+
+### Règle
+
+Pas de jargon excessif dans ce bloc.
+Les mots “sceller”, “horodater”, “coffre-fort”, “preuve” peuvent être présents plus bas, mais pas comme centre du message.
+
+---
+
+## 8.10 CTA final
+
+### Objectif
+
+Convertir sans complexifier.
+
+### Titre
+
+**Voyez ce que Linky peut changer dans votre pilotage**
+
+### Texte
+
+Découvrez comment Dorevia Linky peut aider votre entreprise à piloter plus clairement la marge, la trésorerie, le BFR et le risque client.
+
+### CTAs
+
+**CTA principal**
+Demander une démo
+
+**CTA secondaire**
+Voir Linky en action
+
+**Texte de réassurance**
+Démonstration sur cas réel ou simulé, selon votre contexte.
+
+### Remarque
+
+La logique actuelle “Voir le cockpit / Explorer des cas d’usage / Parler de votre contexte” est saine, mais trop dispersée pour une lecture premium courte. ([Dorevia][1])
+
+---
+
+## 9. Direction éditoriale
+
+## 9.1 Tonalité
+
+Le ton doit être :
+
+* clair,
+* sobre,
+* crédible,
+* CFO-friendly,
+* orienté décision.
+
+Il ne doit pas être :
+
+* startup flashy,
+* techno-centré,
+* trop abstrait,
+* trop institutionnel.
+
+## 9.2 Champ lexical à privilégier
+
+* pilotage
+* lecture financière
+* marge
+* trésorerie
+* BFR
+* encours
+* risque client
+* signaux
+* priorités
+* données fiables
+* décision
+* lisibilité
+* cohérence
+
+## 9.3 Champ lexical à mettre en retrait
+
+* plateforme
+* vérité financière
+* coffre-fort
+* scellement
+* architecture
+* multi-sources
+* traçabilité des événements
+* infrastructure
+
+Ces mots restent utiles, mais en support.
+
+## 9.4 Règle d’écriture
+
+Chaque bloc doit répondre à une question simple :
+
+* qu’est-ce que c’est ?
+* à quoi ça sert ?
+* pour qui ?
+* pourquoi y croire ?
+* que faire ensuite ?
+
+---
+
+## 10. Direction UX / UI
+
+## 10.1 Niveau de densité
+
+La page doit être plus tendue que pédagogique :
+
+* phrases plus courtes,
+* moins de texte explicatif,
+* plus de densité de sens.
+
+## 10.2 Rythme
+
+Le rythme de lecture doit suivre ce schéma :
+
+* promesse,
+* tension,
+* bénéfice,
+* preuve,
+* conversion.
+
+## 10.3 Visuels
+
+Les captures ou mockups de Linky doivent montrer des éléments cohérents avec la promesse :
+
+* marge,
+* trésorerie,
+* risque,
+* encours,
+* retards,
+* lecture structurée.
+
+Éviter les visuels trop décoratifs ou trop abstraits.
+
+## 10.4 Place de Vault
+
+Vault ne doit pas disparaître.
+Il doit être visible comme **fondation de confiance**, pas comme héros commercial principal.
+
+---
+
+## 11. Règles de message non négociables
+
+1. Le mot **Linky** doit être visible très tôt.
+2. Le H1 doit contenir **assistant de contrôle de gestion**.
+3. Les bénéfices métier doivent citer explicitement au moins 3 sujets parmi :
+
+   * marge,
+   * trésorerie,
+   * BFR,
+   * risque client,
+   * encours.
+4. La fiabilité doit être présente comme **raison d’y croire**.
+5. Le discours ne doit pas laisser penser que Dorevia remplace l’ERP.
+6. Le discours ne doit pas enfermer Linky dans une simple catégorie “dashboard”.
+
+---
+
+## 12. Métadonnées SEO recommandées
+
+### Title
+
+**Dorevia Linky — L’assistant de contrôle de gestion des PME**
+
+### Meta description
+
+**Pilotez la marge, la trésorerie, le BFR et le risque client avec Dorevia Linky, l’assistant de contrôle de gestion des PME, fondé sur des données fiables.**
+
+### H1
+
+**L’assistant de contrôle de gestion des PME**
+
+### H2 prioritaires
+
+* Les chiffres existent déjà. La lecture de pilotage, beaucoup moins.
+* Linky transforme des flux dispersés en lecture financière claire.
+* Ce que Linky vous aide à voir immédiatement.
+* Une lecture plus claire commence par une base plus fiable.
+
+---
+
+## 13. Éléments à reprendre depuis l’existant
+
+À conserver dans l’esprit :
+
+* la notion de flux ERP / POS / paiements / documents / banque,
+* l’idée d’une restitution claire,
+* l’existence de Vault et DIVA,
+* la démonstration sur cas réel ou simulé,
+* la crédibilité d’un cockpit financier.
+
+Ces éléments sont déjà visibles sur le site actuel et constituent un bon socle de preuve. ([Dorevia][1])
+
+---
+
+## 14. Éléments à corriger depuis l’existant
+
+### À corriger
+
+* hero trop centré sur la fiabilité,
+* page trop centrée sur la mécanique avant l’usage,
+* Linky pas assez héros,
+* bénéfices encore un peu génériques,
+* CTA dispersés dans le bas de page.
+
+### À produire
+
+* un hero orienté produit + métier,
+* une structure plus premium et plus tendue,
+* des bénéfices métier plus immédiatement lisibles,
+* une couche de preuve plus élégamment reléguée au second plan.
+
+---
+
+## 15. Critères d’acceptation
+
+La spec sera considérée comme correctement implémentée si :
+
+### Message
+
+* un visiteur comprend immédiatement que Linky sert au contrôle de gestion ;
+* un visiteur comprend qu’il s’adresse aux PME ;
+* un visiteur comprend que l’outil aide à piloter plus que simplement afficher.
+
+### Copy
+
+* le H1 est conforme ;
+* la promesse courte cite explicitement les sujets de pilotage ;
+* la preuve par la fiabilité existe mais ne domine plus le hero.
+
+### UX
+
+* les CTA principaux sont visibles sans effort ;
+* “Voir Linky en action” remplace utilement la simple logique “cockpit” ;
+* la lecture de la page est plus rapide qu’avant.
+
+### Branding
+
+* Linky devient le nom mémorisé ;
+* Dorevia devient la garantie de cohérence et de fiabilité ;
+* Vault reste une preuve, pas le message principal.
+
+---
+
+## 16. Version de référence recommandée pour le hero
+
+### Version retenue
+
+**Dorevia Linky**
+**L’assistant de contrôle de gestion des PME**
+**Pilotez la marge, la trésorerie, le BFR et le risque client à partir de données fiables.**
+
+### Variante secondaire possible
+
+**Une lecture financière claire, fiable et actionnable pour piloter la marge, le cash, le BFR et le risque client.**
+
+---
+
+## 17. Résumé exécutif
+
+La home de `suite.doreviateam.com` ne doit plus vendre d’abord une infrastructure de fiabilisation.
+Elle doit vendre d’abord une **promesse de pilotage**.
+
+Le bon récit public devient :
+
+**Linky aide les PME à piloter.**
+**Dorevia rend ce pilotage plus fiable.**
+
+C’est ce basculement qui doit guider toute la réécriture.
+
+Si tu veux, au tour suivant je te fais la **version v1.1 directement en markdown “repo-ready”**, avec formulation finale bloc par bloc et microcopy des boutons.
+
+[1]: https://suite.doreviateam.com/ "Dorevia — Données financières fiables pour piloter"

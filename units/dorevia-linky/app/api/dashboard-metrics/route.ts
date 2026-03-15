@@ -1,12 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordUxSample } from "@/app/lib/ux-metrics";
 
 const VAULT_URL = process.env.VAULT_URL || "http://localhost:8080";
 const DLP_URL = process.env.DLP_URL || "http://dlp:8020";
+const DVIG_URL = (process.env.DVIG_URL || "").trim();
+const DVIG_INTERNAL_TOKEN = (process.env.DVIG_INTERNAL_TOKEN || "").trim();
 const DEFAULT_TENANT = process.env.TENANT_ID || "core";
+const LOCKED_TENANT = (process.env.TENANT_ID || "").trim();
 const TIMEOUT_MS = 90000; // 90s — fallback pour requêtes non critiques
 const SEALED_COUNT_BUDGET_MS = 3000; // Garantie : complétude badge/cartes en < 5 s — 3s pour réactivité
-const DLP_TIMEOUT_MS = 5000;
-const BANK_RECONCILIATION_TIMEOUT_MS = 2000; // Odoo peut être lent — ne pas bloquer l'affichage
+// Sprint 3 UX: le bloc DLP est informatif, il ne doit pas dégrader le temps de disponibilité cockpit.
+const DLP_TIMEOUT_MS = 800;
+const BANK_RECONCILIATION_TIMEOUT_MS = 2000;
+
+function getDefaultCompanyId(): string {
+  const raw = process.env.COMPANY_DISPLAY_NAMES;
+  if (!raw) return "";
+  try {
+    const parsed = JSON.parse(raw) as Record<string, string>;
+    const keys = Object.keys(parsed);
+    return keys.length === 1 ? keys[0] : "";
+  } catch {
+    return "";
+  }
+}
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
@@ -130,6 +147,12 @@ export interface DashboardMetricsResponse {
   refunds: KpiMetric;
   pos_shops: KpiMetric;
   pos_z: KpiMetric;
+  /** BFR — Besoin en Fonds de Roulement (encours clients - proxy dettes) */
+  working_capital?: KpiMetric;
+  /** Encours — créances clients ouvertes (AR open) */
+  encours?: KpiMetric;
+  /** EBE — Excédent Brut d'Exploitation (CA - achats - charges) */
+  ebitda?: KpiMetric;
   /** DLP — Énergie stratégique (données via /api/dlp/energy-summary, pas dashboard-metrics) */
   strategic_energy?: KpiMetric;
   /** Détails par axe (enrichissement pour DIVA/Mistral) */
@@ -150,9 +173,21 @@ export interface DashboardMetricsResponse {
   expected_count?: number | null;
   /** Timestamp ISO 8601 — Dernière synchronisation (connecteur) */
   generated_at?: string | null;
+  /** Timestamp ISO 8601 — instant de disponibilité des données côté Linky API */
+  linky_data_available_at?: string | null;
+  /** Mesure ponctuelle UX en millisecondes (proxy `generated_at -> now`) */
+  ux_t_ms?: number | null;
 }
 
 const SPACE = "\u0020";
+
+function getCurrencyLabel(currency = "EUR"): string {
+  const code = (currency || "EUR").toUpperCase();
+  if (code === "EUR") return "€";
+  if (code === "USD") return "$";
+  if (code === "GBP") return "£";
+  return code;
+}
 
 function formatWithThousands(n: number, decimals = 0): string {
   const fixed = decimals > 0 ? n.toFixed(decimals) : Math.round(n).toString();
@@ -162,12 +197,12 @@ function formatWithThousands(n: number, decimals = 0): string {
 }
 
 function formatAmount(value: number, currency = "EUR"): string {
-  return `${formatWithThousands(value, 2)} €`;
+  return `${formatWithThousands(value, 2)} ${getCurrencyLabel(currency)}`;
 }
 
-function formatSignedAmount(value: number): string {
+function formatSignedAmount(value: number, currency = "EUR"): string {
   const sign = value >= 0 ? "+" : "\u2212";
-  return `${sign} ${formatWithThousands(Math.abs(value), 2)} €`;
+  return `${sign} ${formatWithThousands(Math.abs(value), 2)} ${getCurrencyLabel(currency)}`;
 }
 
 function toValueKind(value: number, useSigned: boolean): ValueKind {
@@ -182,10 +217,9 @@ function toValueKind(value: number, useSigned: boolean): ValueKind {
  * Spec : SPEC_DOREVIA_Linky_Icon_Status_Badge_v1.0 §4–§5.
  */
 function computeCardStatuses(resp: DashboardMetricsResponse): void {
-  // treasury.value = reste à rapprocher % (aligné Card Paiements mode gouvernance)
-  const remainingPct = resp.treasury.value;
-  // Pour Cash/Taxes : taux rapproché (inverse)
-  const tPct = resp._details?.treasury?.treasury_validated_pct ?? (remainingPct != null ? 100 - remainingPct : null);
+  // treasury.value = solde validé (position) depuis la refonte — lire la couverture depuis _details
+  const tPct = resp._details?.treasury?.treasury_validated_pct ?? null;
+  const remainingPct = tPct != null ? 100 - tPct : null;
   const cashVal = resp.cash.value;
   const bizVal = resp.business.value;
   const posVal = resp.pos_shops.value;
@@ -198,12 +232,20 @@ function computeCardStatuses(resp: DashboardMetricsResponse): void {
     m.status_reason = r;
   };
 
-  // §4.1 Paiements (tuile) — reste à rapprocher % (mode gouvernance, aligné Card Paiements)
-  // Vert < 5 %, orange 5–30 % (attention), orange > 30 % (insuffisant)
-  if (remainingPct == null) set(resp.treasury, "neutral", "Donnée non disponible");
+  // §4.1 Trésorerie (tuile) — statut basé sur la couverture probante (reste à rapprocher %)
+  // Vert < 5 %, orange 5–30 % (rapprochement en cours), orange > 30 % (insuffisant)
+  if (remainingPct == null) set(resp.treasury, "neutral", "Couverture non disponible");
   else if (remainingPct < 5) set(resp.treasury, "ok", `${remainingPct.toFixed(1)} % des flux non couverts par preuve bancaire`);
   else if (remainingPct <= 30) set(resp.treasury, "watch", `${remainingPct.toFixed(1)} % des flux non couverts — rapprochement en cours`);
   else set(resp.treasury, "watch", `${remainingPct.toFixed(1)} % des flux non couverts — rapprochement insuffisant`);
+
+  // §4.1bis Paiements (tuile treasury_position) — même logique que la carte Paiements (encadrement orange si vigilance)
+  if (resp.treasury_position) {
+    if (remainingPct == null) set(resp.treasury_position, "neutral", "Rapprochement non disponible");
+    else if (remainingPct < 5) set(resp.treasury_position, "ok", `${remainingPct.toFixed(1)} % à rapprocher`);
+    else if (remainingPct <= 30) set(resp.treasury_position, "watch", `${remainingPct.toFixed(1)} % à rapprocher — en cours`);
+    else set(resp.treasury_position, "watch", `${remainingPct.toFixed(1)} % à rapprocher — insuffisant`);
+  }
 
   // §4.2 Cash (dépend de la validation trésorerie)
   if (cashVal == null) set(resp.cash, "neutral", "Pas de donnée cash");
@@ -256,6 +298,28 @@ function computeCardStatuses(resp: DashboardMetricsResponse): void {
   if (resp.pos_z.value == null) set(resp.pos_z, "neutral", "Z de caisse non renseigné");
   else set(resp.pos_z, "neutral", "Z de caisse présent (règles v1.1)");
 
+  // §4.9 BFR (working_capital) — encours clients (proxy AR open)
+  if (resp.working_capital) {
+    const bfrVal = resp.working_capital.value;
+    if (bfrVal == null) set(resp.working_capital, "neutral", "Encours clients non disponible");
+    else if (bfrVal > 0) set(resp.working_capital, "watch", `${formatAmount(bfrVal)} de créances ouvertes`);
+    else set(resp.working_capital, "ok", "Aucune créance ouverte");
+  }
+
+  // §4.10 Encours — créances clients ouvertes
+  if (resp.encours) {
+    const encoursVal = resp.encours.value;
+    if (encoursVal == null) set(resp.encours, "neutral", "Encours non disponible");
+    else if (encoursVal > 0) set(resp.encours, "watch", `${formatAmount(encoursVal)} d'encours clients`);
+    else set(resp.encours, "ok", "Aucun encours client");
+  }
+
+  // §4.11 EBE — aligné vue détaillée (payroll OD ou bulletins)
+  if (resp.ebitda) {
+    if (resp.ebitda.value == null) set(resp.ebitda, "neutral", "EBE non disponible (données insuffisantes)");
+    else set(resp.ebitda, "ok", "EBE disponible (OD ou bulletins)");
+  }
+
   // §5 Cohérence globale : si treasury = 0 %, aucun ok sauf POS
   if (tPct != null && tPct === 0) {
     for (const card of [resp.cash, resp.business, resp.taxes, resp.credit_notes, resp.refunds, resp.pos_z]) {
@@ -268,16 +332,34 @@ function computeCardStatuses(resp: DashboardMetricsResponse): void {
 }
 
 /**
- * GET /api/dashboard-metrics — agrège les métriques principales des 8 KPIs pour la grille d'accueil.
+ * GET /api/dashboard-metrics — agrège les métriques principales des KPIs pour la grille d'accueil.
  * Appelle le Vault directement (évite les self-fetch qui échouent en Docker).
  * Paramètres : tenant, date_debut, date_fin, company_id
+ *
+ * @deprecated Sera remplacé par GET /api/instruments (Metric Engine).
+ * Migration : PLAN_IMPLEMENTATION_SCRUM_LINKY_v1.0.md US-08 / US-10.
+ * Pour activer le Metric Engine : NEXT_PUBLIC_LINKY_USE_METRIC_ENGINE=1
  */
 export async function GET(request: NextRequest) {
+  const requestStartedAtMs = Date.now();
   const { searchParams } = new URL(request.url);
-  const tenant = searchParams.get("tenant") ?? DEFAULT_TENANT;
+  const requestedTenant = searchParams.get("tenant");
+  if (LOCKED_TENANT && requestedTenant && requestedTenant !== LOCKED_TENANT) {
+    return NextResponse.json(
+      {
+        error: "tenant_mismatch",
+        message: `This Linky deployment is locked to tenant '${LOCKED_TENANT}'.`,
+        requested_tenant: requestedTenant,
+        effective_tenant: LOCKED_TENANT,
+      },
+      { status: 400 }
+    );
+  }
+  // Verrouillage inter-tenant: si le déploiement est dédié, ignorer tout tenant divergent.
+  const tenant = LOCKED_TENANT || requestedTenant || DEFAULT_TENANT;
   const date_debut = searchParams.get("date_debut") ?? "2000-01-01";
   const date_fin = searchParams.get("date_fin") ?? "2030-12-31";
-  const company_id = searchParams.get("company_id") ?? "";
+  const company_id = searchParams.get("company_id") ?? getDefaultCompanyId();
   const minimal = searchParams.get("minimal") === "1"; // Vue grille : skip sales-by-partner, ar-by-partner (allège payload)
   const base = VAULT_URL.replace(/\/$/, "");
 
@@ -296,7 +378,10 @@ export async function GET(request: NextRequest) {
       const qs = params ? `?${params.toString()}` : "";
       const res = await fetch(`${base}${path}${qs}`, {
         cache: "no-store",
-        headers: { Accept: "application/json" },
+        headers: {
+          Accept: "application/json",
+          "X-Tenant": tenant,
+        },
         signal: ctrl.signal,
       });
       clearTimeout(t);
@@ -318,6 +403,7 @@ export async function GET(request: NextRequest) {
 
   const COMPLETENESS_SNAPSHOT_TIMEOUT_MS = 3000; // SPEC §5.1 : 5s max — 3s pour réactivité
   const roundMs = Math.min(1500, Math.floor(SEALED_COUNT_BUDGET_MS / 2));
+  /** Snapshot scopé (période + société) pour le reste du dashboard */
   const fetchCompletenessSnapshot = async () => {
     try {
       const params = new URLSearchParams({ tenant, date_debut, date_fin });
@@ -326,6 +412,25 @@ export async function GET(request: NextRequest) {
       return data as {
         sealed_count?: number;
         expected_count?: number | null;
+        complete?: boolean;
+        sealed_count_sources?: Record<string, boolean>;
+        generated_at?: string | null;
+      } | null;
+    } catch {
+      return null;
+    }
+  };
+  /** Snapshot total tenant (période large, sans company_id) pour le badge « X preuves scellées » — ne pas remonter une valeur inférieure au total Vault */
+  const fetchCompletenessSnapshotTotal = async () => {
+    try {
+      const params = new URLSearchParams({
+        tenant,
+        date_debut: "2000-01-01",
+        date_fin: "2030-12-31",
+      });
+      const data = await fetchJsonWithTimeout("/ui/completeness-snapshot", params, COMPLETENESS_SNAPSHOT_TIMEOUT_MS);
+      return data as {
+        sealed_count?: number;
         complete?: boolean;
         sealed_count_sources?: Record<string, boolean>;
         generated_at?: string | null;
@@ -354,29 +459,55 @@ export async function GET(request: NextRequest) {
     return results;
   };
 
+  /** Linky ne voit que le Vault : toutes les sources scellées viennent du Vault */
+  const sealedResultsPromise = fetchSealedSourcesWithRetry();
+
   try {
     const treasuryParams = new URLSearchParams({ tenant, date_debut, date_fin, ...(company_id && { company_id }) });
     const arByPartnerParams = new URLSearchParams({ ...Object.fromEntries(commonParams), overdue: "false", limit: "50" });
 
-    const [sealedResults, snapshotRes, otherCritical] = await Promise.all([
-      fetchSealedSourcesWithRetry(),
+    const [sealedRaw, snapshotRes, snapshotTotalRes, otherCritical] = await Promise.all([
+      sealedResultsPromise,
       fetchCompletenessSnapshot(),
+      fetchCompletenessSnapshotTotal(),
       Promise.all([
         fetchJsonWithTimeout("/ui/aggregations/treasury", treasuryParams, SEALED_COUNT_BUDGET_MS),
+        fetchJsonWithTimeout("/ui/system/vault-health", new URLSearchParams({ tenant }), BANK_RECONCILIATION_TIMEOUT_MS),
         fetchJsonWithTimeout("/ui/system/bank-reconciliation-health", treasuryParams, BANK_RECONCILIATION_TIMEOUT_MS),
         fetchJsonWithTimeout("/ui/aggregations/adjustments", new URLSearchParams({ ...Object.fromEntries(commonParams), event_type: "credit_note.customer.issued" }), SEALED_COUNT_BUDGET_MS),
         fetchJsonWithTimeout("/ui/aggregations/adjustments", new URLSearchParams({ ...Object.fromEntries(commonParams), event_type: "credit_note.supplier.received" }), SEALED_COUNT_BUDGET_MS),
         fetchJsonWithTimeout("/ui/aggregations/adjustments", new URLSearchParams({ ...Object.fromEntries(commonParams), event_type: "refund.customer.paid" }), SEALED_COUNT_BUDGET_MS),
         fetchJsonWithTimeout("/ui/aggregations/adjustments", new URLSearchParams({ ...Object.fromEntries(commonParams), event_type: "refund.supplier.received" }), SEALED_COUNT_BUDGET_MS),
+        fetchJsonWithTimeout(
+          "/ui/aggregations/payments-completeness",
+          new URLSearchParams({ tenant, date_from: date_debut, date_to: date_fin }),
+          SEALED_COUNT_BUDGET_MS
+        ),
+        fetchJsonWithTimeout("/ui/aggregations/payroll", commonParams, SEALED_COUNT_BUDGET_MS),
       ]),
     ]);
 
+    const sealedResults = sealedRaw as Record<SealedSourceKey, unknown>;
     const salesRes = sealedResults.sales;
     const purchasesRes = sealedResults.purchases;
     const paymentsInRes = sealedResults.paymentsIn;
     const paymentsOutRes = sealedResults.paymentsOut;
     const posRes = sealedResults.pos;
-    const [treasuryRes, healthRes, adjCreditClientRes, adjCreditSupplierRes, adjRefundClientRes, adjRefundSupplierRes] = otherCritical;
+    const [
+      treasuryRes,
+      vaultHealthRes,
+      healthRes,
+      adjCreditClientRes,
+      adjCreditSupplierRes,
+      adjRefundClientRes,
+      adjRefundSupplierRes,
+      paymentsCompletenessRes,
+      payrollRes,
+    ] = otherCritical;
+    // AR totals : toujours fetché (BFR/Encours dans la grille), mais avec limit=1 pour réduire le payload en mode minimal
+    const arByPartnerMinimalParams = new URLSearchParams({ ...Object.fromEntries(commonParams), overdue: "false", limit: "1" });
+    const arTotalsFetch = fetchJsonWithTimeout("/ui/aggregations/ar-by-partner", arByPartnerMinimalParams, SEALED_COUNT_BUDGET_MS).catch(() => null);
+
     const optionalFetches = minimal
       ? Promise.resolve([null, null] as [null, null])
       : Promise.all([
@@ -401,7 +532,29 @@ export async function GET(request: NextRequest) {
       }
     })();
 
-    const [[salesByPartnerRes, arByPartnerRes], dlpData] = await Promise.all([optionalFetches, dlpFetch]);
+    // Durcissement cash: double lecture et sélection de la valeur la plus complète.
+    // Cela évite les réponses transitoires incomplètes observées au premier hit.
+    const fetchStableCashAgg = async (path: string) => {
+      const a = await fetchJsonWithTimeout(path, commonParams, 12_000).catch(() => null);
+      const b = await fetchJsonWithTimeout(path, commonParams, 12_000).catch(() => null);
+      const pick = [a, b]
+        .filter((x) => typeof x?.total === "number")
+        .sort((x, y) => Math.abs((y?.total as number) ?? 0) - Math.abs((x?.total as number) ?? 0))[0];
+      return pick ?? a ?? b;
+    };
+    const strictCashFetches = Promise.all([
+      fetchStableCashAgg("/ui/aggregations/payments-in"),
+      fetchStableCashAgg("/ui/aggregations/payments-out"),
+    ]);
+
+    const [[salesByPartnerRes, arByPartnerResFull], dlpData, [paymentsInStrictRes, paymentsOutStrictRes], arTotalsRes] = await Promise.all([
+      optionalFetches,
+      dlpFetch,
+      strictCashFetches,
+      arTotalsFetch,
+    ]);
+    // En vue détail : utiliser la réponse complète ; en mode minimal : utiliser arTotalsRes pour les totaux BFR/Encours
+    const arByPartnerRes = arByPartnerResFull ?? arTotalsRes;
 
     // Tuile Paiements — alignée Card Paiements (mode gouvernance) : montant à rapprocher
     // Affichage : montant à rapprocher (€) ; statut (contour orange) : remaining_ratio
@@ -423,45 +576,90 @@ export async function GET(request: NextRequest) {
     const legacyRatePct = rawRate != null ? (rawRate <= 1 ? rawRate * 100 : rawRate) : null;
 
     // Pour statut (contour orange) : reste à rapprocher % (0–100)
-    const treasuryRemainingPct = hasReconMetrics
+    let treasuryRemainingPct = hasReconMetrics
       ? remainingRatio! * 100
       : legacyRatePct != null
         ? 100 - legacyRatePct
         : null;
-    const currency = treasuryRes?.currency ?? "EUR";
+    const treasuryCurrency = treasuryRes?.currency ?? "EUR";
     // Affichage tuile : montant à rapprocher (€) ; fallback unreconciled si pas de reconciliation_metrics
     const unreconciledVol =
       treasuryRes?.process?.unreconciled_volume ??
       treasuryRes?.unreconciled_balance ??
       treasuryRes?.unreconciled ??
       0;
-    const amountToReconcile = hasReconMetrics ? remainingAmountAbs : unreconciledVol;
-    const treasuryFormatted =
-      amountToReconcile > 0 ? formatAmount(amountToReconcile, currency) : "Rapprocher";
+    let amountToReconcile = hasReconMetrics ? remainingAmountAbs : unreconciledVol;
+    let treasuryFormatted =
+      amountToReconcile > 0 ? formatAmount(amountToReconcile, treasuryCurrency) : "Rapprocher";
 
-    type AggWithTotal = { total?: number; by_method?: Record<string, number> } | null;
-    const inTotal = (paymentsInRes as AggWithTotal)?.total ?? 0;
-    const outTotalRaw = (paymentsOutRes as AggWithTotal)?.total ?? 0;
-    const outTotal = Math.abs(outTotalRaw);
-    // Cash tile : net espèces si by_method disponible (post-backfill), sinon net total
-    const piBy = (paymentsInRes as AggWithTotal)?.by_method;
-    const poBy = (paymentsOutRes as AggWithTotal)?.by_method;
-    const hasByMethod =
-      (piBy && Object.keys(piBy).length > 0) || (poBy && Object.keys(poBy).length > 0);
+    type AggWithTotal = { total?: number; by_method?: Record<string, number>; currency?: string } | null;
+    type SealedAgg = { invoices_count?: number; payment_count?: number; items?: unknown } | null;
+    const salesOk = salesRes != null && typeof (salesRes as SealedAgg)?.invoices_count === "number";
+    const purchasesOk = purchasesRes != null && typeof (purchasesRes as SealedAgg)?.invoices_count === "number";
+    const paymentsInOk = paymentsInRes != null && typeof (paymentsInRes as SealedAgg)?.payment_count === "number";
+    const paymentsOutOk = paymentsOutRes != null && typeof (paymentsOutRes as SealedAgg)?.payment_count === "number";
+    const posOk = posRes != null && Array.isArray((posRes as PosRes)?.items);
+
+    const inTotalRaw = (paymentsInStrictRes as AggWithTotal)?.total ?? (paymentsInRes as AggWithTotal)?.total;
+    const outTotalRaw = (paymentsOutStrictRes as AggWithTotal)?.total ?? (paymentsOutRes as AggWithTotal)?.total;
+    const inTotal = typeof inTotalRaw === "number" ? inTotalRaw : 0;
+    const outTotal = typeof outTotalRaw === "number" ? Math.abs(outTotalRaw) : 0;
+    const sealedPaymentsGross = Math.abs(inTotal) + Math.abs(outTotal);
+    const sealedPaymentsCount =
+      ((paymentsInRes as SealedAgg)?.payment_count ?? 0) + ((paymentsOutRes as SealedAgg)?.payment_count ?? 0);
+    // Garde-fou multi-source: si aucune preuve de paiement scellée sur la période, ne pas afficher un reste à rapprocher issu de fallback ERP.
+    if (sealedPaymentsCount === 0) {
+      treasuryRemainingPct = 0;
+      amountToReconcile = 0;
+      treasuryFormatted = formatAmount(0, treasuryCurrency);
+    }
+    // Garde-fou de cohérence: la carte Paiements doit rester bornée au périmètre scellé.
+    // Si le fallback ERP renvoie un volume hors-échelle (ex: lignes historiques non scellées),
+    // on force l'affichage sur le volume réellement scellé visible dans Linky.
+    if (sealedPaymentsCount > 0 && sealedPaymentsGross > 0) {
+      const outOfScopeReconciliation = !hasReconMetrics || amountToReconcile > sealedPaymentsGross * 1.25;
+      if (outOfScopeReconciliation) {
+        amountToReconcile = sealedPaymentsGross;
+        treasuryRemainingPct = 100;
+        treasuryFormatted = formatAmount(amountToReconcile, treasuryCurrency);
+      }
+    }
+    // Cash tile : utiliser le net espèces seulement si la clé "cash" est réellement présente.
+    // Sinon fallback fiable sur le net total pour éviter un 0 artificiel.
+    const piBy = (paymentsInStrictRes as AggWithTotal)?.by_method ?? (paymentsInRes as AggWithTotal)?.by_method;
+    const poBy = (paymentsOutStrictRes as AggWithTotal)?.by_method ?? (paymentsOutRes as AggWithTotal)?.by_method;
+    const hasCashMethod =
+      typeof piBy?.cash === "number" || typeof poBy?.cash === "number";
     const cashInMethod = piBy?.cash ?? 0;
     const cashOutMethod = poBy?.cash ?? 0;
-    const cashNet = hasByMethod ? cashInMethod - cashOutMethod : inTotal - outTotal;
+    const cashNet = hasCashMethod ? cashInMethod - cashOutMethod : inTotal - outTotal;
+    const cashNetForKpi = paymentsInOk && paymentsOutOk ? cashNet : null;
+    const paymentsCompletenessSigned =
+      typeof paymentsCompletenessRes?.payments_sum_amount_signed === "number"
+        ? paymentsCompletenessRes.payments_sum_amount_signed
+        : null;
 
-    type SalesPurch = { total_ht?: number; total?: number; total_tax?: number } | null;
-    const salesTotal = (salesRes as SalesPurch)?.total_ht ?? (salesRes as SalesPurch)?.total ?? 0;
-    const purchasesTotal = Math.abs((purchasesRes as SalesPurch)?.total_ht ?? (purchasesRes as SalesPurch)?.total ?? 0);
-    const businessNet = salesTotal - purchasesTotal;
+    type SalesPurch = { total_ht?: number; total?: number; total_tax?: number; currency?: string } | null;
+    const salesTotalRaw = (salesRes as SalesPurch)?.total_ht ?? (salesRes as SalesPurch)?.total;
+    const purchasesTotalRaw = (purchasesRes as SalesPurch)?.total_ht ?? (purchasesRes as SalesPurch)?.total;
+    const salesTotal = typeof salesTotalRaw === "number" ? salesTotalRaw : 0;
+    const purchasesTotal = typeof purchasesTotalRaw === "number" ? Math.abs(purchasesTotalRaw) : 0;
+    const salesByPartnerTotal =
+      typeof salesByPartnerRes?.total_ht === "number" ? salesByPartnerRes.total_ht : null;
+    const normalizedSalesTotal = Math.max(
+      salesByPartnerTotal ?? 0,
+      salesTotal
+    );
+    const businessNet = normalizedSalesTotal - purchasesTotal;
+    // KPI Business (tuile) = CA ventes HT ; on retient la meilleure source disponible.
+    const businessValueForKpi =
+      normalizedSalesTotal > 0 ? normalizedSalesTotal : (salesOk ? salesTotal : null);
 
     const tvaCollectee = (salesRes as SalesPurch)?.total_tax ?? 0;
     const tvaDeductible = (purchasesRes as SalesPurch)?.total_tax ?? 0;
     const taxesFlux = tvaCollectee - tvaDeductible;
 
-    type AdjRes = { total_amount?: number; total?: number } | null;
+    type AdjRes = { total_amount?: number; total?: number; currency?: string } | null;
     const creditClient = (adjCreditClientRes as AdjRes)?.total_amount ?? (adjCreditClientRes as AdjRes)?.total ?? 0;
     const creditSupplier = (adjCreditSupplierRes as AdjRes)?.total_amount ?? (adjCreditSupplierRes as AdjRes)?.total ?? 0;
     const creditNotesFlux = creditSupplier - creditClient;
@@ -470,7 +668,7 @@ export async function GET(request: NextRequest) {
     const refundSupplier = (adjRefundSupplierRes as AdjRes)?.total_amount ?? (adjRefundSupplierRes as AdjRes)?.total ?? 0;
     const refundsFlux = refundSupplier - refundClient;
 
-    type PosRes = { items?: Array<{
+    type PosRes = { currency?: string; items?: Array<{
       session_id?: string; shop_id?: string; total_sales?: number;
       total_tickets?: number; cash_total?: number; card_total?: number;
       difference?: number; vault_status?: string;
@@ -565,12 +763,6 @@ export async function GET(request: NextRequest) {
     if (healthRes && hasUnreconciledEntries && hasLastStatement) bankHealthMetrics = "complete";
     else if (healthRes && hasUnreconciledEntries) bankHealthMetrics = "partial";
 
-    type SealedAgg = { invoices_count?: number; payment_count?: number; items?: unknown } | null;
-    const salesOk = salesRes != null && typeof (salesRes as SealedAgg)?.invoices_count === "number";
-    const purchasesOk = purchasesRes != null && typeof (purchasesRes as SealedAgg)?.invoices_count === "number";
-    const paymentsInOk = paymentsInRes != null && typeof (paymentsInRes as SealedAgg)?.payment_count === "number";
-    const paymentsOutOk = paymentsOutRes != null && typeof (paymentsOutRes as SealedAgg)?.payment_count === "number";
-    const posOk = posRes != null && Array.isArray((posRes as PosRes)?.items);
     const fallbackSealedCountComplete = salesOk && purchasesOk && paymentsInOk && paymentsOutOk && posOk;
     const fallbackSealedCount =
       posSealedCount +
@@ -579,14 +771,63 @@ export async function GET(request: NextRequest) {
       ((paymentsInRes as SealedAgg)?.payment_count ?? 0) +
       ((paymentsOutRes as SealedAgg)?.payment_count ?? 0);
 
-    const useSnapshot =
+    // Fallback DVIG : si les routes Vault /ui/aggregations/* ne sont pas disponibles (vault ancien),
+    // interroger DVIG pour dériver la complétude à partir du vault_rate.
+    let dvigCompleteOverride: boolean | null = null;
+    if (!fallbackSealedCountComplete && DVIG_URL && DVIG_INTERNAL_TOKEN) {
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 3000);
+        const dvigRes = await fetch(
+          `${DVIG_URL.replace(/\/$/, "")}/internal/vault-health?tenant=${encodeURIComponent(tenant)}`,
+          {
+            headers: { Accept: "application/json", Authorization: `Bearer ${DVIG_INTERNAL_TOKEN}` },
+            cache: "no-store",
+            signal: ctrl.signal,
+          }
+        );
+        clearTimeout(t);
+        if (dvigRes.ok) {
+          const dvigData = (await dvigRes.json()) as {
+            vault_rate?: number | null;
+            pending_events?: number;
+            failed_events?: number;
+            last_sync_at?: string | null;
+          };
+          const rawRate = dvigData.vault_rate ?? null;
+          const rate = rawRate != null ? (rawRate > 1 ? rawRate / 100 : rawRate) : null;
+          if (rate != null && rate >= 0.98 && (dvigData.pending_events ?? 0) === 0) {
+            dvigCompleteOverride = true;
+          } else if (rate != null && dvigData.last_sync_at) {
+            // Tolérer si synchro récente (< 48h) même avec quelques événements en attente
+            const syncAge = Date.now() - new Date(dvigData.last_sync_at).getTime();
+            dvigCompleteOverride = syncAge < 48 * 3600 * 1000;
+          }
+        }
+      } catch {
+        // Silencieux — fallback dégradé
+      }
+    }
+
+    // Badge « X preuves scellées » : afficher le nombre sur la période (et société) sélectionnée pour que le filtre soit cohérent.
+    // On préfère le snapshot scopé (période + company_id) ; repli sur le total tenant si indisponible.
+    const snapshotForBadge = snapshotRes ?? snapshotTotalRes;
+    const useSnapshotForBadge =
+      snapshotForBadge != null &&
+      typeof snapshotForBadge.sealed_count === "number" &&
+      typeof snapshotForBadge.complete === "boolean" &&
+      snapshotForBadge.sealed_count_sources != null;
+    const sealedCount = useSnapshotForBadge ? snapshotForBadge.sealed_count : fallbackSealedCount;
+
+    const useScopedSnapshotForCompleteness =
       snapshotRes != null &&
       typeof snapshotRes.sealed_count === "number" &&
       typeof snapshotRes.complete === "boolean" &&
       snapshotRes.sealed_count_sources != null;
-    const sealedCountComplete = useSnapshot ? snapshotRes.complete : fallbackSealedCountComplete;
-    const sealedCount = useSnapshot ? snapshotRes.sealed_count : fallbackSealedCount;
-    const sealedCountSources = useSnapshot
+    const sealedCountComplete = useScopedSnapshotForCompleteness
+      ? snapshotRes.complete
+      : (dvigCompleteOverride ?? fallbackSealedCountComplete);
+    const sealedCountSources = useScopedSnapshotForCompleteness
       ? {
           sales: !!snapshotRes.sealed_count_sources?.sales,
           purchases: !!snapshotRes.sealed_count_sources?.purchases,
@@ -596,15 +837,68 @@ export async function GET(request: NextRequest) {
         }
       : { sales: salesOk, purchases: purchasesOk, paymentsIn: paymentsInOk, paymentsOut: paymentsOutOk, pos: posOk };
     const expectedCount =
-      useSnapshot && typeof snapshotRes.expected_count === "number" ? snapshotRes.expected_count : null;
-    const generatedAt =
-      useSnapshot && typeof snapshotRes.generated_at === "string" ? snapshotRes.generated_at : null;
+      snapshotRes != null && typeof snapshotRes.expected_count === "number" ? snapshotRes.expected_count : null;
+    const generatedAtFromSnapshot =
+      snapshotForBadge != null && typeof snapshotForBadge.generated_at === "string" ? snapshotForBadge.generated_at : null;
+    const generatedAtFromVaultHealth =
+      vaultHealthRes != null && typeof (vaultHealthRes as { last_sync_at?: unknown }).last_sync_at === "string"
+        ? ((vaultHealthRes as { last_sync_at?: string }).last_sync_at ?? null)
+        : null;
+    const generatedAt = generatedAtFromSnapshot ?? generatedAtFromVaultHealth;
+    const linkyDataAvailableAt = new Date().toISOString();
+    const responseComputedAtMs = Date.parse(linkyDataAvailableAt);
+    const generatedAtMs = generatedAt ? Date.parse(generatedAt) : NaN;
+    const fallbackProxyMs = responseComputedAtMs - requestStartedAtMs;
+    const uxSampleMs =
+      Number.isFinite(generatedAtMs) && Number.isFinite(responseComputedAtMs)
+        ? responseComputedAtMs - generatedAtMs
+        : fallbackProxyMs;
+    if (uxSampleMs != null && uxSampleMs >= 0) {
+      recordUxSample({
+        tenant,
+        company: company_id,
+        periodFrom: date_debut,
+        periodTo: date_fin,
+        latencyMs: uxSampleMs,
+        atIso: linkyDataAvailableAt,
+      });
+    }
 
+    // Toutes les valeurs trésorerie proviennent du Vault (source unique).
     const validatedBalance = treasuryRes?.position?.validated_balance ?? null;
     const erpBalance = treasuryRes?.position?.erp_balance ?? null;
     const treasuryPositionValue = validatedBalance != null ? validatedBalance : null;
     const treasuryPositionFormatted =
-      treasuryPositionValue != null ? formatAmount(treasuryPositionValue, currency) : "—";
+      treasuryPositionValue != null ? formatAmount(treasuryPositionValue, treasuryCurrency) : "—";
+
+    const cashCurrency =
+      (paymentsInStrictRes as AggWithTotal)?.currency ??
+      (paymentsOutStrictRes as AggWithTotal)?.currency ??
+      (paymentsInRes as AggWithTotal)?.currency ??
+      (paymentsOutRes as AggWithTotal)?.currency ??
+      treasuryCurrency;
+    const cashLooksInconsistent =
+      cashCurrency !== treasuryCurrency &&
+      paymentsCompletenessSigned != null;
+    const cashValueNormalizedRaw = cashLooksInconsistent ? paymentsCompletenessSigned : cashNetForKpi;
+    let cashValueNormalized = cashValueNormalizedRaw;
+    // Dernier garde-fou: ne pas descendre sous la valeur certifiée payments-completeness si disponible.
+    if (typeof cashValueNormalizedRaw === "number" && paymentsCompletenessSigned != null) {
+      cashValueNormalized = Math.max(cashValueNormalizedRaw, paymentsCompletenessSigned);
+    }
+    const cashCurrencyNormalized = cashLooksInconsistent ? treasuryCurrency : cashCurrency;
+    const businessCurrency =
+      (salesByPartnerTotal != null ? treasuryCurrency : undefined) ??
+      (salesRes as SalesPurch)?.currency ??
+      (purchasesRes as SalesPurch)?.currency ??
+      treasuryCurrency;
+    const adjustmentsCurrency =
+      (adjCreditClientRes as AdjRes)?.currency ??
+      (adjCreditSupplierRes as AdjRes)?.currency ??
+      (adjRefundClientRes as AdjRes)?.currency ??
+      (adjRefundSupplierRes as AdjRes)?.currency ??
+      businessCurrency;
+    const posCurrency = (posRes as PosRes)?.currency ?? treasuryCurrency;
 
     const response: DashboardMetricsResponse = {
       data_completeness: { bank_health_metrics: bankHealthMetrics },
@@ -613,12 +907,14 @@ export async function GET(request: NextRequest) {
       sealed_count_sources: sealedCountSources,
       expected_count: expectedCount ?? undefined,
       generated_at: generatedAt ?? undefined,
+      linky_data_available_at: linkyDataAvailableAt,
+      ux_t_ms: uxSampleMs,
       _details: {
         treasury: {
           reconciled,
           unreconciled,
           total: accountingTotal,
-          currency,
+          currency: treasuryCurrency,
           treasury_validated_pct: treasuryRemainingPct != null ? 100 - treasuryRemainingPct : legacyRatePct ?? undefined,
           validated_balance: validatedBalance ?? undefined,
           erp_balance: erpBalance ?? undefined,
@@ -627,12 +923,12 @@ export async function GET(request: NextRequest) {
           journals_count: journalsCount,
           oldest_unreconciled_date: oldestUnreconciledDate,
         },
-        cash: { encaissements: inTotal, decaissements: outTotal, net: cashNet, currency },
+        cash: { encaissements: inTotal, decaissements: outTotal, net: cashNet, currency: cashCurrency },
         business: {
-          ventes: salesTotal,
+          ventes: normalizedSalesTotal,
           achats: purchasesTotal,
           net: businessNet,
-          currency,
+          currency: businessCurrency,
           sales_by_partner: salesByPartnerRes
             ? {
                 total_ht: salesByPartnerRes.total_ht ?? 0,
@@ -654,13 +950,13 @@ export async function GET(request: NextRequest) {
           clients: creditClient,
           fournisseurs: creditSupplier,
           flux: creditNotesFlux,
-          currency,
+          currency: adjustmentsCurrency,
         },
         refunds: {
           clients: refundClient,
           fournisseurs: refundSupplier,
           flux: refundsFlux,
-          currency,
+          currency: adjustmentsCurrency,
         },
         pos_shops: {
           total_sessions: posItems.length,
@@ -673,47 +969,47 @@ export async function GET(request: NextRequest) {
           anomaly_sessions: posAnomalySessions,
           shops: posShops,
           sessions: posSessionDetails,
-          currency,
+          currency: posCurrency,
         },
       },
       treasury: {
-        value: treasuryRemainingPct,
-        formatted: treasuryFormatted,
-        valueKind: "accent",
-      },
-      treasury_position: {
         value: treasuryPositionValue,
         formatted: treasuryPositionFormatted,
         valueKind: treasuryPositionValue != null ? (treasuryPositionValue >= 0 ? "positive" : "negative") : "neutral",
       },
+      treasury_position: {
+        value: treasuryRemainingPct,
+        formatted: treasuryFormatted,
+        valueKind: "accent",
+      },
       cash: {
-        value: cashNet,
-        formatted: formatSignedAmount(cashNet),
-        valueKind: toValueKind(cashNet, true),
+        value: cashValueNormalized,
+        formatted: cashValueNormalized == null ? "—" : formatSignedAmount(cashValueNormalized, cashCurrencyNormalized),
+        valueKind: cashValueNormalized == null ? "neutral" : toValueKind(cashValueNormalized, true),
       },
       business: {
-        value: businessNet,
-        formatted: formatSignedAmount(businessNet),
-        valueKind: toValueKind(businessNet, true),
+        value: businessValueForKpi,
+        formatted: businessValueForKpi == null ? "—" : formatSignedAmount(businessValueForKpi, businessCurrency),
+        valueKind: businessValueForKpi == null ? "neutral" : toValueKind(businessValueForKpi, true),
       },
       taxes: {
         value: taxesFlux,
-        formatted: formatSignedAmount(taxesFlux),
+        formatted: formatSignedAmount(taxesFlux, adjustmentsCurrency),
         valueKind: taxesFlux === 0 ? "accent_soft" : "accent",
       },
       credit_notes: {
         value: creditNotesFlux,
-        formatted: formatSignedAmount(creditNotesFlux),
+        formatted: formatSignedAmount(creditNotesFlux, adjustmentsCurrency),
         valueKind: creditNotesFlux === 0 ? "accent_soft" : "accent",
       },
       refunds: {
         value: refundsFlux,
-        formatted: formatSignedAmount(refundsFlux),
+        formatted: formatSignedAmount(refundsFlux, adjustmentsCurrency),
         valueKind: refundsFlux === 0 ? "accent_soft" : "accent",
       },
       pos_shops: {
         value: posTotal,
-        formatted: formatAmount(posTotal, currency),
+        formatted: formatAmount(posTotal, posCurrency),
         valueKind: "neutral",
       },
       pos_z: {
@@ -731,13 +1027,62 @@ export async function GET(request: NextRequest) {
       valueKind: hits > 0 ? "accent_soft" : "neutral",
     };
 
+    // BFR / Encours — AR open (créances clients ouvertes depuis ar-by-partner)
+    const arOpenAmount: number | null =
+      typeof arByPartnerRes?.totals?.open_amount === "number" ? arByPartnerRes.totals.open_amount : null;
+    const arOverdueAmount: number | null =
+      typeof arByPartnerRes?.totals?.overdue_amount === "number" ? arByPartnerRes.totals.overdue_amount : null;
+    const bfrCurrency = businessCurrency;
+
+    // working_capital (BFR simplifié) = AR open — dettes fournisseurs non disponibles en open balance
+    // Valeur = AR open (créances clients). Proxy acceptable jusqu'à implémentation AP open.
+    response.working_capital = {
+      value: arOpenAmount,
+      formatted: arOpenAmount != null ? formatAmount(arOpenAmount, bfrCurrency) : "—",
+      valueKind: arOpenAmount == null ? "neutral" : arOpenAmount > 0 ? "accent" : "zero",
+    };
+
+    // encours = AR open — couleur neutre (accent/bleu) : l'encours n'est pas un problème en soi.
+    // Le statut watch (contour orange) signale les retards, pas la couleur de la valeur.
+    response.encours = {
+      value: arOpenAmount,
+      formatted: arOpenAmount != null ? formatAmount(arOpenAmount, bfrCurrency) : "—",
+      valueKind: arOpenAmount == null ? "neutral" : arOpenAmount > 0 ? "accent" : "zero",
+    };
+
+    // EBE — aligné vue détaillée : marge brute (+ avoirs nets) − charges de personnel (payroll OD ou bulletins)
+    const payrollTotal =
+      typeof (payrollRes as { total?: number })?.total === "number"
+        ? (payrollRes as { total: number }).total
+        : typeof (payrollRes as { total_charges?: number })?.total_charges === "number"
+          ? (payrollRes as { total_charges: number }).total_charges
+          : null;
+    const payrollSource = (payrollRes as { payroll_source?: string })?.payroll_source;
+    const hasPayroll =
+      (payrollSource === "od" || payrollSource === "payslip") &&
+      payrollTotal != null &&
+      typeof payrollTotal === "number";
+    const ebeProxy = businessNet + creditNotesFlux;
+    const ebeValue =
+      hasPayroll && ebeProxy != null && Number.isFinite(ebeProxy)
+        ? ebeProxy - payrollTotal
+        : null;
+    response.ebitda = {
+      value: ebeValue,
+      formatted: ebeValue != null ? formatSignedAmount(ebeValue, businessCurrency) : "—",
+      valueKind: ebeValue != null ? toValueKind(ebeValue, true) : "placeholder",
+    };
+
     computeCardStatuses(response);
-    return NextResponse.json(response, {
-      headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate",
-        Pragma: "no-cache",
-      },
-    });
+    const responseHeaders: Record<string, string> = {
+      "Cache-Control": "no-store, no-cache, must-revalidate",
+      Pragma: "no-cache",
+      // US-10 : en-tête de dépréciation (RFC 8594)
+      "Deprecation": "true",
+      "Sunset": "2026-12-31",
+      "Link": '</api/instruments>; rel="successor-version"',
+    };
+    return NextResponse.json(response, { headers: responseHeaders });
   } catch (err) {
     console.error("[dashboard-metrics] Error:", err);
     const empty: KpiMetric = { value: null, formatted: "—", valueKind: "neutral" };

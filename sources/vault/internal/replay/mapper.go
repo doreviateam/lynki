@@ -14,10 +14,11 @@ type RawPayload struct {
 	Data           map[string]interface{} `json:"data"`
 }
 
-// Raw types supportés (E1-US4)
+// Raw types supportés (E1-US4 + payroll GO-3)
 var supportedRawTypes = map[string]bool{
-	"invoice.posted": true,
-	"payment.posted": true,
+	"invoice.posted":         true,
+	"payment.posted":         true,
+	"payroll.charge.posted":  true,
 }
 
 // IsSupportedRawType retourne true si le type raw est supporté
@@ -27,7 +28,7 @@ func IsSupportedRawType(eventType string) bool {
 
 // SupportedRawTypes retourne la liste des types supportés
 func SupportedRawTypes() []string {
-	return []string{"invoice.posted", "payment.posted"}
+	return []string{"invoice.posted", "payment.posted", "payroll.charge.posted"}
 }
 
 // MapRawToCanonical transforme un payload raw en payload canonique dorevia.economic_event.v1
@@ -43,6 +44,8 @@ func MapRawToCanonical(raw *RawPayload) (map[string]interface{}, error) {
 		return mapInvoicePosted(data), nil
 	case "payment.posted":
 		return mapPaymentPosted(data), nil
+	case "payroll.charge.posted":
+		return mapPayrollChargePosted(data), nil
 	default:
 		return nil, fmt.Errorf("unsupported event_type: %s", raw.EventType)
 	}
@@ -86,6 +89,26 @@ func mapPaymentPosted(data map[string]interface{}) map[string]interface{} {
 		"payment_type":  paymentType,
 		"method":        getStr(data, "method", "transfer"),
 		"is_refund":     getBool(data, "is_refund"),
+		"company_id":    getInt(data, "company_id"),
+	}
+}
+
+// mapPayrollChargePosted mappe un événement payroll.charge.posted vers le canonical payroll_charge
+// Stocké avec odoo_model = 'hr.payslip', total_ht = montant_brut_charges
+func mapPayrollChargePosted(data map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"event_type":    "payroll_charge",
+		"odoo_model":    "hr.payslip",
+		"payslip_id":    getStr(data, "name", ""),
+		"employee_ref":  getStr(data, "employee_id", ""),
+		"employee_name": getStr(data, "employee_name", ""),
+		"total_charges": getFloat(data, "total_charges"),
+		"net_salary":    getFloat(data, "net_salary"),
+		"employer_cost": getFloat(data, "employer_cost"),
+		"currency":      getStr(data, "currency", "EUR"),
+		"date":          getStr(data, "date", getStr(data, "date_from", "")),
+		"date_from":     getStr(data, "date_from", ""),
+		"date_to":       getStr(data, "date_to", ""),
 		"company_id":    getInt(data, "company_id"),
 	}
 }

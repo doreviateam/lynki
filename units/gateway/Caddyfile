@@ -2,6 +2,56 @@
   email admin@doreviateam.com
 }
 
+# Tenant: suite - Landing Dorevia (HTTPS + Let's Encrypt)
+suite.doreviateam.com {
+  reverse_proxy suite_lab:3000
+}
+
+# Odoo 19 production — Doreviateam (base doreviateam)
+# /longpolling → port 8072 (temps réel : Discuss, notifications)
+odoo.doreviateam.com {
+  handle /longpolling* {
+    reverse_proxy odoo_prod_o19:8072 {
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Forwarded-For {remote_host}
+    }
+  }
+  handle {
+    reverse_proxy odoo_prod_o19:8069 {
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Forwarded-For {remote_host}
+    }
+  }
+}
+
+# Odoo 19 production — Firmin Christelle (base firmin_christelle)
+firmin.christelle.doreviateam.com {
+  handle /longpolling* {
+    reverse_proxy odoo_prod_firmin_christelle:8072 {
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Forwarded-For {remote_host}
+    }
+  }
+  handle {
+    reverse_proxy odoo_prod_firmin_christelle:8069 {
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Forwarded-For {remote_host}
+    }
+  }
+}
+
+# Tenant: o19 - Environment: lab
+odoo.lab.o19.doreviateam.com {
+  handle /longpolling* {
+    reverse_proxy odoo_lab_o19:8072
+  }
+  handle {
+    reverse_proxy odoo_lab_o19:8069
+  }
+}
+ui.lab.o19.doreviateam.com {
+  reverse_proxy linky_lab_o19:3000
+}
 
 # Tenant: conceptsun97139 - Environment: stinger
 
@@ -169,4 +219,3 @@ ui.stinger.sarl-la-platine.doreviateam.com {
 }
 
 # Services partagés (tenant sarl-la-platine) - 1 par tenant
-

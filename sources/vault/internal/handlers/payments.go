@@ -18,36 +18,39 @@ import (
 // PaymentPayload représente le payload JSON pour l'endpoint /api/v1/payments
 // Note: Ce type est utilisé uniquement dans le handler. Le service utilise services.PaymentInput
 type PaymentPayload struct {
-	Tenant           string                 `json:"tenant"`            // Obligatoire
-	SourceSystem     string                 `json:"source_system"`     // Défaut: "odoo"
-	SourceModel      string                 `json:"source_model"`      // Obligatoire
-	SourceID         string                 `json:"source_id"`         // Obligatoire
-	PaymentDate      string                 `json:"payment_date"`      // Obligatoire (RFC3339)
-	Amount           float64                `json:"amount"`            // Obligatoire
-	Currency         string                 `json:"currency"`          // Obligatoire
-	Method           string                 `json:"method"`            // Obligatoire
-	Source           string                 `json:"source"`            // Obligatoire
-	PaymentDirection string                 `json:"payment_direction"` // Obligatoire
-	IsRefund         bool                   `json:"is_refund"`         // Obligatoire
-	CompanyID        int                    `json:"company_id"`        // Obligatoire
-	Payment          map[string]interface{} `json:"payment"`           // Obligatoire (JSON brut)
-	IdempotencyKey   string                 `json:"idempotency_key"`   // Optionnel (SPEC Payments v1.1) ; clé normative
+	Tenant             string                 `json:"tenant"`                // Obligatoire
+	SourceSystem       string                 `json:"source_system"`         // Défaut: "odoo"
+	SourceModel        string                 `json:"source_model"`          // Obligatoire
+	SourceID           string                 `json:"source_id"`             // Obligatoire
+	PaymentDate        string                 `json:"payment_date"`          // Obligatoire (RFC3339)
+	Amount             float64                `json:"amount"`                // Obligatoire
+	Currency           string                 `json:"currency"`              // Obligatoire
+	Method             string                 `json:"method"`                // Obligatoire
+	Source             string                 `json:"source"`                // Obligatoire
+	PaymentDirection   string                 `json:"payment_direction"`     // Obligatoire
+	IsRefund           bool                   `json:"is_refund"`             // Obligatoire
+	CompanyID          int                    `json:"company_id"`            // Obligatoire
+	Payment            map[string]interface{} `json:"payment"`               // Obligatoire (JSON brut)
+	IdempotencyKey     string                 `json:"idempotency_key"`       // Optionnel (SPEC Payments v1.1) ; clé normative
+	ErpEventCapturedAt string                 `json:"erp_event_captured_at"` // Optionnel (SLA ERP->Vault)
+	DvigIngestedAt     string                 `json:"dvig_ingested_at"`      // Optionnel (debug latence segment DVIG)
 	// Step 3 — SPEC v1.1 : source duale + allocations (optionnel)
-	BusinessSource   string                 `json:"business_source"`
-	TechnicalSource  string                 `json:"technical_source"`
-	CompanyName      string                 `json:"company_name"`
-	CompanyIDString  string                 `json:"company_id_string"`  // Format normatif ; prioritaire sur company_id pour persistance
-	Allocations      []services.AllocationItem `json:"allocations"`
+	BusinessSource  string                    `json:"business_source"`
+	TechnicalSource string                    `json:"technical_source"`
+	CompanyName     string                    `json:"company_name"`
+	CompanyIDString string                    `json:"company_id_string"` // Format normatif ; prioritaire sur company_id pour persistance
+	Allocations     []services.AllocationItem `json:"allocations"`
 }
 
 // PaymentResponse représente la réponse standardisée
 type PaymentResponse struct {
-	ID          string    `json:"id"`
-	Tenant      string    `json:"tenant"`
-	SHA256Hex   string    `json:"sha256_hex"`
-	LedgerHash  *string   `json:"ledger_hash,omitempty"`
-	EvidenceJWS *string   `json:"evidence_jws,omitempty"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID            string    `json:"id"`
+	Tenant        string    `json:"tenant"`
+	SHA256Hex     string    `json:"sha256_hex"`
+	LedgerHash    *string   `json:"ledger_hash,omitempty"`
+	EvidenceJWS   *string   `json:"evidence_jws,omitempty"`
+	CreatedAt     time.Time `json:"created_at"`
+	VaultSealedAt time.Time `json:"vault_sealed_at"`
 }
 
 // PaymentsHandler gère l'endpoint POST /api/v1/payments
@@ -227,25 +230,27 @@ func PaymentsHandler(
 
 		// Mapper handlers.PaymentPayload → services.PaymentInput
 		input := services.PaymentInput{
-			Tenant:            payload.Tenant,
-			SourceSystem:      payload.SourceSystem,
-			SourceModel:       payload.SourceModel,
-			SourceID:          payload.SourceID,
-			PaymentDate:       payload.PaymentDate,
-			Amount:            payload.Amount,
-			Currency:          payload.Currency,
-			Method:            payload.Method, // déjà normalisé (minuscule)
-			Source:            payload.Source,
-			PaymentDirection:  payload.PaymentDirection,
-			IsRefund:          payload.IsRefund,
-			CompanyID:         payload.CompanyID,
-			Payment:           payload.Payment,
-			IdempotencyKey:    payload.IdempotencyKey,
-			BusinessSource:    payload.BusinessSource,
-			TechnicalSource:   payload.TechnicalSource,
-			CompanyName:       payload.CompanyName,
-			CompanyIDString:   payload.CompanyIDString,
-			Allocations:       payload.Allocations,
+			Tenant:             payload.Tenant,
+			SourceSystem:       payload.SourceSystem,
+			SourceModel:        payload.SourceModel,
+			SourceID:           payload.SourceID,
+			PaymentDate:        payload.PaymentDate,
+			Amount:             payload.Amount,
+			Currency:           payload.Currency,
+			Method:             payload.Method, // déjà normalisé (minuscule)
+			Source:             payload.Source,
+			PaymentDirection:   payload.PaymentDirection,
+			IsRefund:           payload.IsRefund,
+			CompanyID:          payload.CompanyID,
+			Payment:            payload.Payment,
+			IdempotencyKey:     payload.IdempotencyKey,
+			ErpEventCapturedAt: payload.ErpEventCapturedAt,
+			DvigIngestedAt:     payload.DvigIngestedAt,
+			BusinessSource:     payload.BusinessSource,
+			TechnicalSource:    payload.TechnicalSource,
+			CompanyName:        payload.CompanyName,
+			CompanyIDString:    payload.CompanyIDString,
+			Allocations:        payload.Allocations,
 		}
 
 		// Appeler le service
@@ -323,12 +328,13 @@ func PaymentsHandler(
 		}
 
 		return c.Status(statusCode).JSON(PaymentResponse{
-			ID:          result.ID.String(),
-			Tenant:      result.Tenant,
-			SHA256Hex:   result.SHA256Hex,
-			LedgerHash:  result.LedgerHash,
-			EvidenceJWS: result.EvidenceJWS,
-			CreatedAt:   result.CreatedAt,
+			ID:            result.ID.String(),
+			Tenant:        result.Tenant,
+			SHA256Hex:     result.SHA256Hex,
+			LedgerHash:    result.LedgerHash,
+			EvidenceJWS:   result.EvidenceJWS,
+			CreatedAt:     result.CreatedAt,
+			VaultSealedAt: result.CreatedAt,
 		})
 	}
 }

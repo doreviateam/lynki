@@ -1,0 +1,58 @@
+#MindMapExport FreeplaneVersion:freeplane 1.12.15
+
+1 Landing Page Dorevia
+1.1 Fil narratif
+1.1.1 Dorevia aide les entreprises à piloter sur des données financières prouvables.
+1.1.1.1 Dorevia est le cockpit financier des PME
+1.1.1.2 Dorevia fiabilise les données financières avant le pilotage
+1.1.1.3 Dorevia transforme les événements financiers en preuves exploitables
+1.1.1.4 Dorevia est une infrastructure de confiance pour les flux financiers des PME
+1.1.2 Les entreprises pilotent souvent leur activité avec des données financières dispersées, difficiles à rapprocher et pas toujours assez fiables pour décider en toute confiance.
+1.1.2.1 Les données financières sont réparties entre plusieurs sources, ERP, POS, paiements, documents, banque, comptabilité, terrain.
+1.1.2.2 Les données ne se recoupent pas toujours simplement. Les rapprochements prennent du temps. La lecture de l'activité devient fragile et partielle
+1.1.2.3 On pilote avec moins de confiance. On perd du temps à vérifier. On décide parfois sur une base incomplète ou difficile à justifier.
+1.1.3 Dorevia capture les données à la source dès leur validation, puis les scelle dans un coffre-fort numérique. Elles alimentent ensuite un cockpit financier clair, traçable et directement exploitable pour le pilotage.
+1.1.3.1 L'activité naît de sources hétérogènes : ERP, POS, paiements, banque, comptabilité, points de vente
+1.1.3.2 Dorevia Vault capture, horodate et scelle les événements financiers utiles pour en préserver la traçabilité
+1.1.3.3 Linky restitue un cockpit lisible pour le pilotage
+1.1.3.4 DIVA assiste la lecture avec analyse et alertes
+1.1.4 Dorevia ne se contente pas de montrer des chiffres. La plateforme aide vos équipes à voir plus clair, à décider avec plus de confiance et à gagner du temps sur la lecture financière de l'activité.
+1.1.4.1 Une seule vision financière, plus lisible et plus cohérente, à partir de flux jusque-là dispersés entre ERP, POS, paiements, banque et documents.
+1.1.4.2 Les données sont capturées à la source, traçables et exploitables, ce qui renforce la fiabilité des indicateurs utilisés pour piloter.
+1.1.4.3 Moins de vérifications manuelles, moins de recoupements fragiles, et une lecture plus rapide des écarts, des paiements et de la trésorerie.
+1.1.5 Voyez si Dorevia peut ouvrir de nouvelles possibilités pour votre activité ou votre écosystème.
+1.1.5.1 Explorez Dorevia sur votre cas d'usage
+1.1.5.2 Découvrez où Dorevia peut vous servir
+1.1.5.3 Parlons de votre cas d'usage
+1.2 Site Blocs
+1.2.1 Bloc Hero
+1.2.1.1 Titre : Pilotez votre entreprise sur des données financières fiables
+1.2.1.2 Sous-titre : Dorevia relie vos flux ERP, POS, paiements et documents pour produire une vision financière traçable, exploitable et utile au pilotage.
+1.2.1.3 Visuel produit : Aperçu du cockpit financier Dorevia sur des flux réels ou simulés
+1.2.1.4 CTA : Demander une démo
+1.2.2 Bloc Le problème
+1.2.2.1 Titre section : Voir les chiffres ne suffit pas pour bien piloter (variante : Vous pilotez avec des données dispersées et peu fiables ?)
+1.2.2.2 Accroche : Les données financières sont réparties entre l'ERP, le POS, les paiements, la banque, les documents et la comptabilité. Les rapprocher prend du temps, et la vision de l'activité reste souvent partielle, fragile et peu traçable.
+1.2.2.3 Point 1 : Données réparties entre plusieurs sources : ERP, POS, paiements, banque, comptabilité, terrain
+1.2.2.4 Point 2 : Rapprochements longs et lecture de l'activité plus fragile
+1.2.2.5 Point 3 : Décisions parfois prises sur une base incomplète ou difficile à justifier
+1.2.2.6 Transition : Un cockpit financier rafraîchi et lisible en moins de 5 secondes. Dorevia fiabilise vos flux avant le pilotage et restitue une vision unique, traçable et exploitable.
+1.2.3 Bloc Comment ça marche
+1.2.3.1 Titre section : Comment ça marche
+1.2.3.2 Accroche : Dorevia capture les données à la source, les scelle dans un coffre-fort numérique, puis les restitue dans un cockpit financier clair, traçable et exploitable.
+1.2.3.3 Étape 1 : Capturer — L'activité naît de sources hétérogènes : ERP, POS, paiements, banque, comptabilité, points de vente
+1.2.3.4 Étape 2 : Sceller — Dorevia Vault capture, horodate et scelle les événements financiers utiles pour en préserver la traçabilité
+1.2.3.5 Étape 3 : Piloter — Linky restitue un cockpit clair pour le pilotage
+1.2.3.6 Couche additionnelle : DIVA assiste la lecture avec analyse et alertes
+1.2.4 Bloc Bénéfices
+1.2.4.1 Titre section : Ce que Dorevia change au quotidien
+1.2.4.2 Accroche : Dorevia ne se contente pas d'afficher des chiffres. La plateforme aide vos équipes à voir plus clair, à décider avec plus de confiance et à gagner du temps sur la lecture financière de l'activité.
+1.2.4.3 Bénéfice 1 : Voir plus clair sur l'activité Une seule vision financière, plus lisible et plus cohérente, à partir de flux jusque-là dispersés entre ERP, POS, paiements, banque et documents.
+1.2.4.4 Bénéfice 2 : Décider avec plus de confiance Les données sont capturées à la source, traçables et exploitables, ce qui renforce la fiabilité des indicateurs utilisés pour piloter.
+1.2.4.5 Bénéfice 3 : Gagner du temps sur les rapprochements Moins de vérifications manuelles, moins de recoupements fragiles, et une lecture plus rapide des écarts, des paiements et de la trésorerie.
+1.2.5 Bloc Voyez Dorevia en action
+1.2.5.1 Titre section : Voyez comment Dorevia peut s'appliquer à votre activité
+1.2.5.2 Accroche : Découvrez le cockpit, explorez des cas d'usage concrets, ou échangeons sur votre contexte métier.
+1.2.5.3 Carte 1 : Voir le cockpit — Aperçu guidé du cockpit financier Dorevia. CTA : Voir le cockpit
+1.2.5.4 Carte 2 : Explorer des cas d'usage — Trésorerie, paiements, rapprochements, lecture multi-flux. CTA : Découvrir les cas d'usage
+1.2.5.5 Carte 3 : Parler de votre contexte — Échangeons sur vos outils, vos flux et vos points de friction. CTA : Demander une démo

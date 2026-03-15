@@ -5,6 +5,14 @@
 
 const SPACE = "\u0020";
 
+function getCurrencyLabel(currency = "EUR"): string {
+  const code = (currency || "EUR").toUpperCase();
+  if (code === "EUR") return "€";
+  if (code === "USD") return "$";
+  if (code === "GBP") return "£";
+  return code;
+}
+
 function ensureSpaceThousands(formatted: string): string {
   return formatted.replace(/\u202f|\u00a0/g, SPACE);
 }
@@ -14,7 +22,7 @@ function ensureSpaceThousands(formatted: string): string {
  * Formatage manuel pour garantir le séparateur de milliers partout.
  */
 export function formatAmount(value: number, currency = "EUR"): string {
-  return `${formatWithThousands(value, 2)} €`;
+  return `${formatWithThousands(value, 2)} ${getCurrencyLabel(currency)}`;
 }
 
 /**
@@ -23,7 +31,7 @@ export function formatAmount(value: number, currency = "EUR"): string {
  */
 export function formatSignedAmount(value: number, currency = "EUR"): string {
   const sign = value >= 0 ? "+" : "\u2212";
-  return `${sign} ${formatWithThousands(Math.abs(value), 2)} €`;
+  return `${sign} ${formatWithThousands(Math.abs(value), 2)} ${getCurrencyLabel(currency)}`;
 }
 
 /** Formate manuellement un nombre avec séparateur de milliers (espace), indépendant de Intl. */
@@ -47,6 +55,18 @@ export function formatAmountsInText(text: string): string {
     const dec = decPart ? Math.min(decPart.length, 2) : 0;
     return formatWithThousands(num, dec);
   });
+}
+
+/**
+ * Délai moyen de paiement — SPEC Priorisation v1.1 §7.
+ * > 0 → "X j" ; 0 → "0 j" ; < 0 → "X j d'avance" ; null/undefined → "n.d."
+ */
+export function formatPaymentDelayDays(days: number | null | undefined): string {
+  if (days == null) return "n.d.";
+  const n = Math.round(days);
+  if (n > 0) return `${n} j`;
+  if (n === 0) return "0 j";
+  return `${Math.abs(n)} j d'avance`;
 }
 
 /**

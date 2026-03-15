@@ -4,6 +4,18 @@ const VAULT_URL = process.env.VAULT_URL || "http://localhost:8080";
 const DEFAULT_TENANT = process.env.TENANT_ID || "core";
 const AGG_TIMEOUT_MS = 10000;
 
+function getDefaultCompanyId(): string {
+  const raw = process.env.COMPANY_DISPLAY_NAMES;
+  if (!raw) return "";
+  try {
+    const parsed = JSON.parse(raw) as Record<string, string>;
+    const keys = Object.keys(parsed);
+    return keys.length === 1 ? keys[0] : "";
+  } catch {
+    return "";
+  }
+}
+
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
@@ -18,7 +30,7 @@ export async function GET(request: NextRequest) {
   const date_debut = searchParams.get("date_debut") ?? "2000-01-01";
   const date_fin = searchParams.get("date_fin") ?? "2030-12-31";
   const as_of_date = searchParams.get("as_of_date") ?? "";
-  const company_id = searchParams.get("company_id") ?? "";
+  const company_id = searchParams.get("company_id") ?? getDefaultCompanyId();
   const overdue = searchParams.get("overdue") ?? "false";
   const limit = searchParams.get("limit") ?? "50";
 

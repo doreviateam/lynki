@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Linky Cockpit — Layout avancé</title>
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+background:#0F1B2D;
+color:#E6EEF8;
+font-family:"IBM Plex Sans",system-ui;
+margin:0;
+padding:24px;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:24px;
+}
+
+.header-left{
+font-size:20px;
+font-weight:600;
+letter-spacing:0.2px;
+}
+
+.header-right{
+font-size:14px;
+color:#9FB3C8;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.badge{
+padding:4px 8px;
+border-radius:6px;
+font-size:12px;
+font-weight:600;
+}
+
+.success{
+background:rgba(34,197,94,0.15);
+color:#22C55E;
+}
+
+.warning{
+background:rgba(245,158,11,0.15);
+color:#F59E0B;
+}
+
+.danger{
+background:rgba(239,68,68,0.15);
+color:#EF4444;
+}
+
+.info{
+background:rgba(59,130,246,0.15);
+color:#3B82F6;
+}
+
+.insight{
+background:#14243A;
+border:1px solid #223B5B;
+border-left:4px solid #F59E0B;
+border-radius:8px;
+padding:16px;
+margin-bottom:24px;
+}
+
+.kpi-grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:16px;
+margin-bottom:24px;
+}
+
+.card{
+background:#1A2E47;
+border:1px solid #223B5B;
+border-radius:12px;
+padding:16px;
+transition:background 150ms ease-out;
+}
+
+.card:hover{
+background:#1F3653;
+}
+
+.kpi{
+font-size:44px;
+font-weight:600;
+}
+
+.small{
+font-size:13px;
+color:#9FB3C8;
+}
+
+.delta{
+margin-top:4px;
+}
+
+.delta.success{
+color:#22C55E;
+}
+
+.delta.danger{
+color:#EF4444;
+}
+
+.section-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:16px;
+margin-bottom:32px;
+padding-bottom:24px;
+border-bottom:1px solid #223B5B;
+}
+
+.section-grid:last-of-type{
+border-bottom:none;
+padding-bottom:0;
+margin-bottom:0;
+}
+
+.chart-status{
+margin-bottom:8px;
+}
+
+.chart{
+height:180px;
+display:flex;
+align-items:flex-end;
+gap:10px;
+border-top:1px solid #223B5B;
+padding-top:12px;
+position:relative;
+}
+
+.chart::after{
+content:"";
+position:absolute;
+bottom:0;
+left:0;
+width:100%;
+height:1px;
+background:#223B5B;
+}
+
+.bar{
+width:28px;
+background:#22C55E;
+border-radius:4px 4px 0 0;
+}
+
+.bar.orange{
+background:#F59E0B;
+}
+
+.table{
+width:100%;
+border-collapse:collapse;
+margin-top:12px;
+}
+
+.table th{
+font-size:13px;
+font-weight:500;
+color:#9FB3C8;
+text-align:left;
+padding-bottom:10px;
+}
+
+.table td{
+padding:10px 0;
+border-bottom:1px solid #223B5B;
+}
+
+.table td:nth-child(2),
+.table td:nth-child(3){
+text-align:right;
+}
+
+.preuve{
+font-size:12px;
+color:#9FB3C8;
+}
+
+.preuve.success{
+color:#22C55E;
+}
+
+.table tr:not(:first-child):hover{
+background:#14243A;
+}
+
+.table tr{
+transition:background 150ms ease-out;
+}
+
+.alert{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:10px 0;
+border-bottom:1px solid #223B5B;
+}
+
+*:focus-visible{
+outline:2px solid #3B82F6;
+outline-offset:2px;
+}
+
+.alert:last-child{
+border-bottom:none;
+}
+
+.proof-widget{
+display:flex;
+flex-direction:column;
+gap:16px;
+margin-bottom:24px;
+}
+
+.proof-widget h3{
+margin:0;
+font-size:16px;
+color:#9FB3C8;
+}
+
+.proof-body{
+display:flex;
+flex-direction:row;
+align-items:center;
+gap:32px;
+}
+
+.proof-radial{
+flex-shrink:0;
+}
+
+.proof-content{
+flex:1;
+}
+
+.radial{
+position:relative;
+width:140px;
+height:140px;
+}
+
+.radial svg{
+transform:rotate(-90deg);
+}
+
+.radial circle{
+fill:none;
+stroke-width:10;
+}
+
+.radial-bg{
+stroke:#14243A;
+}
+
+.radial-fill{
+stroke:#22C55E;
+stroke-linecap:round;
+stroke-dasharray:440;
+stroke-dashoffset:96;
+transition:stroke-dashoffset 0.6s ease;
+}
+
+.radial-value{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+font-size:26px;
+font-weight:600;
+}
+
+.proof-sources{
+display:flex;
+flex-direction:column;
+gap:8px;
+font-size:13px;
+color:#9FB3C8;
+}
+
+.proof-source{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+@media (max-width:600px){
+.proof-body{
+flex-direction:column;
+align-items:center;
+}
+}
+
+@media (max-width:900px){
+
+.kpi-grid{
+grid-template-columns:repeat(2,1fr);
+}
+
+.section-grid{
+grid-template-columns:1fr;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<main class="container">
+
+<header class="header">
+
+<div class="header-left">
+Linky — Cockpit financier
+</div>
+
+<div class="header-right">
+<span>La Platine • Mars 2026</span>
+<span class="badge success">Flux validés</span>
+<span class="badge info">Vault</span>
+</div>
+
+</header>
+
+<section class="insight">
+
+<strong>Insight</strong><br>
+Risque de trésorerie modéré — 41% du retard concentré sur deux partenaires majeurs.
+
+<span class="badge warning">Surveillance</span>
+
+</section>
+
+<section class="kpi-grid">
+
+<div class="card">
+<div class="small">Trésorerie</div>
+<div class="kpi">62 480 €</div>
+<div class="small delta success">+8 % vs mois précédent</div>
+</div>
+
+<div class="card">
+<div class="small">Marge</div>
+<div class="kpi">58.4 %</div>
+<div class="small delta">−2 pts vs N−1</div>
+</div>
+
+<div class="card">
+<div class="small">Encours clients</div>
+<div class="kpi">23 292 €</div>
+<div class="small delta success">−12 %</div>
+</div>
+
+<div class="card">
+<div class="small">Retard paiement</div>
+<div class="kpi">41 %</div>
+<div class="small delta danger">+5 pts</div>
+</div>
+
+</section>
+
+<section class="card proof-widget">
+
+<h3>Couverture probante</h3>
+
+<div class="proof-body">
+
+<div class="proof-radial">
+
+<div class="radial">
+
+<svg width="140" height="140" viewBox="0 0 140 140">
+
+<circle class="radial-bg" cx="70" cy="70" r="70"/>
+
+<circle class="radial-fill" cx="70" cy="70" r="70"/>
+
+</svg>
+
+<div class="radial-value">78 %</div>
+
+</div>
+
+</div>
+
+<div class="proof-content">
+
+<div class="proof-sources">
+
+<div class="proof-source">
+<span>Vault</span>
+<span class="badge success">Validé</span>
+</div>
+
+<div class="proof-source">
+<span>Odoo</span>
+<span class="badge success">Sync</span>
+</div>
+
+<div class="proof-source">
+<span>POS</span>
+<span class="badge warning">Partiel</span>
+</div>
+
+<div class="proof-source">
+<span>Banque</span>
+<span class="badge success">Confirmé</span>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section class="section-grid">
+
+<div class="card">
+
+<h3>Flux économiques</h3>
+<div class="small chart-status">Flux positifs sur 3 périodes</div>
+
+<div class="chart">
+
+<div class="bar" style="height:60px"></div>
+<div class="bar" style="height:120px"></div>
+<div class="bar" style="height:150px"></div>
+
+<div class="bar orange" style="height:70px"></div>
+<div class="bar orange" style="height:100px"></div>
+<div class="bar orange" style="height:110px"></div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>Exposition clients</h3>
+<div class="small chart-status">2 clients à surveiller</div>
+
+<table class="table">
+
+<tr>
+<th>Partenaire</th>
+<th>Encours</th>
+<th>Retard</th>
+<th>Preuve</th>
+</tr>
+
+<tr>
+<td>EMD</td>
+<td>10 703 €</td>
+<td><span class="badge warning">37 %</span></td>
+<td class="preuve success">Vault ✓</td>
+</tr>
+
+<tr>
+<td>Export My Island</td>
+<td>12 589 €</td>
+<td><span class="badge danger">43 %</span></td>
+<td class="preuve">Odoo + POS</td>
+</tr>
+
+</table>
+
+</div>
+
+</section>
+
+<section class="section-grid">
+
+<div class="card">
+
+<h3>Position trésorerie</h3>
+<div class="small chart-status">Tendance haussière</div>
+
+<div class="chart">
+
+<div class="bar" style="height:100px"></div>
+<div class="bar" style="height:110px"></div>
+<div class="bar" style="height:120px"></div>
+<div class="bar" style="height:130px"></div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>Alertes financières</h3>
+<div class="small chart-status">3 alertes actives</div>
+
+<div class="alert">
+<span>Client EMD dépasse seuil risque</span>
+<span class="badge danger">Alerte</span>
+</div>
+
+<div class="alert">
+<span>Flux non couverts POS</span>
+<span class="badge warning">À vérifier</span>
+</div>
+
+<div class="alert">
+<span>Synchronisation Odoo retardée</span>
+<span class="badge warning">Monitoring</span>
+</div>
+
+</div>
+
+</section>
+
+</main>
+
+</body>
+</html>

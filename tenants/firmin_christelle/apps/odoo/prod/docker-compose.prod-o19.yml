@@ -1,0 +1,66 @@
+# Docker Compose — Odoo 19 production Firmin Christelle
+# Base: firmin_christelle | URL: https://firmin.christelle.doreviateam.com
+
+name: odoo-prod-firmin-christelle
+
+services:
+  db:
+    image: postgres:16
+    container_name: odoo_db_prod_firmin_christelle
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: firmin_christelle
+      POSTGRES_USER: firmin_christelle
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - odoo_prod_firmin_christelle_db:/var/lib/postgresql/data
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U firmin_christelle"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  odoo:
+    image: odoo:19.0
+    container_name: odoo_prod_firmin_christelle
+    init: true
+    tty: true
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: firmin_christelle
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ADMIN_PASSWD: ${ADMIN_PASSWD}
+    stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - dorevia-network
+    volumes:
+      - /opt/dorevia-plateform/sources/oca:/mnt/oca:ro
+      - /opt/dorevia-plateform/units/odoo/addons-o19:/mnt/addons-o19:ro
+      - oca_extra_addons_firmin_christelle:/mnt/extra-addons
+      - /opt/dorevia-plateform/units/odoo/custom-addons:/mnt/custom-addons
+      - ./odoo.prod-o19.conf.template:/etc/odoo/odoo.conf.template:ro
+      - ./run_odoo.sh:/mnt/run/run_odoo.sh:ro
+      - odoo_prod_firmin_christelle_data:/var/lib/odoo
+    command: ["sh", "/mnt/run/run_odoo.sh"]
+
+volumes:
+  odoo_prod_firmin_christelle_db:
+    name: odoo_prod_firmin_christelle_db
+  odoo_prod_firmin_christelle_data:
+    name: odoo_prod_firmin_christelle_data
+  oca_extra_addons_firmin_christelle:
+    name: oca_extra_addons_firmin_christelle
+
+networks:
+  dorevia-network:
+    external: true

@@ -1,0 +1,20 @@
+[options]
+db_host = {{UNIVERS}}_db_{{ENV}}_{{TENANT}}
+db_port = 5432
+db_user = odoo
+db_password = odoo
+dbfilter = ^{{DB_NAME}}$
+list_db = False
+
+; Langue et localisation (FR + plan comptable)
+lang = fr_FR
+
+; addons
+addons_path = /usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons,/mnt/custom-addons
+data_dir = /var/lib/odoo
+
+proxy_mode = True
+
+; Lab : workers minimal
+server_wide_modules = web
+workers = 1

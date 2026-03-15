@@ -6,10 +6,20 @@ import { formatAmount } from "@/app/lib/format";
 import { DualSeriesChart } from "@/components/DualSeriesChart";
 import { CardChartSection } from "@/components/CardChartSection";
 import { IconTreasury } from "@/components/CardIcons";
+import {
+  INSTRUMENT_CARD_BASE,
+  InstrumentCardHeader,
+  InstrumentCardNav,
+  InstrumentCardStatusBadge,
+  InstrumentCardFooter,
+} from "@/components/InstrumentCardChrome";
+import type { CardId } from "@/app/types/linky-tiles";
 import { getAvailableGranularities, getDefaultChartGranularity, type ChartGranularity } from "@/app/lib/chart-granularity";
 import type { ChartType } from "@/app/lib/chart-type";
+import type { SeriesPoint } from "@/app/types/aggregations";
 
-const POLL_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+const POLL_INTERVAL_MS = 5 * 1000; // 5 s — sync Linky / Vault / Odoo < 7 s
+const ENABLE_LIVE_POLLING = process.env.NEXT_PUBLIC_LINKY_ENABLE_LIVE_POLLING === "1";
 
 interface TreasuryData {
   total?: number;
@@ -68,12 +78,13 @@ interface TreasuryCardWithPollingProps {
   period: PeriodRange;
   companyId: string | null;
   tenantId: string;
+  /** Source : Linky ne voit que le Vault (toujours "vault") */
+  primarySource?: "erp" | "vault";
   onFocusRequest?: () => void;
   footer?: React.ReactNode;
+  cardId?: CardId;
+  onNavigateToCard?: (cardId: CardId) => void;
 }
-
-const CARD_BASE =
-  "rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow-card)] border-l-4";
 
 const ODOO_BASE_URL =
   process.env.NEXT_PUBLIC_ODOO_URL ?? "https://odoo.stinger.sarl-la-platine.doreviateam.com/odoo";
@@ -98,7 +109,7 @@ function formatDateTime(d: string | null | undefined): string {
   });
 }
 
-export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRequest, footer }: TreasuryCardWithPollingProps) {
+export function TreasuryCardWithPolling({ period, companyId, tenantId, primarySource = "vault", onFocusRequest, footer, cardId, onNavigateToCard }: TreasuryCardWithPollingProps) {
   const availableGranularities = getAvailableGranularities(period.from, period.to);
   const [chartGranularity, setChartGranularity] = useState<ChartGranularity>(() =>
     getDefaultChartGranularity(period.from, period.to)
@@ -116,6 +127,10 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
   const [loading, setLoading] = useState(true);
   const prevRateRef = useRef<number | null>(null);
   const [isCelebrating100, setIsCelebrating100] = useState(false);
+  const [evolutionSeries, setEvolutionSeries] = useState<{ seriesReconciled: SeriesPoint[]; seriesUnreconciled: SeriesPoint[] }>({
+    seriesReconciled: [],
+    seriesUnreconciled: [],
+  });
 
   const fetchData = useCallback(async () => {
     // Ne pas afficher le loading lors du polling : uniquement au premier chargement
@@ -126,12 +141,31 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
       date_fin: period.to,
       ...(companyId && { company_id: companyId }),
     });
+    const evolutionParams = new URLSearchParams({
+      tenant: tenantId,
+      date_debut: period.from,
+      date_fin: period.to,
+      ...(companyId && { company_id: companyId }),
+    });
     try {
-      const res = await fetch(`/api/treasury?${params}`, { cache: "no-store", headers: { Accept: "application/json" } });
+      const [res, evolutionRes] = await Promise.all([
+        fetch(`/api/treasury?${params}`, { cache: "no-store", headers: { Accept: "application/json" } }),
+        fetch(`/api/treasury-evolution?${evolutionParams}`, { cache: "no-store", headers: { Accept: "application/json" } }),
+      ]);
       const json = await res.json();
       setData(json);
+      if (evolutionRes.ok) {
+        const ev = await evolutionRes.json();
+        setEvolutionSeries({
+          seriesReconciled: ev.series_reconciled ?? [],
+          seriesUnreconciled: ev.series_unreconciled ?? [],
+        });
+      } else {
+        setEvolutionSeries({ seriesReconciled: [], seriesUnreconciled: [] });
+      }
     } catch {
       setData({ error: "treasury_unavailable" });
+      setEvolutionSeries({ seriesReconciled: [], seriesUnreconciled: [] });
     } finally {
       setLoading(false);
     }
@@ -141,8 +175,10 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
     setData(null);
     setLoading(true);
     fetchData();
-    const id = setInterval(fetchData, POLL_INTERVAL_MS);
-    return () => clearInterval(id);
+    const id = ENABLE_LIVE_POLLING ? setInterval(fetchData, POLL_INTERVAL_MS) : null;
+    return () => {
+      if (id) clearInterval(id);
+    };
   }, [fetchData]);
 
   const currency = data?.currency ?? "EUR";
@@ -219,7 +255,12 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
   } as const;
 
   const gov = governanceConfig[governanceStatus];
-  const borderVerdictGov = gov.border;
+
+  /** Sévérité badge charte (pas de border-l sur la card) */
+  const badgeSeverity =
+    governanceStatus === "critical" || governanceStatus === "partial" ? "vigilance" as const
+    : governanceStatus === "progress" ? "vigilance" as const
+    : "success" as const;
 
   const updatedAgo =
     generatedAt && typeof generatedAt === "string"
@@ -253,16 +294,15 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
 
   if (loading && !data) {
     return (
-      <section className={`${CARD_BASE} border-l-[var(--muted)]`}>
-        <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <IconWrap>
-              <IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-            </IconWrap>
-            <span className="text-lg font-bold uppercase tracking-wide text-[var(--accent)]">Paiements</span>
-          </div>
-          <div className="skeleton h-5 w-28" />
-        </div>
+      <section className={INSTRUMENT_CARD_BASE} role="region" aria-label="Instrument Paiements — chargement">
+        {cardId && onNavigateToCard && (
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        )}
+        <InstrumentCardHeader
+          icon={<IconWrap><IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" /></IconWrap>}
+          title="PAIEMENTS"
+          kpiValue={<div className="skeleton h-5 w-28" />}
+        />
         <div className="space-y-3">
           <div className="flex justify-between">
             <div className="skeleton h-4 w-32" />
@@ -281,17 +321,25 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
         ? gov.subtitle(remainingRatioPct ?? 0)
         : "";
 
+  const kpiLabel = showResteARapprocher ? "Reste à rapprocher" : totalAmountAbs === 0 ? "Complétude" : "Reste à rapprocher";
+  const kpiValueStr = totalAmountAbs === 0
+    ? "Complet"
+    : remainingRatioPct != null
+      ? `${remainingRatioPct.toFixed(1)} %`
+      : "—";
+
   return (
-    <section className={`${CARD_BASE} ${borderVerdictGov}`}>
-      {/* Header — Titre PAIEMENTS */}
-      <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] pb-3 mb-4">
-        <div className="flex items-center gap-2 min-w-0">
-          <IconWrap>
-            <IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" />
-          </IconWrap>
-          <span className="text-lg font-bold uppercase tracking-wide text-[var(--accent)]">Paiements</span>
-        </div>
-      </div>
+    <section className={INSTRUMENT_CARD_BASE} role="region" aria-label="Instrument Paiements — rapprochement bancaire">
+      {cardId && onNavigateToCard && (
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+      )}
+      <InstrumentCardHeader
+        icon={<IconWrap><IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" /></IconWrap>}
+        title="PAIEMENTS"
+        badges={<InstrumentCardStatusBadge label={gov.status} severity={badgeSeverity} />}
+        kpiLabel={kpiLabel}
+        kpiValue={<span className={gov.statusColor}>{kpiValueStr}</span>}
+      />
 
       {/* Mode Gouvernance v1.0 — 1. Statut fiabilité (dominant) + 2. Pourcentage (typographie forte) */}
       <div className="mb-4">
@@ -407,7 +455,7 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
       {(totalAmountAbs > 0 || reconciledVol > 0 || unreconciledVol > 0) && (
         <CardChartSection
           storageKey="linky-treasury-chart-expanded"
-          sectionTitle="Répartition"
+          sectionTitle="Évolution"
           chartType={chartType}
           onChartTypeChange={handleChartTypeChange}
           chartGranularity={chartGranularity}
@@ -416,18 +464,18 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
           whyContent={{
             periodLabel: `Du ${period.from} au ${period.to}`,
             tenantId: tenantId ?? undefined,
-            dataSource: "Vault (agrégations)",
-            calculationRule: "TTC, scellé",
+            dataSource: primarySource === "erp" ? "Source : ERP (Odoo)" : "Source : Vault",
+            calculationRule: primarySource === "erp" ? "Depuis l'ERP (rapprochement)" : "TTC, scellé",
           }}
           interpretationOverride={
             isCelebrating100 && chartType === "pie"
               ? { primary: "100 % rapproché", secondary: "✔ Tous les paiements traités" }
-              : undefined
+              : { primary: "Répartition rapproché / à rapprocher", secondary: "Couverture probante sur la période" }
           }
         >
           <DualSeriesChart
-            series1={[]}
-            series2={[]}
+            series1={evolutionSeries.seriesReconciled}
+            series2={evolutionSeries.seriesUnreconciled}
             total1={showResteARapprocher ? Math.max(0, reconciledAmountAbs) : Math.max(0, reconciledVol)}
             total2={showResteARapprocher ? Math.max(0, remainingAmountAbs) : Math.max(0, unreconciledVol)}
             label1="Rapproché"
@@ -440,6 +488,13 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, onFocusRe
           />
         </CardChartSection>
       )}
+      <InstrumentCardFooter
+        meta={
+          governanceStatus === "partial"
+            ? "Données partielles · Source Vault"
+            : "Couverture probante · Source Vault"
+        }
+      />
       {footer}
     </section>
   );
