@@ -20,6 +20,13 @@ import { AccountingSummaryProofBlock } from "@/components/AccountingSummaryProof
 import { AccountingSummaryAlerts } from "@/components/AccountingSummaryAlerts";
 import { AccountingSummaryCodirBlock } from "@/components/AccountingSummaryCodirBlock";
 import { AccountingSummaryExecutiveBlock } from "@/components/AccountingSummaryExecutiveBlock";
+import {
+  ACCOUNTING_BADGE_PARTIAL,
+  ACCOUNTING_BADGE_STUB,
+  AccountingBlockEmptyNotice,
+  AccountingBlockLoadingSkeleton,
+  AccountingBlockUnavailable,
+} from "@/components/accounting-summary/accountingBlockStates";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AccountingSummaryView — Surface Synthèse comptable Lynki
@@ -143,13 +150,7 @@ function GeneralLedgerPanel({ tenantId, companyId, accountCode, period, onClose 
           {loading && <GLSkeleton />}
 
           {!loading && error && (
-            <div className="rounded-xl border border-[var(--warning)]/50 bg-[var(--warning)]/10 p-4" role="alert">
-              <p className="text-sm font-semibold text-[var(--text)]">Impossible de charger les écritures</p>
-              <button type="button" onClick={fetchGL}
-                className="mt-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] transition-colors">
-                Réessayer
-              </button>
-            </div>
+            <AccountingBlockUnavailable title="Grand livre — écritures" onRetry={fetchGL} />
           )}
 
           {!loading && !error && data && (
@@ -157,15 +158,15 @@ function GeneralLedgerPanel({ tenantId, companyId, accountCode, period, onClose 
               {/* Stub badge */}
               {data.data_source === "stub" && (
                 <div className="mb-3 rounded-lg border border-[var(--warning)]/40 bg-[var(--warning)]/10 px-3 py-2 text-xs text-[var(--warning)]">
-                  Réponse de secours — Vault non joignable pour ce compte.
+                  {ACCOUNTING_BADGE_STUB} — Vault non joignable pour ce compte.
                 </div>
               )}
 
               {/* Aucune ligne */}
               {data.lines.length === 0 ? (
-                <p className="text-xs text-[var(--text-secondary)]">
+                <AccountingBlockEmptyNotice>
                   Aucune écriture {data.data_source === "stub" ? "(secours documenté)" : "sur cette période pour ce compte"}.
-                </p>
+                </AccountingBlockEmptyNotice>
               ) : (
                 <>
                   {/* Tableau écritures */}
@@ -315,37 +316,23 @@ function TrialBalanceBlock({ tenantId, companyId, period, accountPrefixes, rubri
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  const blockTitle = rubricLabel
+    ? `Balance générale — ${rubricLabel}`
+    : TRIAL_BALANCE_BLOCK_TITLE;
+
   // ── Chargement ────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div id="balance-generale" className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6" aria-busy="true" aria-label="Chargement de la balance générale">
-        <div className="mb-4 h-5 w-40 rounded bg-[var(--border)] animate-pulse" />
-        <div className="space-y-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-4 rounded bg-[var(--border)] animate-pulse" style={{ width: `${70 + (i % 3) * 10}%` }} />
-          ))}
-        </div>
-      </div>
+      <AccountingBlockLoadingSkeleton id="balance-generale" label="Balance générale" rows={6} />
     );
   }
 
   // ── Erreur ────────────────────────────────────────────────────────────────
   if (error) {
     return (
-      <div id="balance-generale" className="rounded-xl border border-[var(--warning)]/50 bg-[var(--warning)]/10 p-6" role="alert">
-        <p className="text-sm font-semibold text-[var(--text)]">Impossible de charger la balance générale</p>
-        <p className="mt-1 text-xs text-[var(--text-secondary)]">Vérifiez la connexion au Vault ou réessayez dans quelques instants.</p>
-        <button type="button" onClick={fetchData}
-          className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs text-[var(--text)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] transition-colors">
-          Réessayer
-        </button>
-      </div>
+      <AccountingBlockUnavailable id="balance-generale" title={blockTitle} onRetry={fetchData} />
     );
   }
-
-  const blockTitle = rubricLabel
-    ? `Balance générale — ${rubricLabel}`
-    : TRIAL_BALANCE_BLOCK_TITLE;
 
   // ── Vide / stub ───────────────────────────────────────────────────────────
   if (!data || data.lines.length === 0) {
@@ -355,7 +342,7 @@ function TrialBalanceBlock({ tenantId, companyId, period, accountPrefixes, rubri
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <h2 className="text-sm font-semibold text-[var(--text)]">{blockTitle}</h2>
           <span className="rounded-full bg-[var(--warning)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
-            {isStub ? "Secours documenté" : "Aucune ligne"}
+            {isStub ? ACCOUNTING_BADGE_STUB : "Aucune ligne"}
           </span>
           {data && (
             <span className="rounded-full bg-[var(--border)] px-2 py-0.5 text-[10px] font-mono text-[var(--text-muted)]">
@@ -363,11 +350,11 @@ function TrialBalanceBlock({ tenantId, companyId, period, accountPrefixes, rubri
             </span>
           )}
         </div>
-        <p className="text-xs text-[var(--text-secondary)]">
+        <AccountingBlockEmptyNotice>
           {isStub
             ? "Réponse de secours : le Vault n'a pas répondu. Activez le Vault ou désactivez le mode strict côté API."
             : "Aucune ligne comptable sur cette période (couverture actuelle : OD paie). Élargissez la période ou vérifiez les écritures importées."}
-        </p>
+        </AccountingBlockEmptyNotice>
         {data?.referentiel_version && (
           <p className="mt-3 text-[10px] text-[var(--text-muted)]">Référentiel mapping v{data.referentiel_version}</p>
         )}
@@ -403,8 +390,8 @@ function TrialBalanceBlock({ tenantId, companyId, period, accountPrefixes, rubri
             )}
             {!data.complete && (
               <span className="rounded-full bg-[var(--warning)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider"
-                title="Couverture partielle — OD paie uniquement">
-                Partiel
+                title="Couverture partielle — périmètre limité">
+                {ACCOUNTING_BADGE_PARTIAL}
               </span>
             )}
           </div>
@@ -517,32 +504,11 @@ function ClassAggregationBlock({
   }, [fetchData]);
 
   if (loading) {
-    return (
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6" aria-busy="true">
-        <div className="mb-4 h-5 w-48 rounded bg-[var(--border)] animate-pulse" />
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-4 rounded bg-[var(--border)] animate-pulse" style={{ width: `${65 + (i % 3) * 8}%` }} />
-          ))}
-        </div>
-      </div>
-    );
+    return <AccountingBlockLoadingSkeleton label={title} rows={4} />;
   }
 
   if (error || !data) {
-    return (
-      <div className="rounded-xl border border-[var(--warning)]/50 bg-[var(--warning)]/10 p-6" role="alert">
-        <p className="text-sm font-semibold text-[var(--text)]">{title}</p>
-        <p className="mt-1 text-xs text-[var(--text-secondary)]">Impossible de charger cette restitution.</p>
-        <button
-          type="button"
-          onClick={fetchData}
-          className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] transition-colors"
-        >
-          Réessayer
-        </button>
-      </div>
-    );
+    return <AccountingBlockUnavailable title={title} onRetry={fetchData} />;
   }
 
   const lines: ClassBalanceLine[] = data.lines ?? [];
@@ -556,12 +522,12 @@ function ClassAggregationBlock({
           <h2 className="text-sm font-semibold text-[var(--text)]">{title}</h2>
           {isStub && (
             <span className="rounded-full bg-[var(--warning)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
-              Secours documenté
+              {ACCOUNTING_BADGE_STUB}
             </span>
           )}
           {!data.complete && !empty && (
             <span className="rounded-full bg-[var(--warning)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
-              Partiel
+              {ACCOUNTING_BADGE_PARTIAL}
             </span>
           )}
           <span className="rounded-full bg-[var(--border)] px-2 py-0.5 text-[10px] font-mono text-[var(--text-muted)]">{data.data_source}</span>
@@ -579,11 +545,11 @@ function ClassAggregationBlock({
           </p>
         )}
         {empty ? (
-          <p className="rounded-lg bg-[var(--accent-soft)]/10 px-3 py-2 text-xs text-[var(--text-secondary)]">
+          <AccountingBlockEmptyNotice>
             {isStub
               ? "Réponse de secours : aucune donnée agrégée."
               : "Aucune ligne pour les classes concernées sur cette période (ou données absentes dans le Vault)."}
-          </p>
+          </AccountingBlockEmptyNotice>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-separate border-spacing-0 text-sm">
@@ -779,29 +745,11 @@ function RubricsBlock({
   useEffect(() => { fetchData(); }, [fetchData]);
 
   if (loading) {
-    return (
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6" aria-busy="true">
-        <div className="mb-4 h-5 w-52 rounded bg-[var(--border)] animate-pulse" />
-        <div className="space-y-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-4 rounded bg-[var(--border)] animate-pulse" style={{ width: `${60 + (i % 4) * 8}%` }} />
-          ))}
-        </div>
-      </div>
-    );
+    return <AccountingBlockLoadingSkeleton label={title} rows={6} />;
   }
 
   if (error || !data) {
-    return (
-      <div className="rounded-xl border border-[var(--warning)]/50 bg-[var(--warning)]/10 p-6" role="alert">
-        <p className="text-sm font-semibold text-[var(--text)]">{title}</p>
-        <p className="mt-1 text-xs text-[var(--text-secondary)]">Impossible de charger les rubriques.</p>
-        <button type="button" onClick={fetchData}
-          className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] transition-colors">
-          Réessayer
-        </button>
-      </div>
-    );
+    return <AccountingBlockUnavailable title={title} onRetry={fetchData} />;
   }
 
   const lines: RubricLine[] = data.lines ?? [];
@@ -835,12 +783,12 @@ function RubricsBlock({
           )}
           {isStub && (
             <span className="rounded-full bg-[var(--warning)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
-              Secours
+              {ACCOUNTING_BADGE_STUB}
             </span>
           )}
           {!data.complete && !empty && (
             <span className="rounded-full bg-[var(--warning)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
-              Partiel
+              {ACCOUNTING_BADGE_PARTIAL}
             </span>
           )}
           <span className="rounded-full bg-[var(--border)] px-2 py-0.5 text-[10px] font-mono text-[var(--text-muted)]">{data.data_source}</span>
@@ -861,9 +809,9 @@ function RubricsBlock({
           </div>
         )}
         {empty ? (
-          <p className="rounded-lg bg-[var(--accent-soft)]/10 px-3 py-2 text-xs text-[var(--text-secondary)]">
+          <AccountingBlockEmptyNotice>
             {isStub ? "Réponse de secours — aucune donnée." : "Aucune rubrique peuplée sur cette période."}
-          </p>
+          </AccountingBlockEmptyNotice>
         ) : (
           <div className="space-y-4">
             {sections.map((section) => {
@@ -1144,29 +1092,11 @@ function AgedBalanceBlock({
   useEffect(() => { fetchData(); }, [fetchData]);
 
   if (loading) {
-    return (
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6" aria-busy="true">
-        <div className="mb-4 h-5 w-44 rounded bg-[var(--border)] animate-pulse" />
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-4 rounded bg-[var(--border)] animate-pulse" style={{ width: `${65 + (i % 3) * 10}%` }} />
-          ))}
-        </div>
-      </div>
-    );
+    return <AccountingBlockLoadingSkeleton label={title} rows={4} />;
   }
 
   if (error || !data) {
-    return (
-      <div className="rounded-xl border border-[var(--warning)]/50 bg-[var(--warning)]/10 p-6" role="alert">
-        <p className="text-sm font-semibold text-[var(--text)]">{title}</p>
-        <p className="mt-1 text-xs text-[var(--text-secondary)]">Impossible de charger les balances tiers.</p>
-        <button type="button" onClick={fetchData}
-          className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] transition-colors">
-          Réessayer
-        </button>
-      </div>
-    );
+    return <AccountingBlockUnavailable title={title} onRetry={fetchData} />;
   }
 
   const lines: AgedBalanceLine[] = data.lines ?? [];
@@ -1193,7 +1123,7 @@ function AgedBalanceBlock({
           </span>
           {isStub && (
             <span className="rounded-full bg-[var(--warning)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
-              Secours
+              {ACCOUNTING_BADGE_STUB}
             </span>
           )}
           <span className="rounded-full bg-[var(--border)] px-2 py-0.5 text-[10px] font-mono text-[var(--text-muted)]">{data.data_source}</span>
@@ -1235,9 +1165,9 @@ function AgedBalanceBlock({
           </div>
         )}
         {empty ? (
-          <p className="rounded-lg bg-[var(--accent-soft)]/10 px-3 py-2 text-xs text-[var(--text-secondary)]">
+          <AccountingBlockEmptyNotice>
             {isStub ? "Réponse de secours — aucune donnée." : "Aucun encours tiers sur cette date."}
-          </p>
+          </AccountingBlockEmptyNotice>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-separate border-spacing-0 text-xs">

@@ -25,7 +25,7 @@
 | ID | Titre | Persona | Statut |
 |----|-------|---------|--------|
 | V1.3-1 | Résumé de lecture comité (entrée de synthèse) | Esther | `Fait` |
-| V1.3-2 | États vide / partiel / indisponible homogènes sur les blocs comptables | Esther | `À faire` |
+| V1.3-2 | États vide / partiel / indisponible homogènes sur les blocs comptables | Esther | `Fait` |
 | V1.3-3 | Périmètre explicite par bloc (période, société, sources) | Véréna / Esther | `À faire` |
 | V1.3-4 | Lecture comparative N vs N-1 (sous condition — voir audit § ci-dessous) | Esther | `Audité` |
 | V1.3-5 | Libellés et périmètre des exports par bloc (CSV / DOCX) | Esther | `À faire` |
@@ -88,9 +88,11 @@ Si, après V1.3-1 → V1.3-3, la priorité produit est ailleurs, **V1.3-4 peut r
 **Fichiers probables** : `AccountingSummaryView.tsx` et sous-composants de blocs.
 
 **DoD** :
-- [ ] même grammaire visuelle et textuelle pour les états limites ;
-- [ ] aucune régression sur les données « ready » ;
-- [ ] typecheck / lint OK.
+- [x] même grammaire visuelle et textuelle pour les états limites ;
+- [x] aucune régression sur les données « ready » ;
+- [x] typecheck / lint OK.
+
+**Livraison** : module partagé `components/accounting-summary/accountingBlockStates.tsx` (squelette chargement, indisponible + `ACCOUNTING_UNAVAILABLE_BODY`, notice vide, badges `ACCOUNTING_BADGE_STUB` / `ACCOUNTING_BADGE_PARTIAL`) ; blocs `TrialBalanceBlock`, `ClassAggregationBlock`, `RubricsBlock`, `AgedBalanceBlock` et panneau `GeneralLedgerPanel` dans `AccountingSummaryView.tsx`.
 
 ---
 
@@ -138,6 +140,7 @@ Si, après V1.3-1 → V1.3-3, la priorité produit est ailleurs, **V1.3-4 peut r
 | ID | Date | Notes |
 |----|------|-------|
 | V1.3-1 | 24 mars 2026 | Bloc exécutif déterministe ; props depuis probe existante + `enableCompare`. |
+| V1.3-2 | 24 mars 2026 | États loading / unavailable / empty / badges harmonisés ; pas de changement de logique métier des APIs. |
 
 ---
 
