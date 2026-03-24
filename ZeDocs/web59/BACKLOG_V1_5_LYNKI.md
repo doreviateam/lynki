@@ -165,6 +165,7 @@
 | 24 mars 2026 | **Ordre code** documenté : implémentation **2+3 puis 1** ; tokens `--radius-card` / `--radius-xl` → `0.5rem` (canon V5 `xl`) ; `--confidence-fiable` → `#10B981` ; trésorerie SVG sur le token. **En cours** jusqu’à captures DoD + non-régression visuelle. |
 | 24 mars 2026 | **Thème clair opt-in** : `html.light` + tokens dérivés des maquettes `stitch_carole_61` (canon V5) ; persistance `localStorage` `linky-theme` ; `tailwind` en `darkMode: "class"` ; toggle dans la TopBar (+ login, alertes mobile, admin DLP). L’inventaire **clair/sombre** reste partiellement **interprétatif** tant que le défaut produit / la recette globale ne sont pas figés. |
 | 24 mars 2026 | **Alignement créa renforcé** : défaut navigateur = **clair** (Stitch) sauf `linky-theme=dark` ; cockpit desktop (bento, tuiles maîtresses, sparkline emerald, PROXY ambre, Business slate-900) calqué sur `pilotage_desktop_v_r_na_canon_v5` ; TopBar `h-16` / titre `text-lg font-bold`. |
+| 24 mars 2026 | **Page `/tresorerie`** : structure `d_tail_tr_sorerie_v_r_na_canon_v5` — en-tête retour Pilotage + actions (Exporter désactivé, Actualiser primaire noir/blanc), grille 12 (KPI héro 8 + bloc contexte slate-900), graphique 9 + panneau Gouvernance 3, courbe SVG h-64 / stroke 3 / dégradé type maquette. |
 
 ---
 
