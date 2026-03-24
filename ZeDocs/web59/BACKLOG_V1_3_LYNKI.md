@@ -24,7 +24,7 @@
 
 | ID | Titre | Persona | Statut |
 |----|-------|---------|--------|
-| V1.3-1 | Résumé de lecture comité (entrée de synthèse) | Esther | `À faire` |
+| V1.3-1 | Résumé de lecture comité (entrée de synthèse) | Esther | `Fait` |
 | V1.3-2 | États vide / partiel / indisponible homogènes sur les blocs comptables | Esther | `À faire` |
 | V1.3-3 | Périmètre explicite par bloc (période, société, sources) | Véréna / Esther | `À faire` |
 | V1.3-4 | Lecture comparative N vs N-1 (sous condition — voir audit § ci-dessous) | Esther | `Audité` |
@@ -74,10 +74,10 @@ Si, après V1.3-1 → V1.3-3, la priorité produit est ailleurs, **V1.3-4 peut r
 **Fichiers probables** : `app/(reporting)/synthese/page.tsx`, `AccountingSummaryView.tsx` ou composant dédié léger.
 
 **DoD** :
-- [ ] bloc ou section « lecture comité » visible sans scroll excessif sur desktop ;
-- [ ] contenu **uniquement** dérivé de données déjà chargées ou d’un agrégat minimal (pas de nouveau moteur narratif non qualifié) ;
-- [ ] état honnête si données insuffisantes ;
-- [ ] typecheck / lint OK.
+- [x] bloc « Résumé de lecture comité » en entrée de la synthèse (rendu dans `AccountingSummaryView`, page `/synthese`) ;
+- [x] contenu dérivé de `coverageState`, `enableCompare`, libellés période / société — **aucun nouvel appel API** ;
+- [x] couverture loading / ready / partial / empty / unavailable explicitée ; comparatif N/N-1 **uniquement** pour les rubriques, BG sans comparatif ;
+- [x] typecheck / lint OK — composant `AccountingSummaryExecutiveBlock.tsx`
 
 ---
 
@@ -137,7 +137,7 @@ Si, après V1.3-1 → V1.3-3, la priorité produit est ailleurs, **V1.3-4 peut r
 
 | ID | Date | Notes |
 |----|------|-------|
-| — | — | — |
+| V1.3-1 | 24 mars 2026 | Bloc exécutif déterministe ; props depuis probe existante + `enableCompare`. |
 
 ---
 

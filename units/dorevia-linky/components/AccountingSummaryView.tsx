@@ -19,6 +19,7 @@ import { AccountingSummaryBreakdownChart } from "@/components/AccountingSummaryB
 import { AccountingSummaryProofBlock } from "@/components/AccountingSummaryProofBlock";
 import { AccountingSummaryAlerts } from "@/components/AccountingSummaryAlerts";
 import { AccountingSummaryCodirBlock } from "@/components/AccountingSummaryCodirBlock";
+import { AccountingSummaryExecutiveBlock } from "@/components/AccountingSummaryExecutiveBlock";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AccountingSummaryView — Surface Synthèse comptable Lynki
@@ -1571,6 +1572,14 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
           </div>
         )}
       </header>
+
+      <AccountingSummaryExecutiveBlock
+        periodLabel={periodLabel(periodMode, effectivePeriod)}
+        companyLabel={companyLabel}
+        companiesLoaded={companiesLoaded}
+        coverageState={coverageState}
+        enableCompare={enableCompare}
+      />
 
       {/* ─── Vue d'ensemble : chaîne de lecture (T99 matrice #2) ─── */}
       <div className="sv2-card sv2-card-highlight p-5 sm:p-6">
