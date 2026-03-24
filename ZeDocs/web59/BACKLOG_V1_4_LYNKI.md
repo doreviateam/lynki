@@ -82,6 +82,8 @@ Faire de `/encours` une page qui aide à répondre rapidement à :
 
 *(La réponse peut tenir en quelques paragraphes + liste de champs / écrans ; pas de rapport lourd.)*
 
+**Livrable réalisé** : [`AUDIT_V1_4_1_ENCOURS.md`](./AUDIT_V1_4_1_ENCOURS.md).
+
 ### Structure cible
 
 * en-tête de page ;
@@ -149,6 +151,7 @@ Faire de `/encours` une page qui aide à répondre rapidement à :
 
 | ID / jalons | Date | Notes |
 |-------------|------|-------|
+| Audit V1.4-1 | 24 mars 2026 | [`AUDIT_V1_4_1_ENCOURS.md`](./AUDIT_V1_4_1_ENCOURS.md) — surface, données, segmentation, écarts, verdict. |
 | *—* | *—* | *À compléter au fil des livraisons.* |
 
 ---
