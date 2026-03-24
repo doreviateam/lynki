@@ -18,8 +18,8 @@
   --muted:           #A8B4C8;
   --hover:           #1F3653;
 
-  /* Confiance / intégrité — canon v5 */
-  --confidence-fiable:    #10B981; /* handoff DOSSIER_HANDOFF_DESIGN_LYNKI_V1 §8 */
+  /* Confiance : token Material canon Stitch (`on-tertiary-container` — pilotage_*_canon_v5) ; handoff §8 proposait #10B981 */
+  --confidence-fiable:    #059669;
   --confidence-partielle: #F59E0B;
   --confidence-proxy:     #3B82F6;
   --confidence-estimee:   #8B5CF6;
@@ -74,9 +74,14 @@
 }
 
 body {
-  font-family: var(--font-ibm-plex), var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
+}
+
+/* Même réglage que les maquettes Stitch (Material Symbols) */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 
 /* SPEC_UX_CELEBRATION_LINKY v1.1 — micro-luminosité donut 100 % (impulsion 800ms + retour) */

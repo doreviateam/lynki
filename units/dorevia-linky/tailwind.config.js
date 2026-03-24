@@ -12,8 +12,9 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-ibm-plex)", "var(--font-inter)", "system-ui", "-apple-system", "sans-serif"],
-        mono: ["var(--font-ibm-plex)", "ui-monospace", "monospace"],
+        /* Canon Stitch / Fidelity : Inter seule pour titres, corps, labels (ZeDocs/web59/stitch_carole_61) */
+        sans: ["var(--font-inter)", "system-ui", "-apple-system", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       colors: {
         "linky-bg": "var(--bg)",
@@ -45,7 +46,9 @@ module.exports = {
         "linky-padding": "16px",
         "linky-padding-lg": "24px",
       },
+      /* pilotage_desktop_v_r_na_canon_v5 : DEFAULT 0.125rem, lg 0.25rem, xl 0.5rem — on n’écrase pas `full` (pills / spinners) */
       borderRadius: {
+        xl: "0.5rem",
         "linky-card": "var(--radius-card)",
         "linky-badge": "6px",
       },
