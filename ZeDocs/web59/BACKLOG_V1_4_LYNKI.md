@@ -56,6 +56,17 @@ Faire de `/encours` une page qui aide à répondre rapidement à :
 * **Pas** de nouvelle promesse de recouvrement, **pas** de recommandation automatique.
 * **Pas** de backend nouveau **si** les données déjà exposées (ou proxifiées) suffisent pour une **première vraie page** ; toute évolution API se fait **explicitement** et hors scope tacite.
 
+### Séquence globale (release → axe 2)
+
+1. Mini-recette **`/synthese`** puis **push** branche + tags (dont **`lynki-v1.3`**).
+2. **Ouverture V1.4-1** — **sans re-cadrage documentaire supplémentaire** : ce ticket est déjà cadré ci-dessous.
+
+### Premier mouvement sain (V1.4-1, avant code significatif)
+
+1. **Audit** de la surface actuelle de **`/encours`** et des **données réellement tenues** (routes, champs, stubs, limites Vault / Lynki).
+2. **Trancher** la **première segmentation** affichable de façon honnête (équivalence métier ↔ champs disponibles).
+3. **Implémenter** la première version lisible selon la **structure cible** et le **DoD** (pas de « smart » implicite).
+
 ### Structure cible
 
 * en-tête de page ;
