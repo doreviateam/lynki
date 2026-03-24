@@ -95,6 +95,9 @@ export interface ArByPartnerDetail {
     share_percent: number;
     overdue_avg_days?: number;
     overdue_max_days?: number;
+    payment_delay_avg_days?: number | null;
+    open_count_invoices?: number;
+    overdue_count_invoices?: number;
   }>;
   meta: { freshness: string; warnings?: string[] };
 }

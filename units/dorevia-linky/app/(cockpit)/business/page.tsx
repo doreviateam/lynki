@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { Suspense, useMemo } from "react";
+import type { ArByPartnerDetail } from "@/app/api/dashboard-metrics/route";
+import { formatPaymentDelayDays } from "@/app/lib/format";
+import { BusinessPageEvolution } from "./BusinessPageEvolution";
 import { Icon } from "@/components/Icon";
 import { ConfidenceScore } from "@/components/ConfidenceScore";
 import { TopBar } from "@/components/layout/TopBar";
@@ -91,6 +94,15 @@ function BusinessContent() {
   const sourceLine = `Lecture d’activité (facturation / achats) sur le périmètre choisi — source ${
     primarySource === "erp" ? "ERP" : "Vault"
   }, même agrégation que le cockpit (/api/dashboard-metrics ou instruments si activé). Ce n’est pas un compte de résultat, ni une marge métier ; les montants viennent des flux scellés disponibles.`;
+
+  const arByPartnerName = useMemo(() => {
+    const m = new Map<string, ArByPartnerDetail["partners"][number]>();
+    for (const p of arByPartner?.partners ?? []) {
+      const key = (p.partner_name ?? String(p.partner_id ?? "")).trim().toLowerCase();
+      if (key) m.set(key, p);
+    }
+    return m;
+  }, [arByPartner?.partners]);
 
   return (
     <>
@@ -216,11 +228,20 @@ function BusinessContent() {
                 </div>
               </div>
 
+              {!metricsLoading && !metricsError && period.from && period.to ? (
+                <BusinessPageEvolution
+                  tenantId={scopeTenantId}
+                  companyId={effectiveCompanyId}
+                  periodFrom={period.from}
+                  periodTo={period.to}
+                />
+              ) : null}
+
               {hasTopClients ? (
                 <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
                   <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
-                      Concentration — CA facturé par client
+                      Concentration — CA par client (délais si disponibles)
                     </h2>
                     <span className="text-xs text-[var(--muted)]">
                       {salesByPartner!.partners_count} client{salesByPartner!.partners_count > 1 ? "s" : ""}
@@ -242,10 +263,18 @@ function BusinessContent() {
                           <th className="border-b border-[var(--border)] pb-2 text-right text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
                             % du total
                           </th>
+                          <th className="border-b border-[var(--border)] pb-2 text-right text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                            Délai moy. paiement
+                          </th>
+                          <th className="border-b border-[var(--border)] pb-2 text-right text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                            Retard max (j)
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
-                        {salesByPartner!.items.slice(0, 8).map((item, i) => (
+                        {salesByPartner!.items.slice(0, 8).map((item, i) => {
+                          const ar = arByPartnerName.get(item.partner_name.trim().toLowerCase());
+                          return (
                           <tr key={i} className="border-b border-[var(--border)]/50">
                             <td className="py-2 pr-4 text-[var(--text)]">{item.partner_name}</td>
                             <td className="whitespace-nowrap py-2 text-right tabular-nums text-[var(--text)]">
@@ -253,8 +282,15 @@ function BusinessContent() {
                             </td>
                             <td className="py-2 text-right tabular-nums text-[var(--text-secondary)]">{item.invoices_count}</td>
                             <td className="py-2 text-right tabular-nums text-[var(--muted)]">{Math.round(item.pct_of_total)} %</td>
+                            <td className="py-2 text-right tabular-nums text-[var(--text-secondary)]">
+                              {formatPaymentDelayDays(ar?.payment_delay_avg_days ?? null)}
+                            </td>
+                            <td className="py-2 text-right tabular-nums text-[var(--text-secondary)]">
+                              {ar != null && (ar.overdue_max_days ?? 0) > 0 ? `${Math.round(ar.overdue_max_days ?? 0)} j` : "—"}
+                            </td>
                           </tr>
-                        ))}
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -316,19 +352,78 @@ function BusinessContent() {
                       </div>
                     </div>
                   </div>
-                  {arByPartner!.partners.slice(0, 5).map((p, i) => (
-                    <div key={i} className="flex items-center justify-between border-t border-[var(--border)]/50 py-2 text-sm">
-                      <span className="text-[var(--text-secondary)]">{p.partner_name ?? p.partner_id}</span>
-                      <div className="flex items-center gap-4 text-right">
-                        <span className="tabular-nums text-[var(--text)]">{formatCurrency(p.open_amount, businessCurrency)}</span>
-                        {p.overdue_amount > 0 ? (
-                          <span className="text-xs tabular-nums text-amber-400">
-                            {formatCurrency(p.overdue_amount, businessCurrency)} échu
-                          </span>
-                        ) : null}
-                      </div>
+                  {(arByPartner!.totals.overdue_avg_days != null && arByPartner!.totals.overdue_avg_days! > 0) ||
+                  (arByPartner!.totals.overdue_max_days != null && arByPartner!.totals.overdue_max_days! > 0) ? (
+                    <div className="mb-4 flex flex-wrap gap-x-6 gap-y-1 text-xs text-[var(--text-secondary)]">
+                      {arByPartner!.totals.overdue_avg_days != null && arByPartner!.totals.overdue_avg_days! > 0 ? (
+                        <span>
+                          Retard moyen pondéré (échus) :{" "}
+                          <strong className="tabular-nums text-[var(--text)]">
+                            {Math.round(arByPartner!.totals.overdue_avg_days!)} j
+                          </strong>
+                        </span>
+                      ) : null}
+                      {arByPartner!.totals.overdue_max_days != null && arByPartner!.totals.overdue_max_days! > 0 ? (
+                        <span>
+                          Pire retard :{" "}
+                          <strong className="tabular-nums text-amber-400">{arByPartner!.totals.overdue_max_days} j</strong>
+                        </span>
+                      ) : null}
                     </div>
-                  ))}
+                  ) : null}
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[640px] border-separate border-spacing-0 text-sm">
+                      <thead>
+                        <tr className="text-left">
+                          <th className="border-b border-[var(--border)] pb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                            Client
+                          </th>
+                          <th className="border-b border-[var(--border)] pb-2 text-right text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                            Encours
+                          </th>
+                          <th className="border-b border-[var(--border)] pb-2 text-right text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                            Échu
+                          </th>
+                          <th className="border-b border-[var(--border)] pb-2 text-right text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                            Délai moy. paiement
+                          </th>
+                          <th className="border-b border-[var(--border)] pb-2 text-right text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                            Retard max (j)
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {arByPartner!.partners.slice(0, 12).map((p, i) => (
+                          <tr key={i} className="border-b border-[var(--border)]/50">
+                            <td className="py-2 pr-3 text-[var(--text)]">{p.partner_name ?? p.partner_id}</td>
+                            <td className="whitespace-nowrap py-2 text-right tabular-nums text-[var(--text)]">
+                              {formatCurrency(p.open_amount, businessCurrency)}
+                            </td>
+                            <td className="whitespace-nowrap py-2 text-right tabular-nums text-amber-400">
+                              {p.overdue_amount > 0 ? formatCurrency(p.overdue_amount, businessCurrency) : "—"}
+                            </td>
+                            <td className="py-2 text-right tabular-nums text-[var(--text-secondary)]">
+                              {formatPaymentDelayDays(p.payment_delay_avg_days ?? null)}
+                            </td>
+                            <td className="py-2 text-right tabular-nums text-[var(--text-secondary)]">
+                              {(p.overdue_max_days ?? 0) > 0 || (p.overdue_avg_days ?? 0) > 0
+                                ? `${Math.round(p.overdue_max_days ?? p.overdue_avg_days ?? 0)} j`
+                                : "—"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {arByPartner!.partners.length > 12 ? (
+                    <p className="mt-2 text-[10px] text-[var(--muted)]">
+                      Affichage des 12 premiers partenaires par encours — détail complet sur{" "}
+                      <Link href={encoursHref} className="font-medium text-[var(--accent)] underline-offset-2 hover:underline">
+                        Encours clients
+                      </Link>
+                      .
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
 
