@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { DashboardMetricsResponse, KpiMetric } from "@/app/api/dashboard-metrics/route";
 
-const DIVA_URL = process.env.DIVA_URL || "http://diva:8010";
+const VAULT_URL = process.env.VAULT_URL || "http://localhost:8080";
 const DEFAULT_TENANT = process.env.TENANT_ID || "core";
 // Réponse rapide (cache hit ou 202) ; pas de timeout long
 const TIMEOUT_MS = 10000;
@@ -21,15 +21,18 @@ const CARD_MAPPING: Array<{
   unit: string;
   detailsKey?: keyof NonNullable<DashboardMetricsResponse["_details"]>;
 }> = [
-  { dmKey: "treasury", specKey: "treasury_validated_pct", label: "Trésorerie validée", unit: "%", detailsKey: "treasury" },
-  { dmKey: "treasury_position", specKey: "treasury_position", label: "Position trésorerie", unit: "EUR", detailsKey: "treasury" },
-  { dmKey: "cash", specKey: "cash", label: "Cash", unit: "EUR", detailsKey: "cash" },
-  { dmKey: "business", specKey: "business", label: "Business", unit: "EUR", detailsKey: "business" },
+  { dmKey: "treasury", specKey: "treasury_validated_pct", label: "Trésorerie", unit: "EUR", detailsKey: "treasury" },
+  { dmKey: "treasury_position", specKey: "treasury_position", label: "Couverture trésorerie", unit: "%", detailsKey: "treasury" },
+  { dmKey: "cash", specKey: "cash", label: "Flux net", unit: "EUR", detailsKey: "cash" },
+  { dmKey: "business", specKey: "business", label: "Activité commerciale", unit: "EUR", detailsKey: "business" },
   { dmKey: "taxes", specKey: "taxes", label: "Taxes", unit: "EUR" },
   { dmKey: "credit_notes", specKey: "credit_notes", label: "Notes de crédit", unit: "EUR", detailsKey: "credit_notes" },
   { dmKey: "refunds", specKey: "refunds", label: "Remboursements", unit: "EUR", detailsKey: "refunds" },
-  { dmKey: "pos_shops", specKey: "pos_shops", label: "POS magasins", unit: "EUR", detailsKey: "pos_shops" },
+  { dmKey: "pos_shops", specKey: "pos_shops", label: "POS", unit: "EUR", detailsKey: "pos_shops" },
   { dmKey: "pos_z", specKey: "pos_z", label: "Z de caisse", unit: "EUR" },
+  { dmKey: "working_capital", specKey: "bfr", label: "BFR", unit: "EUR" },
+  { dmKey: "encours", specKey: "encours", label: "Encours clients", unit: "EUR" },
+  { dmKey: "ebitda", specKey: "ebe", label: "EBE", unit: "EUR" },
 ];
 
 function metricsToCards(metrics: DashboardMetricsResponse) {
@@ -120,10 +123,10 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    const base = DIVA_URL.replace(/\/$/, "");
-    const res = await fetch(`${base}/diva/explain/async`, {
+    const base = VAULT_URL.replace(/\/$/, "");
+    const res = await fetch(`${base}/ui/diva/explain/async`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Tenant": context.tenant ?? DEFAULT_TENANT },
       body: JSON.stringify(divaBody),
       signal: controller.signal,
     });

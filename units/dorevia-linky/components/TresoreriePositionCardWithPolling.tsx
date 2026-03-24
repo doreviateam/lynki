@@ -33,6 +33,7 @@ interface TresoreriePositionCardWithPollingProps {
   footer?: React.ReactNode;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function TresoreriePositionCardWithPolling({
@@ -42,6 +43,7 @@ export function TresoreriePositionCardWithPolling({
   footer,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: TresoreriePositionCardWithPollingProps) {
   const [data, setData] = useState<TresoreriePositionData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,6 +59,9 @@ export function TresoreriePositionCardWithPolling({
     if (companyId != null && companyId !== "") {
       params.set("company_id", companyId);
     }
+    // Aligner période treasury (et payroll côté API) sur la période du bloc Évolution (MINI_SPEC couverture structurelle)
+    params.set("date_debut", periodToUse.from);
+    params.set("date_fin", periodToUse.to);
     try {
       const [treasuryRes, evolutionRes] = await Promise.all([
         fetch(`/api/treasury?${params}`, {
@@ -121,6 +126,7 @@ export function TresoreriePositionCardWithPolling({
       footer={footer}
       cardId={cardId}
       onNavigateToCard={onNavigateToCard}
+      onBackToCockpit={onBackToCockpit}
       treasurySeries={treasurySeries}
       evolutionError={evolutionError}
       onEvolutionRetry={handleRefresh}

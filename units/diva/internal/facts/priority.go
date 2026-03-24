@@ -16,12 +16,16 @@ const (
 // CategoryRank — ordre prédéfini des catégories pour tri stable.
 // Pas lexicographique (sinon "ar" remonte avant "governance").
 // Table explicite figée en code + doc.
+// Hiérarchie narrative contrôle de gestion :
+// créances (ar) = signal stratégique → avant taxes dans what_i_see.
 var categoryRank = map[string]int{
 	"governance": 0,
 	"treasury":   1,
-	"tax":        2,
-	"pos":        3,
-	"ar":         4,
+	"ar":         2, // créances avant taxes (risque client > inducteur fiscal)
+	"tax":        3,
+	"pos":        4,
+	"bfr":        5,
+	"ebe":        6,
 }
 
 // CategoryRank retourne le rang de la catégorie pour le tri.

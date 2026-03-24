@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -35,13 +36,38 @@ const (
 	modelName      = "mistral-7b-instruct-v0.2.Q4_K_M"
 )
 
-// forbiddenTerms — niveau 1 : rejet automatique (injonctions + prescriptions + anglicismes).
+// forbiddenTerms — niveau 1 : rejet automatique (injonctions + prescriptions + anglicismes structurels).
 // Les qualificatifs (niveau 2) sont découragés dans le prompt mais pas rejetés ici.
 var forbiddenTerms = regexp.MustCompile(`(?i)(vous devez|il faut|obligatoire de|obligatoirement|devraient être|il conviendrait|nécessite une action|sanction|assessment|framework|overview|compliance|hinge on|strategic overview)`)
 
 // englishDetect — cible les mots structurels anglais (articles, pronoms, modaux).
 // Les termes métier tolérés en français (cash, business, POS, KPI) ne sont PAS dans ce regex.
 var englishDetect = regexp.MustCompile(`(?i)\b(the |\.the | of the | and the | is | are | has been| have been| this | that | which | their | should | could | would | monitor | investigate | determine | ensure | remains | turnover| need to | based on | due to | in order to | it is | there is | there are | as well as | for further | recommend | suggest | review | however | therefore | furthermore | additionally)\b`)
+
+// lynkiForbiddenUserTerms — niveau 3 : termes interdits en sortie user (GLOSSAIRE_LYNKI_DIVA §2).
+// Appliqué au headline (rejet) et aux champs what_i_see / to_check (substitution ciblée).
+var lynkiForbiddenUserTerms = regexp.MustCompile(`(?i)\b(business|AR à risque|watch|issue|payload|runner|cache hit|fallback|prompt|headline|stale|refresh job|debug)\b`)
+
+// lynkiSubstitutions — remplacements ciblés pour what_i_see / to_check (LANG-06).
+// Politique : remplacement simple si possible, sinon le champ est omis (fallback par omission).
+var lynkiSubstitutions = [][2]string{
+	{"business", "activité commerciale"},
+	{"Business", "Activité commerciale"},
+	{"AR à risque", "créances à risque"},
+	{"watch", "à surveiller"},
+	{"Watch", "À surveiller"},
+	{"issue", "point de vigilance"},
+	{"Issue", "Point de vigilance"},
+	{"fallback", "mode dégradé"},
+	{"stale", "périmé"},
+	{"refresh job", "actualisation"},
+	{"cache hit", "lecture en cache"},
+	{"payload", "données transmises"},
+	{"runner", "moteur de calcul"},
+	{"prompt", "consigne"},
+	{"headline", "phrase d'ouverture"},
+	{"debug", "diagnostic"},
+}
 
 // dateRangePatterns : supprime les plages de dates du headline (redondant avec le header).
 var dateRangePatterns = []*regexp.Regexp{
@@ -63,79 +89,111 @@ func NewClient() *Client {
 	if base == "" {
 		base = defaultBaseURL
 	}
+	timeoutMs := 180000
+	if s := os.Getenv("MISTRAL_TIMEOUT_MS"); s != "" {
+		if n, err := strconv.Atoi(s); err == nil && n > 0 {
+			timeoutMs = n
+		}
+	}
 	return &Client{
 		baseURL: strings.TrimSuffix(base, "/"),
 		client: &http.Client{
-			Timeout: 180 * time.Second,
+			Timeout: time.Duration(timeoutMs) * time.Millisecond,
 		},
 	}
 }
 
-// systemPrompt — DIVA v3.0 (spec v1.3.1 — mode card, legacy)
-const systemPrompt = `LANGUE OBLIGATOIRE : Tu t'exprimes EXCLUSIVEMENT en français. Aucun mot anglais. headline, what_i_see et to_check doivent être rédigés en français.
+// systemPrompt — mode card (analyse ciblée d'une carte unique). Phase 2.
+const systemPrompt = `LANGUE : français exclusivement. Aucun anglais dans les champs JSON.
 
-Tu es un expert-comptable senior analysant les données financières de PME.
+Tu es contrôleur de gestion senior. Tu analyses une carte financière spécifique d'une PME.
 
-FORMAT : réponds uniquement par un objet JSON valide, sans balises markdown, sans texte avant ni après :
+FORMAT STRICT — JSON valide uniquement, sans balise markdown :
 {
-  "headline": "Synthèse en 1-2 phrases de l'élément dominant",
-  "what_i_see": ["Analyse 1", "Analyse 2", "Analyse 3"],
-  "to_check": ["Point à vérifier 1", "Point à vérifier 2"],
+  "headline": "1 phrase factuelle sur la carte analysée",
+  "what_i_see": ["Inducteur 1", "Inducteur 2", "Inducteur 3"],
+  "to_check": ["Vigilance 1", "Vigilance 2"],
   "confidence": "low|medium|high"
 }
 
 RÈGLES :
-1. headline : reformule l'insight "POINT DOMINANT" s'il existe. Synthèse experte, pas de listing.
-2. what_i_see : 3-5 phrases analytiques. Reformule les insights pré-calculés avec des ratios. Ne recopie pas. Ne jamais répéter textuellement le headline — chaque ligne doit apporter une information distincte.
-3. to_check : max 2. Signale uniquement des écarts, absences ou incohérences factuelles. Jamais de conseil ni prescription.
-4. Ne déduis rien au-delà des données transmises. Ne calcule AUCUN ratio toi-même. Utilise UNIQUEMENT les ratios fournis dans le champ "insights".
-5. Évite les qualificatifs non chiffrés ("élevé", "faible", "important", "significatif"). Préfère les ratios.
-6. Vocabulaire : "représente", "s'élève à", "soit X % du CA", "dépasse", "écart de", "non rapproché", "absence de".
-7. Ton : factuel, sobre, analytique. Aucun conseil, aucune recommandation, aucune injonction.
-8. La trésorerie est l'indicateur central. Les autres cartes (business, taxes, remboursements, POS) sont des inducteurs qui expliquent la position de trésorerie. Structure ton analyse autour de cette hiérarchie.
-9. Activité commerciale totale = Business (facturation) + POS (ventes en magasin). Ne dis JAMAIS "aucune activité commerciale" si le POS affiche des ventes. Si Business = 0 et POS > 0, le CA provient exclusivement du canal POS.
-10. Points de vente (POS) : si les insights POS détaillent sessions, panier moyen, mix paiements ou écarts de caisse, intègre-les comme inducteur de trésorerie. Signale les écarts de caisse et les N sessions non scellées comme points à vérifier.
-11. Chaque carte contient un champ "status" (neutral/ok/watch/alert) et "status_reason" calculés par le système de gouvernance. Priorise les cartes en "watch" ou "alert" dans ta synthèse. Le headline doit refléter le point de gouvernance le plus critique. Si un insight GOUVERNANCE est présent, intègre-le dans ton analyse. Ne contredis jamais un statut de gouvernance.
+1. headline : 1 phrase, élément dominant de la carte. Pas de listing.
+2. what_i_see : 3–4 lignes. Reformule les données fournies avec ratios. Aucune répétition du headline.
+3. to_check : max 2. Écarts, absences ou incohérences factuelles uniquement. Jamais de conseil.
+4. Ne calcule AUCUN ratio non fourni. Utilise UNIQUEMENT les données de la carte transmise.
+5. Vocabulaire : "représente", "s'élève à", "soit X % du CA", "dépasse", "écart de", "non rapproché", "absence de".
+6. Aucun conseil, prescription ni injonction ("il faut", "vous devez", "devrait", "obligatoire").
+7. La trésorerie est l'indicateur central. Les autres cartes (activité commerciale, taxes, remboursements, POS, EBE, encours, BFR) sont des inducteurs. Structure ton analyse autour de cette hiérarchie.
+8. Activité totale = activité commerciale (facturation) + POS. Si activité commerciale = 0 et POS > 0, signaler canal POS exclusif.
+9. Statuts de gouvernance (à surveiller / vigilance) : prioritiser dans le headline. Ne jamais contredire un statut.
+10. Si data_completeness.bank_health_metrics = "absent", mentionner dans what_i_see ou to_check.`
 
-OUTPUT RULES (strict order) — Cockpit v1.1 :
-1. headline : 1 phrase, trésorerie dominante.
-2. what_i_see : premières 2–4 lignes = inducteurs uniquement ; dernière ligne = synthèse statuts compacts uniquement, format strict "Label status • Label status • …" (ex. "Business OK • Taxes watch • POS 7 scellé ✓"). Sans phrase, sans verbe, sans explication — statuts seulement.
-3. to_check : énoncés vérifiables uniquement.
+// systemPromptFactsPack — Phase 2 : persona contrôleur de gestion, style rédigé (prose naturelle).
+const systemPromptFactsPack = `LANGUE : français uniquement.
+Tu es contrôleur de gestion senior. JSON valide uniquement, sans markdown.
 
-Règles sémantiques 12–16 :
-12. Si data_completeness.bank_health_metrics = "absent", mentionner "Données de rapprochement bancaire non disponibles" dans what_i_see ou to_check. Ne pas extrapoler.
-13. Z de caisse : si Z = null ou "—", mentionner uniquement si POS actif. Si Z incohérent, en faire un inducteur. Sinon ignorer.
-14. Si POS > 0 et 100 %% scellé, inclure "POS N scellé ✓" (N = nb sessions scellées) dans la synthèse (headline ou dernière ligne what_i_see).
-15. data_completeness = "complete" signifie données disponibles, pas discipline bonne. Pour évaluer la discipline : unreconciled_lines_count, reconciliation_rate, last_statement_import_date. Ne pas confondre.
-16. Si Trésorerie = 0 % validée ET flux opérationnels présents (Business, POS ou Cash), signaler : "flux opérationnels sans validation bancaire" — formulation chirurgicale, sans redondance.
-17. Quand les flux (cash, business, POS) sont modestes (< 10k€), proportionner le discours sur la discipline : signaler l'écart sans dramatiser comme pour des millions.`
+FORMAT :
+{"headlines":["A","B","C"],"headline":"=headlines[0]","what_i_see":["Ph1.","Ph2.","Ph3."],"to_check":["V1."],"confidence":"low|medium|high"}
 
-// systemPromptFactsPack — SPEC v1.2 §5 : reformulation uniquement, pas d'analyse.
-const systemPromptFactsPack = `LANGUE OBLIGATOIRE : Tu t'exprimes EXCLUSIVEMENT en français. Aucun mot anglais dans headline, what_i_see ou to_check.
-
-Tu reformules des faits financiers en langage naturel.
-Réponds STRICTEMENT en JSON :
-{
-  "headline": "...",
-  "what_i_see": ["...", "...", "..."],
-  "to_check": ["..."],
-  "confidence": "low|medium|high"
-}
-
-Règles :
-- Français exclusivement
-- Aucun calcul
-- Aucun conseil stratégique
-- Utilise UNIQUEMENT les faits fournis
-- Réponse concise`
+RÈGLES IMPÉRATIVES :
+H. headlines = 3 reformulations du headline_candidate (angle avance / angle écart / angle position). INTERDIT "dépasse l'activité" dans le headline — écrire "conserve une avance de Z €" ou "reste supérieure au niveau d'activité". Tout montant du headline doit figurer dans metrics.
+W. what_i_see : 2–3 phrases. Ordre : (1) créances clients si présentes, (2) trésorerie nette/taxes, (3) autre fait utile. Chaque montant tracé dans facts ou metrics. Jamais d'étiquette seule.
+T. to_check : max 2 vigilances métier. Reprendre les alerts tels quels. Vide si alerts vide.
+G. Vigilances gouvernance (faits "Vigilance X" ou "Alerte X") : reformuler en phrase utile OU omettre. JAMAIS copier verbatim. Ex correct : "Une partie des encaissements reste à confirmer." Ex interdit : "Vigilance Cash : Cash partiellement validé."
+Z. zero_cards = cards présentes à valeur zéro — ne pas commenter sauf si signal utile.
+X. Interdit : conseils, anglicismes, "CA" seul, calculs inventés, "trésorerie disponible", "...".`
 
 var maxTokensByOutputMode = map[string]int{
-	"short":        450, // ~1200–1500 car. — évite troncature mid-sentence (était 250)
-	"professional": 500,
-	"deep":        1024,
+	"short":        650, // JSON compact : 3 headlines + 3 what_i_see + 2 to_check
+	"professional": 750,
+	"deep":         900,
 }
 
-func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string, focusCardDetails map[string]interface{}, dashboardDetails map[string]interface{}, outputMode string, fp *facts.FactsPack) (models.Flash, error) {
+// RawChat envoie un prompt au LLM et retourne la réponse brute (texte).
+// Utilisé pour la reformulation optionnelle (Sprint 12 T69).
+func (c *Client) RawChat(prompt string) (string, error) {
+	payload := map[string]interface{}{
+		"model": "mistral",
+		"messages": []map[string]string{
+			{"role": "user", "content": prompt},
+		},
+		"temperature": 0.3,
+		"max_tokens":  500,
+	}
+	body, _ := json.Marshal(payload)
+	req, err := http.NewRequest("POST", c.baseURL+"/chat/completions", bytes.NewReader(body))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("mistral raw chat: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("mistral raw chat status %d", resp.StatusCode)
+	}
+
+	var result struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", fmt.Errorf("mistral raw chat decode: %w", err)
+	}
+	if len(result.Choices) == 0 {
+		return "", fmt.Errorf("mistral raw chat: no choices")
+	}
+	return strings.TrimSpace(result.Choices[0].Message.Content), nil
+}
+
+func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string, focusCardDetails map[string]interface{}, dashboardDetails map[string]interface{}, outputMode string, fp *facts.FactsPack, contextHash string, generationReason string) (models.Flash, error) {
 	if outputMode == "" {
 		outputMode = "short"
 	}
@@ -198,7 +256,9 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 
 	logDegraded := func(reason string) {
 		slog.Warn("event=diva_gen", "gen", "degraded", "reason", reason,
-			"prompt_chars", promptChars, "llm_latency_ms", time.Since(genStart).Milliseconds())
+			"context_hash", contextHash, "generation_reason", generationReason,
+			"prompt_chars", promptChars, "llm_latency_ms", time.Since(genStart).Milliseconds(),
+			"fallback_level", reason)
 	}
 
 	resp, err := c.client.Do(req)
@@ -256,7 +316,11 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 	}
 
 	outputContent := chatResp.Choices[0].Message.Content
-	flash, parseErr := parseFlash(outputContent, effective)
+	var metricsManifest map[string]float64
+	if fp != nil {
+		metricsManifest = fp.Metrics
+	}
+	flash, parseErr := parseFlash(outputContent, effective, metricsManifest)
 	latencyMs := time.Since(genStart).Milliseconds()
 
 	// Cockpit : enrichir le flash si Mistral a retourné un JSON tronqué (what_i_see/to_check vides)
@@ -270,10 +334,12 @@ func (c *Client) Chat(ctx models.Context, cards []models.Card, focusCard string,
 	}
 
 	slog.Info("event=diva_gen", "gen", "called",
+		"context_hash", contextHash, "generation_reason", generationReason,
 		"prompt_chars", promptChars,
 		"output_chars", utf8.RuneCountInString(outputContent),
 		"llm_latency_ms", latencyMs,
-		"degraded", flash.Degraded)
+		"degraded", flash.Degraded,
+		"fallback_level", "none")
 
 	return flash, parseErr
 }
@@ -441,14 +507,23 @@ func (c *Client) buildInstruction(mode, focusCard string) string {
 	return "Mode: cockpit. Analyse globale à partir des données et insights pré-calculés. Réponds UNIQUEMENT en français. JSON strict."
 }
 
-// factsPackPayload — payload compact pour Mistral (SPEC v1.2, sans cartes).
-type factsPackPayload struct {
-	OutputMode       string                 `json:"output_mode"`
-	Facts            []string               `json:"facts"`
-	DataCompleteness map[string]interface{} `json:"data_completeness"`
+// factsPackPayloadV2 — payload structuré Niveau 1 pour Mistral (SPEC Phase 2).
+// headline_candidate = fait dominant pré-calculé côté Go.
+// metrics = manifest de traçabilité : TOUS les montants de l'insight doivent matcher une entrée (±0,01 €).
+// facts = top 3 inducteurs/trésorerie.
+// alerts = top 2 vigilances gouvernance.
+type factsPackPayloadV2 struct {
+	OutputMode        string                 `json:"output_mode"`
+	HeadlineCandidate string                 `json:"headline_candidate,omitempty"`
+	Metrics           map[string]float64     `json:"metrics,omitempty"`
+	ZeroCards         []string               `json:"zero_cards,omitempty"`
+	Facts             []string               `json:"facts"`
+	Alerts            []string               `json:"alerts,omitempty"`
+	DataCompleteness  map[string]interface{} `json:"data_completeness"`
 }
 
-// buildUserPromptFromFactsPack construit le prompt user depuis FactsPack (payload facts uniquement).
+// buildUserPromptFromFactsPack construit le prompt user structuré Niveau 1 depuis FactsPack.
+// Mistral reçoit un headline_candidate, top 3 faits, top 2 alertes — pas toute la soupe.
 func (c *Client) buildUserPromptFromFactsPack(fp *facts.FactsPack, outputMode string) string {
 	if fp == nil {
 		return `{"output_mode":"short","facts":[],"error":"no facts"}`
@@ -460,10 +535,28 @@ func (c *Client) buildUserPromptFromFactsPack(fp *facts.FactsPack, outputMode st
 	if fp.DataCompleteness != nil && fp.DataCompleteness.BankHealthMetrics != "" {
 		dc["bank_health_metrics"] = fp.DataCompleteness.BankHealthMetrics
 	}
-	payload := factsPackPayload{
-		OutputMode:       outputMode,
-		Facts:            fp.Messages(),
-		DataCompleteness: dc,
+
+	// Ranking côté Go : top 3 faits inducteurs + top 2 vigilances gouvernance
+	topFacts := fp.TopFacts(5)
+	topAlerts := fp.TopAlerts(2)
+
+	factsStr := make([]string, len(topFacts))
+	for i, f := range topFacts {
+		factsStr[i] = f.Message
+	}
+	alertsStr := make([]string, len(topAlerts))
+	for i, a := range topAlerts {
+		alertsStr[i] = a.Message
+	}
+
+	payload := factsPackPayloadV2{
+		OutputMode:        outputMode,
+		HeadlineCandidate: fp.HeadlineCandidate(),
+		Metrics:           fp.Metrics,
+		ZeroCards:         fp.ZeroCards,
+		Facts:             factsStr,
+		Alerts:            alertsStr,
+		DataCompleteness:  dc,
 	}
 	instruction := c.buildInstructionFactsPack(outputMode)
 	raw, err := json.MarshalIndent(payload, "", "  ")
@@ -476,11 +569,11 @@ func (c *Client) buildUserPromptFromFactsPack(fp *facts.FactsPack, outputMode st
 func (c *Client) buildInstructionFactsPack(outputMode string) string {
 	switch outputMode {
 	case "professional":
-		return "Mode: cockpit. Reformule les faits. what_i_see : 4–5 points. Réponds UNIQUEMENT en français. JSON strict."
+		return "Reformule en contrôleur de gestion senior. headline = headline_candidate reformulé. what_i_see : 3–4 inducteurs depuis facts. to_check : alerts fournis (max 2). JSON strict, français uniquement."
 	case "deep":
-		return "Mode: cockpit. Synthèse étendue à partir des faits. Réponds UNIQUEMENT en français. JSON strict."
+		return "Synthèse contrôleur de gestion étendue. headline = headline_candidate. what_i_see : tous les facts (max 5). to_check : alerts (max 2). JSON strict, français uniquement."
 	default:
-		return "Mode: cockpit. Reformule les faits. what_i_see : max 3 points. Réponds UNIQUEMENT en français. JSON strict."
+		return "Reformule en contrôleur de gestion. headline = headline_candidate reformulé. what_i_see : 3 inducteurs depuis facts. to_check : alerts (max 2). JSON strict, français uniquement."
 	}
 }
 
@@ -496,7 +589,7 @@ func isHeadlineJSONGarbage(s string) bool {
 	return false
 }
 
-func parseFlash(content string, cards []models.Card) (models.Flash, error) {
+func parseFlash(content string, cards []models.Card, metrics map[string]float64) (models.Flash, error) {
 	content = strings.TrimSpace(content)
 	if content == "" {
 		return fallbackFlash(), nil
@@ -506,7 +599,7 @@ func parseFlash(content string, cards []models.Card) (models.Flash, error) {
 	var raw flashRaw
 	if jsonStr != "" {
 		if err := json.Unmarshal([]byte(jsonStr), &raw); err == nil && raw.Headline != "" {
-			return validateAndBuildFlash(raw, cards)
+			return validateAndBuildFlash(raw, cards, metrics)
 		}
 	}
 
@@ -577,6 +670,7 @@ func extractJSON(s string) string {
 }
 
 type flashRaw struct {
+	Headlines  []string `json:"headlines"`
 	Headline   string   `json:"headline"`
 	WhatISee   []string `json:"what_i_see"`
 	ToCheck    []string `json:"to_check"`
@@ -648,7 +742,11 @@ func textLength(raw flashRaw) int {
 
 const maxFlashTotalChars = 600
 
-func validateAndBuildFlash(raw flashRaw, cards []models.Card) (models.Flash, error) {
+func validateAndBuildFlash(raw flashRaw, cards []models.Card, metrics map[string]float64) (models.Flash, error) {
+	// Si headlines[] est présent et non vide, utiliser headlines[0] comme headline principal.
+	if len(raw.Headlines) > 0 && strings.TrimSpace(raw.Headlines[0]) != "" {
+		raw.Headline = strings.TrimSpace(raw.Headlines[0])
+	}
 	if isHeadlineJSONGarbage(raw.Headline) {
 		return fallbackFlash(), nil
 	}
@@ -679,12 +777,138 @@ func validateAndBuildFlash(raw flashRaw, cards []models.Card) (models.Flash, err
 	if headline == "" || isHeadlineJSONGarbage(headline) {
 		return fallbackFlash(), nil
 	}
+	// LANG-06 — politique par champ :
+	// headline : rejet immédiat si terme interdit Lynki détecté.
+	if lynkiForbiddenUserTerms.MatchString(headline) {
+		slog.Warn("LANG-06 headline rejeté: terme interdit Lynki", "match", lynkiForbiddenUserTerms.FindString(headline))
+		return fallbackFlash(), nil
+	}
+	// METRIC — validation des montants du headline contre le manifest de traçabilité.
+	// Tout montant en euros dans le headline doit figurer dans metrics (±0,02 €).
+	if len(metrics) > 0 {
+		amounts := extractEuroAmounts(headline)
+		for _, amt := range amounts {
+			if !isAmountInManifest(amt, metrics) {
+				slog.Warn("METRIC headline rejeté: montant non traçable", "amount", amt, "headline", headline)
+				return fallbackFlash(), nil
+			}
+		}
+		// what_i_see / to_check : omettre toute phrase contenant un montant non traçable (évite écarts faux type 23 814,68 au lieu de 23 515,64).
+		raw.WhatISee = filterItemsWithTraceableAmounts(raw.WhatISee, metrics)
+		raw.ToCheck = filterItemsWithTraceableAmounts(raw.ToCheck, metrics)
+	}
+	// what_i_see / to_check : substitution ciblée, puis omission si terme interdit résiduel.
+	raw.WhatISee = applyLynkiSubstitutions(raw.WhatISee)
+	raw.ToCheck = applyLynkiSubstitutions(raw.ToCheck)
+
+	// Valider et nettoyer les headlines alternatives.
+	var validHeadlines []string
+	for _, hl := range raw.Headlines {
+		hl = sanitizeHeadline(hl)
+		if hl == "" || isHeadlineJSONGarbage(hl) || lynkiForbiddenUserTerms.MatchString(hl) {
+			continue
+		}
+		if len(metrics) > 0 {
+			amounts := extractEuroAmounts(hl)
+			valid := true
+			for _, amt := range amounts {
+				if !isAmountInManifest(amt, metrics) {
+					valid = false
+					break
+				}
+			}
+			if !valid {
+				continue
+			}
+		}
+		validHeadlines = append(validHeadlines, hl)
+	}
+
 	return models.Flash{
 		Headline:   headline,
+		Headlines:  validHeadlines,
 		WhatISee:   raw.WhatISee,
 		ToCheck:    raw.ToCheck,
 		Confidence: conf,
 	}, nil
+}
+
+// filterItemsWithTraceableAmounts ne garde que les items dont tous les montants en €
+// figurent dans le manifest (±0,02 €). Sinon l'item est omis et loggé (évite écarts faux en what_i_see).
+func filterItemsWithTraceableAmounts(items []string, metrics map[string]float64) []string {
+	if len(metrics) == 0 {
+		return items
+	}
+	result := make([]string, 0, len(items))
+	for _, item := range items {
+		amounts := extractEuroAmounts(item)
+		allOK := true
+		for _, amt := range amounts {
+			if !isAmountInManifest(amt, metrics) {
+				slog.Warn("METRIC item omis: montant non traçable", "amount", amt, "item", item)
+				allOK = false
+				break
+			}
+		}
+		if allOK {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+// applyLynkiSubstitutions applique les remplacements du glossaire Lynki (LANG-06),
+// puis filtre les items qui contiendraient encore un terme interdit après substitution.
+func applyLynkiSubstitutions(items []string) []string {
+	result := make([]string, 0, len(items))
+	for _, item := range items {
+		cleaned := item
+		for _, sub := range lynkiSubstitutions {
+			cleaned = strings.ReplaceAll(cleaned, sub[0], sub[1])
+		}
+		if lynkiForbiddenUserTerms.MatchString(cleaned) {
+			slog.Warn("LANG-06 item omis: terme interdit résiduel après substitution", "item", cleaned)
+			continue
+		}
+		result = append(result, cleaned)
+	}
+	return result
+}
+
+// euroAmountPattern extrait les montants en euros (format français : "1 234,56 €" ou "1234,56 €" ou "1 234 €")
+var euroAmountPattern = regexp.MustCompile(`([\d][\d\s]*[\d],\d{2})\s*€|([\d]+)\s*€`)
+
+// extractEuroAmounts retourne tous les montants en euros d'un texte (float64, abs value).
+func extractEuroAmounts(s string) []float64 {
+	matches := euroAmountPattern.FindAllStringSubmatch(s, -1)
+	var result []float64
+	for _, m := range matches {
+		raw := m[1]
+		if raw == "" {
+			raw = m[2]
+		}
+		// Supprimer espaces (séparateurs de milliers), remplacer virgule par point
+		raw = strings.ReplaceAll(raw, " ", "")
+		raw = strings.ReplaceAll(raw, "\u00a0", "")
+		raw = strings.ReplaceAll(raw, ",", ".")
+		if v, err := strconv.ParseFloat(raw, 64); err == nil {
+			result = append(result, math.Abs(v))
+		}
+	}
+	return result
+}
+
+// isAmountInManifest vérifie qu'un montant figure dans le manifest Metrics (±0,02 €).
+func isAmountInManifest(amount float64, metrics map[string]float64) bool {
+	if amount < 0.01 {
+		return true // ignorer les montants nuls ou quasi-nuls
+	}
+	for _, v := range metrics {
+		if math.Abs(math.Abs(v)-amount) < 0.02 {
+			return true
+		}
+	}
+	return false
 }
 
 var leadingOrphanPunct = regexp.MustCompile(`^\s*[,;]\s*`)

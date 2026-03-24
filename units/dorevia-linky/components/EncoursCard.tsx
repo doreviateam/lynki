@@ -34,6 +34,7 @@ interface EncoursCardProps {
   onFocusRequest?: () => void;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
   /** Série Évolution (snapshots AR / receivables_overdue) — si ≥ 2 points, bloc en available */
   arSeries?: SeriesPoint[];
   evolutionError?: boolean;
@@ -57,6 +58,7 @@ export function EncoursCard({
   onFocusRequest,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
   arSeries = [],
   evolutionError = false,
   onEvolutionRetry,
@@ -110,7 +112,7 @@ export function EncoursCard({
     return (
       <section className={INSTRUMENT_CARD_BASE} aria-label="Encours clients — chargement">
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader icon={iconNode} title="ENCOURS" kpiValue={<div className="skeleton h-6 w-28" />} />
         <div className="space-y-2">
@@ -123,7 +125,7 @@ export function EncoursCard({
   return (
     <section className={INSTRUMENT_CARD_BASE} role="region" aria-label="Instrument Encours — créances clients ouvertes">
       {cardId && onNavigateToCard && (
-        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader
         icon={iconNode}

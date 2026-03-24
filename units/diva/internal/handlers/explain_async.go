@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/doreviateam/diva/internal/cache"
@@ -116,6 +117,7 @@ func ExplainAsync(
 
 		// Guard : 1 appel Mistral max par context_hash
 		if !refreshGuard.TryAcquire(contextHash) {
+			slog.Warn("event=diva_guard_rejected", "endpoint", "explain_async", "context_hash", contextHash, "tenant", req.Context.Tenant)
 			return c.JSON(models.ExplainResponse{
 				Meta: models.Meta{
 					RequestID:         requestID,
@@ -178,7 +180,7 @@ func ExplainAsync(
 		go func() {
 			defer refreshGuard.Release(contextHash)
 
-			flash, err := mc.Chat(req.Context, req.Dashboard.Cards, req.Options.FocusCard, req.Options.FocusCardDetails, dashboardDetails, outputMode, fp)
+			flash, err := mc.Chat(req.Context, req.Dashboard.Cards, req.Options.FocusCard, req.Options.FocusCardDetails, dashboardDetails, outputMode, fp, contextHash, "ui_explain_async")
 			latencyMs := time.Since(start).Milliseconds()
 
 			if err != nil {

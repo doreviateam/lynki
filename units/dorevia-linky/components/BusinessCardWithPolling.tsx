@@ -41,6 +41,7 @@ interface BusinessCardWithPollingProps {
   footer?: React.ReactNode;
   cardId?: import("@/app/types/linky-tiles").CardId;
   onNavigateToCard?: (cardId: import("@/app/types/linky-tiles").CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function BusinessCardWithPolling({
@@ -58,6 +59,7 @@ export function BusinessCardWithPolling({
   footer,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: BusinessCardWithPollingProps) {
   const requestSeqRef = useRef(0);
   const [salesData, setSalesData] = useState<SalesAggregation | null>(initialSalesData);
@@ -228,6 +230,7 @@ export function BusinessCardWithPolling({
       footer={footer}
       cardId={cardId}
       onNavigateToCard={onNavigateToCard}
+      onBackToCockpit={onBackToCockpit}
     />
   );
 }

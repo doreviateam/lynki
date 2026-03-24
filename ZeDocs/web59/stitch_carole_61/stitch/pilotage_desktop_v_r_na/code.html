@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Véréna RAF - Pilotage Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(8px); }
+        .data-reliable { color: #059669; }
+        .data-partial { color: #d97706; }
+        .data-estimated { color: #2563eb; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#131b2e",
+                        "background": "#f8f9ff",
+                        "tertiary-fixed": "#85f8c4",
+                        "on-background": "#0b1c30",
+                        "primary": "#0f172a",
+                        "outline": "#76777d",
+                        "surface-tint": "#565e74",
+                        "inverse-surface": "#213145",
+                        "tertiary": "#059669",
+                        "secondary-fixed-dim": "#b9c7e0",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-tertiary-fixed-variant": "#005137",
+                        "on-secondary-fixed": "#0d1c2f",
+                        "tertiary-fixed-dim": "#68dba9",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#3a485c",
+                        "surface-variant": "#d3e4fe",
+                        "surface-dim": "#cbdbf5",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#57657b",
+                        "primary-fixed": "#dae2fd",
+                        "surface-container-highest": "#d3e4fe",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#bec6e0",
+                        "surface-container-lowest": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#dce9ff",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "surface-container": "#e5eeff",
+                        "on-primary-fixed": "#131b2e",
+                        "tertiary-container": "#002114",
+                        "on-surface-variant": "#45464d",
+                        "surface-container-low": "#eff4ff",
+                        "on-error-container": "#93000a",
+                        "secondary-container": "#d5e3fd",
+                        "inverse-primary": "#bec6e0",
+                        "surface-bright": "#f8f9ff",
+                        "surface": "#f8f9ff",
+                        "on-primary-container": "#7c839b",
+                        "on-tertiary-fixed": "#002114",
+                        "secondary-fixed": "#d5e3fd",
+                        "outline-variant": "#c6c6cd",
+                        "secondary": "#515f74",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#069669",
+                        "on-surface": "#0b1c30"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- TopNavBar -->
+<header class="flex items-center justify-between px-6 h-16 w-full sticky top-0 z-50 bg-slate-900 shadow-sm font-inter antialiased text-sm font-medium border-b border-slate-800">
+<div class="flex items-center gap-8">
+<h1 class="text-xl font-bold tracking-tight text-white">Véréna RAF</h1>
+<nav class="flex gap-6 h-full items-end">
+<a class="text-white border-b-2 border-emerald-500 pb-4 mt-4 transition-all" href="#">Pilotage</a>
+<a class="text-slate-400 hover:text-slate-200 pb-4 mt-4 transition-colors" href="#">Synthèse</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 text-lg">search</span>
+<input class="bg-slate-800 border-none rounded-md pl-10 pr-4 py-1.5 text-xs text-slate-200 w-64 focus:ring-1 focus:ring-emerald-500" placeholder="Rechercher une entité..." type="text"/>
+</div>
+<div class="flex items-center gap-2 border-l border-slate-700 ml-4 pl-4">
+<button class="p-2 text-slate-400 hover:bg-slate-800 rounded-md transition-all"><span class="material-symbols-outlined">notifications</span></button>
+<button class="p-2 text-slate-400 hover:bg-slate-800 rounded-md transition-all"><span class="material-symbols-outlined">settings</span></button>
+<button class="p-2 text-slate-400 hover:bg-slate-800 rounded-md transition-all"><span class="material-symbols-outlined">help</span></button>
+<div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold ml-2 overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="professional portrait of a financial executive in a dark suit with a confident expression and neutral office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3smagkEPfJLmyRviK5q29B9igY_1TbFEYPPLq_4rImp6sUXMr9lEMbQnpYfL5DwweWTi2EyGoqhsop4sdAkcoTdzhyUi5jeeRLlTLhLnPI5EVIi_CdoPlkXhEWe5lVW2UzBjA3oGYoJcPozTXms3ZIbaiwwLyCMXxaWDRBWZwpXrqmjhs9aYAArYkbMzE3O1Hf83IFMDQT3-j2qr0QbnpjztVSU7j1MZk6FIgRJ-LDjDd3tOd9WIqVdm1XP0AIBTGALypXNT4CfQL"/>
+</div>
+</div>
+</div>
+</header>
+<div class="flex">
+<!-- SideNavBar -->
+<aside class="h-[calc(100vh-64px)] w-64 border-r border-slate-200 bg-slate-50 flex flex-col py-4 sticky top-16 shrink-0">
+<div class="px-6 mb-6">
+<h2 class="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-1">Navigation</h2>
+<p class="text-[10px] text-slate-400 font-medium">Véréna RAF Pilotage</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 bg-white text-emerald-600 border-r-4 border-emerald-600 shadow-sm transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-inter text-xs uppercase tracking-wider font-semibold">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">domain</span>
+<span class="font-inter text-xs uppercase tracking-wider font-semibold">Entités</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-inter text-xs uppercase tracking-wider font-semibold">Budgets</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-inter text-xs uppercase tracking-wider font-semibold">Reporting</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-inter text-xs uppercase tracking-wider font-semibold">Archives</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full py-3 px-4 bg-primary text-white rounded-lg flex items-center justify-center gap-2 hover:bg-slate-800 transition-all active:opacity-80">
+<span class="material-symbols-outlined text-sm">add</span>
+<span class="text-xs font-bold uppercase tracking-widest">Nouvelle Analyse</span>
+</button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 p-8 bg-background">
+<header class="mb-8 flex justify-between items-end">
+<div>
+<div class="flex items-center gap-2 text-slate-500 mb-1">
+<span class="text-xs font-medium">Groupe Véréna</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-xs font-medium">Consolidé</span>
+</div>
+<h2 class="text-3xl font-black text-primary tracking-tight">Pilotage Opérationnel</h2>
+</div>
+<div class="flex gap-3">
+<div class="flex items-center gap-2 bg-white px-3 py-2 border border-slate-200 rounded-md shadow-sm">
+<span class="material-symbols-outlined text-slate-400 text-sm">calendar_today</span>
+<span class="text-xs font-bold text-slate-700 uppercase">Aujourd'hui, 24 Mai</span>
+</div>
+<button class="bg-white px-3 py-2 border border-slate-200 rounded-md shadow-sm hover:bg-slate-50 flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-500 text-sm">filter_list</span>
+<span class="text-xs font-bold text-slate-700 uppercase">Filtres</span>
+</button>
+</div>
+</header>
+<!-- Grid Layout -->
+<div class="grid grid-cols-12 gap-6">
+<!-- MASTER TILES (LEVEL A) -->
+<!-- 1. Trésorerie -->
+<section class="col-span-12 lg:col-span-4 bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col h-[280px] relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-full -mr-16 -mt-16 opacity-50"></div>
+<div class="flex justify-between items-start mb-6">
+<div class="z-10">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Trésorerie</h3>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald-600 text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-[10px] font-bold text-emerald-600 uppercase">Données Fiables</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-300">account_balance_wallet</span>
+</div>
+<div class="mt-auto">
+<p class="text-4xl font-black text-primary tracking-tighter">1.428.500 €</p>
+<div class="flex items-center gap-2 mt-2">
+<span class="flex items-center text-emerald-600 text-xs font-bold">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+                                +4.2%
+                            </span>
+<span class="text-slate-400 text-[10px] font-medium uppercase tracking-tighter">vs mois précédent</span>
+</div>
+</div>
+<div class="mt-6 flex gap-4 border-t border-slate-100 pt-4">
+<div class="flex-1">
+<p class="text-[10px] text-slate-400 uppercase font-bold">Disponible</p>
+<p class="text-sm font-bold text-slate-700">980k €</p>
+</div>
+<div class="flex-1">
+<p class="text-[10px] text-slate-400 uppercase font-bold">Placements</p>
+<p class="text-sm font-bold text-slate-700">448k €</p>
+</div>
+</div>
+</section>
+<!-- 2. Business -->
+<section class="col-span-12 lg:col-span-4 bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col h-[280px]">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Business</h3>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-500 text-sm">warning</span>
+<span class="text-[10px] font-bold text-amber-600 uppercase">Données Partielles</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-300">shopping_cart</span>
+</div>
+<div class="mt-auto">
+<p class="text-4xl font-black text-primary tracking-tighter">842.300 €</p>
+<div class="flex items-center gap-2 mt-2">
+<span class="flex items-center text-rose-600 text-xs font-bold">
+<span class="material-symbols-outlined text-xs">trending_down</span>
+                                -1.8%
+                            </span>
+<span class="text-slate-400 text-[10px] font-medium uppercase tracking-tighter">Volume Période</span>
+</div>
+</div>
+<div class="mt-6 space-y-2 border-t border-slate-100 pt-4">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-bold text-slate-500 uppercase">Tension Clients</span>
+<div class="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden">
+<div class="bg-rose-500 h-full w-[65%]"></div>
+</div>
+</div>
+<p class="text-[10px] text-rose-600 font-bold uppercase tracking-tighter">12 alertes de paiement critiques</p>
+</div>
+</section>
+<!-- 3. Flux Net -->
+<section class="col-span-12 lg:col-span-4 bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col h-[280px]">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Flux Net</h3>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-500 text-sm">update</span>
+<span class="text-[10px] font-bold text-blue-600 uppercase">Données Estimées</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-300">swap_horiz</span>
+</div>
+<div class="mt-auto">
+<p class="text-4xl font-black text-emerald-600 tracking-tighter">+124.000 €</p>
+<p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Solde de la période</p>
+</div>
+<div class="mt-6 flex items-end gap-2 h-20">
+<div class="flex-1 bg-emerald-100 h-[80%] rounded-t-sm relative group cursor-pointer hover:bg-emerald-200 transition-colors">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-bold text-emerald-700 opacity-0 group-hover:opacity-100">IN</div>
+</div>
+<div class="flex-1 bg-rose-100 h-[60%] rounded-t-sm relative group cursor-pointer hover:bg-rose-200 transition-colors">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-bold text-rose-700 opacity-0 group-hover:opacity-100">OUT</div>
+</div>
+<div class="flex-1 bg-emerald-100 h-[70%] rounded-t-sm relative group cursor-pointer hover:bg-emerald-200 transition-colors"></div>
+<div class="flex-1 bg-emerald-100 h-[90%] rounded-t-sm relative group cursor-pointer hover:bg-emerald-200 transition-colors"></div>
+<div class="flex-1 bg-rose-100 h-[40%] rounded-t-sm relative group cursor-pointer hover:bg-rose-200 transition-colors"></div>
+</div>
+</section>
+<!-- SECONDARY TILES (LEVEL B) -->
+<!-- 4. Paiements -->
+<div class="col-span-12 md:col-span-6 lg:col-span-2.4 bg-white border border-slate-200 rounded-xl p-5 shadow-sm h-[180px] flex flex-col">
+<div class="flex justify-between mb-4">
+<h4 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Paiements</h4>
+<span class="material-symbols-outlined text-emerald-500 text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div class="mt-auto">
+<p class="text-xl font-black text-primary">92.4%</p>
+<p class="text-[10px] text-slate-500 font-medium">Taux de rapprochement</p>
+</div>
+<div class="mt-3 w-full bg-slate-100 h-1 rounded-full">
+<div class="bg-emerald-500 h-full w-[92%]"></div>
+</div>
+</div>
+<!-- 5. BFR -->
+<div class="col-span-12 md:col-span-6 lg:col-span-2.4 bg-white border border-slate-200 rounded-xl p-5 shadow-sm h-[180px] flex flex-col">
+<div class="flex justify-between mb-4">
+<h4 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">BFR</h4>
+<span class="material-symbols-outlined text-emerald-500 text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div class="mt-auto">
+<p class="text-xl font-black text-primary">312.000 €</p>
+<p class="text-[10px] text-slate-500 font-medium">Besoin de Financement</p>
+</div>
+<div class="flex gap-1 mt-3">
+<div class="h-1 flex-1 bg-primary rounded-full"></div>
+<div class="h-1 flex-1 bg-slate-300 rounded-full"></div>
+<div class="h-1 flex-1 bg-slate-200 rounded-full"></div>
+</div>
+</div>
+<!-- 6. Encours -->
+<div class="col-span-12 md:col-span-6 lg:col-span-2.4 bg-white border border-slate-200 rounded-xl p-5 shadow-sm h-[180px] flex flex-col">
+<div class="flex justify-between mb-4">
+<h4 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Encours</h4>
+<span class="material-symbols-outlined text-amber-500 text-xs">warning</span>
+</div>
+<div class="mt-auto">
+<p class="text-xl font-black text-rose-600">185.2k €</p>
+<p class="text-[10px] text-slate-500 font-medium">Aging Balance (+30j)</p>
+</div>
+<p class="text-[9px] font-bold text-rose-500 mt-2 uppercase tracking-tighter">Action requise : 5 comptes</p>
+</div>
+<!-- 7. Taxes -->
+<div class="col-span-12 md:col-span-6 lg:col-span-2.4 bg-white border border-slate-200 rounded-xl p-5 shadow-sm h-[180px] flex flex-col">
+<div class="flex justify-between mb-4">
+<h4 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Taxes</h4>
+<span class="material-symbols-outlined text-emerald-500 text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between items-end mb-1">
+<span class="text-[9px] font-bold text-slate-400 uppercase">TVA Collectée</span>
+<span class="text-xs font-bold text-slate-700">45k €</span>
+</div>
+<div class="flex justify-between items-end">
+<span class="text-[9px] font-bold text-slate-400 uppercase">TVA Déductible</span>
+<span class="text-xs font-bold text-slate-700">12k €</span>
+</div>
+</div>
+<div class="mt-3 text-center border-t border-slate-50 pt-2">
+<p class="text-xs font-black text-slate-900">Solde : 33.000 €</p>
+</div>
+</div>
+<!-- 8. EBE -->
+<div class="col-span-12 md:col-span-6 lg:col-span-2.4 bg-white border border-slate-200 rounded-xl p-5 shadow-sm h-[180px] flex flex-col">
+<div class="flex justify-between mb-4">
+<h4 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">EBE</h4>
+<span class="material-symbols-outlined text-blue-500 text-xs">update</span>
+</div>
+<div class="mt-auto">
+<p class="text-xl font-black text-emerald-600">18.4%</p>
+<p class="text-[10px] text-slate-500 font-medium">Marge EBE (est.)</p>
+</div>
+<div class="mt-3 flex items-center gap-1">
+<span class="material-symbols-outlined text-emerald-500 text-[10px]">arrow_upward</span>
+<span class="text-[9px] font-bold text-emerald-600">+0.5pt vs Budget</span>
+</div>
+</div>
+<!-- SECONDARY TILES (LEVEL C - LIST STYLE) -->
+<!-- 9. Notes de crédit -->
+<div class="col-span-12 lg:col-span-3 bg-slate-50/50 border border-slate-200 rounded-xl p-5 shadow-sm min-h-[160px]">
+<div class="flex justify-between mb-3">
+<h4 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Notes de crédit</h4>
+<span class="text-[10px] font-bold text-slate-500">14 en attente</span>
+</div>
+<ul class="space-y-2">
+<li class="flex justify-between items-center py-1 border-b border-slate-100">
+<span class="text-[10px] text-slate-600 font-medium">SARL Durand</span>
+<span class="text-[10px] font-bold text-primary">1.200 €</span>
+</li>
+<li class="flex justify-between items-center py-1 border-b border-slate-100">
+<span class="text-[10px] text-slate-600 font-medium">Boutique Lyon</span>
+<span class="text-[10px] font-bold text-primary">450 €</span>
+</li>
+<li class="flex justify-between items-center py-1">
+<span class="text-[10px] text-slate-600 font-medium">Ets. Martin</span>
+<span class="text-[10px] font-bold text-primary">2.105 €</span>
+</li>
+</ul>
+</div>
+<!-- 10. Remboursements -->
+<div class="col-span-12 lg:col-span-3 bg-slate-50/50 border border-slate-200 rounded-xl p-5 shadow-sm min-h-[160px]">
+<div class="flex justify-between mb-3">
+<h4 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Remboursements</h4>
+<span class="text-[10px] font-bold text-slate-500">Total : 8.4k €</span>
+</div>
+<div class="flex flex-col gap-2">
+<div class="bg-white p-2 rounded border border-slate-200 flex justify-between">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+<span class="text-[10px] font-bold">Validés</span>
+</div>
+<span class="text-[10px] font-bold">5.2k €</span>
+</div>
+<div class="bg-white p-2 rounded border border-slate-200 flex justify-between">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+<span class="text-[10px] font-bold">À revoir</span>
+</div>
+<span class="text-[10px] font-bold">3.2k €</span>
+</div>
+</div>
+</div>
+<!-- 11. Points de vente -->
+<div class="col-span-12 lg:col-span-3 bg-slate-50/50 border border-slate-200 rounded-xl p-5 shadow-sm min-h-[160px]">
+<h4 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Points de vente</h4>
+<div class="flex items-center gap-4 mb-4">
+<div class="text-center flex-1">
+<p class="text-sm font-black">24</p>
+<p class="text-[9px] text-slate-400 uppercase font-bold">Actifs</p>
+</div>
+<div class="w-px h-8 bg-slate-200"></div>
+<div class="text-center flex-1">
+<p class="text-sm font-black text-rose-500">2</p>
+<p class="text-[9px] text-slate-400 uppercase font-bold">Anomalie</p>
+</div>
+</div>
+<div class="flex justify-center">
+<button class="text-[10px] font-bold text-primary hover:underline uppercase tracking-tighter">Consulter la carte</button>
+</div>
+</div>
+<!-- 12. Z de caisse -->
+<div class="col-span-12 lg:col-span-3 bg-slate-100/50 border border-dashed border-slate-300 rounded-xl p-5 flex flex-col items-center justify-center text-center h-[160px]">
+<h4 class="text-[10px] font-extrabold text-slate-300 uppercase tracking-widest mb-2">Z de caisse</h4>
+<span class="material-symbols-outlined text-slate-300 mb-2">lock</span>
+<p class="text-[10px] font-bold text-slate-400 italic">Bientôt disponible</p>
+<p class="text-[9px] text-slate-300 mt-1">Intégration API en cours</p>
+</div>
+</div>
+<!-- Footer Legend / Info -->
+<footer class="mt-12 flex justify-between items-center border-t border-slate-200 pt-6">
+<div class="flex gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald-600 text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Données Fiables : Auditées à J-1</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-500 text-xs">warning</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Données Partielles : Flux en cours</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-500 text-xs">update</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Données Estimées : Calcul prédictif</span>
+</div>
+</div>
+<div class="text-[10px] text-slate-400 font-medium">
+                    Dernière synchronisation : 24/05/2024 - 09:42:15
+                </div>
+</footer>
+</main>
+</div>
+</body></html>

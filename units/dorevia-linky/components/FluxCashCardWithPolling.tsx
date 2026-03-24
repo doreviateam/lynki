@@ -32,6 +32,7 @@ interface FluxCashCardWithPollingProps {
   footer?: React.ReactNode;
   cardId?: import("@/app/types/linky-tiles").CardId;
   onNavigateToCard?: (cardId: import("@/app/types/linky-tiles").CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function FluxCashCardWithPolling({
@@ -47,6 +48,7 @@ export function FluxCashCardWithPolling({
   footer,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: FluxCashCardWithPollingProps) {
   const [dataIn, setDataIn] = useState<PaymentsAggregation | null>(initialDataIn);
   const [dataOut, setDataOut] = useState<PaymentsAggregation | null>(initialDataOut);
@@ -148,6 +150,7 @@ export function FluxCashCardWithPolling({
       footer={footer}
       cardId={cardId}
       onNavigateToCard={onNavigateToCard}
+      onBackToCockpit={onBackToCockpit}
     />
   );
 }

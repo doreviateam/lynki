@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, Inter } from "next/font/google";
 import "./globals.css";
+import "./synthese-v2.css";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -17,7 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Dorevia Linky",
+  title: "Dorevia Lynki",
   description: "Cockpit financier certifié",
 };
 
@@ -28,6 +29,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={`${ibmPlexSans.variable} ${inter.variable}`}>
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+        />
+      </head>
       <body className="min-h-screen font-sans antialiased" style={{ background: "var(--bg)" }}>{children}</body>
     </html>
   );

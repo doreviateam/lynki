@@ -66,6 +66,7 @@ interface PosShopsViewProps {
   footer?: React.ReactNode;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 function toPeriod(date: Date, granularity: ChartGranularity): string {
@@ -160,7 +161,7 @@ const VAULT_STATUS_LABEL: Record<string, string> = {
   missing: "⚠ Non vaultée",
 };
 
-export function PosShopsView({ tenantId, period, companies = [], onFocusRequest, footer, cardId, onNavigateToCard }: PosShopsViewProps) {
+export function PosShopsView({ tenantId, period, companies = [], onFocusRequest, footer, cardId, onNavigateToCard, onBackToCockpit }: PosShopsViewProps) {
   const [data, setData] = useState<PosSessionsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedDetailShops, setExpandedDetailShops] = useState<Set<string>>(new Set());
@@ -210,7 +211,7 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
     return (
       <section className={INSTRUMENT_CARD_BASE} role="region" aria-label="Instrument Points de vente — chargement">
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader
           icon={<IconWrap><IconPosShops className="h-6 w-6 shrink-0 text-[var(--accent)]" /></IconWrap>}
@@ -234,7 +235,7 @@ export function PosShopsView({ tenantId, period, companies = [], onFocusRequest,
   return (
     <section className={INSTRUMENT_CARD_BASE} role="region" aria-label="Instrument Points de vente">
       {cardId && onNavigateToCard && (
-        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader
         icon={<IconWrap><IconPosShops className="h-6 w-6 shrink-0 text-[var(--accent)]" /></IconWrap>}

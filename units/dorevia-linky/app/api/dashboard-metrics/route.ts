@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { recordUxSample } from "@/app/lib/ux-metrics";
 
 const VAULT_URL = process.env.VAULT_URL || "http://localhost:8080";
-const DLP_URL = process.env.DLP_URL || "http://dlp:8020";
 const DVIG_URL = (process.env.DVIG_URL || "").trim();
 const DVIG_INTERNAL_TOKEN = (process.env.DVIG_INTERNAL_TOKEN || "").trim();
 const DEFAULT_TENANT = process.env.TENANT_ID || "core";
@@ -159,8 +158,10 @@ export interface DashboardMetricsResponse {
   _details?: CardDetails;
   /** Complétude des données (DIVA — axe discipline). complete = disponibles, pas qualité. */
   data_completeness?: DataCompleteness;
-  /** Nombre de documents scellés sur la période (factures + paiements + sessions POS) */
+  /** Nombre de documents scellés sur la période (factures + paiements + sessions POS) — badge header */
   sealed_count?: number;
+  /** Total preuves scellées pour le tenant et la société (toutes périodes) — footer */
+  sealed_count_total?: number | null;
   /**
    * true = les 5 sources (ventes, achats, encaissements, décaissements, POS) ont répondu.
    * false = une ou plusieurs sources ont échoué → le comptage est partiel, non fiable.
@@ -298,12 +299,12 @@ function computeCardStatuses(resp: DashboardMetricsResponse): void {
   if (resp.pos_z.value == null) set(resp.pos_z, "neutral", "Z de caisse non renseigné");
   else set(resp.pos_z, "neutral", "Z de caisse présent (règles v1.1)");
 
-  // §4.9 BFR (working_capital) — encours clients (proxy AR open)
+  // §4.9 BFR (working_capital) — BFR complet (Stock + AR − AP) ou AR − AP / AR (ZeDocs/web52)
   if (resp.working_capital) {
     const bfrVal = resp.working_capital.value;
-    if (bfrVal == null) set(resp.working_capital, "neutral", "Encours clients non disponible");
-    else if (bfrVal > 0) set(resp.working_capital, "watch", `${formatAmount(bfrVal)} de créances ouvertes`);
-    else set(resp.working_capital, "ok", "Aucune créance ouverte");
+    if (bfrVal == null) set(resp.working_capital, "neutral", "BFR non disponible");
+    else if (bfrVal > 0) set(resp.working_capital, "watch", `BFR ${formatAmount(bfrVal)}`);
+    else set(resp.working_capital, "ok", "BFR négatif ou nul");
   }
 
   // §4.10 Encours — créances clients ouvertes
@@ -439,6 +440,27 @@ export async function GET(request: NextRequest) {
       return null;
     }
   };
+  /** Snapshot total tenant + société (période large 2000-2030, avec company_id) pour le footer « Preuves scellées : X » */
+  const fetchCompletenessSnapshotTotalForCompany = async () => {
+    if (!company_id) return null;
+    try {
+      const params = new URLSearchParams({
+        tenant,
+        company_id,
+        date_debut: "2000-01-01",
+        date_fin: "2030-12-31",
+      });
+      const data = await fetchJsonWithTimeout("/ui/completeness-snapshot", params, COMPLETENESS_SNAPSHOT_TIMEOUT_MS);
+      return data as {
+        sealed_count?: number;
+        complete?: boolean;
+        sealed_count_sources?: Record<string, boolean>;
+        generated_at?: string | null;
+      } | null;
+    } catch {
+      return null;
+    }
+  };
   const fetchSealedSourcesWithRetry = async (): Promise<Record<SealedSourceKey, unknown>> => {
     const results: Record<SealedSourceKey, unknown> = {} as Record<SealedSourceKey, unknown>;
     let toFetch: SealedSourceKey[] = ["sales", "purchases", "paymentsIn", "paymentsOut", "pos"];
@@ -466,10 +488,11 @@ export async function GET(request: NextRequest) {
     const treasuryParams = new URLSearchParams({ tenant, date_debut, date_fin, ...(company_id && { company_id }) });
     const arByPartnerParams = new URLSearchParams({ ...Object.fromEntries(commonParams), overdue: "false", limit: "50" });
 
-    const [sealedRaw, snapshotRes, snapshotTotalRes, otherCritical] = await Promise.all([
+    const [sealedRaw, snapshotRes, snapshotTotalRes, snapshotTotalCompanyRes, otherCritical] = await Promise.all([
       sealedResultsPromise,
       fetchCompletenessSnapshot(),
       fetchCompletenessSnapshotTotal(),
+      fetchCompletenessSnapshotTotalForCompany(),
       Promise.all([
         fetchJsonWithTimeout("/ui/aggregations/treasury", treasuryParams, SEALED_COUNT_BUDGET_MS),
         fetchJsonWithTimeout("/ui/system/vault-health", new URLSearchParams({ tenant }), BANK_RECONCILIATION_TIMEOUT_MS),
@@ -504,9 +527,20 @@ export async function GET(request: NextRequest) {
       paymentsCompletenessRes,
       payrollRes,
     ] = otherCritical;
-    // AR totals : toujours fetché (BFR/Encours dans la grille), mais avec limit=1 pour réduire le payload en mode minimal
+    // AR totals : toujours fetché (BFR/Encours dans la grille), limit=1 suffit pour les totaux
     const arByPartnerMinimalParams = new URLSearchParams({ ...Object.fromEntries(commonParams), overdue: "false", limit: "1" });
     const arTotalsFetch = fetchJsonWithTimeout("/ui/aggregations/ar-by-partner", arByPartnerMinimalParams, SEALED_COUNT_BUDGET_MS).catch(() => null);
+    // AP totals : pour BFR complet (tuile + card) = Stock + AR - AP (ZeDocs/web52)
+    const apTotalsFetch = fetchJsonWithTimeout("/ui/aggregations/ap-by-partner", arByPartnerMinimalParams, SEALED_COUNT_BUDGET_MS).catch(() => null);
+    // Contexte analytique Diva : top 10 partenaires en retard triés par PriorityScore (Critique en premier)
+    // Séparé du fetch minimal pour ne pas dépendre du mode (cockpit vs detail)
+    const arDivaContextParams = new URLSearchParams({ ...Object.fromEntries(commonParams), overdue: "true", limit: "10" });
+    const arDivaContextFetch = fetchJsonWithTimeout("/ui/aggregations/ar-by-partner", arDivaContextParams, SEALED_COUNT_BUDGET_MS).catch(() => null);
+    // Stock valuation : BFR complet quand company_id (ZeDocs/web52 Option B)
+    const stockValuationParams = company_id ? new URLSearchParams({ tenant, company_id }) : null;
+    const stockValuationFetch = stockValuationParams
+      ? fetchJsonWithTimeout("/ui/aggregations/stock-valuation", stockValuationParams, 8000).catch(() => null)
+      : Promise.resolve(null);
 
     const optionalFetches = minimal
       ? Promise.resolve([null, null] as [null, null])
@@ -515,6 +549,7 @@ export async function GET(request: NextRequest) {
           fetchJsonWithTimeout("/ui/aggregations/ar-by-partner", arByPartnerParams, 12_000).catch(() => null),
         ]);
 
+    // ADR-001 : Linky ne connaît que le Vault ; tuile Énergie stratégique via /ui/dlp/energy-summary
     const dlpFetch = (async () => {
       try {
         const dlpParams = new URLSearchParams({ tenant, period_days: "90" });
@@ -522,8 +557,8 @@ export async function GET(request: NextRequest) {
         const ctrl = new AbortController();
         const t = setTimeout(() => ctrl.abort(), DLP_TIMEOUT_MS);
         const res = await fetch(
-          `${DLP_URL.replace(/\/$/, "")}/api/v1/dlp/energy-summary?${dlpParams}`,
-          { cache: "no-store", headers: { Accept: "application/json" }, signal: ctrl.signal }
+          `${base}/ui/dlp/energy-summary?${dlpParams}`,
+          { cache: "no-store", headers: { Accept: "application/json", "X-Tenant": tenant }, signal: ctrl.signal }
         );
         clearTimeout(t);
         return res.ok ? await res.json() : null;
@@ -547,11 +582,14 @@ export async function GET(request: NextRequest) {
       fetchStableCashAgg("/ui/aggregations/payments-out"),
     ]);
 
-    const [[salesByPartnerRes, arByPartnerResFull], dlpData, [paymentsInStrictRes, paymentsOutStrictRes], arTotalsRes] = await Promise.all([
+    const [[salesByPartnerRes, arByPartnerResFull], dlpData, [paymentsInStrictRes, paymentsOutStrictRes], arTotalsRes, apTotalsRes, stockValuationRes, arDivaContextRes] = await Promise.all([
       optionalFetches,
       dlpFetch,
       strictCashFetches,
       arTotalsFetch,
+      apTotalsFetch,
+      stockValuationFetch,
+      arDivaContextFetch,
     ]);
     // En vue détail : utiliser la réponse complète ; en mode minimal : utiliser arTotalsRes pour les totaux BFR/Encours
     const arByPartnerRes = arByPartnerResFull ?? arTotalsRes;
@@ -624,15 +662,9 @@ export async function GET(request: NextRequest) {
         treasuryFormatted = formatAmount(amountToReconcile, treasuryCurrency);
       }
     }
-    // Cash tile : utiliser le net espèces seulement si la clé "cash" est réellement présente.
-    // Sinon fallback fiable sur le net total pour éviter un 0 artificiel.
-    const piBy = (paymentsInStrictRes as AggWithTotal)?.by_method ?? (paymentsInRes as AggWithTotal)?.by_method;
-    const poBy = (paymentsOutStrictRes as AggWithTotal)?.by_method ?? (paymentsOutRes as AggWithTotal)?.by_method;
-    const hasCashMethod =
-      typeof piBy?.cash === "number" || typeof poBy?.cash === "number";
-    const cashInMethod = piBy?.cash ?? 0;
-    const cashOutMethod = poBy?.cash ?? 0;
-    const cashNet = hasCashMethod ? cashInMethod - cashOutMethod : inTotal - outTotal;
+    // Flux net : définition unique = encaissements − décaissements (total), alignée avec la vue détail Flux net.
+    // Évite la divergence tuile (ex. net espèces) vs détail (net total) — même formule, même source.
+    const cashNet = inTotal - outTotal;
     const cashNetForKpi = paymentsInOk && paymentsOutOk ? cashNet : null;
     const paymentsCompletenessSigned =
       typeof paymentsCompletenessRes?.payments_sum_amount_signed === "number"
@@ -818,6 +850,13 @@ export async function GET(request: NextRequest) {
       typeof snapshotForBadge.complete === "boolean" &&
       snapshotForBadge.sealed_count_sources != null;
     const sealedCount = useSnapshotForBadge ? snapshotForBadge.sealed_count : fallbackSealedCount;
+    /** Footer : total preuves scellées pour le tenant (et la société si company_id) — toutes périodes */
+    const sealedCountTotal =
+      typeof snapshotTotalCompanyRes?.sealed_count === "number"
+        ? snapshotTotalCompanyRes.sealed_count
+        : typeof snapshotTotalRes?.sealed_count === "number"
+          ? snapshotTotalRes.sealed_count
+          : null;
 
     const useScopedSnapshotForCompleteness =
       snapshotRes != null &&
@@ -903,6 +942,7 @@ export async function GET(request: NextRequest) {
     const response: DashboardMetricsResponse = {
       data_completeness: { bank_health_metrics: bankHealthMetrics },
       sealed_count: sealedCount,
+      sealed_count_total: sealedCountTotal,
       sealed_count_complete: sealedCountComplete,
       sealed_count_sources: sealedCountSources,
       expected_count: expectedCount ?? undefined,
@@ -938,11 +978,13 @@ export async function GET(request: NextRequest) {
                 pareto_80_partners: salesByPartnerRes.pareto_80_partners ?? [],
               }
             : undefined,
-          ar_by_partner: arByPartnerRes
+          ar_by_partner: (arByPartnerRes ?? arDivaContextRes)
             ? {
-                totals: arByPartnerRes.totals ?? { open_amount: 0, overdue_amount: 0, open_count_invoices: 0, overdue_count_invoices: 0, missing_due_date_count: 0 },
-                partners: arByPartnerRes.partners ?? [],
-                meta: arByPartnerRes.meta ?? { freshness: "unknown", warnings: [] },
+                // Totaux depuis le fetch all-open (BFR/Encours corrects)
+                totals: arByPartnerRes?.totals ?? arDivaContextRes?.totals ?? { open_amount: 0, overdue_amount: 0, open_count_invoices: 0, overdue_count_invoices: 0, missing_due_date_count: 0 },
+                // Partners depuis le fetch overdue trié par PriorityScore (Diva identifie le bon débiteur critique)
+                partners: arDivaContextRes?.partners ?? arByPartnerRes?.partners ?? [],
+                meta: (arDivaContextRes ?? arByPartnerRes)?.meta ?? { freshness: "unknown", warnings: [] },
               }
             : undefined,
         },
@@ -1027,19 +1069,30 @@ export async function GET(request: NextRequest) {
       valueKind: hits > 0 ? "accent_soft" : "neutral",
     };
 
-    // BFR / Encours — AR open (créances clients ouvertes depuis ar-by-partner)
+    // BFR / Encours — AR open (créances clients), AP open (dettes fournisseurs), stock (ZeDocs/web52)
     const arOpenAmount: number | null =
       typeof arByPartnerRes?.totals?.open_amount === "number" ? arByPartnerRes.totals.open_amount : null;
     const arOverdueAmount: number | null =
       typeof arByPartnerRes?.totals?.overdue_amount === "number" ? arByPartnerRes.totals.overdue_amount : null;
+    const apOpenAmount: number | null =
+      typeof (apTotalsRes as { totals?: { open_amount?: number } } | null)?.totals?.open_amount === "number"
+        ? (apTotalsRes as { totals: { open_amount: number } }).totals.open_amount
+        : null;
+    const stockValue: number | null =
+      typeof (stockValuationRes as { value?: number } | null)?.value === "number" ? (stockValuationRes as { value: number }).value : null;
     const bfrCurrency = businessCurrency;
 
-    // working_capital (BFR simplifié) = AR open — dettes fournisseurs non disponibles en open balance
-    // Valeur = AR open (créances clients). Proxy acceptable jusqu'à implémentation AP open.
+    // working_capital = BFR complet si stock dispo (Stock + AR - AP), sinon AR - AP, sinon AR (ZeDocs/web52)
+    const workingCapitalValue =
+      stockValue != null && arOpenAmount != null && apOpenAmount != null
+        ? stockValue + arOpenAmount - apOpenAmount
+        : arOpenAmount != null && apOpenAmount != null
+          ? arOpenAmount - apOpenAmount
+          : arOpenAmount;
     response.working_capital = {
-      value: arOpenAmount,
-      formatted: arOpenAmount != null ? formatAmount(arOpenAmount, bfrCurrency) : "—",
-      valueKind: arOpenAmount == null ? "neutral" : arOpenAmount > 0 ? "accent" : "zero",
+      value: workingCapitalValue,
+      formatted: workingCapitalValue != null ? formatAmount(workingCapitalValue, bfrCurrency) : "—",
+      valueKind: workingCapitalValue == null ? "neutral" : workingCapitalValue > 0 ? "accent" : "zero",
     };
 
     // encours = AR open — couleur neutre (accent/bleu) : l'encours n'est pas un problème en soi.

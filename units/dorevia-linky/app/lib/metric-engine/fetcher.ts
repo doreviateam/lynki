@@ -144,6 +144,21 @@ export const vaultFetcher: MetricDataFetcher = {
     };
   },
 
+  async fetchStockValuation(p) {
+    if (!p.company_id) return null;
+    const params = new URLSearchParams({ tenant: p.tenant, company_id: p.company_id });
+    const res = await fetchJson("/ui/aggregations/stock-valuation", params);
+    if (!res || typeof res !== "object") return null;
+    const r = res as Record<string, unknown>;
+    const value = typeof r.value === "number" ? r.value : null;
+    if (value == null) return null;
+    return {
+      value,
+      currency: typeof r.currency === "string" ? r.currency : "EUR",
+      as_of_date: typeof r.as_of_date === "string" ? r.as_of_date : "",
+    };
+  },
+
   async fetchPayroll(p) {
     const params = new URLSearchParams({
       tenant: p.tenant,

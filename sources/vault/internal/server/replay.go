@@ -24,8 +24,32 @@ func RegisterInvoicesResidualRoute(app *fiber.App, db *storage.DB, log *zerolog.
 }
 
 // RegisterUiAggregations enregistre les routes Linky (sales, purchases, payments, adjustments, treasury, companies).
-// SPEC : ZeDocs/web22, dashboard-metrics, RECONCIL
+// SPEC : ZeDocs/web22, dashboard-metrics, RECONCIL. ADR-001 (ZeDocs/web51) : gateway /ui/dlp/*, /ui/diva/*.
 func RegisterUiAggregations(app *fiber.App, db *storage.DB, cfg *config.Config, log *zerolog.Logger) {
+	// Gateway DLP/DIVA (ADR-001 ZeDocs/web51) — exposé même sans DB
+	if cfg != nil && log != nil {
+		app.Get("/ui/dlp/energy-summary", handlers.DLPEnergySummaryHandler(cfg, log))
+		// Lot 3 — admin DLP
+		app.Get("/ui/dlp/companies", handlers.DLPProxyHandler(cfg, log, "/api/v1/companies", "GET"))
+		app.Post("/ui/dlp/companies", handlers.DLPProxyHandler(cfg, log, "/api/v1/companies", "POST"))
+		app.Get("/ui/dlp/dlps", handlers.DLPProxyHandler(cfg, log, "/api/v1/dlps", "GET"))
+		app.Post("/ui/dlp/dlps", handlers.DLPProxyHandler(cfg, log, "/api/v1/dlps", "POST"))
+		app.Get("/ui/dlp/dlps/:id", handlers.DLPProxyIDHandler(cfg, log, "/api/v1/dlps/", "id", "GET"))
+		app.Patch("/ui/dlp/dlps/:id", handlers.DLPProxyIDHandler(cfg, log, "/api/v1/dlps/", "id", "PATCH"))
+		app.Get("/ui/dlp/perimeters", handlers.DLPProxyHandler(cfg, log, "/api/v1/perimeters", "GET"))
+		app.Post("/ui/dlp/perimeters", handlers.DLPProxyHandler(cfg, log, "/api/v1/perimeters", "POST"))
+		app.Patch("/ui/dlp/perimeters/:id", handlers.DLPProxyIDHandler(cfg, log, "/api/v1/perimeters/", "id", "PATCH"))
+		app.Get("/ui/dlp/project-perimeter-map", handlers.DLPProxyHandler(cfg, log, "/api/v1/project-perimeter-map", "GET"))
+		app.Post("/ui/dlp/project-perimeter-map", handlers.DLPProxyHandler(cfg, log, "/api/v1/project-perimeter-map", "POST"))
+		app.Delete("/ui/dlp/project-perimeter-map/:id", handlers.DLPProxyIDHandler(cfg, log, "/api/v1/project-perimeter-map/", "id", "DELETE"))
+		app.Get("/ui/diva/insights", handlers.DIVAInsightsHandler(cfg, log))
+		app.Post("/ui/diva/generate", handlers.DIVAGenerateHandler(cfg, log))
+		app.Post("/ui/diva/explain", handlers.DIVAExplainHandler(cfg, log))
+		app.Post("/ui/diva/explain/async", handlers.DIVAExplainAsyncHandler(cfg, log))
+		app.Get("/ui/diva/jobs/:contextHash", handlers.DIVAJobsHandler(cfg, log))
+		app.Post("/ui/diva/activity", handlers.DIVAActivityHandler(cfg, log))
+		app.Get("/ui/diva/activity", handlers.DIVAGetActivityHandler(cfg, log))
+	}
 	app.Get("/ui/aggregations/treasury", handlers.TreasuryAggregationHandler(db, cfg.OdooBankReconciliationURL, cfg, log))
 	app.Get("/ui/aggregations/payments-completeness", handlers.PaymentsCompletenessHandler(db, cfg.OdooBankReconciliationURL, cfg))
 	app.Get("/ui/system/bank-reconciliation-health", handlers.BankReconciliationHealthHandler(cfg.OdooBankReconciliationURL, cfg))
@@ -44,6 +68,10 @@ func RegisterUiAggregations(app *fiber.App, db *storage.DB, cfg *config.Config, 
 	app.Post("/ui/jobs/ar-snapshot", handlers.ArSnapshotJobHandler(db, log))
 	app.Get("/ui/aggregations/bfr-series", handlers.BfrSeriesHandler(db))
 	app.Post("/ui/jobs/ap-snapshot", handlers.ApSnapshotJobHandler(db, log))
+	// ZeDocs/web52 Option B — Valeur du stock (snapshots J-1, spec v1.1)
+	app.Post("/internal/stock-valuation-snapshot", handlers.StockValuationSnapshotPostHandler(db, cfg, log))
+	app.Get("/ui/aggregations/stock-valuation", handlers.StockValuationHandler(db))
+	app.Get("/ui/aggregations/stock-series", handlers.StockSeriesHandler(db))
 	app.Get("/ui/aggregations/sales", handlers.SalesAggregationHandler(db))
 	app.Get("/ui/aggregations/purchases", handlers.PurchasesAggregationHandler(db))
 	app.Get("/ui/aggregations/payments-in", handlers.PaymentsInAggregationHandler(db))
@@ -53,6 +81,40 @@ func RegisterUiAggregations(app *fiber.App, db *storage.DB, cfg *config.Config, 
 	// T2.7 : Cache 5 s pour GET /ui/completeness-snapshot (clé: tenant+company_id+date_debut+date_fin)
 	snapshotCache := cache.NewCompletenessSnapshotCache(5 * time.Second)
 	app.Get("/ui/completeness-snapshot", handlers.CompletenessSnapshotHandler(db, snapshotCache))
+	// Lynki Phase 2 — GET /api/accounting/trial-balance → lynki.accounting.trial_balance (PLAN_SPRINT_02 T11)
+	app.Get("/api/accounting/trial-balance", handlers.TrialBalanceHandler(db, log))
+	// Lynki Phase 2 — GET /api/accounting/general-ledger → lynki.accounting.general_ledger (PLAN_SPRINT_03 T17)
+	app.Get("/api/accounting/general-ledger", handlers.GeneralLedgerHandler(db, log))
+	// Lynki Phase 2 — GET /api/accounting/trial-balance/export → CSV (Sprint 04 T24)
+	app.Get("/api/accounting/trial-balance/export", handlers.TrialBalanceExportHandler(db, log))
+	// Lynki Phase 2 — GET /api/accounting/general-ledger/export → CSV (Sprint 05 T29)
+	app.Get("/api/accounting/general-ledger/export", handlers.GeneralLedgerExportHandler(db, log))
+	// Sprint 07 — Bilan / CR premier incrément (agrégation par classe PCG)
+	app.Get("/api/accounting/balance-sheet", handlers.BalanceSheetHandler(db, log))
+	app.Get("/api/accounting/income-statement", handlers.IncomeStatementHandler(db, log))
+	// Sprint 08 — Bilan / CR par rubriques PCG (REFERENTIEL §9–§10)
+	app.Get("/api/accounting/balance-sheet/rubrics", handlers.BalanceSheetRubricsHandler(db, log))
+	app.Get("/api/accounting/income-statement/rubrics", handlers.IncomeStatementRubricsHandler(db, log))
+	app.Get("/api/accounting/balance-sheet/rubrics/export", handlers.BalanceSheetRubricsExportHandler(db, log))
+	app.Get("/api/accounting/income-statement/rubrics/export", handlers.IncomeStatementRubricsExportHandler(db, log))
+	// Sprint 09 — Balances tiers (REFERENTIEL §11–§12)
+	app.Get("/api/accounting/aged-receivables", handlers.AgedReceivablesHandler(db, log))
+	app.Get("/api/accounting/aged-payables", handlers.AgedPayablesHandler(db, log))
+
+	// Sprint 10 — Exports balances tiers CSV (T57)
+	app.Get("/api/accounting/aged-receivables/export", handlers.AgedReceivablesExportHandler(db, log))
+	app.Get("/api/accounting/aged-payables/export", handlers.AgedPayablesExportHandler(db, log))
+
+	// Sprint 13 T72 — Calendrier comptable aligné ERP
+	app.Get("/api/accounting/periods", handlers.AccountingPeriodsHandler(db, log))
+	app.Post("/api/accounting/periods/sync", handlers.AccountingPeriodsSyncHandler(db, log))
+
+	// Sprint 14 T80 — Historisation FactsPack
+	app.Post("/api/accounting/facts-pack/archive", handlers.FactsPackArchiveHandler(db, log))
+	app.Get("/api/accounting/facts-pack/:hash", handlers.FactsPackGetHandler(db, log))
+
+	// Sprint 15 T86 — Purge rétention 90j FactsPack (Bearer token, cron plateforme)
+	app.Post("/internal/jobs/facts-pack-purge", handlers.FactsPackPurgeJobHandler(db, cfg, log))
 }
 
 // RegisterReplayRoutes enregistre les routes replay ERP (E4-US2, E4-US3, E5, E7-US1)

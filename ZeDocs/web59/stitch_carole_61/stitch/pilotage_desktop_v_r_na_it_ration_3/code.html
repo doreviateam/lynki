@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lynki Desktop Cockpit - Pilotage Véréna</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-container": "#002114",
+                        "on-surface-variant": "#45464d",
+                        "surface-container-low": "#eff4ff",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#dce9ff",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "surface-container": "#e5eeff",
+                        "on-primary-fixed": "#131b2e",
+                        "surface-container-highest": "#d3e4fe",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#bec6e0",
+                        "surface-container-lowest": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#57657b",
+                        "primary-fixed": "#dae2fd",
+                        "secondary": "#515f74",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#069669",
+                        "on-surface": "#0b1c30",
+                        "secondary-fixed": "#d5e3fd",
+                        "outline-variant": "#c6c6cd",
+                        "surface": "#f8f9ff",
+                        "on-primary-container": "#7c839b",
+                        "on-tertiary-fixed": "#002114",
+                        "secondary-container": "#d5e3fd",
+                        "inverse-primary": "#bec6e0",
+                        "surface-bright": "#f8f9ff",
+                        "inverse-surface": "#213145",
+                        "tertiary": "#000000",
+                        "on-background": "#0b1c30",
+                        "primary": "#000000",
+                        "outline": "#76777d",
+                        "surface-tint": "#565e74",
+                        "tertiary-fixed": "#85f8c4",
+                        "primary-container": "#131b2e",
+                        "background": "#f8f9ff",
+                        "surface-dim": "#cbdbf5",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#d3e4fe",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#3a485c",
+                        "secondary-fixed-dim": "#b9c7e0",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-tertiary-fixed-variant": "#005137",
+                        "on-secondary-fixed": "#0d1c2f",
+                        "tertiary-fixed-dim": "#68dba9",
+                        "on-error": "#ffffff"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .cockpit-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+        .data-reliability-pulse {
+            animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .7; }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex min-h-screen">
+<!-- SideNavBar (Authority: JSON) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col py-6 z-50 bg-slate-900 dark:bg-black h-screen w-64 border-r border-slate-800 shadow-xl font-sans text-xs uppercase tracking-wider Inter">
+<div class="px-6 mb-10">
+<h1 class="text-lg font-black text-white">Lynki Cockpit</h1>
+<p class="text-slate-400 normal-case tracking-normal text-[10px]">Financial Piloting</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Active: Tableau de bord -->
+<a class="bg-slate-800 text-white border-l-4 border-emerald-500 px-4 py-3 flex items-center gap-3 hover:translate-x-1 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-emerald-400">dashboard</span>
+<span>Tableau de bord</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-4 py-3 flex items-center gap-3 hover:bg-slate-800/50 hover:translate-x-1 transition-all duration-150" href="#">
+<span class="material-symbols-outlined">domain</span>
+<span>Entités</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-4 py-3 flex items-center gap-3 hover:bg-slate-800/50 hover:translate-x-1 transition-all duration-150" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span>Budgets</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-4 py-3 flex items-center gap-3 hover:bg-slate-800/50 hover:translate-x-1 transition-all duration-150" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Reporting</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-4 py-3 flex items-center gap-3 hover:bg-slate-800/50 hover:translate-x-1 transition-all duration-150" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span>Archives</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+<span>Export Report</span>
+</button>
+<div class="mt-6 flex items-center gap-3 px-2 py-3 border-t border-slate-800">
+<div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
+<img alt="User Profile" data-alt="professional portrait of a confident female financial executive in a modern office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACZeRuiNjY9xxn9TI41s3QG9HwMLBruQH-G_ZHNk31N9vrzfueahumHn1bayt7q0BRIDIugqCMaTmbCp835vquvj6dy4O3rYGQj0Ckrjb0J0pkOTmN-WU6t6oK5vrgmeqY0MoEHmBavezHobgVGAqggTf6nFnX8SmtlcaZoJJbJZdcrVtfv6uTMbWBflP5SWXVtum9oMmWWGhCuBmFP0qeZkWtfD5dAPB3BBcU-YLOXIEjRu0N9CxQCU15a760YHFZKae2GBfhdt7g"/>
+</div>
+<div class="flex flex-col overflow-hidden">
+<span class="text-white font-semibold truncate normal-case">Véréna (RAF)</span>
+<span class="text-slate-500 text-[10px] truncate normal-case">Global Admin</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-64 min-h-screen flex flex-col">
+<!-- TopNavBar (Authority: JSON) -->
+<header class="flex justify-between items-center h-16 px-6 w-full sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flat no shadows font-sans text-sm font-medium Inter">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Lynki Desktop Cockpit</span>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-lg">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-slate-50 border-none rounded-full w-64 text-xs focus:ring-1 focus:ring-emerald-500" placeholder="Rechercher une entité, un flux..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1 bg-slate-100 rounded-lg px-3 py-1.5 cursor-pointer hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined text-lg text-slate-700">refresh</span>
+<span class="text-[10px] text-slate-600 uppercase font-bold tracking-wider">Sync: 12:04</span>
+</div>
+<div class="h-6 w-px bg-slate-200 mx-2"></div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-500 hover:bg-slate-50 p-2 rounded-full cursor-pointer transition-colors">notifications</span>
+<span class="material-symbols-outlined text-slate-500 hover:bg-slate-50 p-2 rounded-full cursor-pointer transition-colors">settings</span>
+<button class="bg-primary-container text-white px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-opacity">
+                        Persona Switcher
+                        <span class="material-symbols-outlined text-xs">expand_more</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<section class="p-8 space-y-8 max-w-[1600px] mx-auto w-full">
+<!-- Header & Reliability transverse -->
+<div class="flex justify-between items-end border-b border-slate-200 pb-6">
+<div>
+<h2 class="text-3xl font-black text-on-surface tracking-tight mb-1">Operational Arbitrage</h2>
+<p class="text-neutral-500 font-medium">Cockpit de pilotage stratégique — Q3 FY24</p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-2 rounded-lg border border-emerald-100">
+<span class="material-symbols-outlined text-sm data-reliability-pulse" style="font-variation-settings: 'FILL' 1;">verified</span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold leading-none">Status</span>
+<span class="text-xs font-bold leading-none">FIABLE</span>
+</div>
+</div>
+<div class="flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-2 rounded-lg border border-amber-100">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">error</span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold leading-none">Reporting</span>
+<span class="text-xs font-bold leading-none">PARTIEL (Holding)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- LEVEL A: Master Tiles -->
+<div class="cockpit-grid">
+<!-- KPI 1: Cash Position -->
+<div class="col-span-12 lg:col-span-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-emerald-500 transition-all">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl">account_balance_wallet</span>
+</div>
+<div class="flex justify-between items-start mb-4">
+<span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Trésorerie Nette</span>
+<span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">LIVE</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-black text-on-surface tracking-tighter">12.4M €</span>
+<span class="text-emerald-600 text-sm font-bold flex items-center">+4.2%</span>
+</div>
+<div class="mt-6 flex items-center gap-3">
+<div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500 w-[78%]"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-500">78% de l'objectif</span>
+</div>
+</div>
+<!-- KPI 2: Burn Rate -->
+<div class="col-span-12 lg:col-span-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-slate-900 transition-all">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl">speed</span>
+</div>
+<div class="flex justify-between items-start mb-4">
+<span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Burn Rate Mensuel</span>
+<span class="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold">CONSOLIDE</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-black text-on-surface tracking-tighter">845k €</span>
+<span class="text-error text-sm font-bold flex items-center">-1.5%</span>
+</div>
+<div class="mt-6 grid grid-cols-2 gap-4">
+<div class="border-l-2 border-slate-200 pl-3">
+<span class="block text-[10px] text-slate-400 font-bold uppercase">Runway</span>
+<span class="text-sm font-bold">14.2 mois</span>
+</div>
+<div class="border-l-2 border-slate-200 pl-3">
+<span class="block text-[10px] text-slate-400 font-bold uppercase">Forecast</span>
+<span class="text-sm font-bold">Stable</span>
+</div>
+</div>
+</div>
+<!-- KPI 3: Arbitrage Alert -->
+<div class="col-span-12 lg:col-span-4 bg-primary-container p-6 rounded-xl shadow-lg relative overflow-hidden text-white group cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Alerte Arbitrage</span>
+<span class="material-symbols-outlined text-amber-400 animate-pulse">warning</span>
+</div>
+<div class="space-y-4">
+<h4 class="text-lg font-bold leading-tight">Dépassement de budget : Pôle Marketing EMEA</h4>
+<p class="text-slate-400 text-xs leading-relaxed">Le budget Q3 est consommé à 92%. Risque de blocage opérationnel avant fin septembre.</p>
+<div class="flex gap-2">
+<button class="flex-1 bg-white text-primary-container text-[10px] font-black uppercase py-2 rounded hover:bg-slate-100 transition-colors">Réallouer</button>
+<button class="flex-1 border border-slate-700 text-white text-[10px] font-black uppercase py-2 rounded hover:bg-slate-800 transition-colors">Ignorer (24h)</button>
+</div>
+</div>
+</div>
+</div>
+<!-- LEVEL B & C: Secondary groupings & Data Density -->
+<div class="cockpit-grid">
+<!-- Entity Performance Table (Level B) -->
+<div class="col-span-12 lg:col-span-8 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col">
+<div class="p-6 border-b border-slate-100 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<h3 class="text-sm font-black uppercase tracking-widest text-slate-900">Performance par Filiale</h3>
+<span class="material-symbols-outlined text-emerald-500 text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div class="flex gap-2">
+<button class="text-[10px] font-bold px-3 py-1 bg-slate-50 border border-slate-200 rounded text-slate-600">Filtrer</button>
+<button class="text-[10px] font-bold px-3 py-1 bg-slate-50 border border-slate-200 rounded text-slate-600">Vue Grille</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-slate-50/50 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+<th class="px-6 py-4">Entité</th>
+<th class="px-6 py-4">EBITDA</th>
+<th class="px-6 py-4">Variation YTD</th>
+<th class="px-6 py-4">Confiance</th>
+<th class="px-6 py-4 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100">
+<tr class="hover:bg-slate-50/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center font-bold text-slate-400 text-xs">FR</div>
+<span class="text-xs font-bold text-slate-900">Lynki France SAS</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-medium">1.2M €</td>
+<td class="px-6 py-4">
+<span class="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">trending_up</span> +12%
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex gap-0.5">
+<div class="w-3 h-1 bg-emerald-500 rounded-full"></div>
+<div class="w-3 h-1 bg-emerald-500 rounded-full"></div>
+<div class="w-3 h-1 bg-emerald-500 rounded-full"></div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="opacity-0 group-hover:opacity-100 text-[10px] font-bold text-emerald-600 uppercase transition-opacity">Détails</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50/50 transition-colors group border-l-4 border-amber-500 bg-amber-50/30">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center font-bold text-slate-400 text-xs">DE</div>
+<span class="text-xs font-bold text-slate-900">Lynki GmbH</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-medium">450k €</td>
+<td class="px-6 py-4">
+<span class="text-[10px] font-bold text-error flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">trending_down</span> -4%
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex gap-0.5">
+<div class="w-3 h-1 bg-amber-500 rounded-full"></div>
+<div class="w-3 h-1 bg-slate-200 rounded-full"></div>
+<div class="w-3 h-1 bg-slate-200 rounded-full"></div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="opacity-0 group-hover:opacity-100 text-[10px] font-bold text-emerald-600 uppercase transition-opacity">Arbitrer</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center font-bold text-slate-400 text-xs">US</div>
+<span class="text-xs font-bold text-slate-900">Lynki Corp Inc.</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-medium">2.8M €</td>
+<td class="px-6 py-4">
+<span class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">horizontal_rule</span> 0%
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex gap-0.5">
+<div class="w-3 h-1 bg-emerald-500 rounded-full"></div>
+<div class="w-3 h-1 bg-emerald-500 rounded-full"></div>
+<div class="w-3 h-1 bg-slate-200 rounded-full"></div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="opacity-0 group-hover:opacity-100 text-[10px] font-bold text-emerald-600 uppercase transition-opacity">Détails</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Strategic Arbitrage Sidebar (Level C) -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+<h3 class="text-xs font-black uppercase tracking-widest text-slate-900 mb-6 flex justify-between items-center">
+                            Prochaines Étapes
+                            <span class="bg-emerald-500 w-2 h-2 rounded-full"></span>
+</h3>
+<ul class="space-y-4">
+<li class="flex gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors group cursor-pointer border border-transparent hover:border-slate-100">
+<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-slate-600">description</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">Clôture Mensuelle Août</p>
+<p class="text-[10px] text-slate-500">3 entités en attente de validation</p>
+</div>
+</li>
+<li class="flex gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors group cursor-pointer border border-transparent hover:border-slate-100">
+<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-slate-600">sync_problem</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">Réconciliation Interco</p>
+<p class="text-[10px] text-slate-500">Écart de 12.4k € identifié (Lynki DE/FR)</p>
+</div>
+</li>
+<li class="flex gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors group cursor-pointer border border-transparent hover:border-slate-100">
+<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-slate-600">cloud_done</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">Forecast Q4 Prêt</p>
+<p class="text-[10px] text-slate-500">Prêt pour soumission au board</p>
+</div>
+</li>
+</ul>
+</div>
+<!-- Small Insight Card -->
+<div class="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-xl p-6 text-white relative overflow-hidden">
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-9xl">lightbulb</span>
+</div>
+<h4 class="text-xs font-black uppercase tracking-widest mb-3">Optimisation Cash</h4>
+<p class="text-xs leading-relaxed opacity-90 mb-4">Le placement à terme de l'excédent de trésorerie sur le compte FR pourrait générer +12k € d'intérêts sur le prochain trimestre.</p>
+<button class="w-full py-2 border border-white/30 rounded text-[10px] font-black uppercase hover:bg-white/10 transition-colors">Simuler l'impact</button>
+</div>
+</div>
+</div>
+<!-- Dashboard Footer Metrics -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-slate-200">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Qualité de donnée</span>
+<span class="text-sm font-black text-slate-900">94.2% FIABLE</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Délai Réconciliation</span>
+<span class="text-sm font-black text-slate-900">1.2 JOURS</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Utilisateurs Actifs</span>
+<span class="text-sm font-black text-slate-900">42 PILOTES</span>
+</div>
+<div class="flex flex-col items-end justify-center">
+<div class="flex -space-x-2">
+<img alt="Team 1" class="w-6 h-6 rounded-full border-2 border-white ring-1 ring-slate-200" data-alt="team member avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmGuD0p3oFxNnNNVmzINStcTU6z0sULCOIKy1nOXyVDcE1eBTQiBOwvhaZ9ULBeyjSSINJaOXLAgJxoHw4fm5nHFsUGu6wxjPGmG0GGHor6UCiHUrru3zzuO6e9iC_h6zQYWm15FPyCu10FbIL-ezdpe--BRyf4ujyLJg31QB-9V0y3j84-GQ11cUnAJQu9c1snDr3pfxWbfZuedzDKb8_5PTfFafvxTOk43wefBK7ClAQ5-FM4OSb33eAz6SUJY2Hi_4oPAS0-8yA"/>
+<img alt="Team 2" class="w-6 h-6 rounded-full border-2 border-white ring-1 ring-slate-200" data-alt="team member avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCN9PD6dd9jU9-UCn_hDJLbEeARxIfpQF4xPeuLd_cf64Ymwnpbo_Hnch88T-N74PXWscHHLsgYE6qZ7jIZl3XudgpuPjQWTex8cFRtMQ8mlG4Cn89hiBH2Ag1fnrBOhbuAMfDAYTAkZhR4G9Y_YzifryhmiLuUGLs5i9EXRqnfua75I5uN7DagnSKs-h3AzG89cgrvDjO8O-dEX3nTwofxPXZAVkSjumgcTC-NTg2p6l1wv6GegphwxFd_RrY0wyUHMO6lQHFcBunJ"/>
+<img alt="Team 3" class="w-6 h-6 rounded-full border-2 border-white ring-1 ring-slate-200" data-alt="team member avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBo1Qzpm9Q3JwrpAIavcH0RtKhV115hUAu5R_Xu1skrCy9UBp20a0s47zltOeqwEKlnvmiNlvd5W24CPaecB7i55kfefVb3RxUVcfVMe8Bf_du8ILk_pG5_g2RJpRYidAs7DnzNPQFEjwQfeu3GwmtP93JKj5FNR35MnG9pspD-1RyhrENjqmWRrxzowudGHq0LbFbFKzHEQCriAJ_wsGIa3oTgQ8Wje_6m4GaZPKM5QZGtaVycttiqMZSnw0aBF1B5LlZ63lM2Rh4F"/>
+<div class="w-6 h-6 rounded-full bg-slate-100 border-2 border-white ring-1 ring-slate-200 flex items-center justify-center text-[8px] font-black text-slate-500">+12</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</body></html>

@@ -170,8 +170,18 @@ async function computeSingleMetric(
         const arOpen = receivables.value ?? 0;
         const payables = computed.get("payables_open");
         const apOpen = payables?.value ?? null;
-        // BFR = Créances clients - Dettes fournisseurs (AP disponible depuis GO-2)
-        const bfr = apOpen != null ? arOpen - apOpen : arOpen;
+        // BFR complet = Stock + AR - AP (ZeDocs/web52) ; sinon AR - AP ou AR
+        let stockValue: number | null = null;
+        if (fetcher.fetchStockValuation && params.company_id) {
+          const stockRes = await fetcher.fetchStockValuation(params);
+          stockValue = stockRes?.value ?? null;
+        }
+        const bfr =
+          stockValue != null && apOpen != null
+            ? stockValue + arOpen - apOpen
+            : apOpen != null
+              ? arOpen - apOpen
+              : arOpen;
         return ok(metric_id, bfr, formatSignedAmount(bfr, "EUR"), now());
       }
 

@@ -36,6 +36,7 @@ interface FluxCashCardProps {
   footer?: React.ReactNode;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function FluxCashCard({
@@ -54,6 +55,7 @@ export function FluxCashCard({
   footer,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: FluxCashCardProps) {
   const error = errorIn || errorOut;
 
@@ -69,7 +71,7 @@ export function FluxCashCard({
     return (
       <section className={INSTRUMENT_CARD_BASE}>
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader
           icon={iconNode}
@@ -94,7 +96,7 @@ export function FluxCashCard({
     return (
       <section className={`${INSTRUMENT_CARD_BASE} bg-[var(--negative-soft)]`}>
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader icon={iconNode} title="FLUX NET" />
         <p className="text-[var(--negative)]">{error}</p>
@@ -140,7 +142,7 @@ export function FluxCashCard({
   return (
     <section className={`${INSTRUMENT_CARD_BASE} ${net >= 0 ? "border-[var(--positive)]" : "border-[var(--negative)]"}`}>
       {cardId && onNavigateToCard && (
-        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader
         icon={iconNode}

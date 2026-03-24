@@ -13,15 +13,28 @@
   --surface:         #1A2E47;
   --border:          #223B5B;
   --text:            #E6EEF8;
-  --text-secondary:  #9FB3C8;
-  --muted:           #9FB3C8;
+  --text-secondary:  #A8B4C8;
+  --muted:           #A8B4C8;
   --hover:           #1F3653;
+
+  /* Confiance / intégrité — canon v5 */
+  --confidence-fiable:    #059669;
+  --confidence-partielle: #F59E0B;
+  --confidence-proxy:     #3B82F6;
+  --confidence-estimee:   #8B5CF6;
+
+  /* Primary container (fond tuile héro trésorerie — canon mobile Max) */
+  --primary-container:    #131b2e;
 
   /* Alias pour la compatibilité avec le code existant */
   --card:            #1A2E47;
   --accent:          #3B82F6;
   --accent-soft:     rgba(59, 130, 246, 0.15);
   --shadow-card:     0 4px 6px -1px rgb(0 0 0 / 0.2);
+
+  /* Logo header : Dorevia = gris métallique, Lynki = variante de blanc */
+  --logo-dorevia:    #8f9bab;
+  --logo-lynki:      #f1f5f9;
 
   /* Sémantique */
   --positive:        #22C55E;
@@ -39,9 +52,10 @@
   /* Classe A : contour structurel (bleu désaturé, pas accent vif = pas "sélectionné") */
   --tile-a-border-color: #2d5a8e;
   --tile-a-bg: #1c3350;
-  --tile-a-value-size: 1.625rem;
+  /* Taille homogène des montants sur toutes les tuiles (A/B/C) */
+  --tile-a-value-size: 1.125rem;
   --tile-b-value-size: 1.125rem;
-  --tile-c-value-size: 0.9375rem;
+  --tile-c-value-size: 1.125rem;
   --tile-a-padding: 1.5rem;
   --tile-b-padding: 1rem;
   --tile-c-padding: 0.75rem;

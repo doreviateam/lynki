@@ -6,6 +6,14 @@ import type { ArByPartnerDetail } from "@/app/api/dashboard-metrics/route";
 import type { SeriesPoint } from "@/app/types/aggregations";
 import type { CardId } from "@/app/types/linky-tiles";
 
+/** Réponse GET /api/stock-valuation (ZeDocs/web52 Option B) */
+export interface StockValuationSnapshot {
+  value: number;
+  currency: string;
+  as_of_date: string;
+  company_id: string;
+}
+
 interface WorkingCapitalCardWithPollingProps {
   period: { from: string; to: string };
   companyId: string | null;
@@ -13,6 +21,7 @@ interface WorkingCapitalCardWithPollingProps {
   onFocusRequest?: () => void;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function WorkingCapitalCardWithPolling({
@@ -22,10 +31,12 @@ export function WorkingCapitalCardWithPolling({
   onFocusRequest,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: WorkingCapitalCardWithPollingProps) {
   const [arData, setArData] = useState<ArByPartnerDetail | null>(null);
   const [apData, setApData] = useState<ArByPartnerDetail | null>(null);
   const [bfrSeries, setBfrSeries] = useState<SeriesPoint[]>([]);
+  const [stockValuation, setStockValuation] = useState<StockValuationSnapshot | null>(null);
   const [evolutionError, setEvolutionError] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -48,10 +59,14 @@ export function WorkingCapitalCardWithPolling({
         ...(companyId && { company_id: companyId }),
       });
 
-      const [arRes, apRes, bfrEvolutionRes] = await Promise.allSettled([
+      const stockParams = new URLSearchParams({ tenant: tenantId, ...(companyId && { company_id: companyId }) });
+      const [arRes, apRes, bfrEvolutionRes, stockRes] = await Promise.allSettled([
         fetch(`/api/ar-by-partner?${params}`, { cache: "no-store", headers: { Accept: "application/json" } }),
         fetch(`/api/ap-by-partner?${params}`, { cache: "no-store", headers: { Accept: "application/json" } }),
         fetch(`/api/bfr-evolution?${evolutionParams}`, { cache: "no-store", headers: { Accept: "application/json" } }),
+        companyId
+          ? fetch(`/api/stock-valuation?${stockParams}`, { cache: "no-store", headers: { Accept: "application/json" } })
+          : Promise.resolve({ ok: false, status: 400 } as Response),
       ]);
 
       if (arRes.status === "fulfilled" && arRes.value.ok) {
@@ -71,10 +86,17 @@ export function WorkingCapitalCardWithPolling({
         setBfrSeries([]);
         setEvolutionError(true);
       }
+      if (stockRes.status === "fulfilled" && stockRes.value.ok) {
+        const sv = await stockRes.value.json();
+        setStockValuation(sv);
+      } else {
+        setStockValuation(null);
+      }
     } catch {
       setArData(null);
       setApData(null);
       setBfrSeries([]);
+      setStockValuation(null);
       setEvolutionError(true);
     } finally {
       setLoading(false);
@@ -94,7 +116,9 @@ export function WorkingCapitalCardWithPolling({
       onFocusRequest={onFocusRequest}
       cardId={cardId}
       onNavigateToCard={onNavigateToCard}
+      onBackToCockpit={onBackToCockpit}
       bfrSeries={bfrSeries}
+      stockValuation={stockValuation}
       evolutionError={evolutionError}
       onEvolutionRetry={fetchData}
     />

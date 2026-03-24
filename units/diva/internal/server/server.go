@@ -73,6 +73,16 @@ func (s *Server) SetupRoutes() {
 		s.app.Get("/diva/insights", handlers.GetInsights(insightsStore))
 	}
 	if genStore, ok := s.analysisStore.(store.GenerateStore); ok {
-		s.app.Post("/diva/generate", handlers.Generate(genStore, s.mistral))
+		s.app.Post("/diva/generate", handlers.Generate(genStore, s.guard, s.mistral))
 	}
+	if actStore, ok := s.analysisStore.(store.ActivityStore); ok {
+		s.app.Post("/diva/activity", handlers.RecordActivity(actStore))
+		s.app.Get("/diva/activity", handlers.GetActivity(actStore))
+	}
+
+	// Sprint 12 T69 — insight comptable (template-first, Mistral local optionnel)
+	s.app.Post("/diva/accounting/insight", handlers.AccountingInsightHandler(s.mistral))
+
+	// Sprint 13 T75 — rapport structuré DOCX (template-first strict, zéro LLM)
+	s.app.Post("/diva/accounting/report", handlers.AccountingReportHandler(s.mistral))
 }

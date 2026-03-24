@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lynki Cockpit - Alerts &amp; Signals</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-fixed": "#0d1c2f",
+              "primary": "#000000",
+              "surface-variant": "#d3e4fe",
+              "on-primary-fixed": "#131b2e",
+              "on-tertiary-container": "#059669",
+              "on-background": "#0b1c30",
+              "secondary": "#515f74",
+              "tertiary-container": "#002114",
+              "surface-tint": "#565e74",
+              "inverse-surface": "#213145",
+              "tertiary-fixed": "#85f8c4",
+              "outline": "#76777d",
+              "surface": "#f8f9ff",
+              "on-secondary-container": "#57657b",
+              "inverse-on-surface": "#eaf1ff",
+              "surface-container": "#e5eeff",
+              "on-error-container": "#93000a",
+              "secondary-fixed": "#d5e3fd",
+              "tertiary-fixed-dim": "#68dba9",
+              "on-tertiary": "#ffffff",
+              "primary-fixed-dim": "#bec6e0",
+              "on-secondary-fixed-variant": "#3a485c",
+              "inverse-primary": "#bec6e0",
+              "surface-container-lowest": "#ffffff",
+              "on-surface": "#0b1c30",
+              "error-container": "#ffdad6",
+              "surface-container-highest": "#d3e4fe",
+              "outline-variant": "#c6c6cd",
+              "secondary-container": "#d5e3fd",
+              "on-error": "#ffffff",
+              "tertiary": "#000000",
+              "primary-fixed": "#dae2fd",
+              "secondary-fixed-dim": "#b9c7e0",
+              "surface-bright": "#f8f9ff",
+              "error": "#ba1a1a",
+              "background": "#f8f9ff",
+              "primary-container": "#131b2e",
+              "on-secondary": "#ffffff",
+              "on-primary-fixed-variant": "#3f465c",
+              "surface-container-high": "#dce9ff",
+              "on-tertiary-fixed-variant": "#005137",
+              "on-primary-container": "#7c839b",
+              "on-surface-variant": "#45464d",
+              "surface-dim": "#cbdbf5",
+              "on-tertiary-fixed": "#002114",
+              "surface-container-low": "#eff4ff",
+              "on-primary": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center px-4 h-16 w-full fixed top-0 z-50">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-secondary-container flex items-center justify-center">
+<img alt="CEO Max Profile" class="w-full h-full object-cover" data-alt="Professional portrait of a business executive in a high-end corporate setting with soft architectural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyKuV-cyvVE_EMhQQrMaEPVT7IRRbNecvyDElC3dMU4cp0Kvwyt8_43l5dYftTUK1JQ9H9ITufFZDsxgpSlfMCjcGJgeEUOkIj8NudviUGyJw0MZQpi8bYIZ1Fec-qUwPQSpDgAYyj54UpQ_YRwUYA5UWaYPqnf3jmMjPtm3-lH-oKWZdrvC-a2hm8XkZTFeYZeyS5JkDBw20O0Sw6Iwbr4Ip5IMu_OgH4zZMRbs37axGelizWn7zcwIOFiKCVw59r6pqagz4qXzhz"/>
+</div>
+<h1 class="text-xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">Lynki Cockpit</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-50" data-icon="sync_saved_locally">sync_saved_locally</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 mt-16 mb-20 px-4 py-6 max-w-4xl mx-auto w-full">
+<!-- Section Header -->
+<div class="mb-8 flex justify-between items-end">
+<div>
+<h2 class="text-2xl font-extrabold text-on-surface tracking-tight">Alerts &amp; Signals</h2>
+<p class="text-on-surface-variant text-sm mt-1">Surveillance en temps réel du flux opérationnel.</p>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg border border-outline-variant/30">
+<span class="material-symbols-outlined text-tertiary text-lg" data-icon="verified_user">verified_user</span>
+<span class="text-xs font-semibold text-on-surface-variant">Data Reliable (99.2%)</span>
+</div>
+</div>
+<!-- Priority Feed -->
+<div class="space-y-6">
+<!-- Category: URGENCE (Red/Ruby) -->
+<section>
+<div class="flex items-center gap-2 mb-4">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<h3 class="text-xs font-bold uppercase tracking-widest text-error">Urgence</h3>
+</div>
+<!-- Business Alert: Stock Rupture -->
+<div class="bg-surface-container-lowest border-l-4 border-error rounded-xl shadow-sm overflow-hidden mb-4">
+<div class="p-5">
+<div class="flex justify-between items-start mb-4">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-lg bg-error-container flex items-center justify-center">
+<span class="material-symbols-outlined text-error" data-icon="inventory_2">inventory_2</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Business Alert: Stock Rupture</h4>
+<p class="text-sm text-on-surface-variant mt-1">Ligne produit A-942 en rupture critique sur 4 entrepôts (Nord &amp; Est).</p>
+</div>
+</div>
+<span class="text-xs font-medium text-on-surface-variant bg-surface-container px-2 py-1 rounded">Il y a 12m</span>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-surface-container-low p-3 rounded-lg border border-outline-variant/10">
+<p class="text-[10px] uppercase font-bold text-on-surface-variant mb-1 tracking-wider">Perte estimée (24h)</p>
+<p class="text-lg font-extrabold text-error">- 14,200 €</p>
+</div>
+<div class="bg-surface-container-low p-3 rounded-lg border border-outline-variant/10">
+<p class="text-[10px] uppercase font-bold text-on-surface-variant mb-1 tracking-wider">Fiabilité Signal</p>
+<div class="flex items-center gap-1.5">
+<span class="text-lg font-extrabold text-tertiary">98%</span>
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="check_circle">check_circle</span>
+</div>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 bg-primary text-on-primary py-2.5 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="mail">mail</span>
+                                Notify Véréna
+                            </button>
+<button class="flex-1 border border-outline-variant text-on-surface py-2.5 rounded-lg font-bold text-sm hover:bg-surface-container transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="search">search</span>
+                                Investigate
+                            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Category: VIGILANCE (Amber) -->
+<section>
+<div class="flex items-center gap-2 mb-4">
+<span class="w-2 h-2 rounded-full bg-amber-500"></span>
+<h3 class="text-xs font-bold uppercase tracking-widest text-amber-600">Vigilance</h3>
+</div>
+<!-- Vigilance: DSO Increase -->
+<div class="bg-surface-container-lowest border-l-4 border-amber-500 rounded-xl shadow-sm overflow-hidden mb-4">
+<div class="p-5">
+<div class="flex justify-between items-start mb-4">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-amber-600" data-icon="payments">payments</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Vigilance: DSO Increase</h4>
+<p class="text-sm text-on-surface-variant mt-1">Délai moyen de paiement client en hausse de +4.2 jours sur le segment Mid-Market.</p>
+</div>
+</div>
+<span class="text-xs font-medium text-on-surface-variant bg-surface-container px-2 py-1 rounded">Hier</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-lg border border-outline-variant/10 mb-6">
+<div class="flex items-end justify-between">
+<div>
+<p class="text-[10px] uppercase font-bold text-on-surface-variant mb-1 tracking-wider">Indicateur DSO</p>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl font-black text-on-surface">48.5</span>
+<span class="text-amber-600 text-sm font-bold flex items-center">
+<span class="material-symbols-outlined" data-icon="trending_up">trending_up</span>
+                                            +9%
+                                        </span>
+</div>
+</div>
+<div class="text-right">
+<p class="text-[10px] uppercase font-bold text-on-surface-variant mb-1 tracking-wider">Source</p>
+<p class="text-xs font-semibold text-on-surface">ERP Finance Hub</p>
+</div>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 bg-primary text-on-primary py-2.5 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity">
+                                Assign to Finance
+                            </button>
+<button class="flex-1 border border-outline-variant text-on-surface py-2.5 rounded-lg font-bold text-sm hover:bg-surface-container transition-colors">
+                                View Report
+                            </button>
+</div>
+</div>
+</div>
+<!-- Data Anomaly: Margin Drift -->
+<div class="bg-surface-container-lowest border-l-4 border-amber-500 rounded-xl shadow-sm overflow-hidden mb-4">
+<div class="p-5">
+<div class="flex justify-between items-start mb-4">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-amber-600" data-icon="warning">warning</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Data Anomaly: Margin Drift</h4>
+<p class="text-sm text-on-surface-variant mt-1">Écart de marge brute identifié sur le canal E-commerce vs Budget.</p>
+</div>
+</div>
+</div>
+<div class="flex gap-3 mt-4">
+<button class="flex-1 bg-secondary text-on-primary py-2 rounded-lg font-bold text-xs hover:opacity-90 transition-opacity">
+                                Retry Connection
+                            </button>
+<button class="flex-1 border border-outline-variant text-on-surface py-2 rounded-lg font-bold text-xs hover:bg-surface-container transition-colors">
+                                Flag Incorrect
+                            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Category: SUIVI (Blue/Slate) -->
+<section>
+<div class="flex items-center gap-2 mb-4">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<h3 class="text-xs font-bold uppercase tracking-widest text-secondary">Suivi</h3>
+</div>
+<!-- Operational Follow-up -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-sm overflow-hidden">
+<div class="p-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="task_alt">task_alt</span>
+</div>
+<div>
+<h4 class="text-sm font-bold text-on-surface">Onboarding Logistique</h4>
+<p class="text-[11px] text-on-surface-variant">Étape 3/5 validée • Transporteur X</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center pt-2 pb-safe-area bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 h-16 shadow-[0_-1px_3px_0_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="text-[11px] font-medium font-sans">Pilotage</span>
+</a>
+<a class="flex flex-col items-center justify-center text-emerald-600 dark:text-emerald-400 font-semibold scale-95 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="notifications_active" style="font-variation-settings: 'FILL' 1;">notifications_active</span>
+<span class="text-[11px] font-medium font-sans">Alerts</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="insert_chart">insert_chart</span>
+<span class="text-[11px] font-medium font-sans">Synthèse</span>
+</a>
+</nav>
+</body></html>

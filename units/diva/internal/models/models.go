@@ -68,6 +68,9 @@ type Meta struct {
 
 type Flash struct {
 	Headline   string   `json:"headline"`
+	// Headlines contient les 3 formulations alternatives générées par Mistral.
+	// Le frontend cycle entre elles sur "Reformuler" sans rappel API.
+	Headlines  []string `json:"headlines,omitempty"`
 	WhatISee   []string `json:"what_i_see"`
 	ToCheck    []string `json:"to_check"`
 	Confidence string   `json:"confidence"`

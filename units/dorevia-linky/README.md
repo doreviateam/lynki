@@ -1,4 +1,4 @@
-# Dorevia Linky
+# Dorevia Lynki
 
 Interface de consultation d’indicateurs certifiés (ventes, encaissements, trésorerie). Lecture seule, alimentée par le **Dorevia Vault** via proxy serveur.
 

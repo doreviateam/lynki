@@ -10,6 +10,35 @@ import (
 	"github.com/doreviateam/diva/internal/models"
 )
 
+// IsActive vérifie si (tenant, companyID) a eu une activité récente (< thresholdSec secondes).
+// Retourne true si actif ou si la vérification échoue (fail-open : on génère quand même en cas d'erreur).
+func IsActive(divaURL, tenant string, companyID, thresholdSec int) bool {
+	url := fmt.Sprintf("%s/diva/activity?tenant=%s&company_id=%d", divaURL, tenant, companyID)
+	client := &http.Client{Timeout: 3 * time.Second}
+	resp, err := client.Get(url)
+	if err != nil {
+		return true // fail-open
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return false // jamais consulté
+	}
+	if resp.StatusCode != http.StatusOK {
+		return true // fail-open
+	}
+	var body struct {
+		LastSeenAt *string `json:"last_seen_at"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil || body.LastSeenAt == nil {
+		return true // fail-open
+	}
+	t, err := time.Parse(time.RFC3339, *body.LastSeenAt)
+	if err != nil {
+		return true // fail-open
+	}
+	return time.Since(t) <= time.Duration(thresholdSec)*time.Second
+}
+
 // GenerateResult holds the parsed response from POST /diva/generate.
 type GenerateResult struct {
 	State     string `json:"state"`

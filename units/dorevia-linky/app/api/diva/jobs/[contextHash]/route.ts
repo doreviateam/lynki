@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-const DIVA_URL = process.env.DIVA_URL || "http://diva:8010";
+const VAULT_URL = process.env.VAULT_URL || "http://localhost:8080";
 const TIMEOUT_MS = 5000;
 
 export const revalidate = 0;
@@ -32,8 +32,8 @@ export async function GET(
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    const base = DIVA_URL.replace(/\/$/, "");
-    const res = await fetch(`${base}/diva/jobs/${contextHash}`, {
+    const base = VAULT_URL.replace(/\/$/, "");
+    const res = await fetch(`${base}/ui/diva/jobs/${contextHash}`, {
       method: "GET",
       headers: { Accept: "application/json" },
       signal: controller.signal,

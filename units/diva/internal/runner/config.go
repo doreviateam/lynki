@@ -13,14 +13,17 @@ type TenantCompany struct {
 }
 
 type Config struct {
-	Enabled       bool
-	Mode          string // loop | once
-	IntervalSec   int
-	Concurrency   int
-	TenantConfig  []TenantCompany // ex: core:0;sarl-la-platine:1,2
-	LinkyURL      string
-	DivaURL       string
-	Periods       []string // current_month, ytd
+	Enabled          bool
+	Mode             string // loop | once
+	IntervalSec      int    // intervalle fixe (legacy — remplacé par Min/Max si Min > 0)
+	MinIntervalSec   int    // borne basse intervalle aléatoire (défaut: 60)
+	MaxIntervalSec   int    // borne haute intervalle aléatoire (défaut: 300)
+	IdleThresholdSec int    // skip Mistral si pas d'activité récente (défaut: 1800 = 30 min, 0 = désactivé)
+	Concurrency      int
+	TenantConfig     []TenantCompany // ex: core:0;sarl-la-platine:1,2
+	LinkyURL         string
+	DivaURL          string
+	Periods          []string // current_month, ytd
 }
 
 func LoadConfig() *Config {
@@ -33,6 +36,18 @@ func LoadConfig() *Config {
 	if s := os.Getenv("RUNNER_INTERVAL_SECONDS"); s != "" {
 		if n, err := strconv.Atoi(s); err == nil && n > 0 {
 			intervalSec = n
+		}
+	}
+	minIntervalSec := 60
+	if s := os.Getenv("RUNNER_MIN_INTERVAL_SECONDS"); s != "" {
+		if n, err := strconv.Atoi(s); err == nil && n > 0 {
+			minIntervalSec = n
+		}
+	}
+	maxIntervalSec := 300
+	if s := os.Getenv("RUNNER_MAX_INTERVAL_SECONDS"); s != "" {
+		if n, err := strconv.Atoi(s); err == nil && n > minIntervalSec {
+			maxIntervalSec = n
 		}
 	}
 	concurrency := 1
@@ -76,6 +91,13 @@ func LoadConfig() *Config {
 		}
 	}
 
+	idleThresholdSec := 1800 // 30 min par défaut
+	if s := os.Getenv("RUNNER_IDLE_THRESHOLD_SECONDS"); s != "" {
+		if n, err := strconv.Atoi(s); err == nil && n >= 0 {
+			idleThresholdSec = n
+		}
+	}
+
 	linkyURL := os.Getenv("LINKY_URL")
 	if linkyURL == "" {
 		linkyURL = "http://linky:3000"
@@ -94,14 +116,17 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		Enabled:      enabled,
-		Mode:         mode,
-		IntervalSec:  intervalSec,
-		Concurrency:  concurrency,
-		TenantConfig: tenantConfig,
-		LinkyURL:     strings.TrimSuffix(linkyURL, "/"),
-		DivaURL:      strings.TrimSuffix(divaURL, "/"),
-		Periods:      periods,
+		Enabled:          enabled,
+		Mode:             mode,
+		IntervalSec:      intervalSec,
+		MinIntervalSec:   minIntervalSec,
+		MaxIntervalSec:   maxIntervalSec,
+		IdleThresholdSec: idleThresholdSec,
+		Concurrency:      concurrency,
+		TenantConfig:     tenantConfig,
+		LinkyURL:         strings.TrimSuffix(linkyURL, "/"),
+		DivaURL:          strings.TrimSuffix(divaURL, "/"),
+		Periods:          periods,
 	}
 }
 

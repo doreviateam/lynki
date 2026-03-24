@@ -13,6 +13,7 @@ interface EncoursCardWithPollingProps {
   onFocusRequest?: () => void;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function EncoursCardWithPolling({
@@ -22,6 +23,7 @@ export function EncoursCardWithPolling({
   onFocusRequest,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: EncoursCardWithPollingProps) {
   const [arData, setArData] = useState<ArByPartnerDetail | null>(null);
   const [arSeries, setArSeries] = useState<SeriesPoint[]>([]);
@@ -89,6 +91,7 @@ export function EncoursCardWithPolling({
       onFocusRequest={onFocusRequest}
       cardId={cardId}
       onNavigateToCard={onNavigateToCard}
+      onBackToCockpit={onBackToCockpit}
       arSeries={arSeries}
       evolutionError={evolutionError}
       onEvolutionRetry={fetchData}

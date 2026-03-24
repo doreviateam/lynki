@@ -21,7 +21,7 @@ services:
       retries: 5
 
   vault:
-    image: dorevia/vault:cash-bank-method-2026-02-28
+    image: dorevia/vault:idle-guard-2026-03-17
     container_name: vault-sarl-la-platine
     restart: unless-stopped
     networks:

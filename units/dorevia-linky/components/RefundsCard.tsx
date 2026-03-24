@@ -32,6 +32,7 @@ interface RefundsCardProps {
   footer?: React.ReactNode;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function RefundsCard({
@@ -50,6 +51,7 @@ export function RefundsCard({
   footer,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: RefundsCardProps) {
   const error = errorClient || errorSupplier;
 
@@ -65,7 +67,7 @@ export function RefundsCard({
     return (
       <section className={INSTRUMENT_CARD_BASE}>
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader icon={iconNode} title="REMBOURSEMENTS" kpiValue={<div className="skeleton h-6 w-28" />} />
         <div className="space-y-3">
@@ -86,7 +88,7 @@ export function RefundsCard({
     return (
       <section className={`${INSTRUMENT_CARD_BASE} bg-[var(--negative-soft)]`}>
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader icon={iconNode} title="REMBOURSEMENTS" />
         <p className="text-[var(--negative)]">{error}</p>
@@ -102,7 +104,7 @@ export function RefundsCard({
   return (
     <section className={INSTRUMENT_CARD_BASE}>
       {cardId && onNavigateToCard && (
-        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader
         icon={iconNode}

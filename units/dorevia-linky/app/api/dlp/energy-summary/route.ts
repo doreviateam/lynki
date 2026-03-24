@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const DLP_URL = process.env.DLP_URL || "http://dlp:8020";
+const VAULT_URL = process.env.VAULT_URL || "http://localhost:8080";
 const DEFAULT_TENANT = process.env.TENANT_ID || "core";
 const TIMEOUT_MS = 10000;
 
@@ -8,7 +8,7 @@ export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/dlp/energy-summary — proxy vers service DLP (SPEC_DLP_v0.3 §4).
+ * GET /api/dlp/energy-summary — proxy vers Vault /ui/dlp/energy-summary (ADR-001, ZeDocs/web51).
  * Paramètres : tenant, period_days (30/60/90), company_id (optionnel)
  */
 export async function GET(request: NextRequest) {
@@ -20,13 +20,14 @@ export async function GET(request: NextRequest) {
   const qs = new URLSearchParams({ tenant, period_days: periodDays });
   if (companyId) qs.set("company_id", companyId);
 
-  const url = `${DLP_URL.replace(/\/$/, "")}/api/v1/dlp/energy-summary?${qs}`;
+  const base = VAULT_URL.replace(/\/$/, "");
+  const url = `${base}/ui/dlp/energy-summary?${qs}`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
     const res = await fetch(url, {
-      headers: { Accept: "application/json" },
+      headers: { Accept: "application/json", "X-Tenant": tenant },
       cache: "no-store",
       signal: controller.signal,
     });

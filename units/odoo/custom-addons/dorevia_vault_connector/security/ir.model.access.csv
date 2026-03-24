@@ -4,3 +4,5 @@ access_bank_reconciliation_backfill,bank.reconciliation.backfill,dorevia_vault_c
 access_dorevia_vault_metric,dorevia.vault.metric,model_dorevia_vault_metric,base.group_user,1,0,0,0
 access_dorevia_vault_metric_manager,dorevia.vault.metric.manager,model_dorevia_vault_metric,base.group_system,1,1,1,1
 access_dorevia_dvig_service,dorevia.dvig.service,model_dorevia_dvig_service,base.group_system,1,1,1,1
+access_dorevia_stock_valuation_push,dorevia.stock.valuation.push,model_dorevia_stock_valuation_push,base.group_system,1,1,1,1
+access_dorevia_accounting_periods_push,dorevia.accounting.periods.push,model_dorevia_accounting_periods_push,base.group_system,1,1,1,1

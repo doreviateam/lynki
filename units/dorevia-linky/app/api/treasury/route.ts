@@ -73,6 +73,13 @@ interface TreasuryV4Response {
   unreconciled_entries?: number;
 }
 
+/** MINI_SPEC_COUVERTURE_STRUCTURELLE_PAIE — charges structurelles (base explicative), extensible */
+export interface StructuralChargesBreakdown {
+  payroll?: number;
+  rent?: number;
+  subscriptions?: number;
+}
+
 const stubTreasury = (): Record<string, unknown> => ({
   total: 0,
   reconciled: 0,
@@ -87,6 +94,10 @@ const stubTreasury = (): Record<string, unknown> => ({
   couverture_salariale_mois: null,
   completeness_check: null as PaymentsCompletenessCheck | null,
   reconciliation_metrics: null,
+  structural_coverage_available: false,
+  structural_charges_amount: null,
+  structural_charges_breakdown: {},
+  structural_coverage_ratio: null,
 });
 
 /**
@@ -115,14 +126,19 @@ export async function GET(request: NextRequest) {
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    // Fetch treasury + payments-completeness en parallèle (SPEC Carte Paiements v1.1)
-    const [treasuryRes, completenessRes] = await Promise.all([
+    // Fetch treasury + payments-completeness + payroll en parallèle (SPEC Carte Paiements v1.1 ; MINI_SPEC couverture structurelle)
+    const [treasuryRes, completenessRes, payrollRes] = await Promise.all([
       fetch(`${vaultBase}/ui/aggregations/treasury?${qs}`, {
         headers: { Accept: "application/json" },
         cache: "no-store",
         signal: controller.signal,
       }),
       fetch(`${vaultBase}/ui/aggregations/payments-completeness?${qsCompleteness}`, {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+        signal: controller.signal,
+      }),
+      fetch(`${vaultBase}/ui/aggregations/payroll?${qs}`, {
         headers: { Accept: "application/json" },
         cache: "no-store",
         signal: controller.signal,
@@ -220,6 +236,30 @@ export async function GET(request: NextRequest) {
       base.couverture_salariale_mois = rawMois < 0 ? 0 : rawMois;
     } else {
       base.couverture_salariale_mois = null;
+    }
+
+    // MINI_SPEC_COUVERTURE_STRUCTURELLE_PAIE v1.1 — charges structurelles + ratio % (trésorerie validée = dénominateur)
+    base.structural_coverage_ratio = null;
+    if (payrollRes.ok) {
+      try {
+        const payroll = await payrollRes.json() as { payroll_source?: string; total_charges?: number };
+        const source = payroll.payroll_source;
+        const totalCharges = typeof payroll.total_charges === "number" && !Number.isNaN(payroll.total_charges) ? payroll.total_charges : 0;
+        const hasStructuralPayroll = (source === "od" || source === "payslip") && totalCharges > 0;
+        base.structural_coverage_available = hasStructuralPayroll;
+        base.structural_charges_amount = hasStructuralPayroll ? totalCharges : null;
+        base.structural_charges_breakdown = hasStructuralPayroll ? { payroll: totalCharges } : {};
+        // structural_coverage_ratio = min(100, charges / trésorerie validée × 100) — MINI_SPEC v1.1
+        const validatedBalance = raw.position?.validated_balance;
+        const refAmount = typeof validatedBalance === "number" && !Number.isNaN(validatedBalance) && validatedBalance > 0 ? validatedBalance : null;
+        if (totalCharges === 0) {
+          base.structural_coverage_ratio = 0;
+        } else if (totalCharges > 0 && refAmount != null) {
+          base.structural_coverage_ratio = Math.min(100, (totalCharges / refAmount) * 100);
+        }
+      } catch {
+        // Ne pas casser la réponse treasury si le JSON payroll est invalide
+      }
     }
 
     return NextResponse.json(base);

@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"log/slog"
+	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -31,22 +32,39 @@ func (r *Runner) Run(ctx context.Context) {
 		return
 	}
 
-	ticker := time.NewTicker(time.Duration(r.cfg.IntervalSec) * time.Second)
-	defer ticker.Stop()
-
 	for {
 		func() {
 			defer func() {
-				if r := recover(); r != nil {
-					slog.Warn("event=diva_runner_tick", "status", "panic", "err", r)
+				if rec := recover(); rec != nil {
+					slog.Warn("event=diva_runner_tick", "status", "panic", "err", rec)
 				}
 			}()
 			r.tick(ctx)
 		}()
+
+		// Intervalle aléatoire entre MinIntervalSec et MaxIntervalSec (bornes inclusives).
+		// Évite la synchronisation de tous les tenants sur le même instant.
+		minSec := r.cfg.MinIntervalSec
+		maxSec := r.cfg.MaxIntervalSec
+		if minSec <= 0 {
+			minSec = r.cfg.IntervalSec
+		}
+		if maxSec <= minSec {
+			maxSec = minSec
+		}
+		rangeSec := maxSec - minSec
+		var wait time.Duration
+		if rangeSec > 0 {
+			wait = time.Duration(minSec+rand.Intn(rangeSec+1)) * time.Second
+		} else {
+			wait = time.Duration(minSec) * time.Second
+		}
+		slog.Info("event=diva_runner_sleep", "next_in_s", int(wait.Seconds()), "min_s", minSec, "max_s", maxSec)
+
 		select {
 		case <-ctx.Done():
 			return
-		case <-ticker.C:
+		case <-time.After(wait):
 		}
 	}
 }
@@ -89,6 +107,10 @@ func (r *Runner) tick(ctx context.Context) {
 			slog.Warn("event=diva_runner_discovery", "tenant", tenant, "target", "companies", "status", "failed", "err", err)
 			companies = r.staticCompanies(tenant)
 			slog.Info("event=diva_runner_discovery", "tenant", tenant, "target", "companies", "status", "fallback_static", "companies", companies)
+		} else if len(companies) == 0 {
+			// Découverte réussie mais liste vide → fallback config statique
+			companies = r.staticCompanies(tenant)
+			slog.Info("event=diva_runner_discovery", "tenant", tenant, "target", "companies", "status", "fallback_static_empty", "companies", companies)
 		} else {
 			slog.Info("event=diva_runner_discovery", "tenant", tenant, "target", "companies", "status", "ok", "companies", companies)
 		}
@@ -122,6 +144,14 @@ func (r *Runner) tick(ctx context.Context) {
 							slog.Warn("event=diva_runner_context", "tenant", t, "company_id", cid, "period", p, "status", "panic", "err", r)
 						}
 					}()
+
+				// Garde d'inactivité : skip Mistral si personne n'a consulté récemment.
+				if r.cfg.IdleThresholdSec > 0 {
+					if !IsActive(r.cfg.DivaURL, t, cid, r.cfg.IdleThresholdSec) {
+						slog.Info("event=diva_runner_idle_skip", "tenant", t, "company_id", cid, "period", p, "reason", "no_recent_activity", "threshold_s", r.cfg.IdleThresholdSec)
+						return
+					}
+				}
 
 				metrics, err := FetchMetricsFromLinkyFull(r.cfg.LinkyURL, t, ds, de, cid)
 				if err != nil {

@@ -31,6 +31,7 @@ interface TaxesCardProps {
   footer?: React.ReactNode;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function TaxesCard({
@@ -49,6 +50,7 @@ export function TaxesCard({
   footer,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: TaxesCardProps) {
   const error = errorSales || errorPurchases;
 
@@ -64,7 +66,7 @@ export function TaxesCard({
     return (
       <section className={INSTRUMENT_CARD_BASE}>
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader icon={iconNode} title="TAXES" kpiValue={<div className="skeleton h-6 w-28" />} />
         <div className="space-y-3">
@@ -85,7 +87,7 @@ export function TaxesCard({
     return (
       <section className={`${INSTRUMENT_CARD_BASE} bg-[var(--negative-soft)]`}>
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader icon={iconNode} title="TAXES" />
         <p className="text-[var(--negative)]">{error}</p>
@@ -103,7 +105,7 @@ export function TaxesCard({
   return (
     <section className={INSTRUMENT_CARD_BASE}>
       {cardId && onNavigateToCard && (
-        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader
         icon={iconNode}

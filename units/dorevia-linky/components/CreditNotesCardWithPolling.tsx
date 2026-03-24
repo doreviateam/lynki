@@ -31,6 +31,7 @@ interface CreditNotesCardWithPollingProps {
   footer?: React.ReactNode;
   cardId?: import("@/app/types/linky-tiles").CardId;
   onNavigateToCard?: (cardId: import("@/app/types/linky-tiles").CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function CreditNotesCardWithPolling({
@@ -45,6 +46,7 @@ export function CreditNotesCardWithPolling({
   footer,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: CreditNotesCardWithPollingProps) {
   const [clientData, setClientData] = useState<AdjustmentsAggregation | null>(initialClientData);
   const [supplierData, setSupplierData] = useState<AdjustmentsAggregation | null>(initialSupplierData);
@@ -147,6 +149,7 @@ export function CreditNotesCardWithPolling({
       footer={footer}
       cardId={cardId}
       onNavigateToCard={onNavigateToCard}
+      onBackToCockpit={onBackToCockpit}
     />
   );
 }

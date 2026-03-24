@@ -500,6 +500,7 @@ interface BusinessCardProps {
   footer?: React.ReactNode;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function BusinessCard({
@@ -522,6 +523,7 @@ export function BusinessCard({
   footer,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: BusinessCardProps) {
   const error = errorSales || errorPurchases;
   const arTotals = arByPartner?.totals;
@@ -545,7 +547,7 @@ export function BusinessCard({
     return (
       <section className={INSTRUMENT_CARD_BASE}>
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader
           icon={iconNode}
@@ -570,7 +572,7 @@ export function BusinessCard({
     return (
       <section className={`${INSTRUMENT_CARD_BASE} bg-[var(--negative-soft)]`}>
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader icon={iconNode} title="BUSINESS" />
         <p className="text-[var(--negative)]">{error}</p>
@@ -617,7 +619,7 @@ export function BusinessCard({
   return (
     <section className={`${INSTRUMENT_CARD_BASE} ${net >= 0 ? "border-[var(--positive)]" : "border-[var(--negative)]"}`}>
       {cardId && onNavigateToCard && (
-        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader
         icon={iconNode}

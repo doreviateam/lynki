@@ -1,0 +1,44 @@
+# Design System Lynki — Spécifications Handoff (V1)
+
+Ce document fige les règles visuelles et fonctionnelles de Lynki pour l'intégration et le développement. Il complète les écrans de référence **Canon V5**.
+
+## 1. Principes de Navigation & Personas
+Lynki adapte sa densité et sa hiérarchie selon l'utilisateur :
+*   **Max (CEO) — Mobile-First :** Lecture rapide, signaux majeurs, tension décisionnelle. **"Voir vite"**.
+*   **Véréna (RAF) — Desktop Pilotage :** Densité utile, lecture simultanée, cockpit opérationnel. **"Piloter"**.
+*   **Esther (CDG) — Desktop Synthèse :** Structure comptable, justification, restitution. **"Expliquer"**.
+
+## 2. Hiérarchie du Pilotage (Les 12 Tuiles)
+La grille de pilotage doit respecter l'ordre et la priorité suivants :
+1.  **Tuiles Maîtresses (Hero) :** Trésorerie, Business, Flux Net. (Format large, présence de graphes/sparklines).
+2.  **Niveau B :** Paiements, BFR, Encours, Taxes, EBE. (Format standard).
+3.  **Niveau C :** Notes de crédit, Remboursements, Points de vente, Z de caisse. (Format compact).
+
+## 3. Grammaire de la Confiance (États de Donnée)
+La fiabilité de la donnée est un composant d'interface obligatoire. Chaque indicateur doit pouvoir porter un état :
+*   **Fiable / Confirmée :** Vert (#10B981). Confiance totale.
+*   **Partielle :** Ambre (#F59E0B). Lecture prudente.
+*   **Estimée / Proxy :** Style visuel adouci (italique ou opacité), label "ESTIMÉE".
+*   **À rapprocher :** Bleu (#3B82F6). En attente de réconciliation.
+*   **Indisponible :** État "Empty" avec bouton d'action.
+*   **Anomalie :** Rouge (#EF4444). Nécessite une investigation immédiate.
+
+## 4. Doctrine des Graphes
+Les graphes ne sont jamais décoratifs. Ils servent la lecture métier :
+*   **Pilotage (Mobile/Desktop) :** Sparklines (tendances), Barres duales (Entrées/Sorties). Focus sur le signal.
+*   **Synthèse :** Graphes de répartition (Donut), Waterfall (Écarts), Aging (Balances âgées). Focus sur la structure.
+*   **Détail :** Courbes d'évolution lissées, projections en pointillés. Focus sur l'analyse.
+
+## 5. Composants UI Canoniques
+*   **Badges de Statut :** Forme pillule, texte majuscule, couleur sémantique.
+*   **Tableaux :** Alignement à droite pour les montants financiers. Utilisation de polices à chasse fixe (Tabular Figures) pour les chiffres.
+*   **Cartes (Tuiles) :** Bordures discrètes, ombres légères, focus sur la donnée.
+*   **Insights :** Blocs narratifs avec icône d'ampoule, fond coloré très léger pour guider la lecture.
+
+## 6. Règles de Responsive
+*   **Compactage :** Sur mobile, les tuiles passent d'une grille à une liste verticale.
+*   **Hiérarchie :** Seules les tuiles maîtresses conservent leurs graphes sur le premier niveau de lecture mobile.
+*   **Navigation :** Menu latéral sur Desktop, Tab Bar en bas sur Mobile.
+
+---
+*Ce document constitue la référence "Dev-Ready" pour Lynki V1.*

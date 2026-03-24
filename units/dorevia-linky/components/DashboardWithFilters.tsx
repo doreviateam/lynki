@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { ChartExpandedProvider } from "@/app/context/ChartExpandedContext";
+import { ChromeAdaptiveProvider, useChromeAdaptive } from "@/app/context/ChromeAdaptiveContext";
+import { TenantProvider, useTenantContext } from "@/app/context/TenantContext";
 import { ReportHeader, type ViewMode } from "@/components/ReportHeader";
 import { BusinessCardWithPolling } from "@/components/BusinessCardWithPolling";
 import { FluxCashCardWithPolling } from "@/components/FluxCashCardWithPolling";
@@ -13,13 +16,19 @@ import { TaxesCardWithPolling } from "@/components/TaxesCardWithPolling";
 import { CreditNotesCardWithPolling } from "@/components/CreditNotesCardWithPolling";
 import { RefundsCardWithPolling } from "@/components/RefundsCardWithPolling";
 import { LinkyFooter } from "@/components/LinkyFooter";
-import { IconGrid, type CardId } from "@/components/IconGrid";
+import { TenantErrorView } from "@/components/TenantErrorView";
+import { TenantLoadingGate } from "@/components/TenantLoadingGate";
+import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
+import { TenantChoiceView } from "@/components/TenantChoiceView";
+import { ChromeTriggerBar } from "@/components/ChromeTriggerBar";
+import type { CardId } from "@/app/types/linky-tiles";
+import { CockpitMobileView } from "@/components/CockpitMobileView";
+import { CockpitDesktopView } from "@/components/CockpitDesktopView";
 import { WorkingCapitalCardWithPolling } from "@/components/WorkingCapitalCardWithPolling";
 import { EncoursCardWithPolling } from "@/components/EncoursCardWithPolling";
 import { EbeCardWithPolling } from "@/components/EbeCardWithPolling";
-import { DivaFlashBlock } from "@/components/DivaFlashBlock";
-import { DecisionsBlock } from "@/components/DecisionsBlock";
 import { SyncInProgress } from "@/components/SyncInProgress";
+import { AccountingSummaryView } from "@/components/AccountingSummaryView";
 import { getDefaultPeriod, type PeriodRange } from "@/app/lib/period-utils";
 import type { DashboardMetricsResponse } from "@/app/api/dashboard-metrics/route";
 import { recordUxSample } from "@/app/lib/ux-metrics";
@@ -38,11 +47,16 @@ const TREASURY_UNBLOCK_AFTER_MS = 5000; // Après 5 s d'incomplétude : libérer
 const METRICS_CACHE_KEY = "linky_dashboard_metrics";
 const METRICS_CACHE_TTL_MS = Number(process.env.NEXT_PUBLIC_LINKY_METRICS_CACHE_TTL_MS ?? "0"); // 0 = cache désactivé par défaut
 
+/** Host unique lab Linky : tenant par query ?tenant= ; sans param = écran de choix */
+const LAB_LINKY_HOST = "lab.linky.doreviateam.com";
+
 function deriveTenantFromHost(): string {
   if (typeof window === "undefined") return DEFAULT_TENANT;
-  const host = window.location.hostname; // ex: ui.lab.o19.doreviateam.com
+  const host = window.location.hostname;
+  // lab.linky.doreviateam.com : pas de tenant dans l’URL, uniquement ?tenant= ou écran de choix
+  if (host === LAB_LINKY_HOST) return DEFAULT_TENANT;
   const parts = host.split(".");
-  // Pattern attendu: ui.<env>.<tenant>.doreviateam.com
+  // Rétrocompatibilité : ui.lab.<tenant>.doreviateam.com
   if (parts.length >= 5 && parts[0] === "ui") {
     const tenant = parts[2];
     if (tenant) return tenant;
@@ -123,8 +137,74 @@ interface CompanyItem {
   display_name?: string;
 }
 
-export function DashboardWithFilters() {
-  const [tenantId, setTenantId] = useState<string>(() => deriveTenantFromHost());
+// ─── Spec navigation §2 : valeurs autorisées pour ?view= ─────────────────────
+export type AppView = "pilotage" | "synthese";
+
+function parseAppView(raw: string | null): AppView {
+  return raw === "synthese" ? "synthese" : "pilotage";
+}
+
+/** Contenu du cockpit ; consomme ChromeAdaptiveContext (doit être rendu dans ChromeAdaptiveProvider). */
+function DashboardWithFiltersContent({
+  initialShowTenantChoice = false,
+  initialAppView = "pilotage",
+}: {
+  initialShowTenantChoice?: boolean;
+  initialAppView?: AppView;
+}) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const tenantFromUrl = searchParams.get("tenant");
+  const [tenantId, setTenantId] = useState<string>(DEFAULT_TENANT);
+  const [showTenantChoice, setShowTenantChoice] = useState(!!initialShowTenantChoice);
+  // Après hydratation : déduire le tenant depuis l’hôte (ui.lab.<tenant>.doreviateam.com) ou /api/tenant (conteneur)
+  useEffect(() => {
+    const host = typeof window !== "undefined" ? window.location.hostname : "";
+    if (host === LAB_LINKY_HOST && !tenantFromUrl) {
+      setShowTenantChoice(true);
+      return;
+    }
+    setShowTenantChoice(false);
+    const fromHost = deriveTenantFromHost();
+    if (fromHost !== DEFAULT_TENANT) {
+      setTenantId(fromHost);
+      return;
+    }
+    fetch("/api/tenant", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d: { tenant_id?: string }) => setTenantId(d?.tenant_id || DEFAULT_TENANT))
+      .catch(() => {});
+  }, [tenantFromUrl]);
+  const requestedTenant = tenantFromUrl ?? tenantId;
+  /** Scope des données : URL (tenant) prime pour que le switch recharge le bon tenant. */
+  const scopeTenantId = requestedTenant ?? tenantId;
+  const onSetTenantNavigate = useCallback(
+    (id: string) => {
+      const next = new URLSearchParams(searchParams.toString());
+      next.set("tenant", id);
+      router.push(`${pathname}?${next.toString()}`);
+    },
+    [router, pathname, searchParams]
+  );
+  // ── Navigation Pilotage / Synthèse (SPEC_UX_NAVIGATION_LYNKI §2–§4) ──────
+  // Source de vérité : URL ?view=pilotage|synthese  — fallback "pilotage"
+  const [appView, setAppViewState] = useState<AppView>(() => parseAppView(searchParams.get("view")) ?? initialAppView);
+
+  // Synchroniser avec l'URL dès hydratation et à chaque changement de searchParams
+  useEffect(() => {
+    setAppViewState(parseAppView(searchParams.get("view")));
+  }, [searchParams]);
+
+  const setAppView = useCallback(
+    (view: AppView) => {
+      const next = new URLSearchParams(searchParams.toString());
+      next.set("view", view);
+      router.push(`${pathname}?${next.toString()}`);
+    },
+    [router, pathname, searchParams]
+  );
+
   const [primarySource, setPrimarySource] = useState<"erp" | "vault">("vault");
   const [companies, setCompanies] = useState<CompanyItem[]>([]);
   const [companiesLoading, setCompaniesLoading] = useState(true);
@@ -142,6 +222,22 @@ export function DashboardWithFilters() {
   const [userBypassIncomplete, setUserBypassIncomplete] = useState(false);
   const prevScopeRef = useRef("");
 
+  const chromeAdaptive = useChromeAdaptive();
+  const chromeVisible = chromeAdaptive?.isChromeVisible ?? true;
+  const chromeState = chromeAdaptive?.chromeState ?? "expanded";
+  const interactionMode = chromeAdaptive?.interactionMode ?? "tablet";
+  const revealChrome = chromeAdaptive?.revealChrome ?? (() => {});
+
+  const onResolvedTenantChange = useCallback(
+    (_tenantId: string, config: import("@/app/lib/tenant-types").TenantConfigResponse) => {
+      setSelectedCompanyId(null);
+      setPeriod(getDefaultPeriod());
+      chromeAdaptive?.revealChrome?.();
+      chromeAdaptive?.setChromePinned?.(config?.chrome?.behavior?.defaultChromePinned ?? false);
+    },
+    [chromeAdaptive]
+  );
+
   useEffect(() => {
     fetch("/api/tenant")
       .then((r) => r.json())
@@ -155,7 +251,7 @@ export function DashboardWithFilters() {
   useEffect(() => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), COMPANIES_TIMEOUT_MS);
-    fetch(`/api/companies?tenant=${encodeURIComponent(tenantId)}`, {
+    fetch(`/api/companies?tenant=${encodeURIComponent(scopeTenantId)}`, {
       cache: "no-store",
       signal: controller.signal,
     })
@@ -181,10 +277,10 @@ export function DashboardWithFilters() {
       clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [tenantId]);
+  }, [scopeTenantId]);
 
   useEffect(() => {
-    const params = new URLSearchParams({ tenant: tenantId });
+    const params = new URLSearchParams({ tenant: scopeTenantId });
     if (selectedCompanyId) params.set("company_id", selectedCompanyId);
     fetch(`/api/years-with-data?${params}`, { cache: "no-store" })
       .then((r) => r.json())
@@ -196,7 +292,7 @@ export function DashboardWithFilters() {
         setAvailableYears(null);
         setMonthsWithDataByYear({});
       });
-  }, [tenantId, selectedCompanyId]);
+  }, [scopeTenantId, selectedCompanyId]);
 
   // Fetch dashboard-metrics : pour IconGrid/Diva quand vue "all", et sealed_count pour le badge (toujours)
   const showIconGrid = viewMode === "all" && !focusedCardId;
@@ -204,7 +300,7 @@ export function DashboardWithFilters() {
     FORCED_COMPANY_ID ??
     selectedCompanyId ??
     (companies.length > 0 && companies.some((c) => c.documents_count > 0) ? companies[0].company_id : null);
-  const scopeKey = `${tenantId}|${effectiveCompanyId ?? ""}|${period.from}|${period.to}`;
+  const scopeKey = `${scopeTenantId}|${effectiveCompanyId ?? ""}|${period.from}|${period.to}`;
   const fetchMetricsRef = useRef<() => void>(() => {});
   useEffect(() => {
     if (companiesLoading) return;
@@ -222,7 +318,7 @@ export function DashboardWithFilters() {
     }
     prevScopeRef.current = scopeKey;
 
-    const cached = getCachedMetrics(tenantId, effectiveCompanyId, period);
+    const cached = getCachedMetrics(scopeTenantId, effectiveCompanyId, period);
     if (cached) {
       setDashboardMetrics(cached);
       setMetricsLoading(false);
@@ -235,7 +331,7 @@ export function DashboardWithFilters() {
     }
     const fetchMetrics = () => {
       const params = new URLSearchParams({
-        tenant: tenantId,
+        tenant: scopeTenantId,
         date_debut: period.from,
         date_fin: period.to,
         ...(effectiveCompanyId && { company_id: effectiveCompanyId }),
@@ -251,7 +347,7 @@ export function DashboardWithFilters() {
         .then((raw) => {
           // UX metrics : latence mesurée dès la réponse reçue
           recordUxSample({
-            tenant: tenantId,
+            tenant: scopeTenantId,
             company: effectiveCompanyId ?? "",
             periodFrom: period.from,
             periodTo: period.to,
@@ -266,7 +362,7 @@ export function DashboardWithFilters() {
           if (!cancelled && d && typeof d === "object" && typeof d.treasury === "object") {
             setAttemptCount((c) => c + 1);
             setDashboardMetrics(d);
-            setCachedMetrics(tenantId, effectiveCompanyId, period, d);
+            setCachedMetrics(scopeTenantId, effectiveCompanyId, period, d);
             setMetricsLoading(false);
             setMetricsError(false);
             if (ENABLE_LIVE_POLLING && !USE_METRIC_ENGINE && d.sealed_count_complete === false && retryCountRef.count < 1) {
@@ -295,7 +391,7 @@ export function DashboardWithFilters() {
       if (pollId) clearInterval(pollId);
       if (retryTimeoutRef.id) clearTimeout(retryTimeoutRef.id);
     };
-  }, [tenantId, selectedCompanyId, effectiveCompanyId, period.from, period.to, showIconGrid, companiesLoading, companies]);
+  }, [scopeTenantId, selectedCompanyId, effectiveCompanyId, period.from, period.to, showIconGrid, companiesLoading, companies]);
 
   // Spec §4.1 — Aucune carte si incomplet OU loading OU erreur (sauf bypass utilisateur)
   const showCards =
@@ -332,6 +428,7 @@ export function DashboardWithFilters() {
   const showWhenFocused = (cardId: CardId) => focusedCardId === cardId;
   const onFocusRequest = useCallback((cardId: CardId) => setFocusedCardId(cardId), []);
   const onNavigateToCard = useCallback((cardId: CardId) => setFocusedCardId(cardId), []);
+  const onBackToCockpit = useCallback(() => setFocusedCardId(null), []);
   const showPosShops = viewMode === "pos_shops";
   const showPosZ = viewMode === "pos_z";
   const posPeriod: PeriodRange =
@@ -350,65 +447,84 @@ export function DashboardWithFilters() {
   const showEncours = !isPosView && (viewMode === "all" || viewMode === "business");
   const showEbe = !isPosView && (viewMode === "all" || viewMode === "business");
 
+  // lab.linky.doreviateam.com sans ?tenant= : écran de choix (après tous les hooks pour éviter React #310)
+  if (showTenantChoice) {
+    return <TenantChoiceView onSelect={(id) => onSetTenantNavigate(id)} />;
+  }
+
   return (
     <ChartExpandedProvider>
-    <div className="flex min-h-screen flex-col">
-      <ReportHeader
-        tenantId={tenantId}
-        companies={companies}
-        companiesLoading={companiesLoading}
-        selectedCompanyId={selectedCompanyId}
-        onCompanyChange={setSelectedCompanyId}
-        period={period}
-        onPeriodChange={handlePeriodChange}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        availableYears={availableYears}
-        monthsWithDataByYear={monthsWithDataByYear}
-        sealedCount={dashboardMetrics?.sealed_count}
-        sealedCountComplete={dashboardMetrics?.sealed_count_complete}
-        onRefreshMetrics={handleRefreshMetrics}
-        showIntegrityBadge={showCards}
-      />
-      <main className="mx-auto flex min-h-0 flex-1 w-full max-w-4xl flex-col px-4 py-6 pb-16">
-        {showCards ? (
+    <TenantProvider requestedTenant={requestedTenant} onSetTenantNavigate={onSetTenantNavigate} onResolvedTenantChange={onResolvedTenantChange}>
+    <DashboardErrorBoundary>
+    <TenantLoadingGate>
+    <TenantErrorView>
+    <div key={scopeTenantId} className="flex min-h-screen flex-col">
+      {/* Header : fond opaque (aligné footer), bordure basse ; masqué après inactivité */}
+      <div
+        className={`sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg-secondary)] transition-[transform,max-height] duration-300 ease-out motion-reduce:duration-0 ${chromeVisible ? "overflow-visible" : "overflow-hidden"}`}
+        style={{
+          transform: chromeVisible ? "translateY(0)" : "translateY(-100%)",
+          maxHeight: chromeVisible ? "140px" : "0",
+        }}
+      >
+        <ReportHeader
+          tenantId={scopeTenantId}
+          companies={companies}
+          companiesLoading={companiesLoading}
+          selectedCompanyId={selectedCompanyId}
+          onCompanyChange={setSelectedCompanyId}
+          period={period}
+          onPeriodChange={handlePeriodChange}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          availableYears={availableYears}
+          monthsWithDataByYear={monthsWithDataByYear}
+          sealedCount={dashboardMetrics?.sealed_count}
+          sealedCountComplete={dashboardMetrics?.sealed_count_complete}
+          onRefreshMetrics={handleRefreshMetrics}
+          showIntegrityBadge={showCards}
+          chromeCompact={chromeState === "compact"}
+          onExpandChrome={() => revealChrome("tap_trigger")}
+          appView={appView}
+          onNavigateToAppView={setAppView}
+        />
+      </div>
+
+      <main className={`mx-auto flex min-h-0 flex-1 w-full max-w-4xl flex-col px-4 pb-16 ${chromeVisible ? "pt-6" : "pt-4"}`}>
+        {/* Vue Synthèse comptable (Lot 2 — AccountingSummaryView) */}
+        {appView === "synthese" ? (
+          <AccountingSummaryView
+            tenantId={scopeTenantId}
+            companyId={effectiveCompanyId}
+            period={period}
+          />
+        ) : showCards ? (
         <>
         {userBypassIncomplete && (
           <div className="mb-4 rounded-lg border border-[var(--warning)]/50 bg-[var(--warning)]/10 px-4 py-2 text-sm text-[var(--text)]">
             Données partiellement synchronisées — certaines métriques peuvent être incomplètes.
           </div>
         )}
-        {focusedCardId && (
-          <button
-            type="button"
-            onClick={() => setFocusedCardId(null)}
-            className="mb-4 flex items-center gap-2 text-sm font-medium text-[var(--accent)] hover:underline"
-          >
-            ← Retour au cockpit
-          </button>
-        )}
         {showIconGrid ? (
-          <div className="flex flex-1 min-h-0 flex-col items-center pt-6">
-            <div className="w-full">
-              <IconGrid
-                tenantId={tenantId}
-                companyId={effectiveCompanyId}
-                period={period}
-                metrics={dashboardMetrics}
-                metricsLoading={metricsLoading}
-                onSelect={(id: CardId) => setFocusedCardId(id)}
-              />
-            </div>
-            {!metricsLoading && (
-              <DivaFlashBlock
-                tenantId={tenantId}
-                companyId={effectiveCompanyId}
-                period={{ from: period.from, to: period.to }}
-                dashboardMetrics={dashboardMetrics}
-              />
-            )}
-            <DecisionsBlock tenantId={tenantId} />
-          </div>
+          interactionMode === "mobile" ? (
+            <CockpitMobileView
+              tenantId={scopeTenantId}
+              companyId={effectiveCompanyId}
+              period={period}
+              metrics={dashboardMetrics}
+              metricsLoading={metricsLoading}
+              onSelectCard={(id) => setFocusedCardId(id)}
+            />
+          ) : (
+            <CockpitDesktopView
+              tenantId={scopeTenantId}
+              companyId={effectiveCompanyId}
+              period={period}
+              metrics={dashboardMetrics}
+              metricsLoading={metricsLoading}
+              onSelectCard={(id) => setFocusedCardId(id)}
+            />
+          )
         ) : (
         <section className="space-y-6">
           {showPosZ && (
@@ -416,22 +532,24 @@ export function DashboardWithFilters() {
           )}
           {!isPosView && (viewMode === "all" || showWhenFocused("treasury")) && showCard("treasury") && (
             <TresoreriePositionCardWithPolling
-              tenantId={tenantId}
+              tenantId={scopeTenantId}
               companyId={effectiveCompanyId}
               period={{ from: period.from, to: period.to }}
               cardId="treasury"
               onNavigateToCard={onNavigateToCard}
+              onBackToCockpit={onBackToCockpit}
             />
           )}
           {(showCash || showWhenFocused("treasury_position")) && showCard("treasury_position") && (
             <TreasuryCardWithPolling
               period={period}
               companyId={effectiveCompanyId}
-              tenantId={tenantId}
+              tenantId={scopeTenantId}
               primarySource={primarySource}
               onFocusRequest={() => onFocusRequest("treasury_position")}
               cardId="treasury_position"
               onNavigateToCard={onNavigateToCard}
+              onBackToCockpit={onBackToCockpit}
             />
           )}
           {(showCash || showWhenFocused("cash")) && showCard("cash") && (
@@ -440,10 +558,11 @@ export function DashboardWithFilters() {
               initialDataOut={null}
               period={period}
               companyId={effectiveCompanyId}
-              tenantId={tenantId}
+              tenantId={scopeTenantId}
               onFocusRequest={() => onFocusRequest("cash")}
               cardId="cash"
               onNavigateToCard={onNavigateToCard}
+              onBackToCockpit={onBackToCockpit}
             />
           )}
           {(showBusiness || showWhenFocused("business")) && showCard("business") && (
@@ -452,53 +571,58 @@ export function DashboardWithFilters() {
               initialPurchasesData={null}
               period={period}
               companyId={effectiveCompanyId}
-              tenantId={tenantId}
+              tenantId={scopeTenantId}
               primarySource={primarySource}
               dashboardSnapshot={focusedCardId === "business" ? null : dashboardMetrics}
               onFocusRequest={() => onFocusRequest("business")}
               cardId="business"
               onNavigateToCard={onNavigateToCard}
+              onBackToCockpit={onBackToCockpit}
             />
           )}
           {(showWorkingCapital || showWhenFocused("working_capital")) && showCard("working_capital") && (
             <WorkingCapitalCardWithPolling
               period={period}
               companyId={effectiveCompanyId}
-              tenantId={tenantId}
+              tenantId={scopeTenantId}
               onFocusRequest={() => onFocusRequest("working_capital")}
               cardId="working_capital"
               onNavigateToCard={onNavigateToCard}
+              onBackToCockpit={onBackToCockpit}
             />
           )}
           {(showEncours || showWhenFocused("encours")) && showCard("encours") && (
             <EncoursCardWithPolling
               period={period}
               companyId={effectiveCompanyId}
-              tenantId={tenantId}
+              tenantId={scopeTenantId}
               onFocusRequest={() => onFocusRequest("encours")}
               cardId="encours"
               onNavigateToCard={onNavigateToCard}
+              onBackToCockpit={onBackToCockpit}
             />
           )}
           {(showEbe || showWhenFocused("ebitda")) && showCard("ebitda") && (
             <EbeCardWithPolling
               period={period}
               companyId={effectiveCompanyId}
-              tenantId={tenantId}
+              tenantId={scopeTenantId}
               dashboardSnapshot={dashboardMetrics}
               onFocusRequest={() => onFocusRequest("ebitda")}
               cardId="ebitda"
               onNavigateToCard={onNavigateToCard}
+              onBackToCockpit={onBackToCockpit}
             />
           )}
           {(viewMode === "all" || viewMode === "pos_shops" || showWhenFocused("pos_shops")) && showCard("pos_shops") && (
             <PosShopsView
-              tenantId={tenantId}
+              tenantId={scopeTenantId}
               period={posPeriod}
               companies={companies}
               onFocusRequest={() => onFocusRequest("pos_shops")}
               cardId="pos_shops"
               onNavigateToCard={onNavigateToCard}
+              onBackToCockpit={onBackToCockpit}
             />
           )}
           {(showTaxes || showWhenFocused("taxes")) && showCard("taxes") && (
@@ -507,10 +631,11 @@ export function DashboardWithFilters() {
               initialPurchasesData={null}
               period={period}
               companyId={effectiveCompanyId}
-              tenantId={tenantId}
+              tenantId={scopeTenantId}
               onFocusRequest={() => onFocusRequest("taxes")}
               cardId="taxes"
               onNavigateToCard={onNavigateToCard}
+              onBackToCockpit={onBackToCockpit}
             />
           )}
           {(showCreditNotes || showWhenFocused("credit_notes")) && showCard("credit_notes") && (
@@ -519,10 +644,11 @@ export function DashboardWithFilters() {
               initialSupplierData={null}
               period={period}
               companyId={effectiveCompanyId}
-              tenantId={tenantId}
+              tenantId={scopeTenantId}
               onFocusRequest={() => onFocusRequest("credit_notes")}
               cardId="credit_notes"
               onNavigateToCard={onNavigateToCard}
+              onBackToCockpit={onBackToCockpit}
             />
           )}
           {(showRefunds || showWhenFocused("refunds")) && showCard("refunds") && (
@@ -531,10 +657,11 @@ export function DashboardWithFilters() {
               initialSupplierData={null}
               period={period}
               companyId={effectiveCompanyId}
-              tenantId={tenantId}
+              tenantId={scopeTenantId}
               onFocusRequest={() => onFocusRequest("refunds")}
               cardId="refunds"
               onNavigateToCard={onNavigateToCard}
+              onBackToCockpit={onBackToCockpit}
             />
           )}
           {(viewMode === "all" || showWhenFocused("pos_z")) && showCard("pos_z") && (
@@ -543,12 +670,14 @@ export function DashboardWithFilters() {
               onFocusRequest={() => onFocusRequest("pos_z")}
               cardId="pos_z"
               onNavigateToCard={onNavigateToCard}
+              onBackToCockpit={onBackToCockpit}
             />
           )}
         </section>
         )}
         </>
-        ) : showTreasuryAfterIncomplete ? (
+        ) : null}
+        {appView === "pilotage" && !showCards && showTreasuryAfterIncomplete ? (
           <>
             {!isPosView && (
               <div className="mb-6">
@@ -556,7 +685,7 @@ export function DashboardWithFilters() {
                   Consolidation globale en cours
                 </p>
                 <TresoreriePositionCardWithPolling
-                  tenantId={tenantId}
+                  tenantId={scopeTenantId}
                   companyId={effectiveCompanyId}
                   period={{ from: period.from, to: period.to }}
                 />
@@ -573,7 +702,7 @@ export function DashboardWithFilters() {
               attemptCount={attemptCount}
             />
           </>
-        ) : (
+        ) : appView === "pilotage" ? (
           <SyncInProgress
             sealedCount={dashboardMetrics?.sealed_count}
             sealedCountComplete={dashboardMetrics?.sealed_count_complete}
@@ -584,10 +713,41 @@ export function DashboardWithFilters() {
             loading={metricsLoading}
             attemptCount={attemptCount}
           />
-        )}
+        ) : null}
       </main>
-      <LinkyFooter tenantId={tenantId} primarySource={primarySource} sealedCountTotal={dashboardMetrics?.sealed_count} />
+      {/* Footer : toujours affiché (pas de masquage auto) */}
+      <LinkyFooter tenantId={scopeTenantId} primarySource={primarySource} sealedCountTotal={dashboardMetrics?.sealed_count_total} />
+      {/* Bandeau réapparition : affiché uniquement quand header masqué (hidden) — Phase 2 */}
+      {chromeState === "hidden" && (
+        <ChromeTriggerBar
+          onReveal={() => revealChrome("tap_trigger")}
+          enableHover={interactionMode === "desktop"}
+        />
+      )}
     </div>
+    </TenantErrorView>
+    </TenantLoadingGate>
+    </DashboardErrorBoundary>
+    </TenantProvider>
     </ChartExpandedProvider>
+  );
+}
+
+export function DashboardWithFilters({
+  initialShowTenantChoice = false,
+  initialAppView = "pilotage",
+}: {
+  initialShowTenantChoice?: boolean;
+  initialAppView?: AppView;
+} = {}) {
+  return (
+    <ChromeAdaptiveProvider>
+      <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Chargement…</div>}>
+        <DashboardWithFiltersContent
+          initialShowTenantChoice={initialShowTenantChoice}
+          initialAppView={initialAppView}
+        />
+      </Suspense>
+    </ChromeAdaptiveProvider>
   );
 }

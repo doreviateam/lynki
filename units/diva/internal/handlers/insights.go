@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/doreviateam/diva/internal/hashinput"
 	"github.com/doreviateam/diva/internal/runner"
@@ -109,15 +110,29 @@ func GetInsights(insightsStore store.InsightsStore) fiber.Handler {
 			_ = json.Unmarshal(insight.Flash, &flash)
 		}
 
+		insightAgeSeconds := int(time.Since(insight.CreatedAt).Seconds())
+		if insightAgeSeconds < 0 {
+			insightAgeSeconds = 0
+		}
+
+		insightMap := fiber.Map{
+			"message_text":        insight.MessageText,
+			"flash":               flash,
+			"confidence":          insight.Confidence,
+			"created_at":          insight.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			"expires_at":          insight.ExpiresAt.Format("2006-01-02T15:04:05Z07:00"),
+			"insight_age_seconds": insightAgeSeconds,
+		}
+		if insight.FactsVersion != "" {
+			insightMap["facts_version"] = insight.FactsVersion
+		}
+		if insight.LatencyMs > 0 {
+			insightMap["latency_ms"] = insight.LatencyMs
+		}
+
 		return c.JSON(fiber.Map{
-			"state": "ready",
-			"insight": fiber.Map{
-				"message_text": insight.MessageText,
-				"flash":        flash,
-				"confidence":   insight.Confidence,
-				"created_at":   insight.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-				"expires_at":   insight.ExpiresAt.Format("2006-01-02T15:04:05Z07:00"),
-			},
+			"state":   "ready",
+			"insight": insightMap,
 		})
 	}
 }

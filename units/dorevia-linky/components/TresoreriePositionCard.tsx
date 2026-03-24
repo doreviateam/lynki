@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { formatAmount, formatNumber } from "@/app/lib/format";
+import { getStructuralCoverageDisplay } from "@/app/lib/structural-coverage-display";
 import { IconTreasury } from "@/components/CardIcons";
 import {
   INSTRUMENT_CARD_BASE,
@@ -17,6 +18,13 @@ import { DualSeriesChart } from "@/components/DualSeriesChart";
 import type { SeriesPoint } from "@/app/types/aggregations";
 import type { ChartType } from "@/app/lib/chart-type";
 
+/** MINI_SPEC_COUVERTURE_STRUCTURELLE_PAIE — breakdown extensible (payroll, rent, …) */
+export interface StructuralChargesBreakdown {
+  payroll?: number;
+  rent?: number;
+  subscriptions?: number;
+}
+
 export interface TresoreriePositionData {
   position?: {
     erp_balance?: number | null;
@@ -25,8 +33,16 @@ export interface TresoreriePositionData {
   };
   reconciliation_rate?: number | null;
   currency?: string;
-  /** Couverture structurelle (mois) — Position validée ÷ masse salariale mensuelle (SPEC Masse Salariale P0) */
+  /** Position validée ÷ masse salariale (mois) — indicateur gouvernance (SPEC Masse Salariale P0) */
   couverture_salariale_mois?: number | null;
+  /** MINI_SPEC — présence de charges structurelles reconnues (ex. paie) ; distinct du montant (AC5) */
+  structural_coverage_available?: boolean;
+  /** Montant des charges structurelles constatées sur la période (base explicative) */
+  structural_charges_amount?: number | null;
+  /** MINI_SPEC v1.1 — ratio % (min(100, charges / trésorerie validée × 100)) ; valeur affichée pour Couverture structurelle */
+  structural_coverage_ratio?: number | null;
+  /** Détail par catégorie (AC6) */
+  structural_charges_breakdown?: StructuralChargesBreakdown;
   flags?: {
     large_delta?: boolean;
     sign_mismatch?: boolean;
@@ -44,6 +60,7 @@ interface TresoreriePositionCardProps {
   /** Navigation card → card (lien Précédent / Suivant en haut) */
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
   /** Série Évolution (snapshots trésorerie) — si ≥ 2 points, bloc en available (spec §10.2) */
   treasurySeries?: SeriesPoint[];
   evolutionError?: boolean;
@@ -90,6 +107,7 @@ export function TresoreriePositionCard({
   footer,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
   treasurySeries = [],
   evolutionError = false,
   onEvolutionRetry,
@@ -105,6 +123,8 @@ export function TresoreriePositionCard({
   const largeDelta = data?.flags?.large_delta;
 
   const couvertureMois = data?.couverture_salariale_mois;
+  const structuralBreakdown = data?.structural_charges_breakdown;
+  const structuralDisplay = getStructuralCoverageDisplay(data, currency);
   const noData = isNoData(data);
   const uiState = getUiState(noData, rateRounded, largeDelta);
   const dateStr = formatSnapshotDate(generatedAt);
@@ -120,16 +140,20 @@ export function TresoreriePositionCard({
   const footerStatusLabel = hasVigilance ? statusLabel : "Validée";
   const badgeSeverity = uiState === "tension" ? "vigilance" : uiState === "vigilance" ? "vigilance" : undefined;
 
-  const couvertureDisplay =
-    couvertureMois != null && Number.isFinite(couvertureMois)
-      ? `${couvertureFormatted} mois`
-      : "Non disponible";
+  /** Tooltip pour charges structurelles — catégorie(s) (AC6) */
+  const structuralChargesAmount = data?.structural_charges_amount;
+  const structuralChargesTooltip =
+    structuralBreakdown?.payroll != null
+      ? "Paie constatée sur la période"
+      : structuralChargesAmount != null
+        ? "Charges structurelles constatées sur la période"
+        : undefined;
 
   if (loading && !data) {
     return (
       <section className={`${INSTRUMENT_CARD_BASE} border-[var(--warning)]`}>
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader
           icon={<IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" />}
@@ -148,7 +172,7 @@ export function TresoreriePositionCard({
   return (
     <section className={`${INSTRUMENT_CARD_BASE} border-[var(--warning)]`}>
       {cardId && onNavigateToCard && (
-        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader
         icon={<IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" />}
@@ -204,11 +228,33 @@ export function TresoreriePositionCard({
 
         <div
           className="flex justify-between items-baseline gap-4"
-          title="Position validée ÷ masse salariale mensuelle (mois de trésorerie)"
+          title={structuralChargesTooltip}
+        >
+          <span className="text-[var(--text-secondary)]">Charges structurelles constatées</span>
+          <span className="font-semibold tabular-nums text-[var(--text)]">
+            {structuralDisplay.structuralChargesFormatted}
+          </span>
+        </div>
+
+        <div
+          className="flex justify-between items-baseline gap-4"
+          title="Part de la trésorerie validée expliquée par les charges structurelles constatées (ex. paie)"
         >
           <span className="text-[var(--text-secondary)]">Couverture structurelle</span>
           <span className="font-semibold tabular-nums text-[var(--text)]">
-            {couvertureDisplay}
+            {structuralDisplay.structuralCoverageLabel}
+          </span>
+        </div>
+
+        <div
+          className="flex justify-between items-baseline gap-4"
+          title="Position validée ÷ masse salariale mensuelle (mois de trésorerie)"
+        >
+          <span className="text-[var(--text-secondary)]">Position validée (mois)</span>
+          <span className="font-semibold tabular-nums text-[var(--text)]">
+            {couvertureMois != null && Number.isFinite(couvertureMois)
+              ? `${couvertureFormatted} mois`
+              : "—"}
           </span>
         </div>
       </div>

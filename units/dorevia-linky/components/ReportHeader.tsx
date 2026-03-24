@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   PERIOD_OPTIONS,
   getAvailableYears,
@@ -10,6 +10,12 @@ import {
   type PeriodRange,
 } from "@/app/lib/period-utils";
 import { IntegrityBadge } from "@/components/IntegrityBadge";
+import { useChromeAdaptive, useChromeLock } from "@/app/context/ChromeAdaptiveContext";
+import { useTenantContextOptional } from "@/app/context/TenantContext";
+import { useAccountingPeriods } from "@/app/lib/use-accounting-periods";
+import { DEFAULT_PRODUCT_NAME } from "@/app/lib/tenant-config-defaults";
+import { TenantSelector } from "@/components/TenantSelector";
+import { ReportHeaderContent } from "@/components/ReportHeaderContent";
 
 export type ViewMode = "all" | "cash" | "business" | "corrections" | "pos_shops" | "pos_z";
 
@@ -17,6 +23,11 @@ interface CompanyItem {
   company_id: string;
   documents_count: number;
   display_name?: string;
+}
+
+/** Mois (1..12) par année ayant des données */
+interface MonthsByYear {
+  [year: string]: number[];
 }
 
 interface ReportHeaderProps {
@@ -32,7 +43,7 @@ interface ReportHeaderProps {
   /** Années contenant des données (si null, fallback sur getAvailableYears) */
   availableYears?: number[] | null;
   /** Mois (1..12) par année ayant des données : { "2026": [1, 2, 3], ... } */
-  monthsWithDataByYear?: Record<string, number[]>;
+  monthsWithDataByYear?: MonthsByYear;
   /** Nombre de documents scellés sur la période (pour le badge intégrité) */
   sealedCount?: number | null;
   /** true = les 5 sources ont répondu, comptage fiable. false = partiel, à rafraîchir. */
@@ -45,6 +56,13 @@ interface ReportHeaderProps {
   currentApp?: "linky" | "odoo";
   /** Bascule vers Linky ou Odoo */
   onAppChange?: (appId: "linky" | "odoo") => void;
+  /** Phase 2 : affichage compact (une ligne, badge période, filtres secondaires masqués) */
+  chromeCompact?: boolean;
+  /** Phase 2 : callback pour révéler le header (tap sur bandeau compact) */
+  onExpandChrome?: () => void;
+  /** SPEC_UX_NAVIGATION §5 : masquer kpiMode en Synthèse */
+  appView?: "pilotage" | "synthese";
+  onNavigateToAppView?: (view: "pilotage" | "synthese") => void;
 }
 
 export function ReportHeader({
@@ -65,8 +83,28 @@ export function ReportHeader({
   showIntegrityBadge = true,
   currentApp = "linky",
   onAppChange,
+  chromeCompact = false,
+  onExpandChrome,
+  appView = "pilotage",
+  onNavigateToAppView,
 }: ReportHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [selectFocused, setSelectFocused] = useState(false);
+  const chromeAdaptive = useChromeAdaptive();
+  useChromeLock(menuOpen || selectFocused);
+  const tenantCtx = useTenantContextOptional();
+  // Rules of switch (§5.3) : fermer le menu au changement de tenant
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [tenantCtx?.resolvedTenant]);
+  const branding = tenantCtx?.tenantConfig?.chrome?.branding;
+  const headerOpts = tenantCtx?.tenantConfig?.chrome?.header;
+  const workspace = tenantCtx?.tenantConfig?.workspace;
+  const productName = branding?.productName ?? DEFAULT_PRODUCT_NAME;
+  const tagline = branding?.tagline ?? "Décidez sur des données vérifiables. En temps réel.";
+  const showCompanyFilter = headerOpts?.showCompanyFilter ?? true;
+  const showPeriodFilter = headerOpts?.showPeriodFilter ?? true;
+  const showPinChrome = headerOpts?.showPinChrome ?? true;
   const ODOO_URL = process.env.NEXT_PUBLIC_ODOO_URL ?? "https://odoo.stinger.sarl-la-platine.doreviateam.com/odoo";
 
   const [periodKey, setPeriodKey] = useState(() => {
@@ -77,6 +115,8 @@ export function ReportHeader({
     const { year } = getKeyAndYearFromPeriod(period.from, period.to);
     return year;
   });
+
+  const { periodStatuses } = useAccountingPeriods(tenantId, selectedCompanyId, periodYear);
 
   // Synchroniser period prop → state local (si period vient d'une source externe)
   // getKeyAndYearFromPeriod reconnaît la période par défaut comme "ytd" pour éviter d'afficher "Janvier"
@@ -110,7 +150,8 @@ export function ReportHeader({
     const allOpt = PERIOD_OPTIONS[0]; // Toutes périodes (toutes années)
     const ytd = PERIOD_OPTIONS[1]; // Exercice à date
     const months = PERIOD_OPTIONS.slice(2); // Janvier…Décembre
-    const monthsForYear = monthsWithDataByYear[String(periodYear)];
+    const yearKey = `${periodYear}`;
+    const monthsForYear = monthsWithDataByYear[yearKey];
     if (monthsForYear && monthsForYear.length > 0) {
       const monthSet = new Set(monthsForYear);
       const filtered = months.filter((opt) => monthSet.has(parseInt(opt.value, 10)));
@@ -123,14 +164,14 @@ export function ReportHeader({
   useEffect(() => {
     const monthKey = parseInt(periodKey, 10);
     if (periodKey !== "ytd" && periodKey !== "all" && !Number.isNaN(monthKey)) {
-      const monthsForYear = monthsWithDataByYear[String(periodYear)];
+      const monthsForYear = monthsWithDataByYear[`${periodYear}`];
       if (monthsForYear && monthsForYear.length > 0 && !monthsForYear.includes(monthKey)) {
         setPeriodKey("ytd");
       }
     }
   }, [periodYear, monthsWithDataByYear, periodKey]);
 
-  const VIEW_MODE_LABELS: Record<ViewMode, string> = {
+  const VIEW_MODE_LABELS = {
     all: "Tout",
     cash: "Cash",
     business: "Business",
@@ -141,414 +182,60 @@ export function ReportHeader({
 
   const moduleActif = VIEW_MODE_LABELS[viewMode];
 
+  const tenantBadgeOrSelector =
+    currentApp !== "linky"
+      ? null
+      : tenantCtx?.availableTenants && tenantCtx.availableTenants.length > 1
+        ? React.createElement(TenantSelector, { variant: "inline" })
+        : React.createElement("span", { className: "hidden shrink-0 rounded-md bg-[var(--accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--accent)] whitespace-nowrap sm:inline" }, tenantId);
+
+  const headerContent = (
+    <ReportHeaderContent
+      productName={productName}
+      tagline={tagline}
+      tenantBadgeOrSelector={tenantBadgeOrSelector}
+      currentApp={currentApp}
+      menuOpen={menuOpen}
+      setMenuOpen={setMenuOpen}
+      ODOO_URL={ODOO_URL}
+      tenantCtx={tenantCtx}
+      viewMode={viewMode}
+      onViewModeChange={onViewModeChange}
+      workspace={workspace}
+      chromeAdaptive={chromeAdaptive}
+      appView={appView}
+      showPinChrome={showPinChrome}
+      showCompanyFilter={showCompanyFilter}
+      showPeriodFilter={showPeriodFilter}
+      chromeCompact={chromeCompact}
+      periodKey={periodKey}
+      periodYear={periodYear}
+      onPeriodKeyChange={setPeriodKey}
+      onPeriodYearChange={setPeriodYear}
+      periodOptionsToShow={periodOptionsToShow}
+      yearsToShow={yearsToShow}
+      companies={companies}
+      companiesLoading={companiesLoading}
+      selectedCompanyId={selectedCompanyId}
+      onCompanyChange={onCompanyChange}
+      moduleActif={moduleActif}
+      showIntegrityBadge={showIntegrityBadge}
+      tenantId={tenantId}
+      sealedCount={sealedCount}
+      sealedCountComplete={sealedCountComplete}
+      onRefreshMetrics={onRefreshMetrics}
+      onExpandChrome={onExpandChrome}
+      onNavigateToAppView={onNavigateToAppView}
+      periodStatuses={periodStatuses}
+    />
+  );
+
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg-secondary)]/95 backdrop-blur-sm shadow-sm max-h-[110px]">
-      <div className="mx-auto max-w-4xl px-4 py-3">
-        {/* Ligne 1 — Logo (gauche) | Tagline (centre) | Badge + Menu (droite) */}
-        <div className="relative flex items-center justify-between gap-3">
-          <a
-            href="/"
-            className="group z-10 shrink-0 transition-[filter] duration-[160ms] ease-out hover:brightness-[1.04]"
-            aria-label="Retour à l'accueil"
-          >
-            <h1 className="flex items-baseline gap-1.5 text-base sm:gap-2 sm:text-lg">
-              <span className="text-[0.9em] font-medium uppercase tracking-[0.18em] text-[var(--text-secondary)]">
-                DOREVIA
-              </span>
-              <span className="text-base font-semibold tracking-[-0.01em] text-[var(--text)] sm:text-lg">
-                Linky
-              </span>
-            </h1>
-          </a>
-
-          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-[10px] text-[var(--text-secondary)] sm:text-xs">
-            Décidez sur des données vérifiables. En temps réel.
-          </p>
-
-          {/* Applications + Badge tenant + Menu — droite */}
-          <div className="z-10 flex items-center gap-2">
-            <span className="hidden shrink-0 rounded-md bg-[var(--accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--accent)] whitespace-nowrap sm:inline">
-              {tenantId}
-            </span>
-
-          {/* Hamburger (Comptabilité / POS) — masqué pour Odoo */}
-          {currentApp === "linky" && (
-          <div className="relative sm:hidden">
-            <button
-              type="button"
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
-              aria-label="Menu"
-              aria-expanded={menuOpen}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="#FFF"
-                className="h-6 w-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                />
-              </svg>
-            </button>
-            {menuOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  aria-hidden
-                  onClick={() => setMenuOpen(false)}
-                />
-                <nav
-                  className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg"
-                  role="menu"
-                >
-                    <div className="border-b border-[var(--border)] px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
-                      Comptabilité
-                    </div>
-                    {(
-                      [
-                        ["all", "Tout"],
-                        ["cash", "Cash"],
-                        ["business", "Business"],
-                        ["corrections", "Corrections"],
-                      ] as const
-                    ).map(([mode, label]) => (
-                      <button
-                        key={mode}
-                        type="button"
-                        role="menuitem"
-                        onClick={() => {
-                          onViewModeChange(mode);
-                          setMenuOpen(false);
-                        }}
-                        className={`block w-full px-3 py-2 text-left text-sm ${
-                          viewMode === mode
-                            ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]"
-                            : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                    <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
-                      Point de vente
-                    </div>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        onViewModeChange("pos_shops");
-                        setMenuOpen(false);
-                      }}
-                      className={`block w-full px-3 py-2 text-left text-sm ${
-                        viewMode === "pos_shops"
-                          ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]"
-                          : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"
-                      }`}
-                    >
-                      Points de vente
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        onViewModeChange("pos_z");
-                        setMenuOpen(false);
-                      }}
-                      className={`block w-full px-3 py-2 text-left text-sm ${
-                        viewMode === "pos_z"
-                          ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]"
-                          : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"
-                      }`}
-                    >
-                      Z de caisse <span className="text-[10px] text-[var(--muted)]">(à venir)</span>
-                    </button>
-                    <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
-                      Applications
-                    </div>
-                    <a
-                      href={ODOO_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      role="menuitem"
-                      onClick={() => setMenuOpen(false)}
-                      className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
-                    >
-                      Odoo (système source)
-                    </a>
-                    <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
-                      Administration
-                    </div>
-                    <a
-                      href="/admin/dlp-config"
-                      role="menuitem"
-                      onClick={() => setMenuOpen(false)}
-                      className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
-                    >
-                      Paramétrage des décisions
-                    </a>
-                  </nav>
-                </>
-              )}
-            </div>
-          )}
-
-          {currentApp === "linky" && (
-          <div className="relative hidden sm:block">
-              <button
-                type="button"
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
-                aria-label="Menu"
-                aria-expanded={menuOpen}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="#FFF"
-                  className="h-6 w-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                  />
-                </svg>
-              </button>
-              {menuOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    aria-hidden
-                    onClick={() => setMenuOpen(false)}
-                  />
-                  <nav
-                    className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg"
-                    role="menu"
-                  >
-                    <div className="border-b border-[var(--border)] px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
-                      Comptabilité
-                    </div>
-                    {(
-                      [
-                        ["all", "Tout"],
-                        ["cash", "Cash"],
-                        ["business", "Business"],
-                        ["corrections", "Corrections"],
-                      ] as const
-                    ).map(([mode, label]) => (
-                      <button
-                        key={mode}
-                        type="button"
-                        role="menuitem"
-                        onClick={() => {
-                          onViewModeChange(mode);
-                          setMenuOpen(false);
-                        }}
-                        className={`block w-full px-3 py-2 text-left text-sm ${
-                          viewMode === mode
-                            ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]"
-                            : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                    <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
-                      Point de vente
-                    </div>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        onViewModeChange("pos_shops");
-                        setMenuOpen(false);
-                      }}
-                      className={`block w-full px-3 py-2 text-left text-sm ${
-                        viewMode === "pos_shops"
-                          ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]"
-                          : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"
-                      }`}
-                    >
-                      Points de vente
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        onViewModeChange("pos_z");
-                        setMenuOpen(false);
-                      }}
-                      className={`block w-full px-3 py-2 text-left text-sm ${
-                        viewMode === "pos_z"
-                          ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]"
-                          : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"
-                      }`}
-                    >
-                      Z de caisse <span className="text-[10px] text-[var(--muted)]">(à venir)</span>
-                    </button>
-                    <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
-                      Applications
-                    </div>
-                    <a
-                      href={ODOO_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      role="menuitem"
-                      onClick={() => setMenuOpen(false)}
-                      className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
-                    >
-                      Odoo (système source)
-                    </a>
-                    <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
-                      Administration
-                    </div>
-                    <a
-                      href="/admin/dlp-config"
-                      role="menuitem"
-                      onClick={() => setMenuOpen(false)}
-                      className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
-                    >
-                      Paramétrage des décisions
-                    </a>
-                  </nav>
-                </>
-              )}
-            </div>
-          )}
-          </div>
-        </div>
-
-        {/* Ligne 2 (desktop) : Société + Module | Période | Badge intégrité — masqué pour Odoo */}
-        {currentApp === "linky" && (
-        <div className="mt-2 hidden sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-4">
-          <div className="flex min-w-0 items-center gap-2">
-            <label htmlFor="company-select" className="sr-only">
-              Société
-            </label>
-            <select
-              id="company-select"
-              disabled={companiesLoading}
-              value={selectedCompanyId ?? ""}
-              onChange={(e) => onCompanyChange(e.target.value || null)}
-              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-              aria-label="Société"
-            >
-              <option value="">Toutes les sociétés</option>
-              {companies.map((c) => (
-                <option key={c.company_id} value={c.company_id}>
-                  {c.display_name ?? c.company_id}
-                </option>
-              ))}
-            </select>
-            <span className="truncate text-sm text-[var(--muted)]">
-              · {moduleActif}
-            </span>
-          </div>
-          <div className="flex items-center justify-center gap-2">
-            <label htmlFor="period-key" className="sr-only">
-              Période
-            </label>
-            <select
-              id="period-key"
-              value={periodKey}
-              onChange={(e) => setPeriodKey(e.target.value)}
-              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-            >
-              {periodOptionsToShow.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <select
-              aria-label="Année"
-              value={periodYear}
-              onChange={(e) => setPeriodYear(Number(e.target.value))}
-              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-            >
-              {yearsToShow.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex justify-end">
-            {showIntegrityBadge ? (
-              <IntegrityBadge tenantId={tenantId} sealedCount={sealedCount} sealedCountComplete={sealedCountComplete} onRefresh={onRefreshMetrics} />
-            ) : (
-              <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-0.5 text-xs text-[var(--text-secondary)]" title="Synchronisation en cours">—</span>
-            )}
-          </div>
-        </div>
-        )}
-
-        {/* Ligne 2 (mobile) : société + période + badge intégrité compact — masqué pour Odoo */}
-        {currentApp === "linky" && (
-        <div className="mt-3 flex flex-wrap items-center gap-2 sm:hidden">
-          <label htmlFor="company-select-mobile" className="sr-only">
-            Société
-          </label>
-          <select
-            id="company-select-mobile"
-            disabled={companiesLoading}
-            value={selectedCompanyId ?? ""}
-            onChange={(e) => onCompanyChange(e.target.value || null)}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-            aria-label="Société"
-          >
-            <option value="">Toutes les sociétés</option>
-            {companies.map((c) => (
-              <option key={c.company_id} value={c.company_id}>
-                {c.display_name ?? c.company_id}
-              </option>
-            ))}
-          </select>
-          <label htmlFor="period-key-mobile" className="sr-only">
-            Période
-          </label>
-          <select
-            id="period-key-mobile"
-            value={periodKey}
-            onChange={(e) => setPeriodKey(e.target.value)}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-          >
-            {periodOptionsToShow.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <select
-            aria-label="Année"
-            value={periodYear}
-            onChange={(e) => setPeriodYear(Number(e.target.value))}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-          >
-            {yearsToShow.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-          <div className="ml-auto">
-            {showIntegrityBadge ? (
-              <IntegrityBadge tenantId={tenantId} sealedCount={sealedCount} sealedCountComplete={sealedCountComplete} onRefresh={onRefreshMetrics} />
-            ) : (
-              <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-0.5 text-xs text-[var(--text-secondary)]" title="Synchronisation en cours">—</span>
-            )}
-          </div>
-        </div>
-        )}
-      </div>
+    <header
+      className={`sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg-secondary)]/95 backdrop-blur-sm shadow-sm ${chromeCompact ? "max-h-[72px]" : "max-h-[140px]"}`}
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
+      {headerContent}
     </header>
   );
 }

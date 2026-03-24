@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error": "#ba1a1a",
+              "surface-container-highest": "#d3e4fe",
+              "on-error-container": "#93000a",
+              "surface-container-lowest": "#ffffff",
+              "surface-container": "#e5eeff",
+              "on-secondary-fixed": "#0d1c2f",
+              "surface-container-low": "#eff4ff",
+              "tertiary-fixed-dim": "#68dba9",
+              "on-secondary-fixed-variant": "#3a485c",
+              "secondary-fixed": "#d5e3fd",
+              "on-secondary": "#ffffff",
+              "outline-variant": "#c6c6cd",
+              "on-background": "#0b1c30",
+              "surface-dim": "#cbdbf5",
+              "on-tertiary-fixed-variant": "#005137",
+              "outline": "#76777d",
+              "background": "#f8f9ff",
+              "primary-fixed-dim": "#bec6e0",
+              "on-secondary-container": "#57657b",
+              "surface-variant": "#d3e4fe",
+              "surface-container-high": "#dce9ff",
+              "surface-bright": "#f8f9ff",
+              "on-surface-variant": "#45464d",
+              "secondary": "#515f74",
+              "on-primary-fixed": "#131b2e",
+              "surface": "#f8f9ff",
+              "secondary-fixed-dim": "#b9c7e0",
+              "on-primary-fixed-variant": "#3f465c",
+              "on-primary-container": "#7c839b",
+              "tertiary": "#000000",
+              "inverse-surface": "#213145",
+              "inverse-primary": "#bec6e0",
+              "tertiary-container": "#002114",
+              "surface-tint": "#565e74",
+              "inverse-on-surface": "#eaf1ff",
+              "tertiary-fixed": "#85f8c4",
+              "primary": "#000000",
+              "primary-fixed": "#dae2fd",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed": "#002114",
+              "on-error": "#ffffff",
+              "primary-container": "#131b2e",
+              "on-tertiary": "#ffffff",
+              "error-container": "#ffdad6",
+              "secondary-container": "#d5e3fd",
+              "on-tertiary-container": "#069669",
+              "on-surface": "#0b1c30"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body antialiased">
+<!-- TopNavBar Execution -->
+<header class="bg-slate-50 dark:bg-slate-950 flex justify-between items-center h-16 px-8 w-full border-none docked full-width top-0 z-40 fixed">
+<div class="flex items-center gap-8">
+<span class="text-lg font-bold tracking-tighter text-slate-900 dark:text-white uppercase">Financial Architect</span>
+<nav class="hidden md:flex gap-6 items-center font-sans antialiased tracking-tight font-medium text-sm">
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-700 transition-colors" href="#">Pilotage</a>
+<a class="text-slate-900 dark:text-white border-b-2 border-slate-900 dark:border-white pb-1" href="#">Synthèse</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline text-sm">search</span>
+</div>
+<input class="bg-surface-container border-none text-sm rounded-lg pl-10 pr-4 py-2 w-64 focus:ring-1 focus:ring-outline transition-all" placeholder="Rechercher une écriture..." type="text"/>
+</div>
+<button class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary-container overflow-hidden">
+<img alt="Financial Controller Profile" data-alt="Professional portrait of a financial director" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3Lqf9VViKIpqAjD5V4Ra0aaYzfqYml-j8pBUWRsGxyZvsKzJpDc5uI3bm1y-3kVcGeCEGz4g2_XnxMHfFVLduEg_-za6x51x4jttGvcNJteL5It0OQmHRTAufG6ALYvZBhIb2Ns-QgAginWf1Fc0dCUlGZd7BqvX7XpXp-U2fR8JkWT-f_pSlf-JveyKHmPT2Zc49nNQI0At9G_l382u0Ek-8Jhi2Far37Weo9wVKwlRn8LOLckdOMYfSULcsIrR2IGnxhuHFEbj7"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar Execution -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-slate-100 dark:bg-slate-900 flex flex-col py-6 px-4 space-y-2 tonal-shift">
+<div class="mb-6 px-2">
+<h2 class="font-bold text-slate-900 dark:text-white">Corporate Ledger</h2>
+<p class="text-[0.75rem] text-slate-500 uppercase tracking-widest">Global Finance</p>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-200/50 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span>Summary</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-200/50 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px]">receipt_long</span>
+<span>P&amp;L</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-200/50 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px]">account_balance</span>
+<span>Balance Sheet</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-200/50 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px]">history</span>
+<span>Aging</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-200/50 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px]">trending_up</span>
+<span>Trends</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-semibold rounded-lg shadow-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">verified</span>
+<span>Quality</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-200/50 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px]">description</span>
+<span>Notes</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-16 p-8 min-h-screen">
+<!-- Header Section -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<span class="label-sm font-bold uppercase text-on-secondary-container tracking-widest text-[0.6875rem]">Vue d'ensemble</span>
+<h1 class="text-3xl font-semibold tracking-tight text-on-background mt-1">Synthèse Comptable</h1>
+<p class="text-on-surface-variant text-sm mt-1">Période clôturée au 31 Octobre 2023 • Audit Véréna &amp; Esther</p>
+</div>
+<div class="flex gap-3">
+<button class="bg-surface-container-low px-4 py-2 rounded-xl text-sm font-medium hover:bg-surface-container transition-all">Exporter PDF</button>
+<button class="bg-primary-container text-on-primary px-6 py-2 rounded-xl text-sm font-medium hover:opacity-90 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">ios_share</span>
+                    Partager le rapport
+                </button>
+</div>
+</div>
+<!-- Executive Summary (Bento Grid) -->
+<div class="grid grid-cols-12 gap-6 mb-8">
+<div class="col-span-12 lg:col-span-8 grid grid-cols-3 gap-6">
+<!-- KPI Card 1 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl flex flex-col justify-between min-h-[160px]">
+<div>
+<span class="label-sm font-bold uppercase text-on-surface-variant text-[0.6875rem]">Chiffre d'Affaires</span>
+<div class="text-3xl font-semibold mt-2 tabular-nums">2,482,000 €</div>
+</div>
+<div class="flex items-center gap-2 text-tertiary-container text-xs font-bold">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+<span class="text-on-tertiary-container">+12.4% vs N-1</span>
+</div>
+</div>
+<!-- KPI Card 2 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl flex flex-col justify-between min-h-[160px]">
+<div>
+<span class="label-sm font-bold uppercase text-on-surface-variant text-[0.6875rem]">EBITDA (Marge Opé)</span>
+<div class="text-3xl font-semibold mt-2 tabular-nums">842,500 €</div>
+</div>
+<div class="flex items-center gap-2 text-tertiary-container text-xs font-bold">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+<span class="text-on-tertiary-container">+4.2% vs Budget</span>
+</div>
+</div>
+<!-- KPI Card 3 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl flex flex-col justify-between min-h-[160px]">
+<div>
+<span class="label-sm font-bold uppercase text-on-surface-variant text-[0.6875rem]">Trésorerie Nette</span>
+<div class="text-3xl font-semibold mt-2 tabular-nums">1,120,400 €</div>
+</div>
+<div class="flex items-center gap-2 text-error text-xs font-bold">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">trending_down</span>
+<span class="text-on-error-container">-2.1% mois dernier</span>
+</div>
+</div>
+</div>
+<!-- Source Status / Reliability -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container-low p-6 rounded-xl border-l-4 border-tertiary-fixed-dim">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-on-tertiary-container" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<h3 class="font-bold text-sm uppercase tracking-wider">Qualité des Données</h3>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-sm text-on-surface-variant">Rapprochement Bancaire</span>
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold px-3 py-1 rounded-full uppercase">Complet</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-sm text-on-surface-variant">Factures non-parvenues</span>
+<span class="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-3 py-1 rounded-full uppercase">En cours (2)</span>
+</div>
+<div class="w-full bg-surface-container h-1 rounded-full mt-4">
+<div class="bg-on-tertiary-container h-1 rounded-full w-[94%]"></div>
+</div>
+<p class="text-[11px] text-on-surface-variant italic">Dernière synchronisation : il y a 12 minutes.</p>
+</div>
+</div>
+</div>
+<!-- P&L and Balance Sheet Row -->
+<div class="grid grid-cols-12 gap-8 mb-8">
+<!-- P&L Table -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+<div class="p-6 flex justify-between items-center border-b border-surface-container-low">
+<h3 class="font-bold text-lg tracking-tight">Compte de Résultat (P&amp;L)</h3>
+<div class="flex gap-4">
+<span class="text-xs text-on-surface-variant font-medium">Réel vs Budget</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low/30">
+<th class="px-6 py-4 label-sm text-[10px] uppercase font-bold text-on-surface-variant">Poste de compte</th>
+<th class="px-6 py-4 label-sm text-[10px] uppercase font-bold text-on-surface-variant text-right">Réel Q3</th>
+<th class="px-6 py-4 label-sm text-[10px] uppercase font-bold text-on-surface-variant text-right">Budget Q3</th>
+<th class="px-6 py-4 label-sm text-[10px] uppercase font-bold text-on-surface-variant text-right">Écart (%)</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-6 py-4 font-medium text-sm">Ventes de Marchandises</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm">1,240,000 €</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm">1,150,000 €</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm font-bold text-on-tertiary-container">+7.8%</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-6 py-4 font-medium text-sm">Prestations de Services</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm">1,242,000 €</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm">1,100,000 €</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm font-bold text-on-tertiary-container">+12.9%</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors bg-surface-container-low/20">
+<td class="px-6 py-4 font-bold text-sm">Chiffre d'Affaires Brut</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm font-bold">2,482,000 €</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm">2,250,000 €</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm font-bold text-on-tertiary-container">+10.3%</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-6 py-4 font-medium text-sm">Coût des Ventes (COGS)</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm">(840,200 €)</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm">(720,000 €)</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm font-bold text-error">+16.6%</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-6 py-4 font-medium text-sm">Marge Brute</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm">1,641,800 €</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm">1,530,000 €</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm font-bold text-on-tertiary-container">+7.3%</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors bg-primary-container text-on-primary">
+<td class="px-6 py-4 font-bold text-sm">Résultat Net</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm font-bold">412,400 €</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm opacity-80">385,000 €</td>
+<td class="px-6 py-4 tabular-nums text-right text-sm font-bold text-tertiary-fixed">+7.1%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Balance Sheet Overview -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm">
+<h3 class="font-bold text-lg mb-6">Bilan (Assets vs Liab.)</h3>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between text-xs font-bold uppercase mb-2">
+<span>Actifs Immobilisés</span>
+<span>65%</span>
+</div>
+<div class="w-full bg-surface-container h-4 rounded-full overflow-hidden flex">
+<div class="bg-on-primary-fixed h-full" style="width: 65%"></div>
+<div class="bg-primary-fixed-dim h-full" style="width: 35%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs font-bold uppercase mb-2">
+<span>Capitaux Propres</span>
+<span>48%</span>
+</div>
+<div class="w-full bg-surface-container h-4 rounded-full overflow-hidden flex">
+<div class="bg-on-tertiary-container h-full" style="width: 48%"></div>
+<div class="bg-tertiary-fixed-dim h-full" style="width: 52%"></div>
+</div>
+</div>
+<div class="pt-4 border-t border-surface-container-low space-y-2">
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface-variant">Ratio Solvabilité</span>
+<span class="font-bold">1.42</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface-variant">Besoin en FdR</span>
+<span class="font-bold">42,500 €</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Notes & Narrative Layer -->
+<div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden flex-1">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-6xl">format_quote</span>
+</div>
+<h3 class="font-bold text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">description</span>
+                        Notes de Synthèse
+                    </h3>
+<div class="space-y-3">
+<div class="bg-white/50 p-3 rounded-lg border border-outline-variant/20">
+<p class="text-[13px] leading-relaxed text-on-surface">
+<strong class="text-on-background">Esther :</strong> L'augmentation du COGS est corrélée à la hausse des prix des matières premières au Q3. Surveillance accrue requise.
+                            </p>
+</div>
+<div class="bg-white/50 p-3 rounded-lg border border-outline-variant/20">
+<p class="text-[13px] leading-relaxed text-on-surface">
+<strong class="text-on-background">Véréna :</strong> Très bon dynamisme sur les services. Prévoir un ajustement budgétaire pour le recrutement Q4.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Aging and Trends Row -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Aging Balance -->
+<div class="col-span-12 lg:col-span-6 bg-surface-container-lowest p-6 rounded-xl shadow-sm">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-bold text-lg">Balance Âgée (Créances)</h3>
+<div class="flex gap-2">
+<span class="bg-error-container text-on-error-container text-[10px] font-bold px-2 py-0.5 rounded uppercase">Risque : Modéré</span>
+</div>
+</div>
+<div class="flex items-end gap-1 h-32 mb-6">
+<div class="flex-1 bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer rounded-t-sm relative group">
+<div class="absolute bottom-0 w-full bg-on-tertiary-container h-[90%] rounded-t-sm"></div>
+<div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-on-background text-on-primary text-[10px] px-2 py-1 rounded">420k</div>
+</div>
+<div class="flex-1 bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer rounded-t-sm relative group">
+<div class="absolute bottom-0 w-full bg-on-tertiary-container h-[45%] rounded-t-sm"></div>
+<div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-on-background text-on-primary text-[10px] px-2 py-1 rounded">210k</div>
+</div>
+<div class="flex-1 bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer rounded-t-sm relative group">
+<div class="absolute bottom-0 w-full bg-secondary-fixed-dim h-[15%] rounded-t-sm"></div>
+<div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-on-background text-on-primary text-[10px] px-2 py-1 rounded">85k</div>
+</div>
+<div class="flex-1 bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer rounded-t-sm relative group">
+<div class="absolute bottom-0 w-full bg-error h-[8%] rounded-t-sm"></div>
+<div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-on-background text-on-primary text-[10px] px-2 py-1 rounded">42k</div>
+</div>
+<div class="flex-1 bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer rounded-t-sm relative group">
+<div class="absolute bottom-0 w-full bg-error-container h-[12%] rounded-t-sm"></div>
+<div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-on-background text-on-primary text-[10px] px-2 py-1 rounded">68k</div>
+</div>
+</div>
+<div class="grid grid-cols-5 text-[10px] font-bold text-on-surface-variant uppercase text-center">
+<div>&lt; 30j</div>
+<div>30-60j</div>
+<div>60-90j</div>
+<div>90-120j</div>
+<div>&gt; 120j</div>
+</div>
+</div>
+<!-- Trends Sparklines -->
+<div class="col-span-12 lg:col-span-6 grid grid-cols-2 gap-6">
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<span class="label-sm font-bold uppercase text-on-surface-variant text-[0.6875rem]">DSO (Délai Client)</span>
+<div class="h-8 w-16 bg-gradient-to-tr from-surface-container to-surface-container-high rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">show_chart</span>
+</div>
+</div>
+<div class="text-2xl font-semibold tabular-nums">42.5 Jours</div>
+<div class="text-[10px] text-on-tertiary-container font-bold flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[12px]">arrow_downward</span>
+                        -3.2j vs Mois Préc.
+                    </div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<span class="label-sm font-bold uppercase text-on-surface-variant text-[0.6875rem]">Taux de Marge</span>
+<div class="h-8 w-16 bg-gradient-to-tr from-surface-container to-surface-container-high rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">stacked_line_chart</span>
+</div>
+</div>
+<div class="text-2xl font-semibold tabular-nums">34.2 %</div>
+<div class="text-[10px] text-error font-bold flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[12px]">arrow_downward</span>
+                        -0.5% vs Objectif
+                    </div>
+</div>
+<div class="col-span-2 bg-primary-container p-5 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="h-10 w-10 bg-white/10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary">bolt</span>
+</div>
+<div>
+<div class="text-on-primary font-bold text-sm">Action Requise : Relance Factures</div>
+<div class="text-on-primary/60 text-xs">12 clients ont dépassé le seuil des 90 jours.</div>
+</div>
+</div>
+<button class="bg-white text-primary-container px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-primary-fixed transition-colors">
+                        Générer les relances
+                    </button>
+</div>
+</div>
+</div>
+<!-- Footer / Technical Specs -->
+<footer class="mt-16 pt-8 border-t border-surface-container-low flex justify-between items-center text-[11px] text-on-surface-variant uppercase tracking-tighter">
+<div>Généré par Financial Architect v4.2.0 • Data Engine : LedgerOS</div>
+<div class="flex gap-6">
+<a class="hover:text-on-background transition-colors" href="#">Audit Trail</a>
+<a class="hover:text-on-background transition-colors" href="#">Politique de Confidentialité</a>
+<a class="hover:text-on-background transition-colors" href="#">Support Technique</a>
+</div>
+</footer>
+</main>
+</body></html>

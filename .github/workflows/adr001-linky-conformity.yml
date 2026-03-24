@@ -1,0 +1,21 @@
+# ADR-001 (ZeDocs/web51) : vérifie qu'aucun code Linky ne référence DLP_URL ni DIVA_URL.
+# Échoue la CI en cas de régression (réintroduction d'une dépendance directe à DLP/DIVA).
+name: ADR-001 Linky conformité
+
+on:
+  push:
+    branches: [main, master]
+    paths: ['units/dorevia-linky/**']
+  pull_request:
+    branches: [main, master]
+    paths: ['units/dorevia-linky/**']
+
+jobs:
+  check-adr001:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check ADR-001 (no DLP_URL/DIVA_URL in Linky)
+        run: |
+          cd units/dorevia-linky && npm run check:adr001

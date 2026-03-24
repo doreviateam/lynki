@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Linky — Page d'accueil", () => {
   test("affiche la page sans erreur", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/Dorevia Linky/);
+    await expect(page).toHaveTitle(/Dorevia Lynki/);
   });
 
   test("contient le header ou la navigation", async ({ page }) => {

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-fixed": "#131b2e",
+              "inverse-primary": "#bec6e0",
+              "secondary-fixed-dim": "#b9c7e0",
+              "secondary-container": "#d5e3fd",
+              "on-secondary-fixed": "#0d1c2f",
+              "on-secondary": "#ffffff",
+              "primary": "#000000",
+              "outline-variant": "#c6c6cd",
+              "inverse-on-surface": "#eaf1ff",
+              "surface-bright": "#f8f9ff",
+              "tertiary": "#000000",
+              "tertiary-fixed": "#85f8c4",
+              "surface-variant": "#d3e4fe",
+              "on-primary": "#ffffff",
+              "tertiary-fixed-dim": "#68dba9",
+              "on-secondary-fixed-variant": "#3a485c",
+              "surface": "#f8f9ff",
+              "on-surface-variant": "#45464d",
+              "background": "#f8f9ff",
+              "on-tertiary-fixed": "#002114",
+              "on-tertiary": "#ffffff",
+              "on-primary-container": "#7c839b",
+              "surface-dim": "#cbdbf5",
+              "surface-container": "#e5eeff",
+              "error-container": "#ffdad6",
+              "tertiary-container": "#002114",
+              "surface-container-high": "#dce9ff",
+              "inverse-surface": "#213145",
+              "on-secondary-container": "#57657b",
+              "surface-container-low": "#eff4ff",
+              "on-error-container": "#93000a",
+              "primary-fixed-dim": "#bec6e0",
+              "on-tertiary-container": "#069669",
+              "on-error": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-highest": "#d3e4fe",
+              "outline": "#76777d",
+              "secondary-fixed": "#d5e3fd",
+              "primary-container": "#131b2e",
+              "on-background": "#0b1c30",
+              "secondary": "#515f74",
+              "error": "#ba1a1a",
+              "surface-tint": "#565e74",
+              "on-primary-fixed-variant": "#3f465c",
+              "primary-fixed": "#dae2fd",
+              "on-tertiary-fixed-variant": "#005137",
+              "on-surface": "#0b1c30"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .sparkline-gradient {
+            mask-image: linear-gradient(to right, rgba(0,0,0,1), rgba(0,0,0,0.4));
+        }
+        .bento-inner-shadow {
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-background selection:bg-tertiary-fixed">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex justify-between items-center px-4 h-14 z-50">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-full overflow-hidden bg-surface-container border border-outline-variant">
+<img alt="CEO Profile" class="h-full w-full object-cover" data-alt="professional portrait of a confident male executive in a modern workspace with natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCL8YaDxy5fE3-zMGtkd_5XWXZmAqSnAI_00_xlweE8i00X1wB9dIHycWAep2_u4qCZTAIgQObj4StBy5ReyL80LCGe5GonYdhfff7-8vK3CCQZ7hy2wLkrYMXIwWHAjImaGjSea_2P5lySif17H10WsA5pXPTw7m5N_iS2RynWil3heZoI0sB2yCGBGYmxu3bBXHYvJVL7kgf4kQlNamjvjWBmOQpVGeyDjBWop7TQv6yTBOxV-tdhqcPloDlm06RXd7gsgPoNQxCG"/>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Lynki</h1>
+</div>
+<button class="material-symbols-outlined text-slate-900 dark:text-slate-50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors p-2 rounded-full active:scale-95 duration-150" data-icon="sync">sync</button>
+</header>
+<main class="pt-20 pb-24 px-4 max-w-lg mx-auto space-y-6">
+<!-- Global Status Header -->
+<section class="flex items-center justify-between bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/30 shadow-sm">
+<div class="space-y-0.5">
+<p class="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Statut Global</p>
+<div class="flex items-center gap-2">
+<span class="h-2.5 w-2.5 rounded-full bg-on-tertiary-container animate-pulse"></span>
+<span class="text-lg font-bold text-on-surface">FIABLE</span>
+</div>
+</div>
+<div class="text-right">
+<p class="text-[10px] text-on-surface-variant">Dernier refresh</p>
+<p class="text-xs font-semibold">Aujourd'hui, 09:41</p>
+</div>
+</section>
+<!-- 3 Tuiles Maîtresses (A-Grade) -->
+<section class="grid grid-cols-1 gap-4">
+<!-- Trésorerie -->
+<div class="bg-surface-container-highest p-5 rounded-xl border border-outline-variant/20 space-y-4">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<h3 class="text-sm font-semibold text-on-surface-variant">Trésorerie</h3>
+<p class="text-3xl font-extrabold tracking-tight">412.080 €</p>
+</div>
+<span class="px-2 py-1 rounded bg-on-tertiary-container/10 text-on-tertiary-container text-[10px] font-bold border border-on-tertiary-container/20 uppercase tracking-tighter">Fiable</span>
+</div>
+<div class="h-12 w-full flex items-end gap-1 overflow-hidden opacity-80">
+<div class="bg-on-tertiary-container w-full h-[40%] rounded-t-sm"></div>
+<div class="bg-on-tertiary-container w-full h-[55%] rounded-t-sm"></div>
+<div class="bg-on-tertiary-container w-full h-[45%] rounded-t-sm"></div>
+<div class="bg-on-tertiary-container w-full h-[70%] rounded-t-sm"></div>
+<div class="bg-on-tertiary-container w-full h-[60%] rounded-t-sm"></div>
+<div class="bg-on-tertiary-container w-full h-[85%] rounded-t-sm"></div>
+<div class="bg-on-tertiary-container w-full h-[100%] rounded-t-sm"></div>
+</div>
+<div class="flex justify-between items-center text-[11px] font-medium text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span> +4.2% / mois</span>
+<span>Projections à 30j</span>
+</div>
+</div>
+<!-- Business / CA -->
+<div class="bg-surface-container-highest p-5 rounded-xl border border-outline-variant/20 space-y-4">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<h3 class="text-sm font-semibold text-on-surface-variant">Business (CA)</h3>
+<p class="text-3xl font-extrabold tracking-tight">1.25M €</p>
+</div>
+<span class="px-2 py-1 rounded bg-on-tertiary-container/10 text-on-tertiary-container text-[10px] font-bold border border-on-tertiary-container/20 uppercase tracking-tighter">Confirmé</span>
+</div>
+<div class="h-12 w-full flex items-end gap-1 overflow-hidden opacity-80">
+<div class="bg-on-tertiary-container/60 w-full h-[20%] rounded-t-sm"></div>
+<div class="bg-on-tertiary-container/60 w-full h-[35%] rounded-t-sm"></div>
+<div class="bg-on-tertiary-container/60 w-full h-[50%] rounded-t-sm"></div>
+<div class="bg-on-tertiary-container/60 w-full h-[45%] rounded-t-sm"></div>
+<div class="bg-on-tertiary-container/60 w-full h-[65%] rounded-t-sm"></div>
+<div class="bg-on-tertiary-container/60 w-full h-[80%] rounded-t-sm"></div>
+<div class="bg-on-tertiary-container w-full h-[95%] rounded-t-sm"></div>
+</div>
+<div class="flex justify-between items-center text-[11px] font-medium text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" data-icon="rocket_launch">rocket_launch</span> +12% vs N-1</span>
+<span>Objectif: 1.5M €</span>
+</div>
+</div>
+<!-- Flux Net -->
+<div class="bg-surface-container-highest p-5 rounded-xl border border-outline-variant/20 space-y-4">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<h3 class="text-sm font-semibold text-on-surface-variant">Flux Net</h3>
+<p class="text-3xl font-extrabold tracking-tight text-on-tertiary-container">+84.300 €</p>
+</div>
+<span class="px-2 py-1 rounded bg-on-tertiary-container/10 text-on-tertiary-container text-[10px] font-bold border border-on-tertiary-container/20 uppercase tracking-tighter">Fiable</span>
+</div>
+<div class="h-1 w-full bg-outline-variant/20 rounded-full overflow-hidden">
+<div class="h-full bg-on-tertiary-container w-[72%]"></div>
+</div>
+<div class="flex justify-between items-center text-[11px] font-medium text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" data-icon="account_balance_wallet">account_balance_wallet</span> Net disponible</span>
+<span>Capacité d'auto-fin</span>
+</div>
+</div>
+</section>
+<!-- Tuiles Secondaires B (Compact Grid) -->
+<section class="grid grid-cols-2 gap-3">
+<div class="bg-surface-container p-4 rounded-xl border border-outline-variant/10">
+<p class="text-[10px] font-bold text-on-secondary-container uppercase mb-1">Paiements</p>
+<div class="flex items-end justify-between">
+<span class="text-lg font-bold">12.4k €</span>
+<span class="text-[10px] text-error font-bold flex items-center">-2%</span>
+</div>
+<p class="text-[9px] text-on-surface-variant mt-1">À décaisser S+1</p>
+</div>
+<div class="bg-surface-container p-4 rounded-xl border border-outline-variant/10">
+<p class="text-[10px] font-bold text-on-secondary-container uppercase mb-1">BFR (jours)</p>
+<div class="flex items-end justify-between">
+<span class="text-lg font-bold">42 Jrs</span>
+<span class="material-symbols-outlined text-on-tertiary-container text-sm" data-icon="check_circle">check_circle</span>
+</div>
+<p class="text-[9px] text-on-surface-variant mt-1">Optimisé</p>
+</div>
+<div class="bg-surface-container p-4 rounded-xl border border-outline-variant/10">
+<p class="text-[10px] font-bold text-on-secondary-container uppercase mb-1">Encours Client</p>
+<div class="flex items-end justify-between">
+<span class="text-lg font-bold">158k €</span>
+<span class="text-[10px] text-on-tertiary-container font-bold">+5%</span>
+</div>
+<p class="text-[9px] text-on-surface-variant mt-1">Échu: 12.5k €</p>
+</div>
+<div class="bg-surface-container p-4 rounded-xl border border-outline-variant/10">
+<p class="text-[10px] font-bold text-on-secondary-container uppercase mb-1">Taxes</p>
+<div class="flex items-end justify-between">
+<span class="text-lg font-bold">18.2k €</span>
+<span class="material-symbols-outlined text-on-primary-container text-sm" data-icon="event">event</span>
+</div>
+<p class="text-[9px] text-on-surface-variant mt-1">Échéance 15/11</p>
+</div>
+<div class="bg-surface-container p-4 rounded-xl border border-outline-variant/10 col-span-2">
+<div class="flex justify-between items-center">
+<div>
+<p class="text-[10px] font-bold text-on-secondary-container uppercase mb-1">EBE Estimé</p>
+<span class="text-lg font-bold">245.000 €</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="h-8 w-24 bg-on-tertiary-container/5 rounded-md flex items-end p-1 gap-0.5">
+<div class="bg-on-tertiary-container/40 h-[30%] w-full rounded-sm"></div>
+<div class="bg-on-tertiary-container/40 h-[50%] w-full rounded-sm"></div>
+<div class="bg-on-tertiary-container/40 h-[45%] w-full rounded-sm"></div>
+<div class="bg-on-tertiary-container/40 h-[75%] w-full rounded-sm"></div>
+<div class="bg-on-tertiary-container/40 h-[60%] w-full rounded-sm"></div>
+<div class="bg-on-tertiary-container/40 h-[90%] w-full rounded-sm"></div>
+</div>
+<span class="text-[10px] font-bold text-on-tertiary-container">+18%</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Tuiles Secondaires C (List Format) -->
+<section class="space-y-3">
+<h4 class="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Opérations &amp; Détails</h4>
+<div class="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/10">
+<div class="flex items-center justify-between p-3 border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="receipt_long">receipt_long</span>
+<span class="text-xs font-medium">Notes de crédit</span>
+</div>
+<span class="text-xs font-bold">1.200 €</span>
+</div>
+<div class="flex items-center justify-between p-3 border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="payments">payments</span>
+<span class="text-xs font-medium">Remboursements</span>
+</div>
+<span class="text-xs font-bold text-error">450 €</span>
+</div>
+<div class="flex items-center justify-between p-3 border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="storefront">storefront</span>
+<span class="text-xs font-medium">Points de vente (3)</span>
+</div>
+<span class="text-xs font-bold text-on-tertiary-container">Actifs</span>
+</div>
+<div class="flex items-center justify-between p-3">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="point_of_sale">point_of_sale</span>
+<span class="text-xs font-medium">Z de caisse</span>
+</div>
+<span class="text-xs text-on-surface-variant">Clôturé à 19:00</span>
+</div>
+</div>
+</section>
+<!-- Insight de priorité -->
+<section class="bg-primary-container p-5 rounded-xl text-on-primary shadow-lg border-l-4 border-on-tertiary-container">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-on-tertiary-container mt-0.5" data-icon="lightbulb" data-weight="fill">lightbulb</span>
+<div class="space-y-2">
+<h5 class="text-xs font-bold uppercase tracking-wide opacity-80">Priority Insight</h5>
+<p class="text-sm font-medium leading-snug text-white">Le ratio de collecte clients a ralenti de 3 jours. Relancez les 5 factures majeures en attente pour sécuriser 45k€ avant la fin de semaine.</p>
+<button class="bg-on-tertiary-container text-on-tertiary text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-2 mt-2 active:scale-95 transition-transform">
+                        Voir les actions <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 left-0 w-full h-16 z-50 bg-white dark:bg-slate-900 flex justify-around items-center px-6 pb-safe border-t border-slate-200 dark:border-slate-800 shadow-[0_-1px_3px_0_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center justify-center text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-xl px-3 py-1 active:opacity-80 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="query_stats">query_stats</span>
+<span class="text-[11px] font-medium tracking-wide">Pilotage</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 active:opacity-80 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="text-[11px] font-medium tracking-wide">Alertes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 active:opacity-80 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="text-[11px] font-medium tracking-wide">Synthèse</span>
+</a>
+</nav>
+</body></html>

@@ -26,7 +26,7 @@ test.describe("Cockpit Linky — /cockpit", () => {
 
   test("affiche la page cockpit sans erreur", async ({ page }) => {
     await page.goto("/cockpit");
-    await expect(page).toHaveTitle(/Dorevia Linky/);
+    await expect(page).toHaveTitle(/Dorevia Lynki/);
   });
 
   test("affiche le header et le contenu principal", async ({ page }) => {

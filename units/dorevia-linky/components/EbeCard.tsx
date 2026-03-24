@@ -62,6 +62,7 @@ interface EbeCardProps {
   onChartGranularityChange?: (g: ChartGranularity) => void;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function EbeCard({
@@ -85,6 +86,7 @@ export function EbeCard({
   onChartGranularityChange = () => {},
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: EbeCardProps) {
   const [chartType, setChartType] = useState<ChartType>("bar");
   const [selectedPeriod, setSelectedPeriod] = useState<string | null>(null);
@@ -138,7 +140,7 @@ export function EbeCard({
     return (
       <section className={INSTRUMENT_CARD_BASE} aria-label="EBE — chargement">
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader icon={iconNode} title="EBE" kpiValue={<div className="skeleton h-6 w-28" />} />
         <div className="space-y-3">
@@ -153,7 +155,7 @@ export function EbeCard({
   return (
     <section className={INSTRUMENT_CARD_BASE} role="region" aria-label="Instrument EBE — Excédent Brut d'Exploitation">
       {cardId && onNavigateToCard && (
-        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader
         icon={iconNode}

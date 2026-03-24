@@ -69,9 +69,9 @@ const PRIORITY_CONTAINER_CLASSES: Record<TilePriority, string> = {
 };
 
 const PRIORITY_VALUE_CLASSES: Record<TilePriority, string> = {
-  A: "text-[length:var(--tile-a-value-size)] font-bold tabular-nums",
-  B: "text-[length:var(--tile-b-value-size)] font-bold tabular-nums",
-  C: "text-[length:var(--tile-c-value-size)] font-semibold tabular-nums",
+  A: "text-[length:var(--tile-a-value-size)] font-bold tabular-nums text-center",
+  B: "text-[length:var(--tile-b-value-size)] font-bold tabular-nums text-center",
+  C: "text-[length:var(--tile-c-value-size)] font-semibold tabular-nums text-center",
 };
 
 /** Classes couleur par valueKind (couleur appliquée séparément en composant si override, ex. Trésorerie ok/watch). */
@@ -106,7 +106,7 @@ export function getTileClasses(priority: TilePriority, status: TileStatus): Tile
     (status === "loading" ? " opacity-90" : "");
   const valueSize =
     PRIORITY_VALUE_CLASSES[priority] +
-    " text-center leading-tight " +
+    " leading-tight " +
     (status === "loading" ? "animate-pulse opacity-60" : "");
   return { container, valueSize };
 }

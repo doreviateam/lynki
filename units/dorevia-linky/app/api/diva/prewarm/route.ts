@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { DashboardMetricsResponse, KpiMetric } from "@/app/api/dashboard-metrics/route";
 
-const DIVA_URL = process.env.DIVA_URL || "http://diva:8010";
+const VAULT_URL = process.env.VAULT_URL || "http://localhost:8080";
 const DEFAULT_TENANT = process.env.TENANT_ID || "core";
 // SPEC v1.1: warmup fire-and-forget court (500–1000 ms), sans bloquer l'UI.
 const PREWARM_TIMEOUT_MS = parseInt(process.env.DIVA_PREWARM_TIMEOUT_MS || "700", 10);
@@ -31,6 +31,9 @@ const CARD_MAPPING: Array<{
   { dmKey: "refunds", specKey: "refunds", label: "Remboursements", unit: "EUR" },
   { dmKey: "pos_shops", specKey: "pos_shops", label: "POS magasins", unit: "EUR" },
   { dmKey: "pos_z", specKey: "pos_z", label: "Z de caisse", unit: "EUR" },
+  { dmKey: "working_capital", specKey: "bfr", label: "BFR", unit: "EUR" },
+  { dmKey: "ebitda", specKey: "ebe", label: "EBE", unit: "EUR" },
+  { dmKey: "encours", specKey: "encours", label: "Encours clients", unit: "EUR" },
 ];
 
 function metricsToCards(metrics: DashboardMetricsResponse) {
@@ -140,10 +143,10 @@ export async function POST(request: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), PREWARM_TIMEOUT_MS);
 
-    const base = DIVA_URL.replace(/\/$/, "");
-    const res = await fetch(`${base}/diva/generate`, {
+    const base = VAULT_URL.replace(/\/$/, "");
+    const res = await fetch(`${base}/ui/diva/generate`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Tenant": context.tenant ?? DEFAULT_TENANT },
       body: JSON.stringify(divaBody),
       signal: controller.signal,
     });

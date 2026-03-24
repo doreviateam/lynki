@@ -2,6 +2,11 @@
   email admin@doreviateam.com
 }
 
+# Linky lab — une seule URL : ?tenant=laplatine2026 | ?tenant=o19 | sans param = choix du tenant
+lab.linky.doreviateam.com {
+  reverse_proxy linky_generic:3000
+}
+
 # Tenant: suite - Landing Dorevia (HTTPS + Let's Encrypt)
 suite.doreviateam.com {
   reverse_proxy suite_lab:3000

@@ -76,6 +76,12 @@ Configurer dans **Paramètres → Technique → Paramètres → Paramètres Syst
 | `dorevia.vault.url` | URL du Vault (preuves + **paiements** v1.2) | `https://vault.core-stinger.doreviateam.com` | ✅ Oui pour paiements |
 | `dorevia.vault.token` | Token Bearer pour authentification Vault (si requis) | `vault_token_...` | ⚠️ Optionnel |
 | `dorevia.vault.tenant` | Tenant par défaut (paiements ; sinon dérivé de la société) | `core`, `sarl-la-platine` | ⚠️ Optionnel |
+| `dorevia.tenant` | Tenant pour push valorisation stock (ZeDocs/web52) | `laplatine2026` | Pour cron stock |
+| `dorevia.vault.url` | Utilisé aussi pour **POST /internal/stock-valuation-snapshot** (Option B) | idem ci-dessus | Pour cron stock |
+| `dorevia.stock_valuation.token` | Token interne Vault (stock) — env `STOCK_VALUATION_INTERNAL_TOKEN` | (secret) | Pour cron stock |
+| `dorevia.stock_valuation.company_ids` | IDs sociétés à pousser (optionnel ; vide = toutes) | `1` ou `1,2` | Optionnel |
+
+**Cron valorisation stock (J-1)** : une fois par jour, le cron « Vault Stock Valuation Snapshot (J-1) » calcule la valeur du stock (module `stock_account`, `stock.valuation.layer`) pour la veille et envoie un snapshot au Vault. Planifier à 02:00 en *Paramètres → Technique → Actions planifiées* si besoin. Réf. ZeDocs/web52.
 
 ### Format de la source
 

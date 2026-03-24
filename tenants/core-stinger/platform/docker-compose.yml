@@ -3,6 +3,8 @@
 # Tenant: core-stinger
 # Environment: stinger
 
+name: dorevia_core-stinger_platform
+
 services:
   # DVIG - Service partagé
   dvig:
@@ -76,20 +78,29 @@ services:
       timeout: 5s
       retries: 5
 
-  # Vault - Service partagé
+  # Vault - Service partagé (ZeDocs/web52 BFR complet)
   vault:
-    image: dorevia/vault:ebe-od-payroll-2026-03-15
+    image: dorevia/vault:sprint11-2026-03-20
     container_name: vault-core-stinger
     restart: unless-stopped
+    ports:
+      - "8080:8080"
     networks:
       - dorevia-network
     environment:
       - DATABASE_URL=postgres://vault:${VAULT_DB_PASSWORD:-vault_password}@vault-db-core-stinger:5432/dorevia_vault
       - PORT=8080
+      # ADR-001 (ZeDocs/web51) : gateway DLP/DIVA — requis pour /ui/dlp/* et /ui/diva/*
+      - DLP_URL=${DLP_URL:-http://dlp:8020}
+      - DIVA_URL=${DIVA_URL:-http://diva:8010}
       # Trésorerie laplatine2026 : proxy Odoo LAB pour solde comptable + taux rapprochement
       - ODOO_BANK_RECONCILIATION_URL_LAPLATINE2026=http://odoo_lab_laplatine2026:8069/dorevia/vault/linky_bank_reconciliation
       # Trésorerie / complétude paiements o19 : Odoo 19 lab (réseau Docker dorevia-network)
       - ODOO_BANK_RECONCILIATION_URL_O19=http://odoo_lab_o19:8069/dorevia/vault/linky_bank_reconciliation
+      # ZeDocs/web52 : token interne POST /internal/stock-valuation-snapshot
+      - STOCK_VALUATION_INTERNAL_TOKEN=${STOCK_VALUATION_INTERNAL_TOKEN:-recette_stock_2026}
+      # Sprint 15 T86 : token interne POST /internal/jobs/facts-pack-purge
+      - FACTS_PACK_PURGE_TOKEN=${FACTS_PACK_PURGE_TOKEN:-purge_fp_2026}
     volumes:
       # Volumes persistants pour stockage Vault (Phase 6 - Ops Hardening)
       - vault_storage_core-stinger:/opt/dorevia-vault/storage

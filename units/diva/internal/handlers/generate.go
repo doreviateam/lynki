@@ -3,9 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/doreviateam/diva/internal/facts"
+	"github.com/doreviateam/diva/internal/guard"
 	"github.com/doreviateam/diva/internal/hashinput"
 	"github.com/doreviateam/diva/internal/mistral"
 	"github.com/doreviateam/diva/internal/models"
@@ -14,7 +16,7 @@ import (
 )
 
 // Generate — POST /diva/generate. Génère un insight et le stocke dans diva_insights.
-func Generate(genStore store.GenerateStore, mc *mistral.Client) fiber.Handler {
+func Generate(genStore store.GenerateStore, refreshGuard *guard.RefreshGuard, mc *mistral.Client) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		if genStore == nil {
 			return c.Status(503).JSON(fiber.Map{
@@ -61,6 +63,17 @@ func Generate(genStore store.GenerateStore, mc *mistral.Client) fiber.Handler {
 			req.Context.PartnerName,
 		)
 
+		// Guard : rejet immédiat si une inférence est déjà en cours pour ce context_key
+		if refreshGuard != nil && !refreshGuard.TryAcquire(contextKey) {
+			slog.Warn("event=diva_guard_rejected", "endpoint", "generate", "context_key", contextKey, "tenant", req.Context.Tenant)
+			return c.Status(503).JSON(fiber.Map{
+				"error": fiber.Map{"code": "SERVICE_UNAVAILABLE", "message": "Une analyse est déjà en cours pour ce contexte. Réessayez dans quelques instants."},
+			})
+		}
+		if refreshGuard != nil {
+			defer refreshGuard.Release(contextKey)
+		}
+
 		// Dashboard details pour Mistral : _details + data_completeness (DIVA Cockpit v1.1)
 		dashboardDetails := req.Dashboard.Details
 		if dashboardDetails == nil {
@@ -103,6 +116,13 @@ func Generate(genStore store.GenerateStore, mc *mistral.Client) fiber.Handler {
 		}
 
 	generatedFromRunner := req.Options.GeneratedFromRunner
+	generationReason := "runner_generate"
+	if !generatedFromRunner {
+		generationReason = "ui_generate"
+	}
+	if req.Options.ForceRefresh {
+		generationReason = "force_refresh"
+	}
 
 	start := time.Now()
 
@@ -118,12 +138,19 @@ func Generate(genStore store.GenerateStore, mc *mistral.Client) fiber.Handler {
 				return err
 			}
 			if fresh {
+				slog.Info("event=diva_generate_cache_hit", "context_key", contextKey, "tenant", req.Context.Tenant, "generation_reason", generationReason)
 				return errAlreadyFresh
 			}
 		}
 
-		flash, chatErr := mc.Chat(req.Context, req.Dashboard.Cards, focusCard, req.Options.FocusCardDetails, dashboardDetails, outputMode, fp)
+		flash, chatErr := mc.Chat(req.Context, req.Dashboard.Cards, focusCard, req.Options.FocusCardDetails, dashboardDetails, outputMode, fp, contextKey, generationReason)
 		latencyMs := int(time.Since(start).Milliseconds())
+
+		// facts_version = 12 premiers hex du payload_hash (empreinte courte du FactsPack)
+		factsVersion := payloadHash
+		if len(factsVersion) > 12 {
+			factsVersion = factsVersion[:12]
+		}
 
 		if chatErr != nil {
 			var code string
@@ -141,6 +168,7 @@ func Generate(genStore store.GenerateStore, mc *mistral.Client) fiber.Handler {
 				DateEnd:             req.Context.DateEnd,
 				ContextKey:          contextKey,
 				PayloadHash:         payloadHash,
+				FactsVersion:        factsVersion,
 				MessageText:         "Analyse temporairement indisponible.",
 				FlashJSON:           []byte("{}"),
 				Status:              "error",
@@ -175,6 +203,7 @@ func Generate(genStore store.GenerateStore, mc *mistral.Client) fiber.Handler {
 			DateEnd:             req.Context.DateEnd,
 			ContextKey:          contextKey,
 			PayloadHash:         payloadHash,
+			FactsVersion:        factsVersion,
 			MessageText:         messageText,
 			FlashJSON:           flashJSON,
 			Status:              "ok",

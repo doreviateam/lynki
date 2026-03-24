@@ -4,8 +4,8 @@
  * WorkingCapitalCard — Instrument BFR (Besoin en Fonds de Roulement)
  * SPEC_LINKY_COCKPIT_INSTRUMENTS_v1.0 — instrument: working_capital
  *
- * BFR = Créances clients (AR open) - Dettes fournisseurs (AP open)
- * Stocks : hors périmètre Vault.
+ * BFR complet = Stock + Créances clients (AR) - Dettes fournisseurs (AP).
+ * Si stock disponible (ZeDocs/web52) : BFR = Stock + AR - AP ; sinon BFR = AR - AP (ou AR seul).
  */
 
 import { useState } from "react";
@@ -34,8 +34,11 @@ interface WorkingCapitalCardProps {
   onFocusRequest?: () => void;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
   /** Série Évolution (snapshots BFR = AR − AP) — si ≥ 2 points, bloc en available */
   bfrSeries?: SeriesPoint[];
+  /** Valeur du stock (snapshot J-1, ZeDocs/web52 Option B) — null si 404 ou non chargé */
+  stockValuation?: { value: number; currency: string; as_of_date: string; company_id: string } | null;
   evolutionError?: boolean;
   onEvolutionRetry?: () => void;
 }
@@ -59,7 +62,9 @@ export function WorkingCapitalCard({
   onFocusRequest,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
   bfrSeries = [],
+  stockValuation = null,
   evolutionError = false,
   onEvolutionRetry,
 }: WorkingCapitalCardProps) {
@@ -74,9 +79,16 @@ export function WorkingCapitalCard({
   const apOverdue = apByPartner?.totals?.overdue_amount ?? null;
   const apCount = apByPartner?.totals?.open_count_invoices ?? 0;
 
-  // BFR = AR - AP (si AP disponible) ; sinon proxy = AR only
-  const bfr = arOpen != null && apOpen != null ? arOpen - apOpen : arOpen;
+  const stockValue = stockValuation?.value ?? null;
+  // BFR complet = Stock + AR - AP (quand stock disponible) ; sinon BFR = AR - AP ; fallback AR seul
+  const bfrArAp = arOpen != null && apOpen != null ? arOpen - apOpen : arOpen;
+  const bfrComplet =
+    stockValue != null && arOpen != null && apOpen != null
+      ? stockValue + arOpen - apOpen
+      : bfrArAp;
   const hasFullData = arOpen != null && apOpen != null;
+  const hasBfrComplet = hasFullData && stockValue != null;
+  const bfr = hasBfrComplet ? bfrComplet : bfrArAp;
 
   const overdueRatio = arOpen != null && arOpen > 0 && arOverdue != null
     ? (arOverdue / arOpen) * 100
@@ -98,6 +110,7 @@ export function WorkingCapitalCard({
     bfr == null ? "Données non disponibles"
     : bfr < 0 ? "BFR négatif"
     : bfr === 0 ? "Cycle équilibré"
+    : hasBfrComplet ? "Stock + créances − dettes"
     : hasFullData ? "Créances > dettes"
     : "Créances actives";
 
@@ -114,17 +127,18 @@ export function WorkingCapitalCard({
     <IconWorkingCapital className="h-6 w-6 shrink-0 text-[var(--accent)]" />
   );
 
+  // Montant principal en neutre (BFR = valeur de structure, pas une performance) ; couleur uniquement pour les tensions
   const kpiColor =
     bfrStatus === "danger" ? "text-[var(--negative)]"
     : bfrStatus === "warning" ? "text-[var(--warning)]"
-    : bfr != null && bfr > 0 ? "text-[var(--positive)]"
-    : "text-[var(--text-secondary)]";
+    : "text-[var(--text)]";
+  const kpiStyle = bfrStatus !== "danger" && bfrStatus !== "warning" ? { color: "var(--text)" } : undefined;
 
   if (loading) {
     return (
       <section className={INSTRUMENT_CARD_BASE} role="region" aria-label="Instrument BFR — chargement">
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader icon={iconNode} title="BFR" kpiValue={<div className="skeleton h-6 w-28" />} />
         <div className="space-y-3">
@@ -143,27 +157,38 @@ export function WorkingCapitalCard({
       aria-label="Instrument BFR — Besoin en Fonds de Roulement"
     >
       {cardId && onNavigateToCard && (
-        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader
         icon={iconNode}
         title="BFR"
         badges={<InstrumentCardStatusBadge label={statusLabelShort} severity={statusSeverity} />}
-        kpiLabel={hasFullData ? "BFR net (AR − AP)" : "Créances clients"}
+        kpiLabel={hasBfrComplet ? "BFR" : hasFullData ? "BFR net (AR − AP)" : "Créances clients"}
         kpiValue={
-          <span className={kpiColor}>
+          <span className={kpiColor} style={kpiStyle}>
             {bfr != null ? formatSignedAmount(bfr, currency) : "—"}
           </span>
         }
       />
 
-      {/* Body : expansion éditoriale + détail */}
-      <p className="mb-2 text-xs text-[var(--text-muted)]">
-        Besoin en fonds de roulement · {hasFullData ? "Cycle d'exploitation · AR − AP" : "Créances clients"}
+      {/* Body : ligne explicative discrète (éviter doublon avec le badge « Stock + créances − dettes ») */}
+      <p className="mb-2 text-xs text-[var(--text-muted)] opacity-90">
+        {hasBfrComplet ? "Cycle d'exploitation à date" : hasFullData ? "Cycle d'exploitation · AR − AP" : "Créances clients"}
       </p>
 
-          {/* Deux colonnes : AR et AP */}
-          <div className="mb-4 grid grid-cols-2 gap-3">
+          {/* Trois blocs quand BFR complet (Stock + AR + AP), sinon deux (AR, AP) */}
+          <div className={`mb-4 grid gap-3 ${hasBfrComplet ? "grid-cols-3" : "grid-cols-2"}`}>
+            {hasBfrComplet && stockValuation != null && (
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+                <p className="text-xs font-medium text-[var(--text-secondary)]">Stocks</p>
+                <p className="mt-1 text-base font-bold tabular-nums text-[var(--text)]">
+                  {formatAmount(stockValuation.value, stockValuation.currency)}
+                </p>
+                <p className="mt-0.5 text-xs text-[var(--text-muted)]">
+                  Snapshot au {stockValuation.as_of_date.split("-").reverse().join("/")}
+                </p>
+              </div>
+            )}
             {/* AR */}
             <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2">
               <p className="text-xs font-medium text-[var(--text-secondary)]">Créances clients</p>
@@ -191,7 +216,7 @@ export function WorkingCapitalCard({
                   </p>
                   <p className="mt-0.5 text-xs text-[var(--text-muted)]">
                     {apCount > 0 ? `${apCount} facture${apCount > 1 ? "s" : ""}` : "Aucune"}
-                    {apOverdue != null && apOverdue > 0 ? ` · ${formatAmount(apOverdue, currency)} échus` : ""}
+                    {apOverdue != null && apOverdue > 0 ? ` · dont ${formatAmount(apOverdue, currency)} échus` : apCount > 0 ? " · à payer" : ""}
                   </p>
                 </>
               ) : (
@@ -223,16 +248,29 @@ export function WorkingCapitalCard({
             </div>
           )}
 
-          {/* Note stocks */}
-          <div className="flex items-center justify-between rounded-lg border border-dashed border-[var(--border)] px-3 py-2">
-            <div>
-              <p className="text-xs font-medium text-[var(--text-secondary)]">Stocks</p>
-              <p className="text-xs text-[var(--text-muted)]">Valorisation inventaire</p>
+          {/* Stocks en annexe (pointillés) uniquement quand pas encore en BFR complet */}
+          {!hasBfrComplet && (
+            <div className="flex items-center justify-between rounded-lg border border-dashed border-[var(--border)] px-3 py-2">
+              <div>
+                <p className="text-xs font-medium text-[var(--text-secondary)]">Stocks</p>
+                <p className="text-xs text-[var(--text-muted)]">Valorisation inventaire</p>
+              </div>
+              {stockValuation != null ? (
+                <div className="text-right">
+                  <p className="text-sm font-medium tabular-nums text-[var(--text)]">
+                    {formatAmount(stockValuation.value, stockValuation.currency)}
+                  </p>
+                  <p className="text-xs text-[var(--text-muted)]">
+                    Snapshot au {stockValuation.as_of_date.split("-").reverse().join("/")}
+                  </p>
+                </div>
+              ) : (
+                <span className="rounded bg-[var(--surface)] px-2 py-0.5 text-xs font-medium text-[var(--text-muted)]">
+                  Aucun snapshot disponible
+                </span>
+              )}
             </div>
-            <span className="rounded bg-[var(--surface)] px-2 py-0.5 text-xs font-medium text-[var(--text-muted)]">
-              Hors périmètre
-            </span>
-          </div>
+          )}
 
       <InstrumentCardEvolutionBlock
         storageKey="linky-bfr-evolution"
@@ -262,7 +300,7 @@ export function WorkingCapitalCard({
       </InstrumentCardEvolutionBlock>
 
       <InstrumentCardFooter
-        meta={`Cycle d'exploitation · AR − AP · Source Vault${apOpen != null ? " · ar-by-partner · ap-by-partner" : " · ar-by-partner"}`}
+        meta={hasBfrComplet ? "Cycle d'exploitation · Stock + AR − AP · Sources Vault / Odoo" : `Cycle d'exploitation · AR − AP · Source Vault${apOpen != null ? " · ar-by-partner · ap-by-partner" : " · ar-by-partner"}`}
       />
     </section>
   );

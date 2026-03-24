@@ -110,4 +110,28 @@
         <field name="active">True</field>
         <field name="user_id" ref="base.user_root"/>
     </record>
+
+    <!-- CRON Accounting Periods — Sync calendrier comptable vers Vault (Sprint 13 T72). Quotidien 03:00. -->
+    <record id="ir_cron_accounting_periods_push" model="ir.cron">
+        <field name="name">Vault Accounting Periods Sync (Sprint 13 T72)</field>
+        <field name="model_id" ref="dorevia_vault_connector.model_dorevia_accounting_periods_push"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_push_accounting_periods()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+    </record>
+
+    <!-- CRON Stock Valuation — Snapshot J-1 vers Vault (ZeDocs/web52 Option B). À planifier à 02:00 en UI si besoin. -->
+    <record id="ir_cron_stock_valuation_push" model="ir.cron">
+        <field name="name">Vault Stock Valuation Snapshot (J-1)</field>
+        <field name="model_id" ref="dorevia_vault_connector.model_dorevia_stock_valuation_push"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_push_stock_valuation_snapshot()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+    </record>
 </odoo>

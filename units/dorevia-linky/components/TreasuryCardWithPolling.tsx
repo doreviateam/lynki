@@ -84,6 +84,7 @@ interface TreasuryCardWithPollingProps {
   footer?: React.ReactNode;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 const ODOO_BASE_URL =
@@ -109,7 +110,7 @@ function formatDateTime(d: string | null | undefined): string {
   });
 }
 
-export function TreasuryCardWithPolling({ period, companyId, tenantId, primarySource = "vault", onFocusRequest, footer, cardId, onNavigateToCard }: TreasuryCardWithPollingProps) {
+export function TreasuryCardWithPolling({ period, companyId, tenantId, primarySource = "vault", onFocusRequest, footer, cardId, onNavigateToCard, onBackToCockpit }: TreasuryCardWithPollingProps) {
   const availableGranularities = getAvailableGranularities(period.from, period.to);
   const [chartGranularity, setChartGranularity] = useState<ChartGranularity>(() =>
     getDefaultChartGranularity(period.from, period.to)
@@ -296,7 +297,7 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, primarySo
     return (
       <section className={INSTRUMENT_CARD_BASE} role="region" aria-label="Instrument Paiements — chargement">
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader
           icon={<IconWrap><IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" /></IconWrap>}
@@ -331,7 +332,7 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, primarySo
   return (
     <section className={INSTRUMENT_CARD_BASE} role="region" aria-label="Instrument Paiements — rapprochement bancaire">
       {cardId && onNavigateToCard && (
-        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader
         icon={<IconWrap><IconTreasury className="h-6 w-6 shrink-0 text-[var(--accent)]" /></IconWrap>}

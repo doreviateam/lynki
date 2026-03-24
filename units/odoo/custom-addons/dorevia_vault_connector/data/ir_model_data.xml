@@ -5,4 +5,12 @@
         <field name="name">dorevia.vault.metric</field>
         <field name="model">dorevia.vault.metric</field>
     </record>
+    <record id="model_dorevia_stock_valuation_push" model="ir.model">
+        <field name="name">dorevia.stock.valuation.push</field>
+        <field name="model">dorevia.stock.valuation.push</field>
+    </record>
+    <record id="model_dorevia_accounting_periods_push" model="ir.model">
+        <field name="name">dorevia.accounting.periods.push</field>
+        <field name="model">dorevia.accounting.periods.push</field>
+    </record>
 </odoo>

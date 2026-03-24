@@ -1,4 +1,4 @@
-# Dorevia Linky — Build Next.js puis exécution (standalone)
+# Dorevia Lynki — Build Next.js puis exécution (standalone)
 # Spec: ZeDocs/web14/SPEC_DOREVIA_LINKY_UI_v2.0.md
 # Port exposé: 3000 (reverse_proxy Caddy)
 

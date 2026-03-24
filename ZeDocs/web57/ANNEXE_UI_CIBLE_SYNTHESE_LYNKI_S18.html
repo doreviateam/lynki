@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<!--
+  North star — composition visuelle Sprint 18 (ZeDocs).
+  Référence : REFERENCE_UI_CIBLE_SYNTHESE_LYNKI_S18.md
+  Les libellés type « certifié », « base certifiée », hash court, etc. sont démo :
+  l’implémentation Lynki doit respecter le plan §3.2–3.3 (honnêteté produit / preuve).
+-->
+<html class="dark" lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lynki — Synthèse comptable</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: '#060e20',
+            surface: '#0b1429',
+            'surface-2': '#101c34',
+            'surface-3': '#16233f',
+            outline: '#2b395b',
+            text: '#dee5ff',
+            muted: '#9aa7c7',
+            primary: '#7ea8ff',
+            secondary: '#47d7a4',
+            tertiary: '#ffb14a',
+            danger: '#ff7272',
+            warning: '#ffb454'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            label: ['Manrope', 'sans-serif']
+          },
+          boxShadow: {
+            soft: '0 10px 40px rgba(0,0,0,0.28)'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glass-card {
+      background: linear-gradient(180deg, rgba(22, 35, 63, 0.72) 0%, rgba(11, 20, 41, 0.82) 100%);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(126, 168, 255, 0.12);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.28);
+    }
+    .glass-highlight {
+      border-top: 1px solid rgba(126, 168, 255, 0.16);
+      border-left: 1px solid rgba(126, 168, 255, 0.08);
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .donut-chart {
+      background: conic-gradient(
+        #47d7a4 0deg 114.48deg,
+        #7ea8ff 114.48deg 209.52deg,
+        #ffb14a 209.52deg 260.64deg,
+        #ff7272 260.64deg 291.96deg,
+        #31466f 291.96deg 360deg
+      );
+      position: relative;
+    }
+    .donut-chart::after {
+      content: '';
+      position: absolute;
+      inset: 18%;
+      border-radius: 9999px;
+      background: #0b1429;
+      border: 1px solid rgba(126, 168, 255, 0.08);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+    }
+  </style>
+</head>
+<body class="bg-background text-text font-sans min-h-screen selection:bg-primary selection:text-slate-950">
+  <div class="min-h-screen pb-28">
+    <header class="sticky top-0 z-50 border-b border-outline/70 bg-background/90 backdrop-blur-xl">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex flex-col gap-4">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <div class="flex items-center gap-3">
+              <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/12 border border-primary/20">
+                <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">lan</span>
+              </div>
+              <div>
+                <p class="text-[11px] uppercase tracking-[0.24em] text-muted font-label font-semibold">Dorevia Lynki</p>
+                <h1 class="text-2xl font-black tracking-tight text-white">Synthèse comptable</h1>
+              </div>
+            </div>
+            <p class="mt-3 text-sm text-muted max-w-3xl">Surface de lecture financière probante pour voir, comprendre, vérifier et documenter la situation comptable sans perdre le lien avec la preuve.</p>
+          </div>
+          <div class="hidden md:flex items-center gap-2">
+            <button class="rounded-xl border border-outline bg-surface-2 px-3 py-2 text-sm font-medium text-text hover:bg-surface-3 transition">Exporter CSV</button>
+            <button class="rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-slate-950 hover:opacity-90 transition">Générer DOCX</button>
+          </div>
+        </div>
+
+        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="rounded-full border border-secondary/25 bg-secondary/10 px-3 py-1 text-xs font-semibold text-secondary font-label uppercase tracking-wide">Vault certifié</span>
+            <span class="rounded-full border border-outline bg-surface px-3 py-1 text-xs text-muted">Société : <strong class="text-text">La Platine</strong></span>
+            <span class="rounded-full border border-outline bg-surface px-3 py-1 text-xs text-muted">Période : <strong class="text-text">Mars 2026</strong></span>
+            <span class="rounded-full border border-outline bg-surface px-3 py-1 text-xs text-muted">Dernière sync : <strong class="text-text">21/03/2026 · 18:42</strong></span>
+          </div>
+          <div class="inline-flex rounded-2xl border border-outline bg-surface p-1 w-full sm:w-auto">
+            <button class="flex-1 sm:flex-none rounded-xl px-4 py-2 text-sm font-semibold text-muted hover:text-text transition">Pilotage</button>
+            <button class="flex-1 sm:flex-none rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-slate-950 shadow-soft">Synthèse comptable</button>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <button class="rounded-full border border-outline bg-surface px-3 py-1.5 text-text">Exercice 2026</button>
+          <button class="rounded-full border border-outline bg-surface px-3 py-1.5 text-text">Mensuel</button>
+          <button class="rounded-full border border-outline bg-surface px-3 py-1.5 text-text">Mono-société</button>
+          <button class="rounded-full border border-outline bg-surface px-3 py-1.5 text-text">Comparatif N/N-1</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+      <section class="glass-card glass-highlight rounded-3xl p-5 sm:p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <p class="text-[11px] uppercase tracking-[0.24em] text-muted font-label font-semibold">Vue d'ensemble</p>
+            <h2 class="mt-1 text-2xl font-bold text-white">Lecture synthétique du dossier comptable</h2>
+            <p class="mt-2 text-sm text-muted max-w-3xl">Chaque bloc ouvre un chemin de drill-down vers la balance générale, le grand livre puis l'écriture source. Les montants affichés sont cohérents avec le périmètre sélectionné et adossés au statut de preuve.</p>
+          </div>
+          <div class="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3">
+            <p class="text-[11px] uppercase tracking-[0.22em] text-primary font-label font-semibold">Chaîne de lecture</p>
+            <p class="mt-1 text-sm text-white">Synthèse → Balance générale → Grand livre → Écriture</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <article class="glass-card glass-highlight rounded-3xl p-6 relative overflow-hidden">
+          <div class="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-primary/10 blur-3xl"></div>
+          <div class="relative z-10 space-y-5">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-[11px] uppercase tracking-[0.24em] text-primary font-label font-bold">Bilan</p>
+                <h3 class="mt-1 text-lg font-bold text-white">Actif / Passif</h3>
+              </div>
+              <span class="material-symbols-outlined text-primary/80">account_balance</span>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-end justify-between gap-3">
+                <div>
+                  <p class="text-xs text-muted">Actif total</p>
+                  <p class="text-3xl font-black tracking-tight text-white">2,40 M€</p>
+                </div>
+                <span class="rounded-full bg-secondary/12 px-2.5 py-1 text-[11px] font-semibold text-secondary">Équilibré</span>
+              </div>
+              <div class="flex items-end justify-between gap-3">
+                <div>
+                  <p class="text-xs text-muted">Passif total</p>
+                  <p class="text-xl font-bold tracking-tight text-white">2,40 M€</p>
+                </div>
+                <span class="text-xs text-muted">Δ 0,00 €</span>
+              </div>
+            </div>
+            <button class="w-full rounded-2xl border border-outline bg-surface px-4 py-3 text-left text-sm text-text hover:bg-surface-2 transition">Ouvrir le bilan détaillé</button>
+          </div>
+        </article>
+
+        <article class="glass-card glass-highlight rounded-3xl p-6 relative overflow-hidden">
+          <div class="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-secondary/10 blur-3xl"></div>
+          <div class="relative z-10 space-y-5">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-[11px] uppercase tracking-[0.24em] text-secondary font-label font-bold">Compte de résultat</p>
+                <h3 class="mt-1 text-lg font-bold text-white">Produits / Charges</h3>
+              </div>
+              <span class="material-symbols-outlined text-secondary/80">query_stats</span>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-end justify-between gap-3">
+                <div>
+                  <p class="text-xs text-muted">Produits d'exploitation</p>
+                  <p class="text-3xl font-black tracking-tight text-white">1,80 M€</p>
+                </div>
+                <span class="text-xs font-semibold text-secondary">+12,4 % vs N-1</span>
+              </div>
+              <div class="flex items-end justify-between gap-3">
+                <div>
+                  <p class="text-xs text-muted">Résultat estimé période</p>
+                  <p class="text-xl font-bold tracking-tight text-white">324 K€</p>
+                </div>
+                <span class="text-xs text-muted">Marge brute 41 %</span>
+              </div>
+            </div>
+            <button class="w-full rounded-2xl border border-outline bg-surface px-4 py-3 text-left text-sm text-text hover:bg-surface-2 transition">Ouvrir le compte de résultat</button>
+          </div>
+        </article>
+
+        <article class="glass-card glass-highlight rounded-3xl p-6 relative overflow-hidden">
+          <div class="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-tertiary/10 blur-3xl"></div>
+          <div class="relative z-10 space-y-5">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-[11px] uppercase tracking-[0.24em] text-tertiary font-label font-bold">Tiers</p>
+                <h3 class="mt-1 text-lg font-bold text-white">Clients / Fournisseurs</h3>
+              </div>
+              <span class="material-symbols-outlined text-tertiary/80">group</span>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-end justify-between gap-3">
+                <div>
+                  <p class="text-xs text-muted">Encours clients</p>
+                  <p class="text-3xl font-black tracking-tight text-white">184 K€</p>
+                </div>
+                <span class="text-xs text-muted">38 tiers actifs</span>
+              </div>
+              <div class="flex items-end justify-between gap-3">
+                <div>
+                  <p class="text-xs text-muted">Dettes fournisseurs</p>
+                  <p class="text-xl font-bold tracking-tight text-white">96 K€</p>
+                </div>
+                <span class="text-xs text-muted">14 fournisseurs</span>
+              </div>
+            </div>
+            <button class="w-full rounded-2xl border border-outline bg-surface px-4 py-3 text-left text-sm text-text hover:bg-surface-2 transition">Ouvrir la lecture tiers</button>
+          </div>
+        </article>
+
+        <article class="glass-card glass-highlight rounded-3xl p-6 relative overflow-hidden">
+          <div class="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/5 blur-3xl"></div>
+          <div class="relative z-10 space-y-5">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-[11px] uppercase tracking-[0.24em] text-muted font-label font-bold">Balance générale</p>
+                <h3 class="mt-1 text-lg font-bold text-white">Base de lecture</h3>
+              </div>
+              <span class="material-symbols-outlined text-muted">menu_book</span>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-end justify-between gap-3">
+                <div>
+                  <p class="text-xs text-muted">Écritures période</p>
+                  <p class="text-3xl font-black tracking-tight text-white">1 284</p>
+                </div>
+                <span class="text-xs text-muted">312 comptes</span>
+              </div>
+              <div class="flex items-end justify-between gap-3">
+                <div>
+                  <p class="text-xs text-muted">Dernière écriture</p>
+                  <p class="text-xl font-bold tracking-tight text-white">21/03/2026</p>
+                </div>
+                <span class="text-xs text-muted">Journal OD</span>
+              </div>
+            </div>
+            <button class="w-full rounded-2xl border border-outline bg-surface px-4 py-3 text-left text-sm text-text hover:bg-surface-2 transition">Ouvrir la balance générale</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-4">
+        <article class="glass-card glass-highlight rounded-3xl p-6 overflow-hidden">
+          <div class="flex items-start justify-between gap-4 mb-5">
+            <div>
+              <p class="text-[11px] uppercase tracking-[0.24em] text-primary font-label font-bold">Lecture graphique</p>
+              <h3 class="mt-1 text-xl font-bold text-white">Tendance d'activité sur 12 mois</h3>
+              <p class="mt-1 text-sm text-muted">Lecture des produits d'exploitation et du résultat mensuel sur le périmètre sélectionné.</p>
+            </div>
+            <div class="text-right">
+              <p class="text-xs text-muted">Vue</p>
+              <p class="text-sm font-semibold text-white">Jan 2025 → Mars 2026</p>
+            </div>
+          </div>
+
+          <div class="rounded-3xl border border-outline bg-surface p-4">
+            <div class="flex flex-wrap gap-2 mb-4 text-xs">
+              <span class="rounded-full bg-primary/12 px-3 py-1 text-primary font-semibold">Produits</span>
+              <span class="rounded-full bg-secondary/12 px-3 py-1 text-secondary font-semibold">Résultat</span>
+              <span class="rounded-full border border-outline px-3 py-1 text-muted">Base certifiée</span>
+            </div>
+
+            <div class="w-full overflow-x-auto">
+              <svg viewBox="0 0 760 280" class="min-w-[680px] w-full h-auto">
+                <defs>
+                  <linearGradient id="areaProduits" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#7ea8ff" stop-opacity="0.30"></stop>
+                    <stop offset="100%" stop-color="#7ea8ff" stop-opacity="0.02"></stop>
+                  </linearGradient>
+                  <linearGradient id="areaResultat" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#47d7a4" stop-opacity="0.22"></stop>
+                    <stop offset="100%" stop-color="#47d7a4" stop-opacity="0.02"></stop>
+                  </linearGradient>
+                </defs>
+
+                <g stroke="#243556" stroke-width="1">
+                  <line x1="56" y1="36" x2="56" y2="228"></line>
+                  <line x1="56" y1="228" x2="716" y2="228"></line>
+                  <line x1="56" y1="180" x2="716" y2="180" opacity="0.45"></line>
+                  <line x1="56" y1="132" x2="716" y2="132" opacity="0.45"></line>
+                  <line x1="56" y1="84" x2="716" y2="84" opacity="0.45"></line>
+                </g>
+
+                <g fill="#7d8bad" font-size="11" font-family="Inter, sans-serif">
+                  <text x="18" y="232">0</text>
+                  <text x="10" y="184">200k</text>
+                  <text x="10" y="136">400k</text>
+                  <text x="10" y="88">600k</text>
+                </g>
+
+                <path d="M56 172 L116 164 L176 150 L236 142 L296 132 L356 124 L416 118 L476 110 L536 100 L596 92 L656 86 L716 78 L716 228 L56 228 Z" fill="url(#areaProduits)"></path>
+                <path d="M56 214 L116 208 L176 202 L236 196 L296 190 L356 186 L416 180 L476 172 L536 166 L596 160 L656 152 L716 144 L716 228 L56 228 Z" fill="url(#areaResultat)"></path>
+
+                <path d="M56 172 L116 164 L176 150 L236 142 L296 132 L356 124 L416 118 L476 110 L536 100 L596 92 L656 86 L716 78" fill="none" stroke="#7ea8ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M56 214 L116 208 L176 202 L236 196 L296 190 L356 186 L416 180 L476 172 L536 166 L596 160 L656 152 L716 144" fill="none" stroke="#47d7a4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+
+                <g fill="#7ea8ff">
+                  <circle cx="56" cy="172" r="4"></circle>
+                  <circle cx="176" cy="150" r="4"></circle>
+                  <circle cx="296" cy="132" r="4"></circle>
+                  <circle cx="416" cy="118" r="4"></circle>
+                  <circle cx="536" cy="100" r="4"></circle>
+                  <circle cx="716" cy="78" r="5"></circle>
+                </g>
+                <g fill="#47d7a4">
+                  <circle cx="56" cy="214" r="4"></circle>
+                  <circle cx="176" cy="202" r="4"></circle>
+                  <circle cx="296" cy="190" r="4"></circle>
+                  <circle cx="416" cy="180" r="4"></circle>
+                  <circle cx="536" cy="166" r="4"></circle>
+                  <circle cx="716" cy="144" r="5"></circle>
+                </g>
+
+                <g fill="#7d8bad" font-size="11" font-family="Inter, sans-serif">
+                  <text x="48" y="248">Avr</text>
+                  <text x="108" y="248">Mai</text>
+                  <text x="168" y="248">Juin</text>
+                  <text x="228" y="248">Juil</text>
+                  <text x="288" y="248">Aoû</text>
+                  <text x="348" y="248">Sep</text>
+                  <text x="408" y="248">Oct</text>
+                  <text x="468" y="248">Nov</text>
+                  <text x="528" y="248">Déc</text>
+                  <text x="588" y="248">Jan</text>
+                  <text x="648" y="248">Fév</text>
+                  <text x="706" y="248">Mar</text>
+                </g>
+              </svg>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 text-sm">
+              <div class="rounded-2xl bg-surface-2 p-3 border border-outline">
+                <p class="text-xs uppercase tracking-wide text-muted font-label">Produits mars</p>
+                <p class="mt-1 text-white font-semibold">612 K€</p>
+              </div>
+              <div class="rounded-2xl bg-surface-2 p-3 border border-outline">
+                <p class="text-xs uppercase tracking-wide text-muted font-label">Résultat mars</p>
+                <p class="mt-1 text-white font-semibold">248 K€</p>
+              </div>
+              <div class="rounded-2xl bg-surface-2 p-3 border border-outline">
+                <p class="text-xs uppercase tracking-wide text-muted font-label">Variation N/N-1</p>
+                <p class="mt-1 text-secondary font-semibold">+12,4 %</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card glass-highlight rounded-3xl p-6">
+          <div class="flex items-start justify-between gap-4 mb-5">
+            <div>
+              <p class="text-[11px] uppercase tracking-[0.24em] text-tertiary font-label font-bold">Lecture graphique</p>
+              <h3 class="mt-1 text-xl font-bold text-white">Répartition des charges</h3>
+              <p class="mt-1 text-sm text-muted">Vue simplifiée des principales catégories de charges observées sur la période.</p>
+            </div>
+            <span class="rounded-full border border-tertiary/20 bg-tertiary/10 px-3 py-1 text-[11px] font-semibold text-tertiary">Mars 2026</span>
+          </div>
+
+          <div class="rounded-3xl border border-outline bg-surface p-5">
+            <div class="flex flex-col sm:flex-row items-center gap-6">
+              <div class="relative h-44 w-44 shrink-0 rounded-full donut-chart border border-outline/60">
+                <div class="absolute inset-0 flex items-center justify-center z-10">
+                  <div class="text-center">
+                    <p class="text-[11px] uppercase tracking-[0.22em] text-muted font-label">Charges</p>
+                    <p class="mt-1 text-2xl font-black text-white">100 %</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="w-full space-y-3 text-sm">
+                <div class="flex items-center justify-between gap-3 rounded-2xl bg-surface-2 p-3 border border-outline">
+                  <div class="flex items-center gap-3"><span class="h-3 w-3 rounded-full bg-secondary"></span><span class="text-text">Charges de personnel</span></div>
+                  <span class="font-semibold text-white">31,8 %</span>
+                </div>
+                <div class="flex items-center justify-between gap-3 rounded-2xl bg-surface-2 p-3 border border-outline">
+                  <div class="flex items-center gap-3"><span class="h-3 w-3 rounded-full bg-primary"></span><span class="text-text">Achats & sous-traitance</span></div>
+                  <span class="font-semibold text-white">26,4 %</span>
+                </div>
+                <div class="flex items-center justify-between gap-3 rounded-2xl bg-surface-2 p-3 border border-outline">
+                  <div class="flex items-center gap-3"><span class="h-3 w-3 rounded-full bg-tertiary"></span><span class="text-text">Logistique & énergie</span></div>
+                  <span class="font-semibold text-white">14,2 %</span>
+                </div>
+                <div class="flex items-center justify-between gap-3 rounded-2xl bg-surface-2 p-3 border border-outline">
+                  <div class="flex items-center gap-3"><span class="h-3 w-3 rounded-full bg-danger"></span><span class="text-text">Fiscal & taxes</span></div>
+                  <span class="font-semibold text-white">8,7 %</span>
+                </div>
+                <div class="flex items-center justify-between gap-3 rounded-2xl bg-surface-2 p-3 border border-outline">
+                  <div class="flex items-center gap-3"><span class="h-3 w-3 rounded-full bg-slate-600"></span><span class="text-text">Autres charges</span></div>
+                  <span class="font-semibold text-white">18,9 %</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-4">
+        <article class="glass-card glass-highlight rounded-3xl p-6">
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p class="text-[11px] uppercase tracking-[0.24em] text-secondary font-label font-bold">Lecture Diva</p>
+              <h3 class="mt-1 text-xl font-bold text-white">Observation traçable sur la période</h3>
+            </div>
+            <span class="rounded-full border border-secondary/20 bg-secondary/10 px-3 py-1 text-[11px] font-semibold text-secondary">Analyse contrôlée</span>
+          </div>
+          <div class="rounded-2xl border border-outline bg-surface p-5 space-y-4">
+            <p class="text-base leading-7 text-text">
+              Les charges de personnel représentent <strong class="text-white">31,8 %</strong> des produits d'exploitation sur la période. Le ratio reste proche de <strong class="text-white">N-1 (31,1 %)</strong>, sans dérive notable sur les comptes de classe 64.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+              <div class="rounded-2xl bg-surface-2 p-3 border border-outline">
+                <p class="text-xs uppercase tracking-wide text-muted font-label">Sources</p>
+                <p class="mt-1 text-text">BG 64xxx · 42 écritures</p>
+              </div>
+              <div class="rounded-2xl bg-surface-2 p-3 border border-outline">
+                <p class="text-xs uppercase tracking-wide text-muted font-label">Périmètre</p>
+                <p class="mt-1 text-text">Mars 2026 · La Platine</p>
+              </div>
+              <div class="rounded-2xl bg-surface-2 p-3 border border-outline">
+                <p class="text-xs uppercase tracking-wide text-muted font-label">Horodatage</p>
+                <p class="mt-1 text-text">21/03/2026 · 19:04</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button class="rounded-xl border border-outline bg-surface-2 px-3 py-2 text-sm text-text hover:bg-surface-3 transition">Voir les comptes 64</button>
+              <button class="rounded-xl border border-outline bg-surface-2 px-3 py-2 text-sm text-text hover:bg-surface-3 transition">Inclure au rapport</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card glass-highlight rounded-3xl p-6">
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p class="text-[11px] uppercase tracking-[0.24em] text-tertiary font-label font-bold">Statut de preuve</p>
+              <h3 class="mt-1 text-xl font-bold text-white">Intégrité du dossier</h3>
+            </div>
+            <span class="material-symbols-outlined text-tertiary">verified</span>
+          </div>
+          <div class="space-y-3 text-sm">
+            <div class="rounded-2xl border border-outline bg-surface p-4">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted">Snapshot comptable</span>
+                <span class="font-semibold text-secondary">Certifié</span>
+              </div>
+            </div>
+            <div class="rounded-2xl border border-outline bg-surface p-4">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted">Cohérence synthèse ↔ balance</span>
+                <span class="font-semibold text-secondary">Aucun écart</span>
+              </div>
+            </div>
+            <div class="rounded-2xl border border-outline bg-surface p-4">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted">Hash court</span>
+                <span class="font-mono text-text">7F3A-19C2</span>
+              </div>
+            </div>
+            <div class="rounded-2xl border border-outline bg-surface p-4">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted">Chaîne de lecture</span>
+                <span class="font-semibold text-text">Vérifiable</span>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4">
+        <article class="glass-card glass-highlight rounded-3xl p-6">
+          <div class="flex items-center justify-between gap-4 mb-5">
+            <div>
+              <p class="text-[11px] uppercase tracking-[0.24em] text-muted font-label font-bold">Points d'attention</p>
+              <h3 class="mt-1 text-xl font-bold text-white">Faits récents sur la période</h3>
+            </div>
+            <button class="text-sm font-semibold text-primary hover:opacity-80 transition">Voir tout</button>
+          </div>
+          <div class="space-y-3">
+            <div class="rounded-2xl border border-danger/20 bg-danger/5 p-4 flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="h-11 w-11 rounded-2xl bg-danger/10 flex items-center justify-center border border-danger/20">
+                  <span class="material-symbols-outlined text-danger">warning</span>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-white truncate">Écart sur provision fiscale attendue</p>
+                  <p class="text-xs text-muted">À justifier avant clôture mensuelle</p>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="text-sm font-bold text-danger">-12,4 K€</p>
+                <p class="text-[11px] text-muted">Rubrique fiscale</p>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-secondary/20 bg-secondary/5 p-4 flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="h-11 w-11 rounded-2xl bg-secondary/10 flex items-center justify-center border border-secondary/20">
+                  <span class="material-symbols-outlined text-secondary">payments</span>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-white truncate">Règlement client enregistré</p>
+                  <p class="text-xs text-muted">Tiers : EMI · Écriture lettrée ce jour</p>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="text-sm font-bold text-secondary">+4,2 K€</p>
+                <p class="text-[11px] text-muted">Compte 411</p>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-outline bg-surface p-4 flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                  <span class="material-symbols-outlined text-primary">receipt_long</span>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-white truncate">Nouvelle écriture d'OD importée</p>
+                  <p class="text-xs text-muted">Journal OD · pièce OD-2026-0318</p>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="text-sm font-bold text-white">21/03</p>
+                <p class="text-[11px] text-muted">Grand livre</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card glass-highlight rounded-3xl p-6">
+          <div class="flex items-center justify-between gap-4 mb-5">
+            <div>
+              <p class="text-[11px] uppercase tracking-[0.24em] text-primary font-label font-bold">Préparation CODIR</p>
+              <h3 class="mt-1 text-xl font-bold text-white">Export & documentation</h3>
+            </div>
+            <span class="material-symbols-outlined text-primary">description</span>
+          </div>
+          <div class="space-y-3">
+            <div class="rounded-2xl border border-outline bg-surface p-4">
+              <p class="text-sm font-semibold text-white">Rapport de synthèse mensuelle</p>
+              <p class="mt-1 text-xs text-muted">Inclut la vue d'ensemble, la lecture Diva, les tableaux clés et les éléments de preuve.</p>
+            </div>
+            <label class="flex items-center justify-between rounded-2xl border border-outline bg-surface p-4 text-sm">
+              <span class="text-text">Inclure la lecture Diva</span>
+              <input checked class="rounded border-outline bg-surface-2 text-primary focus:ring-primary" type="checkbox" />
+            </label>
+            <label class="flex items-center justify-between rounded-2xl border border-outline bg-surface p-4 text-sm">
+              <span class="text-text">Inclure la balance générale</span>
+              <input checked class="rounded border-outline bg-surface-2 text-primary focus:ring-primary" type="checkbox" />
+            </label>
+            <label class="flex items-center justify-between rounded-2xl border border-outline bg-surface p-4 text-sm">
+              <span class="text-text">Inclure les points d'attention</span>
+              <input checked class="rounded border-outline bg-surface-2 text-primary focus:ring-primary" type="checkbox" />
+            </label>
+            <button class="w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-slate-950 hover:opacity-90 transition">Générer le rapport DOCX</button>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <nav class="fixed bottom-0 inset-x-0 z-50 border-t border-outline/70 bg-background/85 backdrop-blur-xl">
+      <div class="mx-auto max-w-3xl px-3 py-3 grid grid-cols-5 gap-2 text-center text-[11px] font-label uppercase tracking-[0.18em]">
+        <button class="rounded-2xl px-2 py-2 text-muted hover:text-text transition">
+          <span class="material-symbols-outlined block mb-1">space_dashboard</span>
+          Accueil
+        </button>
+        <button class="rounded-2xl px-2 py-2 text-muted hover:text-text transition">
+          <span class="material-symbols-outlined block mb-1">insights</span>
+          Pilotage
+        </button>
+        <button class="rounded-2xl bg-primary/12 px-2 py-2 text-primary border border-primary/20">
+          <span class="material-symbols-outlined block mb-1" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+          Synthèse
+        </button>
+        <button class="rounded-2xl px-2 py-2 text-muted hover:text-text transition">
+          <span class="material-symbols-outlined block mb-1">verified_user</span>
+          Preuve
+        </button>
+        <button class="rounded-2xl px-2 py-2 text-muted hover:text-text transition">
+          <span class="material-symbols-outlined block mb-1">auto_awesome</span>
+          Diva
+        </button>
+      </div>
+    </nav>
+  </div>
+</body>
+</html>

@@ -129,7 +129,8 @@ func (s *PostgresStore) MarkStaleFailed(ctx context.Context, contextHash string)
 func (s *PostgresStore) GetInsight(ctx context.Context, contextKey string) (*Insight, error) {
 	row := s.pool.QueryRow(ctx, `
 		SELECT status, message_text, flash_json, COALESCE(confidence, ''),
-		       created_at, expires_at, COALESCE(error_code, '')
+		       created_at, expires_at, COALESCE(error_code, ''),
+		       COALESCE(latency_ms, 0), COALESCE(facts_version, '')
 		FROM diva_insights
 		WHERE context_key = $1
 		  AND (
@@ -144,7 +145,8 @@ func (s *PostgresStore) GetInsight(ctx context.Context, contextKey string) (*Ins
 	var i Insight
 	var flashJSON []byte
 	err := row.Scan(&i.Status, &i.MessageText, &flashJSON, &i.Confidence,
-		&i.CreatedAt, &i.ExpiresAt, &i.ErrorCode)
+		&i.CreatedAt, &i.ExpiresAt, &i.ErrorCode,
+		&i.LatencyMs, &i.FactsVersion)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrNotFound
@@ -246,6 +248,11 @@ func (g *generateTx) InsertInsight(ctx context.Context, p InsertInsightParams) e
 		ck = p.CardKey
 	}
 
+	var fv interface{}
+	if p.FactsVersion != "" {
+		fv = p.FactsVersion
+	}
+
 	if status == "error" {
 		var errorCode interface{}
 		if p.ErrorCode != "" {
@@ -257,11 +264,11 @@ func (g *generateTx) InsertInsight(ctx context.Context, p InsertInsightParams) e
 		_, err := g.conn.Exec(ctx, `
 			INSERT INTO diva_insights (
 				tenant, company_id, mode, card_key, date_start, date_end,
-				context_key, payload_hash, message_text, flash_json,
+				context_key, payload_hash, facts_version, message_text, flash_json,
 				status, error_code, confidence, model, latency_ms, expires_at, generated_from_runner
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'error', $11, NULL, $12, $13, $14, $15)
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'error', $12, NULL, $13, $14, $15, $16)
 		`, p.Tenant, p.CompanyID, p.Mode, ck, p.DateStart, p.DateEnd,
-			p.ContextKey, p.PayloadHash, p.MessageText, p.FlashJSON,
+			p.ContextKey, p.PayloadHash, fv, p.MessageText, p.FlashJSON,
 			errorCode, p.Model, p.LatencyMs, exp, p.GeneratedFromRunner)
 		return err
 	}
@@ -269,11 +276,11 @@ func (g *generateTx) InsertInsight(ctx context.Context, p InsertInsightParams) e
 	_, err := g.conn.Exec(ctx, `
 		INSERT INTO diva_insights (
 			tenant, company_id, mode, card_key, date_start, date_end,
-			context_key, payload_hash, message_text, flash_json,
+			context_key, payload_hash, facts_version, message_text, flash_json,
 			status, confidence, model, latency_ms, expires_at, generated_from_runner
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'ok', $11, $12, $13, $14, $15)
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'ok', $12, $13, $14, $15, $16)
 	`, p.Tenant, p.CompanyID, p.Mode, ck, p.DateStart, p.DateEnd,
-		p.ContextKey, p.PayloadHash, p.MessageText, p.FlashJSON,
+		p.ContextKey, p.PayloadHash, fv, p.MessageText, p.FlashJSON,
 		p.Confidence, p.Model, p.LatencyMs, exp, p.GeneratedFromRunner)
 	if err != nil {
 		var e *pgconn.PgError
@@ -297,4 +304,27 @@ func (g *generateTx) InsertInsight(ctx context.Context, p InsertInsightParams) e
 		return err
 	}
 	return nil
+}
+
+// RecordActivity upserte la date de dernière consultation pour (tenant, company_id).
+func (s *PostgresStore) RecordActivity(ctx context.Context, tenant string, companyID int) error {
+	_, err := s.pool.Exec(ctx, `
+		INSERT INTO diva_activity (tenant, company_id, last_seen_at)
+		VALUES ($1, $2, now())
+		ON CONFLICT (tenant, company_id) DO UPDATE SET last_seen_at = now()
+	`, tenant, companyID)
+	return err
+}
+
+// GetLastActivity retourne la date de dernière consultation pour (tenant, company_id).
+// Retourne time.Time{} (zéro) si aucune activité enregistrée.
+func (s *PostgresStore) GetLastActivity(ctx context.Context, tenant string, companyID int) (time.Time, error) {
+	var t time.Time
+	err := s.pool.QueryRow(ctx, `
+		SELECT last_seen_at FROM diva_activity WHERE tenant = $1 AND company_id = $2
+	`, tenant, companyID).Scan(&t)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return time.Time{}, nil
+	}
+	return t, err
 }

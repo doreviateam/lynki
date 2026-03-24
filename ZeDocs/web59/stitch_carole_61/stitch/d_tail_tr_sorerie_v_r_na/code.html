@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lynki - Détail Trésorerie</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary": "#515f74",
+              "inverse-surface": "#213145",
+              "inverse-primary": "#bec6e0",
+              "surface-variant": "#d3e4fe",
+              "on-tertiary-fixed": "#002114",
+              "inverse-on-surface": "#eaf1ff",
+              "on-tertiary-fixed-variant": "#005137",
+              "outline": "#76777d",
+              "on-primary-fixed-variant": "#3f465c",
+              "on-secondary": "#ffffff",
+              "on-secondary-fixed": "#0d1c2f",
+              "surface-tint": "#565e74",
+              "on-error": "#ffffff",
+              "surface-bright": "#f8f9ff",
+              "primary-fixed-dim": "#bec6e0",
+              "primary-container": "#131b2e",
+              "error-container": "#ffdad6",
+              "tertiary-fixed": "#85f8c4",
+              "on-error-container": "#93000a",
+              "surface-container-lowest": "#ffffff",
+              "tertiary-container": "#002114",
+              "on-background": "#0b1c30",
+              "secondary-container": "#d5e3fd",
+              "primary-fixed": "#dae2fd",
+              "on-tertiary-container": "#069669",
+              "secondary-fixed-dim": "#b9c7e0",
+              "surface": "#f8f9ff",
+              "on-secondary-fixed-variant": "#3a485c",
+              "surface-dim": "#cbdbf5",
+              "tertiary-fixed-dim": "#68dba9",
+              "on-surface-variant": "#45464d",
+              "outline-variant": "#c6c6cd",
+              "error": "#ba1a1a",
+              "on-primary": "#ffffff",
+              "primary": "#000000",
+              "secondary-fixed": "#d5e3fd",
+              "on-secondary-container": "#57657b",
+              "surface-container-low": "#eff4ff",
+              "on-tertiary": "#ffffff",
+              "surface-container": "#e5eeff",
+              "on-tertiary-container": "#069669",
+              "background": "#f8f9ff",
+              "surface-container-high": "#dce9ff",
+              "on-primary-container": "#7c839b",
+              "on-surface": "#0b1c30",
+              "on-primary-fixed": "#131b2e"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- Sidebar Navigation (JSON Anchor) -->
+<aside class="hidden lg:flex flex-col fixed left-0 top-0 h-full py-6 px-4 h-screen w-64 border-r border-slate-200 bg-slate-50 z-40">
+<div class="mb-10 px-4">
+<h1 class="text-lg font-black tracking-tighter text-[#0F172A]">Lynki</h1>
+<p class="text-[10px] uppercase tracking-widest text-secondary font-bold">Sobriété Premium</p>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="flex items-center gap-3 text-slate-600 px-4 py-2 hover:bg-slate-200 transition-colors duration-150 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-medium text-sm">Dashboard</span>
+</div>
+<!-- Active State: Trésorerie -->
+<div class="flex items-center gap-3 bg-white text-[#0F172A] rounded-md px-4 py-2 shadow-sm transition-colors duration-150 cursor-pointer">
+<span class="material-symbols-outlined text-[#059669]" data-icon="account_balance" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+<span class="font-semibold text-sm">Trésorerie</span>
+</div>
+<div class="flex items-center gap-3 text-slate-600 px-4 py-2 hover:bg-slate-200 transition-colors duration-150 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-medium text-sm">Reporting</span>
+</div>
+<div class="flex items-center gap-3 text-slate-600 px-4 py-2 hover:bg-slate-200 transition-colors duration-150 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-medium text-sm">Comptabilité</span>
+</div>
+<div class="flex items-center gap-3 text-slate-600 px-4 py-2 hover:bg-slate-200 transition-colors duration-150 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-medium text-sm">Paramètres</span>
+</div>
+</nav>
+<div class="mt-auto px-4 py-4 border-t border-slate-200 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold">V</div>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-on-surface">Véréna (RAF)</span>
+<span class="text-[10px] text-secondary">Accès Administrateur</span>
+</div>
+</div>
+</aside>
+<!-- Top Navigation (JSON Anchor) -->
+<header class="fixed top-0 w-full border-b border-slate-200 bg-white flex justify-between items-center px-6 h-16 z-30 lg:pl-72">
+<div class="flex items-center gap-6">
+<span class="hidden lg:block text-slate-400 text-sm">Finances &gt; <span class="text-on-surface font-semibold">Trésorerie</span></span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-slate-50 transition-all active:opacity-70">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-50 transition-all active:opacity-70">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="h-8 w-[1px] bg-slate-200 mx-2"></div>
+<div class="flex items-center gap-2">
+<img alt="Véréna (RAF) Profile" class="w-8 h-8 rounded-full object-cover" data-alt="Professional headshot of a female executive in a minimalist studio setting, soft lighting, neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAy7Bmxz-4oeGbuxYOwQsKZa_FBwtIsEM39PAL4ZmK2OdXvlV-OqGRItlbxf2JMa9ciMs4bI__DgIEv2H2htdfk549-gmkFNrh2O0-swO2hRPmscCc_dxgdWW7e_gJdA7Dz7SiERTWj9BjTz0dXBQJFDd3X_Xueta6xcdIytT1YwY5Il6LyrMnMv1BgjG7RI-lZTabulsqNTI5xz_mRioam3OPO5qKaVLw7iUrUVGcwDLSDNLvNBpkMEXr7QN0_XxuH5kDad4K2eCej"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="pt-24 pb-12 lg:pl-72 px-6 max-w-[1600px] mx-auto">
+<!-- Section 1: Header & Reliability -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+<div>
+<h2 class="text-3xl font-extrabold text-primary tracking-tight">Détail Trésorerie</h2>
+<div class="flex items-center gap-3 mt-2">
+<div class="flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm font-medium text-secondary">
+<span class="material-symbols-outlined text-xs" data-icon="calendar_today">calendar_today</span>
+                        Mai 2024
+                    </div>
+<div class="flex items-center gap-1.5 px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed rounded-lg text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+                        Fiable / Confirmée
+                    </div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="download">download</span>
+                    Exporter Relevés
+                </button>
+<button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold flex items-center gap-2 shadow-sm hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+                    Nouveau Placement
+                </button>
+</div>
+</div>
+<!-- Section 2: Top KPIs (Bento Grid Inspired) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-6xl" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<p class="text-sm font-medium text-secondary mb-1">Solde Bancaire Actuel</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-3xl font-black text-primary">1.428.500 €</h3>
+<span class="text-on-tertiary-container text-sm font-bold flex items-center">
+<span class="material-symbols-outlined text-xs" data-icon="trending_up">trending_up</span>
+                        +4.2%
+                    </span>
+</div>
+<p class="text-xs text-secondary mt-1 italic">vs. mois dernier</p>
+</div>
+<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm col-span-1 md:col-span-2">
+<div class="flex justify-between items-start mb-4">
+<p class="text-sm font-medium text-secondary">Répartition Disponibilités vs Placements</p>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-tighter">Liquidité 100%</span>
+</div>
+<div class="flex h-3 w-full bg-slate-100 rounded-full overflow-hidden mb-4">
+<div class="h-full bg-primary-container" style="width: 65%;"></div>
+<div class="h-full bg-on-tertiary-container" style="width: 35%;"></div>
+</div>
+<div class="flex gap-6">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary-container"></div>
+<div>
+<p class="text-xs font-bold text-primary">928.525 €</p>
+<p class="text-[10px] text-secondary uppercase">Disponible (65%)</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-on-tertiary-container"></div>
+<div>
+<p class="text-xs font-bold text-primary">499.975 €</p>
+<p class="text-[10px] text-secondary uppercase">Placements (35%)</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 3 & 4: Chart & Trust Chain -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+<!-- Chart Section -->
+<div class="lg:col-span-3 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+<div class="flex justify-between items-center mb-6">
+<h4 class="font-bold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" data-icon="show_chart">show_chart</span>
+                        Évolution de la Liquidité
+                    </h4>
+<div class="flex bg-slate-100 p-1 rounded-lg">
+<button class="px-3 py-1 text-xs font-bold bg-white shadow-sm rounded-md text-primary">Journalier</button>
+<button class="px-3 py-1 text-xs font-bold text-secondary hover:text-primary transition-colors">Hebdomadaire</button>
+</div>
+</div>
+<div class="h-64 flex items-end justify-between gap-1">
+<!-- Fake Chart Bars -->
+<div class="flex-1 bg-slate-50 h-2/3 rounded-t-sm relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/20 h-full"></div>
+<div class="absolute bottom-0 w-full bg-primary h-1/2 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div class="flex-1 bg-slate-50 h-3/4 rounded-t-sm relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/20 h-full"></div>
+<div class="absolute bottom-0 w-full bg-primary h-3/5 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div class="flex-1 bg-slate-50 h-1/2 rounded-t-sm relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/20 h-full"></div>
+<div class="absolute bottom-0 w-full bg-primary h-1/3 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div class="flex-1 bg-slate-50 h-4/5 rounded-t-sm relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/20 h-full"></div>
+<div class="absolute bottom-0 w-full bg-primary h-2/3 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div class="flex-1 bg-slate-50 h-5/6 rounded-t-sm relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/20 h-full"></div>
+<div class="absolute bottom-0 w-full bg-primary h-3/4 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div class="flex-1 bg-slate-50 h-full rounded-t-sm relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/20 h-full"></div>
+<div class="absolute bottom-0 w-full bg-primary h-4/5 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div class="flex-1 bg-slate-50 h-4/5 rounded-t-sm relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/20 h-full"></div>
+<div class="absolute bottom-0 w-full bg-primary h-2/3 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+</div>
+<div class="flex justify-between mt-4 text-[10px] text-secondary font-bold uppercase tracking-widest px-1">
+<span>01 Mai</span>
+<span>10 Mai</span>
+<span>20 Mai</span>
+<span>Aujourd'hui</span>
+</div>
+</div>
+<!-- Reliability Sidebar -->
+<div class="lg:col-span-1 bg-primary-container text-white p-6 rounded-xl shadow-lg flex flex-col justify-between">
+<div>
+<h4 class="text-sm font-bold opacity-60 uppercase tracking-widest mb-6">Chaîne de Confiance</h4>
+<div class="space-y-6">
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded-full bg-on-tertiary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-sm" data-icon="cloud_done">cloud_done</span>
+</div>
+<div>
+<p class="text-xs font-bold">Connexions Bancaires</p>
+<p class="text-[10px] text-on-primary-container">Statut : Actif (Toutes)</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm" data-icon="update">update</span>
+</div>
+<div>
+<p class="text-xs font-bold">Dernière Sync</p>
+<p class="text-[10px] text-on-primary-container">Aujourd'hui, 09:42</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm" data-icon="check_circle">check_circle</span>
+</div>
+<div>
+<p class="text-xs font-bold">Rapprochement</p>
+<p class="text-[10px] text-on-primary-container">98% des flux validés</p>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-bold border border-white/20 transition-all">
+                    Lancer Audit Manuel
+                </button>
+</div>
+</div>
+<!-- Section 5: Analytical Table -->
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm mb-8 overflow-hidden">
+<div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+<h4 class="font-bold text-primary">Comptes et Établissements</h4>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-sm" data-icon="search">search</span>
+<input class="pl-9 pr-4 py-1.5 bg-slate-50 border-none rounded-lg text-xs focus:ring-1 focus:ring-primary-container w-48" placeholder="Filtrer..." type="text"/>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 text-[10px] uppercase tracking-widest text-secondary font-bold">
+<th class="px-6 py-3">Établissement</th>
+<th class="px-6 py-3">N° de compte</th>
+<th class="px-6 py-3">Statut</th>
+<th class="px-6 py-3 text-right">Solde</th>
+<th class="px-6 py-3 text-right">Dernière MAJ</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100">
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center font-bold text-[10px] text-primary">BNP</div>
+<span class="text-sm font-semibold text-primary">BNP Paribas</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-mono text-secondary">FR76 3000...4582</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold">Synchronisé</span>
+</td>
+<td class="px-6 py-4 text-sm font-bold text-right">842.100 €</td>
+<td class="px-6 py-4 text-xs text-secondary text-right">Aujourd'hui 09:41</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center font-bold text-[10px] text-primary">QN</div>
+<span class="text-sm font-semibold text-primary">Qonto</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-mono text-secondary">FR76 1614...9921</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[10px] font-bold">Action Requise</span>
+</td>
+<td class="px-6 py-4 text-sm font-bold text-right">186.400 €</td>
+<td class="px-6 py-4 text-xs text-secondary text-right">Hier 18:22</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center font-bold text-[10px] text-primary">SG</div>
+<span class="text-sm font-semibold text-primary">Société Générale</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-mono text-secondary">FR76 1000...0042</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold">Synchronisé</span>
+</td>
+<td class="px-6 py-4 text-sm font-bold text-right">400.000 €</td>
+<td class="px-6 py-4 text-xs text-secondary text-right">Aujourd'hui 09:38</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Section 6: Actionable Insights -->
+<div class="bg-surface-container-low border border-slate-200 p-6 rounded-xl flex flex-col md:flex-row gap-6 items-center">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-white shrink-0">
+<span class="material-symbols-outlined" data-icon="lightbulb">lightbulb</span>
+</div>
+<div class="flex-1">
+<h5 class="text-sm font-bold text-primary mb-1">Analyse du Mois : Croissance Durable</h5>
+<p class="text-xs text-secondary leading-relaxed">
+                    La hausse de 4.2% ce mois-ci est principalement portée par le règlement anticipé de trois comptes clés (Projet Alpha, Client Beta). Votre niveau de liquidité actuel permet d'envisager un placement à court terme (3-6 mois) sur 200k€ pour optimiser vos intérêts.
+                </p>
+</div>
+<div class="shrink-0 flex gap-2">
+<button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:opacity-90 transition-opacity">
+                    Simuler Placement
+                </button>
+</div>
+</div>
+</main>
+<!-- Bottom Nav for Mobile (JSON Anchor Logic) -->
+<div class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 flex justify-around items-center h-16 px-4 z-50">
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined text-xl" data-icon="dashboard">dashboard</span>
+<span class="text-[10px] font-medium">Board</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-[#0F172A]">
+<span class="material-symbols-outlined text-xl" data-icon="account_balance" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+<span class="text-[10px] font-bold">Trésorerie</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined text-xl" data-icon="analytics">analytics</span>
+<span class="text-[10px] font-medium">Report</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined text-xl" data-icon="settings">settings</span>
+<span class="text-[10px] font-medium">Param.</span>
+</button>
+</div>
+</body></html>

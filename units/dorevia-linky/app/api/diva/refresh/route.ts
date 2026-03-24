@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { DashboardMetricsResponse, KpiMetric } from "@/app/api/dashboard-metrics/route";
 
-const DIVA_URL = process.env.DIVA_URL || "http://diva:8010";
+const VAULT_URL = process.env.VAULT_URL || "http://localhost:8080";
 const DEFAULT_TENANT = process.env.TENANT_ID || "core";
 const REFRESH_TIMEOUT_MS = parseInt(process.env.DIVA_REFRESH_TIMEOUT_MS || "120000", 10); // 120s — Mistral peut prendre 30–60 s
 
@@ -125,10 +125,10 @@ export async function POST(request: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REFRESH_TIMEOUT_MS);
 
-    const base = DIVA_URL.replace(/\/$/, "");
-    const res = await fetch(`${base}/diva/generate`, {
+    const base = VAULT_URL.replace(/\/$/, "");
+    const res = await fetch(`${base}/ui/diva/generate`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Tenant": context.tenant ?? DEFAULT_TENANT },
       body: JSON.stringify(divaBody),
       signal: controller.signal,
     });

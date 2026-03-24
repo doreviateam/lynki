@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lynki - Alertes &amp; Signaux Max</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-fixed": "#131b2e",
+              "inverse-primary": "#bec6e0",
+              "secondary-fixed-dim": "#b9c7e0",
+              "secondary-container": "#d5e3fd",
+              "on-secondary-fixed": "#0d1c2f",
+              "on-secondary": "#ffffff",
+              "primary": "#000000",
+              "outline-variant": "#c6c6cd",
+              "inverse-on-surface": "#eaf1ff",
+              "surface-bright": "#f8f9ff",
+              "tertiary": "#000000",
+              "tertiary-fixed": "#85f8c4",
+              "surface-variant": "#d3e4fe",
+              "on-primary": "#ffffff",
+              "tertiary-fixed-dim": "#68dba9",
+              "on-secondary-fixed-variant": "#3a485c",
+              "surface": "#f8f9ff",
+              "on-surface-variant": "#45464d",
+              "background": "#f8f9ff",
+              "on-tertiary-fixed": "#002114",
+              "on-tertiary": "#ffffff",
+              "on-primary-container": "#7c839b",
+              "surface-dim": "#cbdbf5",
+              "surface-container": "#e5eeff",
+              "error-container": "#ffdad6",
+              "tertiary-container": "#002114",
+              "surface-container-high": "#dce9ff",
+              "inverse-surface": "#213145",
+              "on-secondary-container": "#57657b",
+              "surface-container-low": "#eff4ff",
+              "on-error-container": "#93000a",
+              "primary-fixed-dim": "#bec6e0",
+              "on-tertiary-container": "#069669",
+              "on-error": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-highest": "#d3e4fe",
+              "outline": "#76777d",
+              "secondary-fixed": "#d5e3fd",
+              "primary-container": "#131b2e",
+              "on-background": "#0b1c30",
+              "secondary": "#515f74",
+              "error": "#ba1a1a",
+              "surface-tint": "#565e74",
+              "on-primary-fixed-variant": "#3f465c",
+              "primary-fixed": "#dae2fd",
+              "on-tertiary-fixed-variant": "#005137",
+              "on-surface": "#0b1c30"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full border-b bg-slate-50 border-slate-200 z-50 flex justify-between items-center px-4 h-14 w-full">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="CEO Profile Picture" class="w-full h-full object-cover" data-alt="professional portrait of a confident executive in a tailored suit against a soft blurred office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRQfY3L6qSBCWVxG1_mnyMgpNu45PLt7RsOKu3JsQyj8EcBkc6163ECt3chygk6wQP4KVx2Ko-KW3tiWbFdK9kEEvgD7YGMCq5sj2FNi63IsNCAawY5IGa6pAt6QJlGoaTvM-Uxv7y5zxAl39CuwNll6G3ZIW35PniCUE7rY-1LH72bW5oj-dPyr2eWmNoHJdvhn-yTPTUp7gxsdLnMhbtC5doODwaFBIW-eb_59f-oclkdP2Qc0eL3BCaJPv8MHiUMAPV5yl7jJcM"/>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900">Lynki</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-900 active:scale-95 duration-150 hover:bg-slate-100 p-1 rounded transition-colors" data-icon="sync">sync</button>
+</div>
+</header>
+<main class="pt-20 px-4 max-w-5xl mx-auto space-y-6">
+<!-- Dashboard Summary / Quick Stats -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-3">
+<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between">
+<span class="text-error font-bold text-2xl">4</span>
+<span class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Critiques (Ruby)</span>
+</div>
+<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between">
+<span class="text-orange-600 font-bold text-2xl">12</span>
+<span class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Anomalies (Orange)</span>
+</div>
+<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between">
+<span class="text-amber-600 font-bold text-2xl">28</span>
+<span class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Vigilance (Amber)</span>
+</div>
+<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between">
+<span class="text-blue-600 font-bold text-2xl">89%</span>
+<span class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Score Santé Data</span>
+</div>
+</section>
+<!-- Vigilance Center Headline -->
+<div class="flex items-end justify-between">
+<div>
+<h2 class="text-2xl font-extrabold text-slate-900">Centre d'arbitrage</h2>
+<p class="text-sm text-slate-500">Signaux détectés en temps réel • Aujourd'hui</p>
+</div>
+<div class="bg-white border border-slate-200 rounded-lg p-1 flex gap-1">
+<button class="px-3 py-1 text-xs font-semibold bg-slate-900 text-white rounded">Tout</button>
+<button class="px-3 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-50">Métier</button>
+<button class="px-3 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-50">Data</button>
+</div>
+</div>
+<!-- Alert Feed -->
+<div class="space-y-4">
+<!-- ALERTE MÉTIER (RUBY) -->
+<div class="bg-white border-l-4 border-error rounded-xl shadow-sm overflow-hidden border border-slate-200">
+<div class="p-4 flex flex-col md:flex-row md:items-start gap-4">
+<div class="flex-shrink-0 w-12 h-12 rounded-lg bg-error/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="flex-grow space-y-2">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] font-bold text-error uppercase tracking-widest">Alerte Métier (Ruby)</span>
+<h3 class="text-base font-bold text-slate-900">Rupture de Stock Imminente - SKU #8829</h3>
+</div>
+<div class="text-right">
+<span class="text-lg font-extrabold text-slate-900">-42 000€</span>
+<p class="text-[10px] text-slate-400">Impact Fin. Estimé</p>
+</div>
+</div>
+<p class="text-sm text-slate-600 leading-relaxed">Le rythme de vente sur la zone EMEA dépasse les prévisions de 40%. Stock épuisé sous 72h si aucune action de réassort prioritaire.</p>
+<div class="flex flex-wrap items-center gap-3 pt-2">
+<div class="flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded text-[11px] font-medium text-slate-600">
+<span class="material-symbols-outlined text-xs">database</span>
+                                Source : ERP SAP
+                            </div>
+<div class="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-[11px] font-medium">
+<span class="material-symbols-outlined text-xs">verified</span>
+                                Confiance : Haute (98%)
+                            </div>
+</div>
+<!-- Mini Trend Breakdown -->
+<div class="h-12 w-full mt-4 flex items-end gap-1">
+<div class="bg-slate-200 w-full h-1/4 rounded-t-sm"></div>
+<div class="bg-slate-200 w-full h-1/3 rounded-t-sm"></div>
+<div class="bg-slate-200 w-full h-1/2 rounded-t-sm"></div>
+<div class="bg-slate-300 w-full h-2/3 rounded-t-sm"></div>
+<div class="bg-error w-full h-full rounded-t-sm"></div>
+<div class="bg-error w-full h-5/6 rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<div class="bg-slate-50 p-3 border-t border-slate-100 flex justify-end gap-2">
+<button class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">Ignorer</button>
+<button class="px-4 py-2 text-xs font-bold bg-error text-white rounded-lg shadow-sm hover:opacity-90 active:scale-95 transition-all">Notifier Véréna</button>
+</div>
+</div>
+<!-- ANOMALIE DE DONNÉE (ORANGE) -->
+<div class="bg-white border-l-4 border-orange-500 rounded-xl shadow-sm overflow-hidden border border-slate-200">
+<div class="p-4 flex flex-col md:flex-row md:items-start gap-4">
+<div class="flex-shrink-0 w-12 h-12 rounded-lg bg-orange-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-orange-600">data_exploration</span>
+</div>
+<div class="flex-grow space-y-2">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] font-bold text-orange-600 uppercase tracking-widest">Anomalie de Donnée (Orange)</span>
+<h3 class="text-base font-bold text-slate-900">Drift sur Marges Opérationnelles</h3>
+</div>
+<div class="text-right">
+<span class="text-lg font-extrabold text-slate-900">+/- 1.2%</span>
+<p class="text-[10px] text-slate-400">Écart Statistique</p>
+</div>
+</div>
+<p class="text-sm text-slate-600 leading-relaxed">Détection d'une incohérence entre les factures logistiques et les écritures comptables sur le hub Lyon-Sud.</p>
+<div class="flex flex-wrap items-center gap-3 pt-2">
+<div class="flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded text-[11px] font-medium text-slate-600">
+<span class="material-symbols-outlined text-xs">hub</span>
+                                Source : Data Warehouse Snowflake
+                            </div>
+<div class="flex items-center gap-1.5 px-2 py-1 bg-amber-50 text-amber-700 rounded text-[11px] font-medium">
+<span class="material-symbols-outlined text-xs">info</span>
+                                Confiance : Moyenne (72%)
+                            </div>
+</div>
+</div>
+</div>
+<div class="bg-slate-50 p-3 border-t border-slate-100 flex justify-end gap-2">
+<button class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">Investiguer</button>
+<button class="px-4 py-2 text-xs font-bold bg-orange-600 text-white rounded-lg shadow-sm hover:opacity-90 active:scale-95 transition-all">Notifier Data Ops</button>
+</div>
+</div>
+<!-- VIGILANCE (AMBER) -->
+<div class="bg-white border-l-4 border-amber-400 rounded-xl shadow-sm overflow-hidden border border-slate-200">
+<div class="p-4 flex flex-col md:flex-row md:items-start gap-4">
+<div class="flex-shrink-0 w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-amber-600">visibility</span>
+</div>
+<div class="flex-grow space-y-2">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Vigilance (Amber)</span>
+<h3 class="text-base font-bold text-slate-900">Ralentissement Cycle de Règlement Client</h3>
+</div>
+<div class="text-right">
+<span class="text-lg font-extrabold text-slate-900">+4.5 Jours</span>
+<p class="text-[10px] text-slate-400">Trend DSO</p>
+</div>
+</div>
+<p class="text-sm text-slate-600 leading-relaxed">Observation d'une dérive de 4.5 jours sur les délais de paiement moyens du Top 20 clients.</p>
+<div class="flex flex-wrap items-center gap-3 pt-2">
+<div class="flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded text-[11px] font-medium text-slate-600">
+<span class="material-symbols-outlined text-xs">receipt_long</span>
+                                Source : Module Credit Management
+                            </div>
+</div>
+</div>
+</div>
+<div class="bg-slate-50 p-3 border-t border-slate-100 flex justify-end gap-2">
+<button class="px-4 py-2 text-xs font-bold bg-amber-500 text-white rounded-lg shadow-sm hover:opacity-90 active:scale-95 transition-all">Générer Rapport</button>
+</div>
+</div>
+<!-- SUIVI (BLUE) -->
+<div class="bg-white border-l-4 border-blue-500 rounded-xl shadow-sm overflow-hidden border border-slate-200 opacity-80">
+<div class="p-4 flex flex-col md:flex-row md:items-start gap-4">
+<div class="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-blue-600">checklist</span>
+</div>
+<div class="flex-grow space-y-2">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Suivi (Blue/Slate)</span>
+<h3 class="text-base font-bold text-slate-900">Déploiement Majoration Tarifaire Q4</h3>
+</div>
+<div class="text-right">
+<span class="text-lg font-extrabold text-slate-900">85%</span>
+<p class="text-[10px] text-slate-400">Progression</p>
+</div>
+</div>
+<p class="text-sm text-slate-600 leading-relaxed">Les nouveaux tarifs sont appliqués sur 85% du catalogue. En attente de validation pour la gamme 'Héritage'.</p>
+</div>
+</div>
+<div class="bg-slate-50 p-3 border-t border-slate-100 flex justify-end gap-2">
+<button class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">Détails</button>
+</div>
+</div>
+</div>
+<!-- Asymmetric Bento Section for Insights -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="md:col-span-2 bg-slate-900 rounded-2xl p-6 text-white overflow-hidden relative group">
+<div class="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
+<h4 class="text-sm font-bold text-emerald-400 mb-2">Recommandation Stratégique</h4>
+<p class="text-xl font-semibold leading-snug">Lynki suggère de geler les approvisionnements non-critiques pour compenser le coût de la rupture SKU #8829.</p>
+<div class="mt-6 flex items-center gap-4">
+<button class="px-4 py-2 bg-emerald-500 text-slate-900 text-xs font-extrabold rounded-lg">Appliquer l'arbitrage</button>
+<span class="text-[10px] text-slate-400">Impact Cash-flow: +120k€</span>
+</div>
+</div>
+<div class="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center">
+<div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-slate-400 text-3xl">psychology</span>
+</div>
+<h4 class="text-sm font-bold text-slate-900">IA Vigilance</h4>
+<p class="text-[11px] text-slate-500 mt-1 italic">"Aucune corrélation trouvée entre l'anomalie Snowflake et les retards de paiements."</p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full h-16 z-50 flex justify-around items-center px-6 pb-safe bg-white border-t border-slate-200 shadow-[0_-1px_3px_0_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center justify-center text-slate-500 active:opacity-80 transition-all" href="#">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="text-[11px] font-medium tracking-wide">Pilotage</span>
+</a>
+<a class="flex flex-col items-center justify-center text-emerald-600 bg-emerald-50/50 rounded-xl px-3 py-1 active:opacity-80 transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">notifications</span>
+<span class="text-[11px] font-medium tracking-wide">Alertes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 active:opacity-80 transition-all" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-[11px] font-medium tracking-wide">Synthèse</span>
+</a>
+</nav>
+</body></html>

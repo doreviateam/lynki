@@ -8,14 +8,20 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: dorevia/diva:governance-2026-03-03
+    image: dorevia/diva:prompt-compact-2026-03-17
     container_name: diva
     environment:
       MISTRAL_BASE_URL: ${MISTRAL_BASE_URL:-http://mistral-llamacpp:8000/v1}
       DIVA_PORT: ${DIVA_PORT:-8010}
       CACHE_TTL_SECONDS: ${CACHE_TTL_SECONDS:-300}
+      # TTL insight en base : durée pendant laquelle un insight identique (même payload_hash) n'est pas régénéré.
+      # Aligné sur Section 9 comportement_insight_Lynki_Diva.md : "fraîcheur maximale" = 30 min.
+      # En dessous, Mistral n'est pas rappelé si les données n'ont pas changé (BEH-01/04).
+      INSIGHTS_TTL_MINUTES: ${INSIGHTS_TTL_MINUTES:-30}
       # Optionnel : store persistant (Postgres Vault). Si vide → fallback mémoire.
       DIVA_DATABASE_URL: ${DIVA_DATABASE_URL:-}
+      # Optionnel : URL Vault pour archivage FactsPack (T81). Si vide → archivage désactivé.
+      VAULT_URL: ${VAULT_URL:-}
     networks:
       - dorevia-network
     restart: unless-stopped
@@ -35,13 +41,17 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: dorevia/diva:governance-2026-03-03
+    image: dorevia/diva:prompt-compact-2026-03-17
     container_name: diva-runner
     command: ["/app/diva-runner"]
     environment:
       RUNNER_ENABLED: ${RUNNER_ENABLED:-true}
       RUNNER_MODE: ${RUNNER_MODE:-loop}
       RUNNER_INTERVAL_SECONDS: ${RUNNER_INTERVAL_SECONDS:-120}
+      RUNNER_MIN_INTERVAL_SECONDS: ${RUNNER_MIN_INTERVAL_SECONDS:-60}
+      RUNNER_MAX_INTERVAL_SECONDS: ${RUNNER_MAX_INTERVAL_SECONDS:-300}
+      # Garde d'inactivité : skip Mistral si pas de consultation cockpit depuis X secondes (0 = désactivé)
+      RUNNER_IDLE_THRESHOLD_SECONDS: ${RUNNER_IDLE_THRESHOLD_SECONDS:-1800}
       RUNNER_CONCURRENCY: ${RUNNER_CONCURRENCY:-1}
       RUNNER_TENANT_CONFIG: ${RUNNER_TENANT_CONFIG:-}
       RUNNER_TENANTS: ${RUNNER_TENANTS:-}

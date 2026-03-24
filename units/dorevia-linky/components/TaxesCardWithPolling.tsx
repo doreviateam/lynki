@@ -32,6 +32,7 @@ interface TaxesCardWithPollingProps {
   footer?: React.ReactNode;
   cardId?: import("@/app/types/linky-tiles").CardId;
   onNavigateToCard?: (cardId: import("@/app/types/linky-tiles").CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function TaxesCardWithPolling({
@@ -47,6 +48,7 @@ export function TaxesCardWithPolling({
   footer,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: TaxesCardWithPollingProps) {
   const [salesData, setSalesData] = useState<SalesAggregation | null>(initialSalesData);
   const [purchasesData, setPurchasesData] = useState<PurchasesAggregation | null>(initialPurchasesData);
@@ -148,6 +150,7 @@ export function TaxesCardWithPolling({
       footer={footer}
       cardId={cardId}
       onNavigateToCard={onNavigateToCard}
+      onBackToCockpit={onBackToCockpit}
     />
   );
 }

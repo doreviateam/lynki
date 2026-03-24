@@ -17,9 +17,28 @@ interface EnrichedCompanyItem extends VaultCompanyItem {
   display_name?: string;
 }
 
+/** Résout le libellé : flat { "odoo:1": "X" } ou par tenant { "laplatine2026": { "odoo:1": "X" } }. */
+function getDisplayNames(
+  raw: string | undefined,
+  tenant: string
+): Record<string, string> {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    if (!parsed || typeof parsed !== "object") return {};
+    const byTenant = parsed[tenant];
+    if (byTenant && typeof byTenant === "object" && !Array.isArray(byTenant)) {
+      return byTenant as Record<string, string>;
+    }
+    return parsed as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
 /**
  * GET /api/companies — proxy vers Vault GET /ui/companies avec enrichissement display_name
- * depuis COMPANY_DISPLAY_NAMES (env JSON {"company_id": "Libellé"}).
+ * depuis COMPANY_DISPLAY_NAMES (env JSON : flat {"company_id": "Libellé"} ou par tenant {"tenant_id": {"company_id": "Libellé"}}).
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -57,15 +76,7 @@ export async function GET(request: NextRequest) {
     }
     // Si Vault erre ou renvoie vide, on continue pour appliquer le fallback manifest
 
-    let displayNames: Record<string, string> = {};
-    try {
-      const raw = process.env.COMPANY_DISPLAY_NAMES;
-      if (raw) {
-        displayNames = (JSON.parse(raw) as Record<string, string>) || {};
-      }
-    } catch {
-      // Ignorer si JSON invalide
-    }
+    const displayNames = getDisplayNames(process.env.COMPANY_DISPLAY_NAMES, tenant);
 
     // Enrichir les sociétés Vault avec display_name (manifest)
     // Exclure odoo:0 (placeholder/test) pour éviter l'auto-sélection par défaut
@@ -81,7 +92,11 @@ export async function GET(request: NextRequest) {
     // Ajouter les entreprises du manifest manquantes (toujours afficher toutes celles du tenant)
     for (const [company_id, display_name] of Object.entries(displayNames)) {
       if (!byId.has(company_id)) {
-        byId.set(company_id, { company_id, documents_count: 0, display_name });
+        byId.set(company_id, {
+          company_id,
+          documents_count: 0,
+          display_name: display_name || company_id,
+        });
       }
     }
 
@@ -93,17 +108,11 @@ export async function GET(request: NextRequest) {
   } catch {
     clearTimeout(timeoutId);
     // Fallback : utiliser les entreprises du manifest quand Vault indisponible
-    let displayNames: Record<string, string> = {};
-    try {
-      const raw = process.env.COMPANY_DISPLAY_NAMES;
-      if (raw) displayNames = (JSON.parse(raw) as Record<string, string>) || {};
-    } catch {
-      /* ignore */
-    }
+    const displayNames = getDisplayNames(process.env.COMPANY_DISPLAY_NAMES, tenant);
     const fallback = Object.entries(displayNames).map(([company_id, display_name]) => ({
       company_id,
       documents_count: 0,
-      display_name,
+      display_name: display_name || company_id,
     }));
     return NextResponse.json(fallback, { status: 200 });
   }

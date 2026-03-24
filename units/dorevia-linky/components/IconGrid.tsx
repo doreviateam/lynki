@@ -157,14 +157,17 @@ export function IconGrid({ tenantId, companyId, period, metrics: metricsProp, me
         const isLeftCol = col === 0;
         const isRightCol = col === gridCols - 1;
         const isCenterCol = gridCols > 2 && !isLeftCol && !isRightCol;
-        // EBE : libellé métier explicite si pas encore de données paie
-        const formatted =
+        // EBE : libellé métier explicite si pas encore de données paie.
+        // Garde-fou React #31 : n'afficher que des chaînes (jamais d'objet comme child).
+        const rawFormatted =
           metric?.formatted ??
           (id === "ebitda" ? "En attente" : "—");
+        const formatted =
+          typeof rawFormatted === "string" ? rawFormatted : (id === "ebitda" ? "En attente" : "—");
         const priority = CARD_PRIORITY[id];
         const status: TileStatus =
           metricsLoading && !metric ? "loading" : !metric ? "unavailable" : "ready";
-        const { container } = getTileClasses(priority, status);
+        const { container, valueSize: valueSizeFromPriority } = getTileClasses(priority, status);
 
         // Hiérarchie tuiles (NOTE_EXPLICATIVE_MISE_EN_OEUVRE_HIERARCHIE_TUILES_LINKY_v1.0) :
         // Tuiles maîtresses (encadrées) : Trésorerie, Business, Flux net — contour + montant coloré selon statut.
@@ -179,7 +182,6 @@ export function IconGrid({ tenantId, companyId, period, metrics: metricsProp, me
               ? STATUS_COLORS.alert
               : "var(--text)";
 
-        const valueSizeClass = "text-sm font-bold tabular-nums whitespace-nowrap";
         const help = getTileHelp(id);
         const isTooltipOpen = openTooltipId === id;
 
@@ -241,18 +243,23 @@ export function IconGrid({ tenantId, companyId, period, metrics: metricsProp, me
               >
                 <Icon className="h-8 w-8 shrink-0" />
               </div>
-              {/* Label */}
-              <span className="text-center text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+              {/* Label — tooltip natif au survol pour rappel du sens de l’indicateur */}
+              <span
+                className="text-center text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]"
+                title={help?.tooltip}
+              >
                 {label}
               </span>
-              {/* Valeur — tuiles maîtresses : couleur statut ; secondaires : sobre, alerte en exception */}
-              <span
-                className={`${valueSizeClass} ${status === "loading" ? "animate-pulse opacity-60" : ""}`}
-                style={{ color: amountColor }}
-                aria-busy={status === "loading"}
-              >
-                {formatted}
-              </span>
+              {/* Valeur — taille homogène, centrée */}
+              <div className="w-full min-w-0 flex justify-center">
+                <span
+                  className={`${valueSizeFromPriority} whitespace-nowrap ${status === "loading" ? "animate-pulse opacity-60" : ""}`}
+                  style={{ color: amountColor }}
+                  aria-busy={status === "loading"}
+                >
+                  {formatted}
+                </span>
+              </div>
             </button>
             {/* Bulle tooltip : placement selon gridCols + première/dernière rangée (ZeDocs/web48 v1.2) */}
             {help && isTooltipOpen && (

@@ -5,28 +5,33 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    screens: {
+      sm: "640px",
+      md: "900px",
+      lg: "1280px",
+    },
     extend: {
-      screens: {
-        tablet: "900px",
-        mobile: "600px",
-      },
       fontFamily: {
         sans: ["var(--font-ibm-plex)", "var(--font-inter)", "system-ui", "-apple-system", "sans-serif"],
         mono: ["var(--font-ibm-plex)", "ui-monospace", "monospace"],
       },
       colors: {
-        // Palette Linky Cockpit (Design System v1.1)
-        "linky-bg": "#0F1B2D",
-        "linky-bg-secondary": "#14243A",
-        "linky-surface": "#1A2E47",
-        "linky-border": "#223B5B",
-        "linky-text": "#E6EEF8",
-        "linky-muted": "#9FB3C8",
-        "linky-hover": "#1F3653",
-        "linky-success": "#22C55E",
-        "linky-warning": "#F59E0B",
-        "linky-danger": "#EF4444",
-        "linky-info": "#3B82F6",
+        "linky-bg": "var(--bg)",
+        "linky-bg-secondary": "var(--bg-secondary)",
+        "linky-surface": "var(--surface)",
+        "linky-border": "var(--border)",
+        "linky-text": "var(--text)",
+        "linky-muted": "var(--muted)",
+        "linky-hover": "var(--hover)",
+        "linky-success": "var(--positive)",
+        "linky-warning": "var(--warning)",
+        "linky-danger": "var(--negative)",
+        "linky-info": "var(--accent)",
+        "linky-confidence-fiable": "var(--confidence-fiable)",
+        "linky-confidence-partielle": "var(--confidence-partielle)",
+        "linky-confidence-proxy": "var(--confidence-proxy)",
+        "linky-confidence-estimee": "var(--confidence-estimee)",
+        "linky-primary-container": "var(--primary-container)",
       },
       fontSize: {
         "linky-kpi": ["44px", { lineHeight: "1.2" }],
@@ -41,11 +46,11 @@ module.exports = {
         "linky-padding-lg": "24px",
       },
       borderRadius: {
-        "linky-card": "12px",
+        "linky-card": "var(--radius-card)",
         "linky-badge": "6px",
       },
       transitionDuration: {
-        "linky": "150ms",
+        linky: "150ms",
       },
     },
   },

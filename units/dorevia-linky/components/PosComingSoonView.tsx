@@ -10,9 +10,10 @@ interface PosComingSoonViewProps {
   footer?: React.ReactNode;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
-export function PosComingSoonView({ title, onFocusRequest, footer, cardId, onNavigateToCard }: PosComingSoonViewProps) {
+export function PosComingSoonView({ title, onFocusRequest, footer, cardId, onNavigateToCard, onBackToCockpit }: PosComingSoonViewProps) {
   const iconNode = onFocusRequest ? (
     <button
       type="button"
@@ -29,7 +30,7 @@ export function PosComingSoonView({ title, onFocusRequest, footer, cardId, onNav
   return (
     <section className={INSTRUMENT_CARD_BASE} role="region" aria-label={`Instrument ${title} — bientôt disponible`}>
       {cardId && onNavigateToCard && (
-        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader icon={iconNode} title={title} />
       <p className="text-[var(--text-muted)]">Bientôt disponible</p>

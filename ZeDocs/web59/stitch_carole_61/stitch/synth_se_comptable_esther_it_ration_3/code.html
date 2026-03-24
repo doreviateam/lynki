@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lynki Desktop Cockpit - Synthèse Comptable</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-container": "#002114",
+              "on-surface-variant": "#45464d",
+              "surface-container-low": "#eff4ff",
+              "on-error-container": "#93000a",
+              "surface-container-high": "#dce9ff",
+              "on-primary-fixed-variant": "#3f465c",
+              "surface-container": "#e5eeff",
+              "on-primary-fixed": "#131b2e",
+              "surface-container-highest": "#d3e4fe",
+              "error": "#ba1a1a",
+              "primary-fixed-dim": "#bec6e0",
+              "surface-container-lowest": "#ffffff",
+              "error-container": "#ffdad6",
+              "on-secondary-container": "#57657b",
+              "primary-fixed": "#dae2fd",
+              "secondary": "#515f74",
+              "on-secondary": "#ffffff",
+              "on-tertiary-container": "#069669",
+              "on-surface": "#0b1c30",
+              "secondary-fixed": "#d5e3fd",
+              "outline-variant": "#c6c6cd",
+              "surface": "#f8f9ff",
+              "on-primary-container": "#7c839b",
+              "on-tertiary-fixed": "#002114",
+              "secondary-container": "#d5e3fd",
+              "inverse-primary": "#bec6e0",
+              "surface-bright": "#f8f9ff",
+              "inverse-surface": "#213145",
+              "tertiary": "#000000",
+              "on-background": "#0b1c30",
+              "primary": "#000000",
+              "outline": "#76777d",
+              "surface-tint": "#565e74",
+              "tertiary-fixed": "#85f8c4",
+              "primary-container": "#131b2e",
+              "background": "#f8f9ff",
+              "surface-dim": "#cbdbf5",
+              "on-primary": "#ffffff",
+              "surface-variant": "#d3e4fe",
+              "on-tertiary": "#ffffff",
+              "on-secondary-fixed-variant": "#3a485c",
+              "secondary-fixed-dim": "#b9c7e0",
+              "inverse-on-surface": "#eaf1ff",
+              "on-tertiary-fixed-variant": "#005137",
+              "on-secondary-fixed": "#0d1c2f",
+              "tertiary-fixed-dim": "#68dba9",
+              "on-error": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex overflow-hidden">
+<!-- SideNavBar (Authority: JSON) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col py-6 z-50 bg-slate-900 h-screen w-64 border-r border-slate-800 shadow-xl">
+<div class="px-6 mb-8">
+<h1 class="text-lg font-black text-white">Lynki Cockpit</h1>
+<p class="font-sans text-xs uppercase tracking-wider Inter text-emerald-400">Financial Piloting</p>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="text-slate-400 hover:text-slate-100 px-4 py-3 flex items-center gap-3 hover:bg-slate-800/50 transition-all duration-150 cursor-pointer hover:translate-x-1">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-sans text-xs uppercase tracking-wider Inter">Tableau de bord</span>
+</div>
+<div class="text-slate-400 hover:text-slate-100 px-4 py-3 flex items-center gap-3 hover:bg-slate-800/50 transition-all duration-150 cursor-pointer hover:translate-x-1">
+<span class="material-symbols-outlined">domain</span>
+<span class="font-sans text-xs uppercase tracking-wider Inter">Entités</span>
+</div>
+<div class="text-slate-400 hover:text-slate-100 px-4 py-3 flex items-center gap-3 hover:bg-slate-800/50 transition-all duration-150 cursor-pointer hover:translate-x-1">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-sans text-xs uppercase tracking-wider Inter">Budgets</span>
+</div>
+<!-- Active State: Reporting (Logical match for Synthesis screen) -->
+<div class="bg-slate-800 text-white border-l-4 border-emerald-500 px-4 py-3 flex items-center gap-3 cursor-pointer">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-sans text-xs uppercase tracking-wider Inter">Reporting</span>
+</div>
+<div class="text-slate-400 hover:text-slate-100 px-4 py-3 flex items-center gap-3 hover:bg-slate-800/50 transition-all duration-150 cursor-pointer hover:translate-x-1">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-sans text-xs uppercase tracking-wider Inter">Archives</span>
+</div>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full bg-emerald-500 text-slate-900 font-bold py-3 rounded flex items-center justify-center gap-2 hover:bg-emerald-400 transition-colors">
+<span class="material-symbols-outlined">download</span>
+<span class="font-sans text-xs uppercase tracking-wider Inter">Export Report</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="ml-64 flex-1 flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar (Authority: JSON) -->
+<header class="flex justify-between items-center h-16 px-6 w-full sticky top-0 z-40 bg-white border-b border-slate-200">
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+<span class="material-symbols-outlined text-sm">search</span>
+</span>
+<input class="bg-slate-50 border-none rounded-full py-1.5 pl-10 pr-4 text-sm w-64 focus:ring-1 focus:ring-primary" placeholder="Rechercher une écriture..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-50">
+<span class="text-xs font-semibold text-slate-700">Persona Switcher</span>
+<span class="material-symbols-outlined text-slate-400">expand_more</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500">
+<span class="material-symbols-outlined cursor-pointer hover:text-slate-900">notifications</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-slate-900">settings</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-slate-900">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8 max-w-7xl mx-auto w-full">
+<!-- Page Header / Context -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="text-3xl font-extrabold text-on-surface tracking-tight mb-1">Synthèse Comptable — Iteration 3</h2>
+<p class="text-neutral font-medium">Clôture Mensuelle : Octobre 2023 | Analyste : Esther (CDG)</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-white border border-outline-variant rounded-lg text-sm font-medium hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-sm">history</span>
+                        Comparer à N-1
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+                        Valider la Synthèse
+                    </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Main Financial Table (Tabular Solidity) -->
+<section class="col-span-12 lg:col-span-8 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+<h3 class="font-bold text-slate-900 flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald-600">list_alt</span>
+                            Compte de Résultat (P&amp;L) Simplifié
+                        </h3>
+<span class="text-[10px] uppercase tracking-widest font-bold text-slate-400">Devise: EUR</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 font-bold">
+<th class="px-6 py-3">Postes de Charge / Revenu</th>
+<th class="px-6 py-3 text-right">Réalisé (M)</th>
+<th class="px-6 py-3 text-right">Budget (M)</th>
+<th class="px-6 py-3 text-right">Écart (%)</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 text-sm">
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4 font-semibold text-slate-800">Chiffre d'Affaires Brut</td>
+<td class="px-6 py-4 text-right tabular-nums">1 245 000</td>
+<td class="px-6 py-4 text-right tabular-nums text-slate-500">1 100 000</td>
+<td class="px-6 py-4 text-right tabular-nums text-emerald-600 font-bold">+13.2%</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4 font-semibold text-slate-800">Consommation Marchandises</td>
+<td class="px-6 py-4 text-right tabular-nums">(412 000)</td>
+<td class="px-6 py-4 text-right tabular-nums text-slate-500">(390 000)</td>
+<td class="px-6 py-4 text-right tabular-nums text-error font-bold">+5.6%</td>
+</tr>
+<tr class="bg-slate-50/30 font-bold">
+<td class="px-6 py-4 text-slate-900 uppercase text-xs tracking-wide">Marge Brute Operationnelle</td>
+<td class="px-6 py-4 text-right tabular-nums">833 000</td>
+<td class="px-6 py-4 text-right tabular-nums">710 000</td>
+<td class="px-6 py-4 text-right tabular-nums text-emerald-600">+17.3%</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4 font-semibold text-slate-800">Charges de Personnel</td>
+<td class="px-6 py-4 text-right tabular-nums">(315 000)</td>
+<td class="px-6 py-4 text-right tabular-nums text-slate-500">(310 000)</td>
+<td class="px-6 py-4 text-right tabular-nums text-slate-400">+1.6%</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4 font-semibold text-slate-800">Autres Charges Externes</td>
+<td class="px-6 py-4 text-right tabular-nums">(88 400)</td>
+<td class="px-6 py-4 text-right tabular-nums text-slate-500">(95 000)</td>
+<td class="px-6 py-4 text-right tabular-nums text-emerald-600 font-bold">-6.9%</td>
+</tr>
+</tbody>
+<tfoot>
+<tr class="bg-slate-900 text-white font-black text-base">
+<td class="px-6 py-5">EBITDA (Excédent Brut)</td>
+<td class="px-6 py-5 text-right tabular-nums">429 600</td>
+<td class="px-6 py-5 text-right tabular-nums opacity-60">305 000</td>
+<td class="px-6 py-5 text-right tabular-nums text-emerald-400">+40.8%</td>
+</tr>
+</tfoot>
+</table>
+</div>
+</section>
+<!-- Insights Block (Explanatory Tone) -->
+<section class="col-span-12 lg:col-span-4 space-y-6">
+<div class="bg-primary-container text-white p-6 rounded-xl shadow-lg relative overflow-hidden group">
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-emerald-400">psychology</span>
+<h3 class="font-bold text-lg">Insight Comptable</h3>
+</div>
+<p class="text-sm leading-relaxed text-slate-300">
+                                La surperformance de l'EBITDA (+40%) ce mois-ci est principalement portée par un effet volume sur les ventes Export, couplé à une maîtrise stricte des charges externes (loyers renégociés).
+                            </p>
+<div class="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center">
+<span class="text-xs font-medium text-emerald-400">Impact Solvabilité : Positif</span>
+<span class="material-symbols-outlined text-slate-500 group-hover:translate-x-1 transition-transform cursor-pointer">arrow_forward</span>
+</div>
+</div>
+<div class="absolute -right-10 -bottom-10 opacity-10">
+<span class="material-symbols-outlined text-[160px]" style="font-variation-settings: 'FILL' 1;">analytics</span>
+</div>
+</div>
+<!-- Notes d'explication -->
+<div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+<h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">sticky_note_2</span>
+                            Notes d'explication
+                        </h3>
+<div class="space-y-4">
+<div class="p-3 bg-slate-50 rounded-lg border-l-4 border-slate-300">
+<p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Stock &amp; En-cours</p>
+<p class="text-xs text-slate-600 italic leading-snug">"Variation de stock positive due à l'anticipation des commandes de fin d'année. Justification disponible en annexe 4."</p>
+</div>
+<div class="p-3 bg-slate-50 rounded-lg border-l-4 border-emerald-500">
+<p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Fiscalité</p>
+<p class="text-xs text-slate-600 italic leading-snug">"Provision pour impôts ajustée suite à la nouvelle trajectoire de résultat annuel."</p>
+</div>
+<button class="w-full py-2 border border-dashed border-slate-300 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-600 hover:border-slate-400 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span> Ajouter une note
+                            </button>
+</div>
+</div>
+</section>
+<!-- The 'Chain of Command': Synthesis -> Justification -> Detail -->
+<section class="col-span-12">
+<div class="bg-white border border-slate-200 rounded-xl p-6">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-bold text-slate-900 text-lg">Chaîne de Justification Analytique</h3>
+<div class="flex gap-2">
+<div class="px-3 py-1 bg-surface-container rounded text-[10px] font-bold text-primary tracking-tighter uppercase">Audit Ready</div>
+</div>
+</div>
+<div class="flex flex-col md:flex-row gap-4 items-center">
+<!-- Step 1 -->
+<div class="flex-1 w-full bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col items-center text-center group hover:bg-white hover:shadow-md transition-all cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">summarize</span>
+</div>
+<h4 class="font-bold text-slate-900 text-sm">Synthèse</h4>
+<p class="text-xs text-slate-500 mt-1">EBITDA : 429k€</p>
+</div>
+<span class="material-symbols-outlined text-slate-300 hidden md:block">double_arrow</span>
+<!-- Step 2 -->
+<div class="flex-1 w-full bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col items-center text-center group hover:bg-white hover:shadow-md transition-all cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">rule</span>
+</div>
+<h4 class="font-bold text-slate-900 text-sm">Justification</h4>
+<p class="text-xs text-slate-500 mt-1">12 Pièces jointes liées</p>
+</div>
+<span class="material-symbols-outlined text-slate-300 hidden md:block">double_arrow</span>
+<!-- Step 3 -->
+<div class="flex-1 w-full bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col items-center text-center group hover:bg-white hover:shadow-md transition-all cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">search_insights</span>
+</div>
+<h4 class="font-bold text-slate-900 text-sm">Détail</h4>
+<p class="text-xs text-slate-500 mt-1">2,450 Écritures Grand Livre</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Detailed Balance Sheet Segment (Left) -->
+<section class="col-span-12 lg:col-span-7 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+<div class="px-6 py-4 border-b border-slate-100 bg-slate-50/30">
+<h3 class="font-bold text-slate-900">Bilan - Masses d'Actif / Passif</h3>
+</div>
+<div class="p-6">
+<div class="flex items-end gap-2 mb-6">
+<div class="flex-1">
+<div class="h-24 w-full bg-slate-100 rounded-lg relative overflow-hidden flex items-end">
+<div class="bg-primary w-full h-[65%] rounded-t" title="Immobilisations"></div>
+</div>
+<p class="text-[10px] text-center mt-2 font-bold text-slate-500 uppercase">Actif Immo</p>
+</div>
+<div class="flex-1">
+<div class="h-24 w-full bg-slate-100 rounded-lg relative overflow-hidden flex items-end">
+<div class="bg-emerald-500 w-full h-[85%] rounded-t" title="Trésorerie"></div>
+</div>
+<p class="text-[10px] text-center mt-2 font-bold text-slate-500 uppercase">Trésorerie</p>
+</div>
+<div class="flex-1">
+<div class="h-24 w-full bg-slate-100 rounded-lg relative overflow-hidden flex items-end">
+<div class="bg-secondary w-full h-[45%] rounded-t" title="Capitaux Propres"></div>
+</div>
+<p class="text-[10px] text-center mt-2 font-bold text-slate-500 uppercase">Capitaux</p>
+</div>
+<div class="flex-1">
+<div class="h-24 w-full bg-slate-100 rounded-lg relative overflow-hidden flex items-end">
+<div class="bg-slate-400 w-full h-[30%] rounded-t" title="Dettes"></div>
+</div>
+<p class="text-[10px] text-center mt-2 font-bold text-slate-500 uppercase">Dettes</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-4 rounded bg-surface-container-low border border-slate-100">
+<p class="text-[11px] font-bold text-slate-400 uppercase">Ratio Endettement</p>
+<p class="text-2xl font-black text-slate-900">0.42</p>
+<p class="text-xs text-emerald-600 mt-1 flex items-center gap-1 font-bold">
+<span class="material-symbols-outlined text-sm">trending_down</span> -0.05 vs M-1
+                                </p>
+</div>
+<div class="p-4 rounded bg-surface-container-low border border-slate-100">
+<p class="text-[11px] font-bold text-slate-400 uppercase">BFR (Normé)</p>
+<p class="text-2xl font-black text-slate-900">12j</p>
+<p class="text-xs text-error mt-1 flex items-center gap-1 font-bold">
+<span class="material-symbols-outlined text-sm">trending_up</span> +2j vs N-1
+                                </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Team Collaboration / Validation (Right) -->
+<section class="col-span-12 lg:col-span-5 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+<h3 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">groups</span>
+                        Revue Collaborative
+                    </h3>
+<div class="space-y-6">
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-full bg-slate-200 flex-shrink-0 flex items-center justify-center overflow-hidden">
+<img alt="Avatar Analyst" class="w-full h-full object-cover" data-alt="portrait of a professional woman with glasses and a friendly smile in a bright office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSNK_Kcyuz_pv0jiFseDz2McADNKYxNltpKaIl8Ak5Xjw5HFbgMYlpnf2Sd094z33sjdCpQ2vUUozEo4tt4AyjIdSLfLc1DkOhnYG3aLt7JpLjpEkESYFpOx1-wintcTOcAzw_a924_79Zy8HbPBNYL-LDRFqgTR4Mp0i4lVNJbkabYkPa8ImwAwZsmIyJGzdB9G2N00KSD7LoW2FCfMGFNTqDY_8GCvtdOtieX-OAXZt-ciwzWUoPZtGeBp7Vf-fVy0V_g6qecyIr"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<p class="text-sm font-bold text-slate-900">Esther (CDG)</p>
+<span class="text-[10px] text-slate-400 font-medium">Il y a 2h</span>
+</div>
+<p class="text-xs text-slate-600 leading-normal">"J'ai vérifié la ligne 706 (Prestations). L'écart vient d'une facturation exceptionnelle pour le client ALPHA. Tout est en ordre pour le reporting."</p>
+<div class="mt-2 flex gap-2">
+<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold">Vérifié</span>
+</div>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-full bg-slate-200 flex-shrink-0 flex items-center justify-center overflow-hidden">
+<img alt="Avatar Manager" class="w-full h-full object-cover" data-alt="portrait of a confident business executive in a dark suit with soft bokeh city lights background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLmtz5UdbPZWhugBN0mFYWcFVeg3-tWUFTTCGLpn51q2f1ssT7c6-minhefTT11fZ4CzaoG6yKU9C7bQj2GJvVMpF60Ds0poFvJ5wvUE5cJc-WpMDT1rRdLSLb27quBWXs31U-K8nowu3JSduCV6SjxsZXW3DkczZ9nYWqGys5VJEEy-PTPpzZ0y4wc8sSVIPg_laT4AkUgpouuBnwircViS6-CIdMXQDNnCZpBzz69-LcMW_M5WFJtiNWwD96IUG__Q_AjwL83_Mo"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<p class="text-sm font-bold text-slate-900">Marc (DAF)</p>
+<span class="text-[10px] text-slate-400 font-medium">Il y a 10 min</span>
+</div>
+<p class="text-xs text-slate-600 leading-normal">"Parfait, merci Esther. Peux-tu préparer le slide d'export pour le COMEX de demain ?"</p>
+<div class="mt-3">
+<textarea class="w-full bg-slate-50 border-slate-200 rounded-lg text-xs p-2 focus:ring-primary focus:border-primary" placeholder="Répondre..."></textarea>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<!-- Contextual FAB (Restricted to relevant task) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-emerald-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-2xl">chat_bubble</span>
+</button>
+</body></html>

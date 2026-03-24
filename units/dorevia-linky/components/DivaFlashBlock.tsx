@@ -15,9 +15,17 @@ import type { DashboardMetricsResponse } from "@/app/api/dashboard-metrics/route
 const DEBOUNCE_MS = 200;
 const CACHE_KEY_PREFIX = "diva_flash_";
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 min
-const POLL_INTERVAL_MS = 6000; // 6s (réduit saturation navigateur)
-const POLL_MAX_ATTEMPTS = 12; // ~72 s max, moins de requêtes
-const ENABLE_LIVE_POLLING = process.env.NEXT_PUBLIC_LINKY_ENABLE_LIVE_POLLING === "1";
+const POLL_INTERVAL_MS = 6000;  // poll état "pending" (pas d'insight) : 6 s
+const POLL_MAX_ATTEMPTS = 12;   // ~72 s max
+// Background refresh après prewarm : poll silencieux pour détecter un insight plus récent
+const BG_POLL_INTERVAL_MS = 8000;   // 8 s — moins agressif que le poll pending
+const BG_POLL_MAX_ATTEMPTS = 15;    // ~120 s — le temps que Mistral génère
+// Auto-reload silencieux continu : vérifie si Diva a produit un insight plus récent (aligné sur le runner 1–5 min)
+const AUTO_RELOAD_MIN_MS = 60_000;   // 1 min
+const AUTO_RELOAD_MAX_MS = 300_000;  // 5 min
+function randomBetween(min: number, max: number) {
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
 
 function extractNumericCompanyId(raw: string | null): string {
   if (!raw) return "0";
@@ -39,6 +47,8 @@ interface DivaFlashBlockProps {
 
 interface DivaFlash {
   headline: string;
+  /** 3 formulations alternatives générées par Mistral — cycling local sans rappel API */
+  headlines?: string[];
   what_i_see: string[];
   to_check: string[];
   confidence: "low" | "medium" | "high";
@@ -52,6 +62,12 @@ interface InsightResponse {
     confidence?: string;
     created_at?: string;
     expires_at?: string;
+    /** Âge de l'insight en secondes au moment de la lecture (Phase 3A). */
+    insight_age_seconds?: number;
+    /** Empreinte courte du FactsPack (12 hex) — invalide si les données changent (Phase 3A). */
+    facts_version?: string;
+    /** Durée de génération Mistral en ms (Phase 3A). */
+    latency_ms?: number;
   };
   error?: { code?: string; message?: string };
   error_code?: string;
@@ -229,6 +245,20 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
   const prewarmSentRef = useRef<Set<string>>(new Set());
   const isManualRefreshRef = useRef(false);
   const pollAttemptRef = useRef(0);
+  // Background refresh : created_at du dernier insight affiché + état du poll silencieux
+  const displayedCreatedAtRef = useRef<string | null>(null);
+  const bgPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const bgPollAttemptsRef = useRef(0);
+  // Indicateur discret "Actualisé" après mise à jour silencieuse
+  const [justUpdated, setJustUpdated] = useState(false);
+  // Auto-reload silencieux continu (intervalle aléatoire 1–5 min)
+  const autoReloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // BEH-18 : tick 60s pour mettre à jour le label "Calculé il y a X min" en temps réel
+  const [, setLabelTick] = useState(0);
+  // BEH-15/16/17 : opacité du contenu flash pour transition silencieuse sans "saut"
+  const [flashOpacity, setFlashOpacity] = useState(1);
+  // Cycling headlines : index dans flash.headlines[] — "Reformuler" cycle sans rappel API
+  const [headlineIndex, setHeadlineIndex] = useState(0);
 
   const fetchDiva = useCallback(
     async (forceRefresh = false, fromCache = false) => {
@@ -313,11 +343,38 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
             };
           }
           setError(null);
-          setComputedAt(insight.created_at ?? null);
+          const newCreatedAt = insight.created_at ?? null;
+          // Mise à jour silencieuse détectée (BEH-15/16/17) : fade-out → swap → fade-in
+          const isSilentUpdate = fromCache && displayedCreatedAtRef.current && newCreatedAt && newCreatedAt !== displayedCreatedAtRef.current;
+          if (isSilentUpdate) {
+            setJustUpdated(true);
+            setTimeout(() => setJustUpdated(false), 4000);
+          }
+          setComputedAt(newCreatedAt);
+          displayedCreatedAtRef.current = newCreatedAt;
           const normalized = normalizeFlash(flashFromInsight);
           setCachedFlash(cacheKey(tenantId, companyId, period, focusCardId), normalized);
-          setFlash(normalized);
+          if (isSilentUpdate) {
+            // Transition douce : fade-out 150 ms, swap, fade-in 150 ms
+            setFlashOpacity(0);
+            setTimeout(() => {
+              setFlash(normalized);
+              setHeadlineIndex(0);
+              setFlashOpacity(1);
+            }, 150);
+          } else {
+            setFlash(normalized);
+            setHeadlineIndex(0);
+          }
+          // Signal d'activité → le runner sait qu'un utilisateur est actif (garde d'inactivité Option B).
+          fetch("/api/diva/activity", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tenant: tenantId, company_id: parseInt(extractNumericCompanyId(companyId), 10) }),
+          }).catch(() => { /* fire-and-forget */ });
           pollAttemptRef.current = 0;
+          // Arrêter le poll de fond si l'insight est maintenant à jour
+          if (bgPollRef.current) { clearInterval(bgPollRef.current); bgPollRef.current = null; }
           return;
         }
 
@@ -330,6 +387,12 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
         // state === "pending" : le runner n'est pas encore passé ou cache expiré
         // On affiche la dernière version locale si disponible, sinon "Analyse en cours"
         if (!fromCache) {
+          // Signal d'activité dès la consultation (même en pending) → évite idle_skip du runner (cercle vicieux).
+          fetch("/api/diva/activity", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tenant: tenantId, company_id: parseInt(extractNumericCompanyId(companyId), 10) }),
+          }).catch(() => { /* fire-and-forget */ });
           const cached = getCachedFlash(cacheKey(tenantId, companyId, period, focusCardId));
           if (cached) {
             setFlash(normalizeFlash(cached));
@@ -338,7 +401,7 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
             setError("Synthèse en préparation… Affichage automatique dans quelques secondes.");
             setFlash(null);
           }
-          // Prewarm fire-and-forget (1 seule fois par contexte)
+          // Prewarm fire-and-forget (1 seule fois par contexte) + démarrage du background poll
           const prewarmKey = cacheKey(tenantId, companyId, period, focusCardId);
           if (!prewarmSentRef.current.has(prewarmKey)) {
             prewarmSentRef.current.add(prewarmKey);
@@ -359,6 +422,19 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
                   ...(specKey && { focus_card: specKey }),
                 }),
               }).catch(() => { /* fire-and-forget */ });
+              // Démarrer le poll de fond silencieux pour détecter le nouvel insight
+              if (!bgPollRef.current) {
+                bgPollAttemptsRef.current = 0;
+                bgPollRef.current = setInterval(() => {
+                  bgPollAttemptsRef.current += 1;
+                  if (bgPollAttemptsRef.current > BG_POLL_MAX_ATTEMPTS) {
+                    if (bgPollRef.current) { clearInterval(bgPollRef.current); bgPollRef.current = null; }
+                    return;
+                  }
+                  // Lecture silencieuse (fromCache=true → pas de spinner)
+                  fetchDiva(false, true);
+                }, BG_POLL_INTERVAL_MS);
+              }
             };
             if (dashboardMetricsProp && typeof dashboardMetricsProp === "object") {
               doPrewarm(dashboardMetricsProp);
@@ -416,8 +492,9 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
     }).catch(() => {});
   }, [isPending, dashboardMetricsProp, tenantId, companyId, period.from, period.to, focusCardId]);
 
+  // Poll "pending" : aucun insight affiché, on attend que le runner produise
   useEffect(() => {
-    if (!isPending || !ENABLE_LIVE_POLLING) return;
+    if (!isPending) return;
     let mounted = true;
     pollAttemptRef.current = 0;
     const id = setInterval(() => {
@@ -438,6 +515,34 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
     };
   }, [isPending, tenantId, companyId, period.from, period.to, focusCardId, fetchDiva]);
 
+  // Nettoyage du poll de fond au démontage ou changement de contexte
+  useEffect(() => {
+    return () => {
+      if (bgPollRef.current) { clearInterval(bgPollRef.current); bgPollRef.current = null; }
+    };
+  }, [tenantId, companyId, period.from, period.to, focusCardId]);
+
+  // BEH-18 : tick toutes les 60 s pour re-rendre le label "Calculé il y a X min" en temps réel
+  useEffect(() => {
+    const id = setInterval(() => setLabelTick(t => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Auto-reload silencieux continu : quand un insight est affiché, on replanifie
+  // une vérification dans 1–5 min (aléatoire, aligné sur le cycle diva-runner).
+  // Si Diva a un insight plus récent (created_at différent), le badge "✓ Actualisé" s'affiche 4 s.
+  useEffect(() => {
+    if (!flash) return;
+    if (autoReloadTimerRef.current) clearTimeout(autoReloadTimerRef.current);
+    const delay = randomBetween(AUTO_RELOAD_MIN_MS, AUTO_RELOAD_MAX_MS);
+    autoReloadTimerRef.current = setTimeout(() => {
+      fetchDiva(false, true); // silencieux : pas de spinner, pas d'écrasement si inchangé
+    }, delay);
+    return () => {
+      if (autoReloadTimerRef.current) clearTimeout(autoReloadTimerRef.current);
+    };
+  }, [flash, tenantId, companyId, period.from, period.to, focusCardId, fetchDiva]);
+
   // Réinitialiser lastFetch pour forcer un nouveau fetch quand le contexte (société, période) change
   useEffect(() => {
     lastFetchRef.current = "";
@@ -457,7 +562,7 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
   }, [tenantId, companyId, period.from, period.to, focusCardId]);
 
   // Debounce puis fetch (refresh silencieux si cache affiché)
-  // Ne pas déclencher si un Rafraîchir manuel est en cours (évite 404 qui écrase le résultat)
+  // Ne pas déclencher si une reformulation manuelle est en cours (évite 404 qui écrase le résultat)
   useEffect(() => {
     const key = `${tenantId}-${companyId ?? ""}-${period.from}-${period.to}-${focusCardId ?? ""}`;
     if (key === lastFetchRef.current && !loading) return;
@@ -476,32 +581,18 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
     };
   }, [tenantId, companyId, period.from, period.to, focusCardId, fetchDiva, loading]);
 
-  const handleRefresh = useCallback(async () => {
-    isManualRefreshRef.current = true;
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-      debounceRef.current = null;
-    }
-    try {
-      // Invalider le cache navigateur
-      try {
-        const key = cacheKey(tenantId, companyId, period, focusCardId);
-        if (typeof window !== "undefined") localStorage.removeItem(key);
-      } catch { /* ignore */ }
-
-      // Relecture pure depuis la BDD — cache-busting pour contourner tout cache
-      await fetchDiva(true, false);
-    } finally {
-      isManualRefreshRef.current = false;
-    }
-  }, [tenantId, companyId, period.from, period.to, focusCardId, fetchDiva]);
+  const handleRefresh = useCallback(() => {
+    // Cycle pur dans headlines[] avec wrap-around — jamais d'appel réseau
+    if (!flash?.headlines || flash.headlines.length === 0) return;
+    setHeadlineIndex((prev) => (prev + 1) % flash.headlines!.length);
+  }, [flash]);
 
   const wrapperClass = embedded
     ? "mt-4 pt-4 border-t border-[var(--border)] w-full"
-    : "mt-8 w-full max-w-2xl";
+    : "mt-8 w-full max-w-2xl md:max-w-3xl";
   const innerClass = embedded
     ? "pt-2"
-    : "rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-[var(--shadow-card)]";
+    : "rounded-xl border border-emerald-600/30 bg-slate-900 p-5 md:p-6 shadow-lg shadow-emerald-600/5";
 
   return (
     <div className={wrapperClass}>
@@ -509,21 +600,42 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
 
         {/* Zone 1 — Titre du module */}
         {!embedded && (
-          <div className="mb-3 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
-              Insight principal
-            </span>
-            <button
-              type="button"
-              onClick={handleRefresh}
-              disabled={loading}
-              className="flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-1 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-50"
-              title="Rafraîchir l'analyse"
-              aria-label="Rafraîchir l'analyse"
-            >
-              <span aria-hidden className={loading ? "animate-spin inline-block" : ""}>↻</span>
-              <span>Rafraîchir</span>
-            </button>
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span
+                className="material-symbols-outlined text-emerald-400"
+                style={{ fontSize: 18, fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 18" }}
+              >
+                auto_awesome
+              </span>
+              <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                Optimization Insight
+              </span>
+              {/* Badge "Actualisé" — apparaît 4 s après une mise à jour silencieuse */}
+              {justUpdated && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--positive)]/15 px-2 py-0.5 text-[10px] font-medium text-[var(--positive)] animate-pulse">
+                  ✓ Actualisé
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {flash?.headlines && flash.headlines.length > 1 && (
+                <span className="text-[10px] text-[var(--text-secondary)] tabular-nums select-none">
+                  {headlineIndex + 1}&thinsp;/&thinsp;{flash.headlines.length}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={handleRefresh}
+                disabled={!flash?.headlines || flash.headlines.length === 0}
+                className="flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-1 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-40"
+                title="Afficher une autre formulation du même message"
+                aria-label="Reformuler l'analyse"
+              >
+                <span aria-hidden>↻</span>
+                <span>Reformuler</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -555,45 +667,80 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
         )}
 
         {flash && (
-          <>
-            {/* Zone 2 — SPEC v3 cockpit : 2 phrases max (phrase principale + phrase d'écart) */}
+          // BEH-15/16/17 : transition opacity 150ms — pas de saut, pas de reflow brutal
+          <div style={{ opacity: flashOpacity, transition: "opacity 150ms ease-in-out" }}>
+            {/* Zone 2 — SPEC v3 cockpit : 2 phrases max (phrase principale + phrase d'écart)
+                headlines[headlineIndex] si disponible, sinon fallback sur headline */}
             <p
               className="whitespace-pre-wrap text-base font-medium leading-relaxed text-[var(--text)]"
-              title={capitalizeFirst(toDisplayHeadline(flash.headline))}
+              title={capitalizeFirst(toDisplayHeadline(flash.headlines?.[headlineIndex] ?? flash.headline))}
             >
-              {formatAmountsInText(capitalizeFirst(cockpitHeadline(flash.headline)))}
+              {formatAmountsInText(capitalizeFirst(cockpitHeadline(flash.headlines?.[headlineIndex] ?? flash.headline)))}
             </p>
 
             <hr className="my-3 border-t border-[var(--border)]" aria-hidden />
 
-            {/* Zone 3 — Données utilisées + to_check (tout dans le dépliable, cockpit resserré) */}
+            {/* Zone 3 — Desktop : contenu déployé directement / Mobile : dépliable */}
             {(flash.what_i_see?.length > 0 || flash.to_check?.length > 0) ? (
-              <details className="group">
-                <summary className="flex cursor-pointer list-none items-center gap-2 py-1 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text)]">
-                  <span className="transition-transform group-open:rotate-90" aria-hidden>▶</span>
-                  <span>Données utilisées</span>
-                  <ConfidenceBadge confidence={flash.confidence} />
-                </summary>
-                <div className="mt-2 pl-4 space-y-2">
+              <>
+                {/* Desktop md+ : what_i_see + to_check visibles sans interaction */}
+                <div className="hidden md:block space-y-3">
+                  {flash.what_i_see && flash.what_i_see.length > 0 && (
+                    <ul className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-[var(--text-secondary)]">
+                      {flash.what_i_see.map((item, i) => (
+                        <li key={i} className="flex items-start gap-1.5">
+                          <span className="mt-1 shrink-0 h-1.5 w-1.5 rounded-full bg-[var(--accent)]/50" aria-hidden />
+                          {formatAmountsInText(item)}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   {flash.to_check && flash.to_check.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium text-[var(--text-secondary)] mb-1">Points de vigilance</p>
-                      <ul className="grid grid-cols-1 gap-y-0.5 text-xs text-[var(--text-secondary)]">
+                      <p className="text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">Points de vigilance</p>
+                      <ul className="space-y-1 text-sm text-[var(--text-secondary)]">
                         {flash.to_check.map((item, i) => (
-                          <li key={i}>{formatAmountsInText(normalizeInsightFr(item))}</li>
+                          <li key={i} className="flex items-start gap-1.5">
+                            <span className="mt-1 shrink-0 h-1.5 w-1.5 rounded-full bg-[var(--warning)]/60" aria-hidden />
+                            {formatAmountsInText(normalizeInsightFr(item))}
+                          </li>
                         ))}
                       </ul>
                     </div>
                   )}
-                  {flash.what_i_see && flash.what_i_see.length > 0 && (
-                    <ul className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-[var(--text-secondary)]">
-                      {flash.what_i_see.map((item, i) => (
-                        <li key={i}>{formatAmountsInText(item)}</li>
-                      ))}
-                    </ul>
-                  )}
+                  <div className="pt-1">
+                    <ConfidenceBadge confidence={flash.confidence} />
+                  </div>
                 </div>
-              </details>
+
+                {/* Mobile : dépliable compact */}
+                <details className="group md:hidden">
+                  <summary className="flex cursor-pointer list-none items-center gap-2 py-1 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text)]">
+                    <span className="transition-transform group-open:rotate-90" aria-hidden>▶</span>
+                    <span>Données utilisées</span>
+                    <ConfidenceBadge confidence={flash.confidence} />
+                  </summary>
+                  <div className="mt-2 pl-4 space-y-2">
+                    {flash.to_check && flash.to_check.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-[var(--text-secondary)] mb-1">Points de vigilance</p>
+                        <ul className="grid grid-cols-1 gap-y-0.5 text-xs text-[var(--text-secondary)]">
+                          {flash.to_check.map((item, i) => (
+                            <li key={i}>{formatAmountsInText(normalizeInsightFr(item))}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {flash.what_i_see && flash.what_i_see.length > 0 && (
+                      <ul className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-[var(--text-secondary)]">
+                        {flash.what_i_see.map((item, i) => (
+                          <li key={i}>{formatAmountsInText(item)}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </details>
+              </>
             ) : (
               <div className="mt-1">
                 <ConfidenceBadge confidence={flash.confidence} />
@@ -606,7 +753,7 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
                 <span>Mise à jour…</span>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
 
@@ -623,17 +770,24 @@ export function DivaFlashBlock({ tenantId, companyId, period, dashboardMetrics: 
             Lecture assistée par DIVA. L&apos;analyse finale relève de l&apos;utilisateur.
           </p>
           {embedded && (
+            <div className="flex items-center gap-2 shrink-0">
+              {flash?.headlines && flash.headlines.length > 1 && (
+                <span className="text-[10px] text-[var(--text-secondary)] tabular-nums select-none">
+                  {headlineIndex + 1}&thinsp;/&thinsp;{flash.headlines.length}
+                </span>
+              )}
             <button
               type="button"
               onClick={handleRefresh}
-              disabled={loading}
-              className="shrink-0 flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-50"
-              title="Rafraîchir l'analyse"
-              aria-label="Rafraîchir l'analyse"
+              disabled={!flash?.headlines || flash.headlines.length === 0}
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-40"
+              title="Afficher une autre formulation du même message"
+              aria-label="Reformuler l'analyse"
             >
               <span aria-hidden>↻</span>
-              <span>Rafraîchir</span>
+              <span>Reformuler</span>
             </button>
+            </div>
           )}
         </div>
       )}

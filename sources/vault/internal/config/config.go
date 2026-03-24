@@ -102,6 +102,19 @@ type Config struct {
 	// SPEC ERP Reconnect - Adapter Odoo HTTP (E5-US3, P0)
 	OdooTimeoutSec int `env:"ODOO_TIMEOUT_SEC" envDefault:"30"`  // Timeout HTTP vers Odoo
 	OdooRetryMax  int `env:"ODOO_RETRY_MAX" envDefault:"2"`      // Nb retries (0 = pas de retry)
+
+	// ZeDocs/web52 Option B — Valeur du stock (snapshots poussés par Odoo)
+	StockValuationInternalToken string `env:"STOCK_VALUATION_INTERNAL_TOKEN" envDefault:""` // Token Bearer pour POST /internal/stock-valuation-snapshot
+	FactsPackPurgeToken        string `env:"FACTS_PACK_PURGE_TOKEN" envDefault:""`         // Token Bearer pour POST /internal/jobs/facts-pack-purge (Sprint 15 T86)
+
+	// ADR-001 Linky → Vault only : gateway DLP/DIVA (ZeDocs/web51)
+	// Linky n'appelle plus DLP/DIVA directement ; le Vault expose /ui/dlp/* et /ui/diva/*.
+	DLPURL         string `env:"DLP_URL" envDefault:""`              // URL du service DLP (ex. http://dlp:8020)
+	DIVAURL        string `env:"DIVA_URL" envDefault:""`              // URL du service DIVA (ex. http://diva:8030)
+	DLPTimeoutMs   int    `env:"DLP_TIMEOUT_MS" envDefault:"800"`    // Timeout ms pour appels DLP (tuile énergie)
+	DIVATimeoutMs  int    `env:"DIVA_TIMEOUT_MS" envDefault:"60000"` // Timeout ms pour appels DIVA (explain, etc.)
+	DIVAPrewarmMs  int    `env:"DIVA_PREWARM_TIMEOUT_MS" envDefault:"120000"`
+	DIVARefreshMs  int    `env:"DIVA_REFRESH_TIMEOUT_MS" envDefault:"120000"`
 }
 
 // Load charge la configuration depuis les variables d'environnement

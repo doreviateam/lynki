@@ -26,6 +26,7 @@ interface EbeCardWithPollingProps {
   onFocusRequest?: () => void;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function EbeCardWithPolling({
@@ -36,6 +37,7 @@ export function EbeCardWithPolling({
   onFocusRequest,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: EbeCardWithPollingProps) {
   const [salesTotal, setSalesTotal] = useState<number | null>(null);
   const [purchasesTotal, setPurchasesTotal] = useState<number | null>(null);
@@ -159,6 +161,7 @@ export function EbeCardWithPolling({
       onChartGranularityChange={setChartGranularity}
       cardId={cardId}
       onNavigateToCard={onNavigateToCard}
+      onBackToCockpit={onBackToCockpit}
     />
   );
 }

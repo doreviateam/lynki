@@ -45,19 +45,22 @@ export interface InstrumentCardNavProps {
   onNavigate: (cardId: CardId) => void;
   /** Ordre et libellés (défaut : CARD_NAV_ORDER) */
   cardOrder?: { id: CardId; label: string }[];
+  /** Si fourni, affiche le lien "Cockpit" au centre entre Précédent et Suivant (retour au cockpit). */
+  onBackToCockpit?: () => void;
 }
 
-/** Barre de navigation card → card : Précédent / Suivant en haut de la card. */
+/** Barre de navigation card → card : Précédent | Cockpit (centré) | Suivant en haut de la card. */
 export function InstrumentCardNav({
   currentCardId,
   onNavigate,
   cardOrder = CARD_NAV_ORDER,
+  onBackToCockpit,
 }: InstrumentCardNavProps) {
   const idx = cardOrder.findIndex((c) => c.id === currentCardId);
   const prev = idx > 0 ? cardOrder[idx - 1] : null;
   const next = idx >= 0 && idx < cardOrder.length - 1 ? cardOrder[idx + 1] : null;
 
-  if (!prev && !next) return null;
+  if (!prev && !next && !onBackToCockpit) return null;
 
   const linkClass =
     "text-xs font-medium text-[var(--accent)] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-1 rounded";
@@ -67,7 +70,7 @@ export function InstrumentCardNav({
       className="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-[var(--border)]"
       aria-label="Navigation entre cards"
     >
-      <span className="min-w-0">
+      <span className="min-w-0 flex-shrink-0">
         {prev ? (
           <button
             type="button"
@@ -81,10 +84,20 @@ export function InstrumentCardNav({
           <span className="text-xs text-[var(--text-muted)]" aria-hidden>—</span>
         )}
       </span>
-      <span className="text-xs text-[var(--text-muted)] shrink-0" aria-hidden>
-        {prev && next ? " · " : ""}
+      <span className="flex-1 flex justify-center min-w-0">
+        {onBackToCockpit ? (
+          <button
+            type="button"
+            onClick={onBackToCockpit}
+            className={`${linkClass} flex items-center gap-1`}
+          >
+            Cockpit
+          </button>
+        ) : (
+          <span className="text-xs text-[var(--text-muted)]" aria-hidden>—</span>
+        )}
       </span>
-      <span className="min-w-0 text-right">
+      <span className="min-w-0 flex-shrink-0 text-right">
         {next ? (
           <button
             type="button"
@@ -168,13 +181,20 @@ export interface InstrumentCardStatusBadgeProps {
 }
 
 /** Hauteur et spacing badge figés (règle UI non négociable). */
-const BADGE_SIZE = "min-h-[1.25rem] inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium leading-tight";
+const BADGE_SIZE = "min-h-[1.25rem] inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium leading-tight";
 
 const BADGE_CLASS: Record<NonNullable<InstrumentCardStatusBadgeProps["severity"]>, string> = {
   info: "bg-[var(--muted)]/20 text-[var(--text-secondary)]",
-  success: "bg-[var(--positive)]/15 text-[var(--positive)]",
-  vigilance: "bg-[var(--warning)]/15 text-[var(--warning)]",
+  success: "bg-[var(--confidence-fiable)]/15 text-[var(--confidence-fiable)]",
+  vigilance: "bg-[var(--confidence-partielle)]/15 text-[var(--confidence-partielle)]",
   alert: "bg-[var(--negative)]/15 text-[var(--negative)]",
+};
+
+const BADGE_ICON: Record<NonNullable<InstrumentCardStatusBadgeProps["severity"]>, string> = {
+  info: "info",
+  success: "verified",
+  vigilance: "warning",
+  alert: "error",
 };
 
 export function InstrumentCardStatusBadge({
@@ -187,8 +207,80 @@ export function InstrumentCardStatusBadge({
       className={`${BADGE_SIZE} ${BADGE_CLASS[severity]}`}
       title={title}
     >
+      <span
+        className="material-symbols-outlined"
+        style={{ fontSize: 14, fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 14" }}
+      >
+        {BADGE_ICON[severity]}
+      </span>
       {label}
     </span>
+  );
+}
+
+export type ConfidenceLevel = "fiable" | "partielle" | "proxy" | "estimee";
+
+const CONFIDENCE_SEVERITY: Record<ConfidenceLevel, NonNullable<InstrumentCardStatusBadgeProps["severity"]>> = {
+  fiable: "success",
+  partielle: "vigilance",
+  proxy: "info",
+  estimee: "info",
+};
+
+const CONFIDENCE_LABEL: Record<ConfidenceLevel, string> = {
+  fiable: "Fiable",
+  partielle: "Partielle",
+  proxy: "Proxy",
+  estimee: "Estimée",
+};
+
+export function ConfidenceBadge({ level, title }: { level: ConfidenceLevel; title?: string }) {
+  return (
+    <InstrumentCardStatusBadge
+      label={CONFIDENCE_LABEL[level]}
+      severity={CONFIDENCE_SEVERITY[level]}
+      title={title}
+    />
+  );
+}
+
+/** Variante compacte pour la grille bento (1×1 : icône, label, valeur, badge). */
+export interface CompactTileProps {
+  icon: string;
+  label: string;
+  value: string;
+  confidence?: ConfidenceLevel;
+  trend?: string;
+  trendPositive?: boolean;
+  onClick?: () => void;
+}
+
+export function CompactTile({ icon, label, value, confidence, trend, trendPositive, onClick }: CompactTileProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex flex-col gap-2 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--card)] p-4 text-left shadow-sm transition-all hover:border-emerald-600/40 hover:shadow-md active:scale-[0.98]"
+    >
+      <div className="flex items-center gap-2">
+        <span
+          className="material-symbols-outlined text-[var(--muted)]"
+          style={{ fontSize: 16, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 16" }}
+        >
+          {icon}
+        </span>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">{label}</span>
+      </div>
+      <span className="text-lg font-bold tabular-nums text-[var(--text)]">{value}</span>
+      <div className="flex items-center gap-2">
+        {confidence && <ConfidenceBadge level={confidence} />}
+        {trend && (
+          <span className={`text-[9px] font-semibold ${trendPositive ? "text-[var(--confidence-fiable)]" : "text-[var(--negative)]"}`}>
+            {trend}
+          </span>
+        )}
+      </div>
+    </button>
   );
 }
 

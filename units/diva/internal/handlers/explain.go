@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"sort"
 	"time"
 
@@ -75,17 +76,22 @@ func Explain(cacheStore *cache.Cache, refreshGuard *guard.RefreshGuard, mc *mist
 		contextHash := computeContextHash(req.Context, req.Dashboard.Cards, req.Options.FocusCard)
 
 		// Cache lookup (sauf force_refresh)
+		generationReason := "cache_miss"
 		if !req.Options.ForceRefresh {
 			if flash, meta, ok := cacheStore.Get(contextHash); ok {
 				meta.RequestID = requestID
 				meta.GeneratedAt = time.Now().UTC().Format(time.RFC3339)
 				meta.LatencyMs = time.Since(start).Milliseconds()
+				slog.Info("event=diva_explain_cache_hit", "context_hash", contextHash, "tenant", req.Context.Tenant)
 				return c.JSON(models.ExplainResponse{Meta: meta, Flash: flash})
 			}
+		} else {
+			generationReason = "force_refresh"
 		}
 
 		// Guard : 1 appel Mistral max par context_hash (évite les annulations en cascade)
 		if !refreshGuard.TryAcquire(contextHash) {
+			slog.Warn("event=diva_guard_rejected", "endpoint", "explain", "context_hash", contextHash, "tenant", req.Context.Tenant)
 			resp := models.ExplainResponse{
 				Meta: models.Meta{
 					RequestID:         requestID,
@@ -135,7 +141,7 @@ func Explain(cacheStore *cache.Cache, refreshGuard *guard.RefreshGuard, mc *mist
 		}
 
 		// Appel Mistral
-		flash, err := mc.Chat(req.Context, req.Dashboard.Cards, req.Options.FocusCard, req.Options.FocusCardDetails, dashboardDetails, outputMode, fp)
+		flash, err := mc.Chat(req.Context, req.Dashboard.Cards, req.Options.FocusCard, req.Options.FocusCardDetails, dashboardDetails, outputMode, fp, contextHash, generationReason)
 		latencyMs := time.Since(start).Milliseconds()
 
 		meta := models.Meta{

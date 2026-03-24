@@ -29,9 +29,106 @@ func BuildFactsPack(cards []models.Card, details map[string]interface{}, dataCom
 		Version:          FactsPackVersion,
 		Mode:             "cockpit",
 		Context:          ctx,
+		Metrics:          buildMetrics(cards),
+		ZeroCards:        buildZeroCards(cards),
 		Facts:            facts,
 		DataCompleteness: dc,
 	}
+}
+
+// buildZeroCards retourne les labels des cards présentes (valeur non nil) mais nulles (= 0).
+// Distinction donnée confirmée nulle vs donnée absente (nil).
+func buildZeroCards(cards []models.Card) []string {
+	var out []string
+	for _, c := range cards {
+		if c.Value != nil && *c.Value == 0 {
+			out = append(out, c.Label)
+		}
+	}
+	return out
+}
+
+// buildMetrics construit le manifest de traçabilité : chaque clé = nom de la card cockpit,
+// valeur = montant exact. Tout montant dans l'insight doit matcher une de ces valeurs (±0,01 €).
+// Métriques dérivées documentées : activité_commerciale_totale, trésorerie_nette_post_taxes, flux_net_post_taxes.
+func buildMetrics(cards []models.Card) map[string]float64 {
+	m := map[string]float64{}
+
+	// Cards directes (noms = labels cockpit)
+	if v, ok := cardVal(cards, "treasury_validated_pct"); ok && v > 0 {
+		m["trésorerie"] = v
+	}
+	if v, ok := cardVal(cards, "cash"); ok {
+		m["flux_net"] = v
+	}
+	if v, ok := cardVal(cards, "business"); ok {
+		m["activité_commerciale"] = v
+	}
+	if v, ok := cardVal(cards, "taxes"); ok && v != 0 {
+		m["taxes"] = v
+	}
+	if v, ok := cardVal(cards, "refunds"); ok && v != 0 {
+		m["remboursements"] = v
+	}
+	if v, ok := cardVal(cards, "credit_notes"); ok && v != 0 {
+		m["notes_de_crédit"] = v
+	}
+	if v, ok := cardVal(cards, "pos_shops"); ok && v > 0 {
+		m["pos"] = v
+	}
+	if v, ok := cardVal(cards, "bfr"); ok && v != 0 {
+		m["bfr"] = v
+	}
+	if v, ok := cardVal(cards, "ebe"); ok && v != 0 {
+		m["ebe"] = v
+	}
+	if v, ok := cardVal(cards, "encours"); ok && v > 0 {
+		m["encours"] = v
+	}
+
+	// Métriques dérivées (combinaisons documentées)
+	biz, hasBiz := cardVal(cards, "business")
+	pos, hasPOS := cardVal(cards, "pos_shops")
+	if hasBiz || (hasPOS && pos > 0) {
+		total := biz
+		if hasPOS && pos > 0 {
+			total += pos
+		}
+		m["activité_commerciale_totale"] = total
+	}
+
+	treas, hasTreas := cardVal(cards, "treasury_validated_pct")
+	taxes, hasTaxes := cardVal(cards, "taxes")
+	refunds, _ := cardVal(cards, "refunds")
+	if hasTreas && treas > 0 && hasTaxes {
+		net := treas - taxes + refunds
+		m["trésorerie_nette_post_taxes"] = net
+	}
+
+	cash, hasCash := cardVal(cards, "cash")
+	if hasCash && hasTaxes {
+		net := cash - taxes + refunds
+		m["flux_net_post_taxes"] = net
+	}
+
+	// Écart trésorerie (ou flux net) vs activité commerciale — pour validation des montants en what_i_see
+	mainTreasury := treas
+	if !(hasTreas && treas > 0) && hasCash {
+		mainTreasury = cash
+	}
+	if (hasTreas && treas > 0 || hasCash) && (hasBiz || (hasPOS && pos > 0)) {
+		totalCA := biz
+		if hasPOS && pos > 0 {
+			totalCA += pos
+		}
+		spread := mainTreasury - totalCA
+		if spread < 0 {
+			spread = -spread
+		}
+		m["écart_trésorerie_activité"] = spread
+	}
+
+	return m
 }
 
 // SortFacts trie les faits : Priority asc → CategoryRank asc → Message lexico (normalisé).
@@ -52,16 +149,29 @@ func SortFacts(facts []Fact) {
 func buildFacts(cards []models.Card, details map[string]interface{}) []Fact {
 	var facts []Fact
 
+	// cash = card "cash" → FLUX NET (encaissements − décaissements)
 	cash, hasCash := cardVal(cards, "cash")
 	biz, hasBiz := cardVal(cards, "business")
 	taxes, hasTaxes := cardVal(cards, "taxes")
+	// treasury = card "treasury_validated_pct" → TRÉSORERIE (solde validé en EUR)
 	treasury, hasTreasury := cardVal(cards, "treasury_validated_pct")
 	refunds, hasRefunds := cardVal(cards, "refunds")
 	creditNotes, hasCreditNotes := cardVal(cards, "credit_notes")
 	pos, hasPOS := cardVal(cards, "pos_shops")
+	bfr, hasBFR := cardVal(cards, "bfr")
+	ebe, hasEBE := cardVal(cards, "ebe")
+	encours, hasEncours := cardVal(cards, "encours")
+
+	// Trésorerie disponible : on préfère le solde validé (treasury) ; fallback sur flux net (cash)
+	hasTreasuryPos := hasTreasury && treasury > 0
+	mainTreasury := treasury
+	if !hasTreasuryPos && hasCash {
+		mainTreasury = cash
+	}
+	hasMainTreasury := hasTreasuryPos || hasCash
 
 	hasOperationalFlux := (hasCash && cash != 0) || (hasBiz && biz != 0) || (hasPOS && pos > 0)
-	totalFlux := absVal(cash)
+	totalFlux := absVal(mainTreasury)
 	if hasBiz {
 		totalFlux += absVal(biz)
 	}
@@ -75,18 +185,18 @@ func buildFacts(cards []models.Card, details map[string]interface{}) []Fact {
 		var msg string
 		if fluxModeste {
 			if hasCash && cash > 0 {
-				msg = fmt.Sprintf("POINT DOMINANT: cash modeste (%s) sans validation bancaire — rapprochement à effectuer", fmtEUR(cash))
+				msg = fmt.Sprintf("POINT DOMINANT: flux net modeste (%s) sans validation bancaire — rapprochement à effectuer", fmtEUR(cash))
 			} else if hasPOS && pos > 0 {
 				msg = fmt.Sprintf("POINT DOMINANT: POS %s sans validation bancaire — flux modeste, rapprochement à effectuer", fmtEUR(pos))
 			} else if hasBiz && biz != 0 {
-				msg = fmt.Sprintf("POINT DOMINANT: CA %s sans validation bancaire — flux modeste", fmtEUR(absVal(biz)))
+				msg = fmt.Sprintf("POINT DOMINANT: activité commerciale %s sans validation bancaire — flux modeste", fmtEUR(absVal(biz)))
 			}
 		} else {
 			msg = "POINT DOMINANT: flux opérationnels sans validation bancaire"
 			if hasCash && cash > 0 {
-				msg = fmt.Sprintf("POINT DOMINANT: cash %s — flux opérationnels sans validation bancaire", fmtEUR(cash))
+				msg = fmt.Sprintf("POINT DOMINANT: flux net %s — flux opérationnels sans validation bancaire", fmtEUR(cash))
 			} else if hasBiz && biz != 0 {
-				msg = fmt.Sprintf("POINT DOMINANT: CA %s — flux opérationnels sans validation bancaire", fmtEUR(absVal(biz)))
+				msg = fmt.Sprintf("POINT DOMINANT: activité commerciale %s — flux opérationnels sans validation bancaire", fmtEUR(absVal(biz)))
 			} else if hasPOS && pos > 0 {
 				msg = fmt.Sprintf("POINT DOMINANT: POS %s — flux opérationnels sans validation bancaire", fmtEUR(pos))
 			}
@@ -96,19 +206,25 @@ func buildFacts(cards []models.Card, details map[string]interface{}) []Fact {
 		}
 	}
 
-	if hasCash && hasTaxes {
-		net := cash - taxes
+	// Position nette post-taxes — trésorerie (solde) si disponible, sinon flux net
+	if hasMainTreasury && hasTaxes {
+		net := mainTreasury - taxes
 		if hasRefunds {
 			net += refunds
 		}
-		facts = append(facts, Fact{Priority: PriorityTreasury, Category: "treasury",
-			Message: fmt.Sprintf("Position nette de trésorerie post-taxes: %s", fmtEUR(net))})
+		var msg string
+		if hasTreasuryPos {
+			msg = fmt.Sprintf("Trésorerie nette post-taxes: %s", fmtEUR(net))
+		} else {
+			msg = fmt.Sprintf("Flux net post-taxes: %s", fmtEUR(net))
+		}
+		facts = append(facts, Fact{Priority: PriorityTreasury, Category: "treasury", Message: msg})
 	}
 
 	if hasTaxes && hasBiz && biz != 0 {
 		ratio := (taxes / absVal(biz)) * 100
 		facts = append(facts, Fact{Priority: PriorityInductors, Category: "tax",
-			Message: fmt.Sprintf("Inducteur fiscal: les taxes (%s) représentent %s du CA et pèsent sur la trésorerie", fmtEUR(taxes), fmtPct(ratio))})
+			Message: fmt.Sprintf("Les taxes (%s) représentent %s du chiffre d'affaires et pèsent sur la trésorerie.", fmtEUR(taxes), fmtPct(ratio))})
 	}
 
 	totalCA := biz
@@ -122,14 +238,26 @@ func buildFacts(cards []models.Card, details map[string]interface{}) []Fact {
 			Message: fmt.Sprintf("Activité commerciale: aucune facturation classique, le CA provient exclusivement du POS (%s)", fmtEUR(pos))})
 	}
 
-	if hasCash && hasTotalCA {
-		spread := cash - totalCA
+	// Comparaison principale : TRÉSORERIE (solde) vs activité commerciale totale
+	// Utilise "trésorerie" si solde validé disponible, sinon "flux net" (fallback)
+	if hasMainTreasury && hasTotalCA {
+		spread := mainTreasury - totalCA
+		treasuryLabel := "trésorerie"
+		if !hasTreasuryPos {
+			treasuryLabel = "flux net"
+		}
+		actLabel := "activité commerciale"
+		if hasPOS && pos > 0 {
+			actLabel = "activité commerciale totale"
+		}
 		if spread > 0 {
+			// Formulation "contrôle de gestion" : stock vs flux — avance, pas dépassement.
+			// Montants : trésorerie + écart dans la phrase principale ; activité en apposition courte.
 			facts = append(facts, Fact{Priority: PriorityTreasury, Category: "treasury",
-				Message: fmt.Sprintf("Écart trésorerie/activité: le solde de trésorerie (%s) dépasse l'activité commerciale totale (%s) de %s", fmtEUR(cash), fmtEUR(totalCA), fmtEUR(spread))})
+				Message: fmt.Sprintf("La %s (%s) conserve une avance de %s sur l'%s (%s) observée sur la période.", treasuryLabel, fmtEUR(mainTreasury), fmtEUR(spread), actLabel, fmtEUR(totalCA))})
 		} else if spread < 0 {
 			facts = append(facts, Fact{Priority: PriorityTreasury, Category: "treasury",
-				Message: fmt.Sprintf("Écart trésorerie/activité: l'activité commerciale totale (%s) dépasse le solde de trésorerie (%s) de %s", fmtEUR(totalCA), fmtEUR(cash), fmtEUR(absVal(spread)))})
+				Message: fmt.Sprintf("L'%s (%s) excède la %s (%s) de %s — tension de trésorerie.", actLabel, fmtEUR(totalCA), treasuryLabel, fmtEUR(mainTreasury), fmtEUR(absVal(spread)))})
 		}
 	}
 
@@ -143,14 +271,15 @@ func buildFacts(cards []models.Card, details map[string]interface{}) []Fact {
 	}
 
 	posDetails := extractPosDetails(details)
-	if posDetails != nil && posDetails.totalSessions > 0 {
+	// Ne pas émettre de fait POS quand la valeur est nulle ou zéro
+	if posDetails != nil && posDetails.totalSessions > 0 && hasPOS && pos > 0 {
 		if hasBiz && biz != 0 {
 			ratio := (pos / absVal(biz)) * 100
 			facts = append(facts, Fact{Priority: PriorityInductors, Category: "pos",
-				Message: fmt.Sprintf("Inducteur POS: %d sessions, %d tickets, %s de ventes soit %s du CA", posDetails.totalSessions, posDetails.totalTickets, fmtEUR(pos), fmtPct(ratio))})
+				Message: fmt.Sprintf("Le POS affiche %d sessions, %d tickets, %s de ventes soit %s du CA.", posDetails.totalSessions, posDetails.totalTickets, fmtEUR(pos), fmtPct(ratio))})
 		} else if hasPOS && pos > 0 {
 			facts = append(facts, Fact{Priority: PriorityInductors, Category: "pos",
-				Message: fmt.Sprintf("Inducteur POS: %d sessions, %d tickets, %s de ventes", posDetails.totalSessions, posDetails.totalTickets, fmtEUR(pos))})
+				Message: fmt.Sprintf("Le POS affiche %d sessions, %d tickets, %s de ventes.", posDetails.totalSessions, posDetails.totalTickets, fmtEUR(pos))})
 		}
 
 		if posDetails.totalSessions > 0 && posDetails.totalTickets > 0 {
@@ -189,7 +318,8 @@ func buildFacts(cards []models.Card, details map[string]interface{}) []Fact {
 			facts = append(facts, Fact{Priority: PriorityComplementary, Category: "pos",
 				Message: fmt.Sprintf("POS répartition: %s", strings.Join(parts, " | "))})
 		}
-	} else if hasPOS && hasBiz && biz != 0 {
+	} else if hasPOS && pos > 0 && hasBiz && biz != 0 {
+		// POS à zéro : fait non significatif — ne pas l'envoyer à Mistral
 		ratio := (pos / absVal(biz)) * 100
 		facts = append(facts, Fact{Priority: PriorityInductors, Category: "pos",
 			Message: fmt.Sprintf("POS: %s soit %s du CA", fmtEUR(pos), fmtPct(ratio))})
@@ -200,35 +330,172 @@ func buildFacts(cards []models.Card, details map[string]interface{}) []Fact {
 			Message: fmt.Sprintf("Aucune note de crédit émise sur la période malgré un volume d'activité de %s", fmtEUR(biz))})
 	}
 
-	arDetails := extractARDetails(details)
-	if arDetails != nil && arDetails.overdueAmount > 0 {
-		msg := fmt.Sprintf("AR à risque: %s en retard sur %d partenaire(s)", fmtEUR(arDetails.overdueAmount), arDetails.overdueCount)
-		if arDetails.topPartnerName != "" {
-			msg += fmt.Sprintf(", principal débiteur %s (%s)", arDetails.topPartnerName, fmtEUR(arDetails.topOverdueAmount))
+	// BFR — Besoin en Fonds de Roulement
+	if hasBFR && bfr != 0 {
+		if hasBiz && biz != 0 {
+			ratio := (absVal(bfr) / absVal(biz)) * 100
+			if bfr > 0 {
+				facts = append(facts, Fact{Priority: PriorityInductors, Category: "bfr",
+					Message: fmt.Sprintf("BFR: besoin de %s soit %s du CA — financement du cycle d'exploitation à surveiller", fmtEUR(bfr), fmtPct(ratio))})
+			} else {
+				facts = append(facts, Fact{Priority: PriorityInductors, Category: "bfr",
+					Message: fmt.Sprintf("BFR négatif: %s soit %s du CA — excédent de ressources d'exploitation", fmtEUR(bfr), fmtPct(ratio))})
+			}
+		} else {
+			facts = append(facts, Fact{Priority: PriorityInductors, Category: "bfr",
+				Message: fmt.Sprintf("BFR: %s", fmtEUR(bfr))})
 		}
-		msg += "."
-		facts = append(facts, Fact{Priority: PriorityInductors, Category: "ar", Message: msg})
 	}
 
-	var watchCards, alertCards []string
-	for _, c := range cards {
-		switch c.Status {
-		case "watch":
-			watchCards = append(watchCards, fmt.Sprintf("%s (%s)", c.Label, c.StatusReason))
-		case "alert":
-			alertCards = append(alertCards, fmt.Sprintf("%s (%s)", c.Label, c.StatusReason))
+	// EBE — Excédent Brut d'Exploitation
+	if hasEBE && ebe != 0 {
+		if hasBiz && biz != 0 {
+			ratio := (ebe / absVal(biz)) * 100
+			if ebe > 0 {
+				facts = append(facts, Fact{Priority: PriorityInductors, Category: "ebe",
+					Message: fmt.Sprintf("EBE: %s soit %s du CA — marge brute d'exploitation", fmtEUR(ebe), fmtPct(ratio))})
+			} else {
+				facts = append(facts, Fact{Priority: PriorityInductors, Category: "ebe",
+					Message: fmt.Sprintf("EBE négatif: %s soit %s du CA — exploitation déficitaire", fmtEUR(ebe), fmtPct(ratio))})
+			}
+		} else {
+			facts = append(facts, Fact{Priority: PriorityInductors, Category: "ebe",
+				Message: fmt.Sprintf("EBE: %s", fmtEUR(ebe))})
 		}
 	}
-	if len(alertCards) > 0 {
-		facts = append(facts, Fact{Priority: PriorityGovernance, Category: "governance",
-			Message: fmt.Sprintf("GOUVERNANCE CRITIQUE: %s", strings.Join(alertCards, " | "))})
+
+	// Encours clients (créances ouvertes) — signal stratégique prioritaire (avant taxes dans what_i_see).
+	// PriorityTreasury pour garantir sa visibilité dans le corps de l'insight.
+	if hasEncours && encours != 0 {
+		totalCARef := biz
+		if hasPOS && pos > 0 {
+			totalCARef += pos
+		}
+		if (hasBiz && biz != 0) || (hasPOS && pos > 0) {
+			ratio := (encours / absVal(totalCARef)) * 100
+			facts = append(facts, Fact{Priority: PriorityTreasury, Category: "ar",
+				Message: fmt.Sprintf("Les créances clients ouvertes atteignent %s, soit %s de l'activité commerciale — recouvrement en cours.", fmtEUR(encours), fmtPct(ratio))})
+		} else {
+			facts = append(facts, Fact{Priority: PriorityTreasury, Category: "ar",
+				Message: fmt.Sprintf("Créances clients ouvertes: %s", fmtEUR(encours))})
+		}
 	}
-	if len(watchCards) > 0 {
-		facts = append(facts, Fact{Priority: PriorityGovernance, Category: "governance",
-			Message: fmt.Sprintf("GOUVERNANCE — points d'attention: %s", strings.Join(watchCards, " | "))})
+
+	// Écart encours / trésorerie nette post-taxes : utilise trésorerie (solde) si disponible, sinon flux net
+	if hasEncours && encours > 0 && hasMainTreasury && hasTaxes {
+		netPostTaxes := mainTreasury - taxes
+		if hasRefunds {
+			netPostTaxes += refunds
+		}
+		if encours > netPostTaxes {
+			delta := encours - netPostTaxes
+			var netLabel string
+			if hasTreasuryPos {
+				netLabel = "trésorerie nette post-taxes"
+			} else {
+				netLabel = "flux net post-taxes"
+			}
+			facts = append(facts, Fact{Priority: PriorityTreasury, Category: "ar",
+				Message: fmt.Sprintf("Les créances ouvertes (%s) dépassent la %s (%s) de %s.", fmtEUR(encours), netLabel, fmtEUR(netPostTaxes), fmtEUR(delta))})
+		}
+	}
+
+	arDetails := extractARDetails(details)
+	if arDetails != nil && arDetails.overdueAmount > 0 {
+		// Vigilance AR en PriorityGovernance → TopAlerts → to_check (une tension forte, pas diluée dans what_i_see)
+		var vigilance string
+		if arDetails.topPartnerName != "" && arDetails.topOverdueDays > 0 {
+			vigilance = fmt.Sprintf("Une part significative des créances en retard est portée par %s, avec %s en retard depuis %d jours.", arDetails.topPartnerName, fmtEUR(arDetails.topOverdueAmount), arDetails.topOverdueDays)
+		} else if arDetails.topPartnerName != "" {
+			vigilance = fmt.Sprintf("Une part significative des créances en retard est portée par %s (%s).", arDetails.topPartnerName, fmtEUR(arDetails.topOverdueAmount))
+		} else {
+			vigilance = fmt.Sprintf("Créances en retard : %s sur %d partenaire(s) — concentration du risque à surveiller.", fmtEUR(arDetails.overdueAmount), arDetails.overdueCount)
+		}
+		facts = append(facts, Fact{Priority: PriorityGovernance, Category: "ar", Message: vigilance})
+	}
+
+	// Gouvernance : traduit chaque signal de statut en phrase métier actionnable.
+	// Si la raison est trop vague pour être traduite, le fait est omis (règle 14 prompt).
+	for _, c := range cards {
+		msg := governanceToBusinessPhrase(c.Label, c.Status, c.StatusReason)
+		if msg != "" {
+			facts = append(facts, Fact{Priority: PriorityGovernance, Category: "governance",
+				Message: msg})
+		}
 	}
 
 	return facts
+}
+
+// governanceToBusinessPhrase traduit un signal de statut card en phrase métier actionnable.
+// Retourne "" si la raison est trop vague pour être utile à un dirigeant PME (sera omise).
+func governanceToBusinessPhrase(label, status, reason string) string {
+	lbl := strings.ToLower(strings.TrimSpace(label))
+	rsn := strings.ToLower(strings.TrimSpace(reason))
+
+	// --- Signaux utiles : traduction en prose métier ---
+
+	// Rapprochement bancaire partiel / trésorerie
+	if strings.Contains(rsn, "non couverts") || strings.Contains(rsn, "rapprochement insuffisant") || strings.Contains(rsn, "flux non couverts") {
+		return "Le rapprochement bancaire est partiel — une fraction des encaissements reste à confirmer, ce qui peut légèrement surestimer la trésorerie affichée."
+	}
+	if strings.Contains(rsn, "partiellement validé") && (strings.Contains(lbl, "cash") || strings.Contains(lbl, "flux") || strings.Contains(lbl, "trésorerie")) {
+		return "Une partie des flux encaissés reste à confirmer dans le rapprochement bancaire."
+	}
+
+	// Taxes à surveiller
+	if strings.Contains(rsn, "poids fiscal") || (strings.Contains(lbl, "taxes") && status == "watch") {
+		return "Le poids fiscal mérite attention — vérifier l'échéance et le provisionnement."
+	}
+
+	// BFR / fonds de roulement
+	if strings.Contains(lbl, "bfr") || strings.Contains(lbl, "fonds de roulement") {
+		if status == "alert" {
+			return "Le besoin en fonds de roulement est en tension — à surveiller dans le pilotage de la liquidité."
+		}
+		return "Le besoin en fonds de roulement est à suivre sur les prochaines semaines."
+	}
+
+	// --- Signaux trop vagues → omis ---
+	// "Notes de crédit présentes", "Cash partiellement validé" seul, labels génériques
+	if strings.Contains(rsn, "présentes") || strings.Contains(rsn, "present") {
+		return "" // pas actionnable en l'état
+	}
+	if strings.Contains(rsn, "partiellement validé") {
+		return "" // déjà couvert par cash/trésorerie ci-dessus ou trop vague
+	}
+
+	// Fallback : signal d'alerte critique uniquement (watch omis si non traduit)
+	if status == "alert" {
+		lbl2 := normalizeLabel(label)
+		rsn2 := normalizeLabel(reason)
+		return fmt.Sprintf("%s : %s.", lbl2, rsn2)
+	}
+	return "" // watch non traduit → omis
+}
+
+// normalizeLabel applique le glossaire Lynki aux libellés amont (Label, StatusReason)
+// avant injection dans les faits de gouvernance.
+// Source de vérité : GLOSSAIRE_LYNKI_DIVA.md §2 (termes interdits → termes préférés).
+func normalizeLabel(s string) string {
+	replacements := [][2]string{
+		{"Cash non validé", "Trésorerie non validée"},
+		{"cash non validé", "trésorerie non validée"},
+		// Termes anglais génériques
+		{"watch", "à surveiller"},
+		{"Watch", "À surveiller"},
+		{"alert", "vigilance"},
+		{"Alert", "Vigilance"},
+		{"issue", "point de vigilance"},
+		{"Issue", "Point de vigilance"},
+		{"business", "activité commerciale"},
+		{"Business", "Activité commerciale"},
+	}
+	result := s
+	for _, r := range replacements {
+		result = strings.ReplaceAll(result, r[0], r[1])
+	}
+	return result
 }
 
 func cardVal(cards []models.Card, key string) (float64, bool) {
@@ -322,11 +589,14 @@ func extractPosDetails(details map[string]interface{}) *posDetailsData {
 }
 
 type arDetailsData struct {
-	openAmount       float64
-	overdueAmount    float64
-	overdueCount     int
+	openAmount    float64
+	overdueAmount float64
+	overdueCount  int
+	// Partenaire dominant selon priorité Vault (Critique > Élevée > ancienneté > montant)
 	topPartnerName   string
 	topOverdueAmount float64
+	topOverdueDays   int
+	topPriorityLabel string // Critique | Élevée | Moyenne | Faible
 }
 
 func extractARDetails(details map[string]interface{}) *arDetailsData {
@@ -354,21 +624,45 @@ func extractARDetails(details map[string]interface{}) *arDetailsData {
 	if !ok {
 		return d
 	}
+	// Ordre de priorité : Critique > Élevée > ancienneté max > montant max
+	// priority_label vient du score Vault (montant overdue + jours + historique paiement)
+	priorityRank := map[string]int{"Critique": 4, "Élevée": 3, "Moyenne": 2, "Faible": 1}
+
 	for _, p := range partnersRaw {
 		pm, ok := p.(map[string]interface{})
 		if !ok {
 			continue
 		}
 		ov := toFloat(pm["overdue_amount"])
-		if ov > 0 {
-			d.overdueCount++
-			if ov > d.topOverdueAmount {
-				d.topOverdueAmount = ov
-				d.topPartnerName = toString(pm["partner_name"])
-				if d.topPartnerName == "" {
-					d.topPartnerName = toString(pm["partner_id"])
-				}
+		if ov <= 0 {
+			continue
+		}
+		d.overdueCount++
+		days := toInt(pm["overdue_max_days"])
+		label := toString(pm["priority_label"])
+		name := toString(pm["partner_name"])
+		if name == "" {
+			name = toString(pm["partner_id"])
+		}
+
+		// Décider si ce partenaire est "plus inquiétant" que l'actuel top
+		currentRank := priorityRank[d.topPriorityLabel]
+		candidateRank := priorityRank[label]
+		replaceTop := false
+		if candidateRank > currentRank {
+			replaceTop = true
+		} else if candidateRank == currentRank {
+			if days > d.topOverdueDays {
+				replaceTop = true
+			} else if days == d.topOverdueDays && ov > d.topOverdueAmount {
+				replaceTop = true
 			}
+		}
+		if replaceTop {
+			d.topPartnerName = name
+			d.topOverdueAmount = ov
+			d.topOverdueDays = days
+			d.topPriorityLabel = label
 		}
 	}
 	return d

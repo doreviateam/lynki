@@ -82,4 +82,6 @@ export interface MetricDataFetcher {
   fetchPosSessions(params: ComputeParams): Promise<{ items: Array<{ total_sales: number; vault_status: string }> } | null>;
   /** GET /ui/aggregations/payroll — charges de personnel (GO-3) */
   fetchPayroll(params: ComputeParams): Promise<{ total_charges: number; payslip_count: number; currency: string } | null>;
+  /** GET /ui/aggregations/stock-valuation — valeur stock (ZeDocs/web52 Option B), optionnel */
+  fetchStockValuation?(params: ComputeParams): Promise<{ value: number; currency: string; as_of_date: string } | null>;
 }

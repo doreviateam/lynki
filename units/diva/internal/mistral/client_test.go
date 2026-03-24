@@ -65,13 +65,13 @@ func TestComputeInsights_LaPlatine(t *testing.T) {
 		if strings.Contains(ins, "POINT DOMINANT") {
 			hasDominant = true
 		}
-		if strings.Contains(ins, "Position nette de trésorerie") {
+		if strings.Contains(ins, "post-taxes") {
 			hasNetPosition = true
 		}
-		if strings.Contains(ins, "Inducteur fiscal") {
+		if strings.Contains(ins, "taxes") && strings.Contains(ins, "chiffre d'affaires") {
 			hasTax = true
 		}
-		if strings.Contains(ins, "Écart trésorerie/activité") {
+		if strings.Contains(ins, "activité commerciale") && (strings.Contains(ins, "trésorerie") || strings.Contains(ins, "flux net")) {
 			hasCashVsBiz = true
 		}
 		if strings.HasPrefix(ins, "Remboursements:") {
@@ -89,13 +89,13 @@ func TestComputeInsights_LaPlatine(t *testing.T) {
 		t.Error("Manque POINT DOMINANT (treasury=0, cash>0)")
 	}
 	if !hasNetPosition {
-		t.Error("Manque Position nette de trésorerie post-taxes")
+		t.Error("Manque insight position nette post-taxes (trésorerie ou flux net)")
 	}
 	if !hasTax {
 		t.Error("Manque insight inducteur fiscal")
 	}
 	if !hasCashVsBiz {
-		t.Error("Manque insight écart trésorerie/activité")
+		t.Error("Manque insight écart trésorerie (ou flux net) / activité commerciale")
 	}
 	if !hasRefunds {
 		t.Error("Manque insight remboursements")
@@ -124,8 +124,13 @@ func TestComputeInsights_SweetManihot(t *testing.T) {
 	hasActiviteExclusivePOS := false
 	hasEcartCA := false
 	for _, ins := range insights {
-		if strings.Contains(ins, "POINT DOMINANT") && !strings.Contains(ins, "cash") {
-			t.Error("Sweet Manihot ne devrait POINT DOMINANT que si cash>0")
+		// POINT DOMINANT autorisé uniquement si flux net, trésorerie, activité commerciale ou POS > 0
+		if strings.Contains(ins, "POINT DOMINANT") &&
+			!strings.Contains(ins, "flux net") &&
+			!strings.Contains(ins, "trésorerie") &&
+			!strings.Contains(ins, "activité commerciale") &&
+			!strings.Contains(ins, "POS") {
+			t.Error("Sweet Manihot POINT DOMINANT doit mentionner flux net, trésorerie, activité commerciale ou POS")
 		}
 		if strings.Contains(ins, "note de crédit") {
 			t.Error("credit_notes insight ne devrait pas apparaître (business=0, sous seuil 100k)")
@@ -363,7 +368,7 @@ func TestValidateAndBuildFlash_LaPlatine(t *testing.T) {
 		Confidence: "medium",
 	}
 
-	flash, err := validateAndBuildFlash(raw, laPlatineCards)
+	flash, err := validateAndBuildFlash(raw, laPlatineCards, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -383,7 +388,7 @@ func TestValidateAndBuildFlash_ForbiddenTerms(t *testing.T) {
 		Confidence: "medium",
 	}
 
-	flash, _ := validateAndBuildFlash(raw, laPlatineCards)
+	flash, _ := validateAndBuildFlash(raw, laPlatineCards, nil)
 	if flash.Headline != "Lecture DIVA temporairement indisponible." {
 		t.Error("Forbidden term 'Vous devez' should trigger fallback")
 	}
@@ -397,7 +402,7 @@ func TestValidateAndBuildFlash_JSONGarbage(t *testing.T) {
 			ToCheck:    []string{},
 			Confidence: "medium",
 		}
-		flash, _ := validateAndBuildFlash(raw, laPlatineCards)
+		flash, _ := validateAndBuildFlash(raw, laPlatineCards, nil)
 		if flash.Headline != "Lecture DIVA temporairement indisponible." {
 			t.Errorf("JSON garbage %q should trigger fallback, got headline %q", rawHeadline, flash.Headline)
 		}
@@ -412,7 +417,7 @@ func TestValidateAndBuildFlash_TooShort(t *testing.T) {
 		Confidence: "medium",
 	}
 
-	flash, _ := validateAndBuildFlash(raw, laPlatineCards)
+	flash, _ := validateAndBuildFlash(raw, laPlatineCards, nil)
 	if flash.Headline != "Lecture DIVA temporairement indisponible." {
 		t.Error("Response too short for La Platine should fallback")
 	}
@@ -577,7 +582,7 @@ func TestComputeInsights_LaPlatineWithPOS(t *testing.T) {
 	hasMixPaiements := false
 	hasRepartition := false
 	for _, ins := range insights {
-		if strings.Contains(ins, "Inducteur POS") && strings.Contains(ins, "7 sessions") {
+		if (strings.Contains(ins, "Inducteur POS") || strings.Contains(ins, "Le POS affiche")) && strings.Contains(ins, "7 sessions") {
 			hasInducteurPOS = true
 		}
 		if strings.Contains(ins, "panier moyen") {
@@ -775,7 +780,7 @@ func TestValidateAndBuildFlash_MaxFlashLength(t *testing.T) {
 		ToCheck:    []string{"Rapprochement bancaire non effectué.", "Z de caisse non renseigné."},
 		Confidence: "medium",
 	}
-	flash, err := validateAndBuildFlash(raw, laPlatineCards)
+	flash, err := validateAndBuildFlash(raw, laPlatineCards, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

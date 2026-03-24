@@ -32,6 +32,7 @@ interface CreditNotesCardProps {
   footer?: React.ReactNode;
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
+  onBackToCockpit?: () => void;
 }
 
 export function CreditNotesCard({
@@ -50,6 +51,7 @@ export function CreditNotesCard({
   footer,
   cardId,
   onNavigateToCard,
+  onBackToCockpit,
 }: CreditNotesCardProps) {
   const error = errorClient || errorSupplier;
 
@@ -65,7 +67,7 @@ export function CreditNotesCard({
     return (
       <section className={INSTRUMENT_CARD_BASE}>
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader icon={iconNode} title="NOTES DE CRÉDIT" kpiValue={<div className="skeleton h-6 w-28" />} />
         <div className="space-y-3">
@@ -86,7 +88,7 @@ export function CreditNotesCard({
     return (
       <section className={`${INSTRUMENT_CARD_BASE} bg-[var(--negative-soft)]`}>
         {cardId && onNavigateToCard && (
-          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+          <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
         )}
         <InstrumentCardHeader icon={iconNode} title="NOTES DE CRÉDIT" />
         <p className="text-[var(--negative)]">{error}</p>
@@ -102,7 +104,7 @@ export function CreditNotesCard({
   return (
     <section className={INSTRUMENT_CARD_BASE}>
       {cardId && onNavigateToCard && (
-        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} />
+        <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader
         icon={iconNode}

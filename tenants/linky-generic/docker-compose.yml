@@ -1,0 +1,28 @@
+# Linky — instance générique pour linky.doreviateam.com (choix du tenant)
+# TENANT_ID non défini : l’app affiche l’écran de choix puis ?tenant= pour la suite.
+# Même image que les instances dédiées (laplatine2026, o19).
+
+name: dorevia_linky_generic
+
+services:
+  linky:
+    image: dorevia/linky:sprint19-2026-03-24
+    container_name: linky_generic
+    restart: unless-stopped
+    environment:
+      # Pas de TENANT_ID : mode multi-tenant, choix utilisateur sur linky.doreviateam.com
+      VAULT_URL: ${VAULT_URL:-http://vault-core-stinger:8080}
+      TZ: ${TZ:-Europe/Paris}
+      DVIG_URL: http://dvig-core-stinger:8080
+      DVIG_INTERNAL_TOKEN: ${DVIG_INTERNAL_TOKEN:-dvig_internal_core-stinger_stinger}
+      LINKY_ADMIN_TOKEN: ${LINKY_ADMIN_TOKEN:-dorevia}
+      LINKY_CONTROLLER_TOKEN: ${LINKY_CONTROLLER_TOKEN:-controller}
+      LINKY_MANAGER_TOKEN: ${LINKY_MANAGER_TOKEN:-manager}
+      # Libellés société par tenant (affichés dans le sélecteur)
+      COMPANY_DISPLAY_NAMES: '{"laplatine2026":{"odoo:1":"SARL La Platine"},"o19":{"odoo:1":"Ma Société"}}'
+    networks:
+      - dorevia-network
+
+networks:
+  dorevia-network:
+    external: true
