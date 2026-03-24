@@ -28,7 +28,7 @@
 | V1.3-2 | États vide / partiel / indisponible homogènes sur les blocs comptables | Esther | `Fait` |
 | V1.3-3 | Périmètre explicite par bloc (période, société, sources) | Véréna / Esther | `Fait` |
 | V1.3-4 | Lecture comparative N vs N-1 (sous condition — voir audit § ci-dessous) | Esther | `Audité` |
-| V1.3-5 | Libellés et périmètre des exports par bloc (CSV / DOCX) | Esther | `À faire` |
+| V1.3-5 | Libellés et périmètre des exports par bloc (CSV / DOCX) | Esther | `Fait` |
 
 ---
 
@@ -131,9 +131,11 @@ Si, après V1.3-1 → V1.3-3, la priorité produit est ailleurs, **V1.3-4 peut r
 **Objectif** : harmoniser les libellés des boutons CSV / renvois DOCX pour que **chaque export** corresponde à un **objet métier clair** (ex. « Balance générale », « Rubriques bilan », etc.).
 
 **DoD** :
-- [ ] aucun nouveau bouton sans action réelle ;
-- [ ] libellés alignés avec le contenu effectivement exporté ;
-- [ ] typecheck / lint OK.
+- [x] aucun nouveau bouton sans action réelle ;
+- [x] libellés alignés avec le contenu effectivement exporté ;
+- [x] typecheck / lint OK.
+
+**Livraison** : constantes + infobulles `build*CsvTooltip` / `buildDivaDocxTooltip` dans `accountingBlockStates.tsx` ; boutons CSV homogènes (`CSV · …`, `Téléchargement…`) dans `AccountingSummaryView` ; BG filtrée rubrique : tooltip explicite si le CSV reste la balance complète ; balances âgées : message d’erreur si échec. Diva : `DOCX · Rapport Diva`, tooltip « distinct des CSV » ; `AccountingSummaryCodirBlock` + résumé comité mis à jour (CSV par bloc vs DOCX Diva).
 
 ---
 
@@ -144,6 +146,7 @@ Si, après V1.3-1 → V1.3-3, la priorité produit est ailleurs, **V1.3-4 peut r
 | V1.3-1 | 24 mars 2026 | Bloc exécutif déterministe ; props depuis probe existante + `enableCompare`. |
 | V1.3-2 | 24 mars 2026 | États loading / unavailable / empty / badges harmonisés ; pas de changement de logique métier des APIs. |
 | V1.3-3 | 24 mars 2026 | Ligne de périmètre homogène sous les titres ; comparatif N/N-1 seulement sur rubriques avec données comparatives. |
+| V1.3-5 | 24 mars 2026 | Libellés CSV/DOCX + tooltips périmètre ; distinction nette CSV bloc vs rapport Diva. |
 
 ---
 

@@ -8,6 +8,7 @@
 interface AccountingSummaryCodirBlockProps {
   tenantId: string;
   companyId: string | null;
+  companyLabel: string;
   period: { from: string; to: string };
   onExportDocx?: () => void;
   docxAvailable: boolean;
@@ -15,6 +16,7 @@ interface AccountingSummaryCodirBlockProps {
 
 export function AccountingSummaryCodirBlock({
   period,
+  companyLabel,
   onExportDocx,
   docxAvailable,
 }: AccountingSummaryCodirBlockProps) {
@@ -31,24 +33,26 @@ export function AccountingSummaryCodirBlock({
         <div className="sv2-inner p-4">
           <p className="text-sm font-semibold text-[var(--sv2-text)]">Rapport de synthèse</p>
           <p className="mt-1 text-xs text-[var(--sv2-text-muted)]">
-            Inclut la lecture Diva et les éléments comptables disponibles sur la période {period.from} → {period.to}.
+            Document Word généré par Diva à partir d’agrégats sur {period.from} → {period.to}, {companyLabel}. Ce n’est pas un export
+            unique du dossier ni un regroupement des CSV des blocs.
           </p>
         </div>
 
         {docxAvailable && onExportDocx ? (
           <button type="button" onClick={onExportDocx} className="sv2-btn-primary sv2-btn w-full text-center">
-            Générer le rapport DOCX
+            DOCX · Rapport Diva
           </button>
         ) : (
           <div className="sv2-inner p-4 text-center">
             <p className="text-xs text-[var(--sv2-text-muted)]">
-              L&apos;export DOCX est disponible depuis le bloc Diva (ci-dessus).
+              Le rapport DOCX (Diva) se lance depuis le bloc « Observation traçable » ci-dessus — pas d’action fantôme ici.
             </p>
           </div>
         )}
 
         <p className="sv2-ref">
-          Exports disponibles : DOCX (via Diva) · CSV rubriques (via les blocs Bilan / CdR).
+          CSV : un fichier par bloc (balance générale, rubriques bilan, rubriques CdR, balances âgées clients et fournisseurs). DOCX : uniquement
+          via Diva, distinct des CSV.
         </p>
       </div>
     </div>

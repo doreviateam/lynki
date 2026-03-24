@@ -66,7 +66,10 @@ export function AccountingSummaryExecutiveBlock({
         <li>
           Balances âgées clients et fournisseurs : présentes plus bas ; l’état précis (données / vide / erreur) est indiqué sur chaque bloc.
         </li>
-        <li>Exports : fichiers CSV par bloc comptable concerné ; rapport DOCX uniquement via le bloc d’analyse (Diva), lorsqu’il est disponible.</li>
+        <li>
+          Exports : CSV téléchargeables depuis chaque bloc concerné (balance générale, rubriques bilan et CdR, balances âgées) ; document DOCX
+          d’analyse via Diva uniquement — objet différent des CSV, pas un export global du dossier.
+        </li>
       </ul>
     </section>
   );

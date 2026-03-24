@@ -27,6 +27,15 @@ import {
   AccountingBlockLoadingSkeleton,
   AccountingBlockPerimeterLine,
   AccountingBlockUnavailable,
+  EXPORT_CSV_LABEL_AGED_CLIENTS,
+  EXPORT_CSV_LABEL_AGED_SUPPLIERS,
+  EXPORT_CSV_LABEL_RUBRICS_BILAN,
+  EXPORT_CSV_LABEL_RUBRICS_CDR,
+  EXPORT_CSV_LABEL_TRIAL_BALANCE,
+  EXPORT_CSV_PENDING_LABEL,
+  buildAgedCsvTooltip,
+  buildRubricsCsvTooltip,
+  buildTrialBalanceCsvTooltip,
 } from "@/components/accounting-summary/accountingBlockStates";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -412,8 +421,10 @@ function TrialBalanceBlock({ tenantId, companyId, companyLabel, period, accountP
             <ExportButton
               tenantId={tenantId}
               companyId={companyId}
+              companyLabel={companyLabel}
               period={period}
               dataSource={data.data_source}
+              screenFilteredByRubric={!!accountPrefixes}
             />
           </div>
         </div>
@@ -605,11 +616,21 @@ function ClassAggregationBlock({
 interface ExportButtonProps {
   tenantId: string;
   companyId: string | null;
+  companyLabel: string;
   period: { from: string; to: string };
   dataSource: "vault" | "stub";
+  /** Table filtrée par rubrique : l’export CSV reste la BG complète (honnêteté périmètre). */
+  screenFilteredByRubric: boolean;
 }
 
-function ExportButton({ tenantId, companyId, period, dataSource }: ExportButtonProps) {
+function ExportButton({
+  tenantId,
+  companyId,
+  companyLabel,
+  period,
+  dataSource,
+  screenFilteredByRubric,
+}: ExportButtonProps) {
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -655,15 +676,24 @@ function ExportButton({ tenantId, companyId, period, dataSource }: ExportButtonP
     }
   };
 
+  const csvTitle = buildTrialBalanceCsvTooltip({
+    periodFrom: period.from,
+    periodTo: period.to,
+    companyLabel,
+    screenFilteredByRubric,
+  });
+
   return (
     <div className="flex flex-col items-end gap-1">
       <button
         type="button"
         onClick={handleExport}
         disabled={exporting}
+        title={csvTitle}
+        aria-label={csvTitle}
         className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs text-[var(--text)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] disabled:opacity-50 transition-colors"
       >
-        {exporting ? "Export…" : "↓ Exporter CSV"}
+        {exporting ? EXPORT_CSV_PENDING_LABEL : EXPORT_CSV_LABEL_TRIAL_BALANCE}
       </button>
       {exportError && (
         <p className="text-[10px] text-[var(--warning)]">{exportError}</p>
@@ -826,7 +856,15 @@ function RubricsBlock({
       <div className="px-5 py-4">
         {!empty && !isStub && (
           <div className="mb-4 flex justify-end">
-            <RubricsExportButton apiPath={apiPath} tenantId={tenantId} companyId={companyId} period={period} enableCompare={enableCompare} />
+            <RubricsExportButton
+              apiPath={apiPath}
+              tenantId={tenantId}
+              companyId={companyId}
+              companyLabel={companyLabel}
+              period={period}
+              enableCompare={enableCompare}
+              hasComparison={hasComparison}
+            />
           </div>
         )}
         {empty ? (
@@ -956,14 +994,18 @@ function RubricsExportButton({
   apiPath,
   tenantId,
   companyId,
+  companyLabel,
   period,
   enableCompare,
+  hasComparison,
 }: {
   apiPath: RubricsApiPath;
   tenantId: string;
   companyId: string | null;
+  companyLabel: string;
   period: { from: string; to: string };
   enableCompare?: boolean;
+  hasComparison: boolean;
 }) {
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -1006,11 +1048,27 @@ function RubricsExportButton({
     }
   };
 
+  const rubricsKind = apiPath.includes("balance-sheet") ? "bilan" : "cdr";
+  const label = rubricsKind === "bilan" ? EXPORT_CSV_LABEL_RUBRICS_BILAN : EXPORT_CSV_LABEL_RUBRICS_CDR;
+  const csvTitle = buildRubricsCsvTooltip({
+    kind: rubricsKind === "bilan" ? "bilan" : "cdr",
+    periodFrom: period.from,
+    periodTo: period.to,
+    companyLabel,
+    includesNvsN1: hasComparison,
+  });
+
   return (
     <div className="flex flex-col items-end gap-1">
-      <button type="button" onClick={handleExport} disabled={exporting}
-        className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs text-[var(--text)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] disabled:opacity-50 transition-colors">
-        {exporting ? "Export…" : "↓ Exporter CSV (rubriques)"}
+      <button
+        type="button"
+        onClick={handleExport}
+        disabled={exporting}
+        title={csvTitle}
+        aria-label={csvTitle}
+        className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs text-[var(--text)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] disabled:opacity-50 transition-colors"
+      >
+        {exporting ? EXPORT_CSV_PENDING_LABEL : label}
       </button>
       {exportError && (
         <p className="text-[10px] text-[var(--warning)]">{exportError}</p>
@@ -1038,16 +1096,24 @@ function AgedBalanceExportButton({
   apiPath,
   tenantId,
   companyId,
+  companyLabel,
   asOfDate,
 }: {
   apiPath: AgedApiPath;
   tenantId: string;
   companyId: string | null;
+  companyLabel: string;
   asOfDate: string;
 }) {
   const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const kind = apiPath.includes("aged-receivables") ? "clients" : "fournisseurs";
+  const label = kind === "clients" ? EXPORT_CSV_LABEL_AGED_CLIENTS : EXPORT_CSV_LABEL_AGED_SUPPLIERS;
+  const csvTitle = buildAgedCsvTooltip({ kind, asOfDate, companyLabel });
+
   const handleExport = async () => {
     setExporting(true);
+    setExportError(null);
     try {
       const params = new URLSearchParams({
         tenant: tenantId,
@@ -1055,7 +1121,10 @@ function AgedBalanceExportButton({
         ...(companyId ? { company_ids: companyId } : {}),
       });
       const res = await fetch(`${apiPath}/export?${params}`, { cache: "no-store" });
-      if (!res.ok) throw new Error("export_failed");
+      if (!res.ok) {
+        setExportError("Export indisponible (Vault non joignable).");
+        return;
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -1065,14 +1134,26 @@ function AgedBalanceExportButton({
       a.href = url;
       a.click();
       URL.revokeObjectURL(url);
-    } catch { /* silent */ }
-    setExporting(false);
+    } catch {
+      setExportError("Erreur lors du téléchargement.");
+    } finally {
+      setExporting(false);
+    }
   };
   return (
-    <button type="button" onClick={handleExport} disabled={exporting}
-      className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[10px] font-medium text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-soft)] transition-colors disabled:opacity-50">
-      {exporting ? "Export…" : "Exporter CSV"}
-    </button>
+    <div className="flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={handleExport}
+        disabled={exporting}
+        title={csvTitle}
+        aria-label={csvTitle}
+        className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[10px] font-medium text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-soft)] transition-colors disabled:opacity-50"
+      >
+        {exporting ? EXPORT_CSV_PENDING_LABEL : label}
+      </button>
+      {exportError && <p className="text-[10px] text-[var(--warning)]">{exportError}</p>}
+    </div>
   );
 }
 
@@ -1190,7 +1271,13 @@ function AgedBalanceBlock({
         )}
         {!empty && !isStub && (
           <div className="mb-3 flex justify-end">
-            <AgedBalanceExportButton apiPath={apiPath} tenantId={tenantId} companyId={companyId} asOfDate={period.to} />
+            <AgedBalanceExportButton
+              apiPath={apiPath}
+              tenantId={tenantId}
+              companyId={companyId}
+              companyLabel={companyLabel}
+              asOfDate={period.to}
+            />
           </div>
         )}
         {empty ? (
@@ -1577,6 +1664,7 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
         <AccountingInsightBlock
           tenantId={tenantId}
           companyId={companyIdsParam}
+          companyLabel={companyLabel}
           period={effectivePeriod}
           referentielVersion="1.1"
         />
@@ -1589,6 +1677,7 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
         <AccountingSummaryCodirBlock
           tenantId={tenantId}
           companyId={companyIdsParam}
+          companyLabel={companyLabel}
           period={effectivePeriod}
           docxAvailable={false}
         />

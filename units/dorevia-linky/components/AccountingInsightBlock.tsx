@@ -2,10 +2,16 @@
 
 import { useCallback, useEffect, useState, useRef } from "react";
 import type { AccountingInsightResponse } from "@/app/api/diva/accounting-insight/route";
+import {
+  EXPORT_DOCX_LABEL_DIVA_REPORT,
+  buildDivaDocxTooltip,
+} from "@/components/accounting-summary/accountingBlockStates";
 
 interface AccountingInsightBlockProps {
   tenantId: string;
   companyId: string | null;
+  /** Libellé société(s) aligné sur la synthèse (V1.3-5). */
+  companyLabel: string;
   period: { from: string; to: string };
   referentielVersion: string;
 }
@@ -29,6 +35,7 @@ interface AgedApiResponse {
 export default function AccountingInsightBlock({
   tenantId,
   companyId,
+  companyLabel,
   period,
   referentielVersion,
 }: AccountingInsightBlockProps) {
@@ -149,16 +156,23 @@ export default function AccountingInsightBlock({
 
   const scopeLine = (
     <p className="text-[10px] text-[var(--text-muted)] mt-2 leading-relaxed">
-      <span className="font-semibold text-[var(--text-secondary)]">Périmètre :</span> tenant {tenantId}
-      {companyId ? ` · société(s) ${companyId}` : " · toutes sociétés"} · {period.from} → {period.to} · réf. {referentielVersion}
+      <span className="font-semibold text-[var(--text-secondary)]">Périmètre :</span> {period.from} → {period.to} ·{" "}
+      {companyLabel} · réf. {referentielVersion}
+      <span className="block font-mono text-[9px] opacity-80 mt-0.5">Tenant {tenantId}</span>
     </p>
   );
   const sourcesLine = (
     <p className="text-[10px] text-[var(--text-muted)] mt-1">
       <span className="font-semibold text-[var(--text-secondary)]">Sources :</span> rubriques bilan, compte de résultat, balances
-      clients &amp; fournisseurs (agrégations Lynki envoyées à Diva).
+      clients &amp; fournisseurs (agrégations Lynki envoyées à Diva). Le rapport DOCX ci-dessous est distinct des exports CSV des blocs.
     </p>
   );
+
+  const docxTooltip = buildDivaDocxTooltip({
+    periodFrom: period.from,
+    periodTo: period.to,
+    companyLabel,
+  });
 
   if (state === "no_data") {
     return (
@@ -266,12 +280,18 @@ export default function AccountingInsightBlock({
             type="button"
             disabled={state !== "ready" || reportState === "loading"}
             onClick={downloadReport}
+            title={docxTooltip}
+            aria-label={docxTooltip}
             className="sv2-btn text-xs inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {reportState === "loading" ? (
               <div className="h-3 w-3 rounded-full border-2 border-[var(--sv2-accent)] border-t-transparent animate-spin" />
             ) : null}
-            {reportState === "loading" ? "Génération…" : reportState === "done" ? "Téléchargé" : "Télécharger le rapport DOCX"}
+            {reportState === "loading"
+              ? "Génération DOCX…"
+              : reportState === "done"
+                ? "DOCX téléchargé"
+                : EXPORT_DOCX_LABEL_DIVA_REPORT}
           </button>
           {reportState === "error" && (
             <span className="text-[10px] text-[var(--sv2-warning)]">Échec — réessayez</span>
