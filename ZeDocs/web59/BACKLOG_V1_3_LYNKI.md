@@ -16,6 +16,7 @@
 | `En cours` | En cours |
 | `Fait` | DoD validé |
 | `Abandonné` | Décision explicite |
+| `Audité` | Pré-requis documentaire levé ; **implémentation seulement si verdict produit positif** |
 
 ---
 
@@ -26,8 +27,43 @@
 | V1.3-1 | Résumé de lecture comité (entrée de synthèse) | Esther | `À faire` |
 | V1.3-2 | États vide / partiel / indisponible homogènes sur les blocs comptables | Esther | `À faire` |
 | V1.3-3 | Périmètre explicite par bloc (période, société, sources) | Véréna / Esther | `À faire` |
-| V1.3-4 | Lecture comparative légère (N vs N-1) — si données tenues | Esther | `À faire` |
+| V1.3-4 | Lecture comparative N vs N-1 (sous condition — voir audit § ci-dessous) | Esther | `Audité` |
 | V1.3-5 | Libellés et périmètre des exports par bloc (CSV / DOCX) | Esther | `À faire` |
+
+---
+
+## Ordre d’exécution recommandé
+
+**Règle** : l’audit **V1.3-4** est fait **en tête** (documentaire / code), mais **aucun build** sur V1.3-4 avant la fin de V1.3-3 (sauf décision contraire).
+
+| Ordre | Action |
+|-------|--------|
+| 0 | **Audit V1.3-4** — figé dans ce document (§ suivant) ; décision produit sur la suite |
+| 1 | **Build V1.3-1** — résumé comité |
+| 2 | **Build V1.3-2** — états homogènes |
+| 3 | **Build V1.3-3** — périmètre explicite par bloc |
+| 4 | **Build V1.3-5** — libellés exports (après périmètres clairs) |
+| 5 | **Build V1.3-4** — **uniquement si** le verdict post-V1.3-3 reste favorable et le périmètre d’implémentation est tranché |
+
+---
+
+## Audit V1.3-4 — résultat (code + API, 24 mars 2026)
+
+**Objectif de l’audit** : savoir où la donnée N / N-1 est **déjà tenue** sans extrapolation front.
+
+| Zone | Source réelle N vs N-1 ? | Détail |
+|------|--------------------------|--------|
+| **Rubriques bilan** (`/api/accounting/balance-sheet/rubrics`) | **Oui** | Query `compare=n-1` proxifiée vers Vault ; réponse avec `lines_previous`, `period_previous_from` / `period_previous_to`. `RubricsBlock` dans `AccountingSummaryView.tsx` affiche déjà **Comparatif N/N-1** et colonnes N / N-1 quand `hasComparison`. |
+| **Rubriques CdR** (`/api/accounting/income-statement/rubrics`) | **Oui** | Même mécanisme que bilan. |
+| **Balance générale** (`/api/accounting/trial-balance`) | **Non** | Aucun paramètre `compare` ni colonnes N-1 dans la route actuelle. |
+| **Balances âgées** (clients / fournisseurs) | **Non** *en une requête* | Snapshot à une date (`period.to`) ; un comparatif N vs N-1 exigerait **deux appels** + **règle métier** explicite (hors scope tacite V1.3-4 sans cadrage). |
+
+**Verdict pour l’implémentation V1.3-4** :
+
+* **Périmètre réaliste sans nouveau backend** : enrichir la **lisibilité** ou la **surface** du comparatif **déjà présent** sur les blocs rubriques (bilan / CdR), ou le rendre plus visible au niveau synthèse — **sans** promettre un comparatif global sur toute la page.
+* **Hors périmètre immédiat** : comparatif balance générale ou balances âgées **sans** évolution Vault / double période spécifiée.
+
+Si, après V1.3-1 → V1.3-3, la priorité produit est ailleurs, **V1.3-4 peut rester au backlog** sans bloquer la release V1.3.
 
 ---
 
@@ -71,14 +107,17 @@
 
 ## V1.3-4 — Lecture comparative N vs N-1
 
-**Objectif** : si les **APIs / agrégats** permettent une comparaison **sans extrapolation**, exposer un indicateur ou un écart contrôlé sur 1–2 blocs prioritaires.
+**Statut ticket** : `Audité` — voir **§ Audit V1.3-4** ci-dessus. **Pas de premier ticket de build.**
 
-**Point d’attention** : **audit préalable** — si aucune base sérieuse, ticket basculé en **Abandonné** ou réduit à un message « non disponible » explicite.
+**Objectif** : après V1.3-1 … V1.3-5, **si** l’équipe maintient la priorité : renforcer ou étendre **uniquement** des comparatifs **déjà soutenus** par l’API (en pratique : rubriques bilan / CdR), ou trancher **Abandonné** / report si le gain ne vaut pas le risque.
 
-**DoD** :
-- [ ] audit tranché (données tenues ou non) ;
-- [ ] si oui : affichage qualifié (pas de faux pourcentage décoratif) ;
-- [ ] si non : aucune promesse d’écart affichée ;
+**Point d’attention** : ne pas introduire de **faux confort** (pourcentages décoratifs, périmètres N / N-1 non alignés).
+
+**DoD** (implémentation, **conditionnelle**) :
+- [x] audit documentaire tranché (figé § Audit V1.3-4) ;
+- [ ] si implémentation : périmètre produit explicitement limité (ex. rubriques uniquement) ;
+- [ ] si implémentation : affichage qualifié, pas de promesse sur trial balance / âgées sans backend ;
+- [ ] si non implémentation : ticket **Abandonné** ou reporté avec motif ;
 - [ ] typecheck / lint OK.
 
 ---
