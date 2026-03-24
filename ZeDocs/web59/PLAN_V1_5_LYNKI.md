@@ -8,44 +8,74 @@
 
 ---
 
-## 1. Intention officielle (phrase de travail)
+## 1. Intention officielle
 
 > **V1.5 vise à rapprocher l’implémentation Lynki de la créa cible, en renforçant la cohérence visuelle, la qualité d’usage et la lisibilité produit.**
 
-**Référence haute** : la créa portée par Carole sert de **cible** pour réduire l’écart avec ce que Lynki affiche déjà — sans surpromesse ni refonte globale implicite.
+**Référence haute** : la créa portée par Carole sert de cible pour réduire l’écart avec ce que Lynki affiche déjà, sans surpromesse ni refonte globale implicite.
 
 ---
 
-## 2. Formulations envisagées (arbitrage)
+## 2. Positionnement du cycle
 
-| Formulation | Quand la retenir |
-|-------------|------------------|
-| **Consolidation visuelle et convergence produit** | Priorité **signature / cohérence / tenue** par rapport à la créa cible — **choix retenu** pour V1.5. |
-| **Axe 3 / qualité d’usage transverse** | Si la priorité devient avant tout mobile, sparklines, polish fin : peut **s’embarquer en partie** dans V1.5, ou faire l’objet d’un cycle distinct si l’arbitrage produit le exige. |
-| **Découplage cockpit / socle ERP** | Si le besoin est de **clarifier** chantiers Lynki vs Odoo / compta : **hors périmètre par défaut** de V1.5 — traiter comme **autre chantier** ou branche dédiée, sauf décision explicite. |
-
----
-
-## 3. Règles (héritage V1.4)
-
-* **Ne pas rouvrir V1.4** : jalon **figé**, **documenté**, **tagué**.
-* **Pas de faux “petit ticket V1.4”** : tout nouveau travail se nomme et se cadre sous **V1.5** (ou autre cycle), pas sous l’axe 2 gelé.
-* **Ligne de base exécutable** : image lab **`lynki-v1.4-20260324-r13`** ; **stinger** : aligner ou **assumer l’écart** par écrit (comme en V1.4), sans zone grise prolongée.
+| Formulation | Statut |
+|-------------|--------|
+| **Consolidation visuelle et convergence produit** | **Choix retenu pour V1.5** |
+| **Axe 3 / qualité d’usage transverse** | Peut être embarqué partiellement dans V1.5 selon arbitrage |
+| **Découplage cockpit / socle ERP** | Hors périmètre par défaut ; à traiter comme chantier distinct sauf décision explicite |
 
 ---
 
-## 4. Périmètre V1.5 (à préciser dans le backlog)
+## 3. Règles de conduite
 
-* **À produire ensuite** : fichier **`BACKLOG_V1_5_LYNKI.md`** — tickets ordonnés, DoD, écarts créa ↔ écran **nommés** (pas de liste floue).
-* **Premier mouvement sain** : inventaire **ciblé** des écrans / composants les plus visibles vs livrables créa (pilotage, détail, synthèse), puis **tranches** livrables courtes.
+- **Ne pas rouvrir V1.4** : jalon figé, documenté, tagué.
+- **Pas de faux “petit ticket V1.4”** : tout nouveau travail relève de **V1.5** ou d’un autre cycle nommé.
+- **Ligne de base exécutable** : image lab **`lynki-v1.4-20260324-r13`**.
+- **Stinger** : aligner ou assumer l’écart par écrit, sans zone grise prolongée.
 
 ---
 
-## 5. Suite immédiate
+## 4. Non-objectifs
+
+- Pas de refonte globale implicite de Lynki.
+- Pas de nouveau backend implicite dans V1.5, sauf décision formelle.
+- Pas de mélange avec les chantiers ERP / Odoo historiques.
+- Pas de backlog flou constitué de “polish” non priorisés.
+
+---
+
+## 5. Périmètre de travail
+
+V1.5 couvre prioritairement les écarts les plus visibles entre la créa cible et l’implémentation actuelle sur les écrans structurants de Lynki, notamment :
+
+- cockpit / pilotage ;
+- pages détail ;
+- écrans transverses de synthèse si retenus au backlog.
+
+Le backlog V1.5 devra nommer explicitement les écarts créa ↔ produit, les ordonner, et les découper en lots livrables courts.
+
+---
+
+## 6. Critère de succès du cycle
+
+V1.5 sera considéré comme réussi si :
+
+- les écarts visuels majeurs avec la créa cible sont réduits sur les écrans prioritaires ;
+- la cohérence de grammaire produit est renforcée entre cockpit, détail et synthèse ;
+- la qualité d’usage progresse sans régression sur les acquis V1.4 ;
+- le chantier reste lisible, borné et sans glissement vers une refonte implicite.
+
+---
+
+## 7. Suite immédiate
 
 1. **Git** : push branche, push tag **`lynki-v1.4`**, merge selon le process du dépôt.
-2. **Stinger** : décision explicite (alignement image / écart documenté).
-3. **Backlog V1.5** : ouverture du fichier backlog + ordre d’exécution figé après atelier court produit / créa.
+2. **Stinger** : décision explicite (alignement image ou écart documenté).
+3. **Backlog V1.5** : ouverture de **`BACKLOG_V1_5_LYNKI.md`** avec :
+   - inventaire ciblé des écarts majeurs ;
+   - arbitrage produit / créa ;
+   - ordre de traitement ;
+   - premier lot livrable.
 
 ---
 
