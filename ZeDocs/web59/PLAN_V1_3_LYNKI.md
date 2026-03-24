@@ -4,7 +4,7 @@
 
 **Ouverture** : 24 mars 2026
 
-**Références** : [`PLAN_V1_2_LYNKI.md`](./PLAN_V1_2_LYNKI.md) · [`BACKLOG_V1_2_LYNKI.md`](./BACKLOG_V1_2_LYNKI.md) · [`RELEASE_NOTE_LYNKI_V1_2_1.md`](./RELEASE_NOTE_LYNKI_V1_2_1.md)
+**Références** : [`PLAN_V1_2_LYNKI.md`](./PLAN_V1_2_LYNKI.md) · [`BACKLOG_V1_2_LYNKI.md`](./BACKLOG_V1_2_LYNKI.md) · [`RELEASE_NOTE_LYNKI_V1_2_1.md`](./RELEASE_NOTE_LYNKI_V1_2_1.md) · [`BACKLOG_V1_3_LYNKI.md`](./BACKLOG_V1_3_LYNKI.md)
 
 ---
 
@@ -34,7 +34,9 @@ Définir **une intention V1.3** et **un seul axe prioritaire** pour la suite du 
 
 **Arbitrage recommandé (à valider en équipe)** : **Axe 1** en priorité V1.3.
 
-> La suite la plus intelligente n’est pas d’ajouter un petit effet visuel mobile, mais d’ouvrir le **prochain palier métier lisible** de Lynki.
+> La suite la plus intelligente n’est pas d’ajouter un effet visuel mobile supplémentaire, mais d’ouvrir le prochain palier métier **lisible et crédible** de Lynki.
+
+**Critère de choix d’axe** : l’axe V1.3 retenu devra être celui qui améliore le plus la **lecture financière utile**, avec le **moins de dette** visuelle, métier ou technique.
 
 ---
 
@@ -42,7 +44,7 @@ Définir **une intention V1.3** et **un seul axe prioritaire** pour la suite du 
 
 Tant que l’axe 1 est retenu, V1.3 vise typiquement :
 
-* enrichir **`/synthese`** et les **blocs comptables** (rubriques, balances, preuves, exports déjà présents) avec des **lectures ou restitutions** plus utiles pour comité / RAF ;
+* enrichir **`/synthese`** et les **blocs comptables** (rubriques, balances, preuves, exports déjà présents) avec des **lectures ou restitutions** plus utiles pour comité / RAF, **sans transformer `/synthese` en rapport lourd ni en écran comptable exhaustif** ;
 * **sans** refonte du shell Lynki ni du design system ;
 * **sans** promesses non tenues (même discipline que V1.2-3 / V1.2-5).
 
@@ -53,9 +55,9 @@ Tant que l’axe 1 est retenu, V1.3 vise typiquement :
 ## 5. Suite immédiate
 
 1. **Valider** l’axe prioritaire (idéalement **Axe 1**) en une réunion courte ou arbitrage écrit.
-2. **Créer** un fichier léger `BACKLOG_V1_3_LYNKI.md` avec **3 à 6 mini-tickets** ciblés sur l’axe retenu (pas de tunnel documentaire).
+2. **Exécuter** le backlog : [`BACKLOG_V1_3_LYNKI.md`](./BACKLOG_V1_3_LYNKI.md) — **5 mini-tickets** sur l’axe 1 uniquement (pas de tunnel documentaire).
 3. **Ne pas** modifier les tags `lynki-v1.2` / `lynki-v1.2.1` ; le premier tag V1.3 sera posé **à la clôture** du chantier (ex. `lynki-v1.3`).
 
 ---
 
-*Mini-cadrage V1.3 — prêt pour arbitrage d’axe et ouverture de backlog.*
+*Mini-cadrage V1.3 — backlog axe 1 : [`BACKLOG_V1_3_LYNKI.md`](./BACKLOG_V1_3_LYNKI.md).*
