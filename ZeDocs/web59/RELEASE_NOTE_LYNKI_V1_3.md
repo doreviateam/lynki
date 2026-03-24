@@ -73,7 +73,8 @@
 
 ## Suite produit suggérée (hors tag)
 
-* **Axe 2** (profondeur pages détail cockpit : `/business`, `/flux-net`, `/encours`, `/tresorerie`, etc.) avant **Axe 3** (polish mobile / sparklines V1.2-6).
+* **V1.4 — axe 2** (profondeur pages détail : `/business`, `/flux-net`, `/encours`, harmonisation minimale `/tresorerie`) — voir [`PLAN_V1_4_LYNKI.md`](./PLAN_V1_4_LYNKI.md) et [`BACKLOG_V1_4_LYNKI.md`](./BACKLOG_V1_4_LYNKI.md).
+* **Axe 3** (polish mobile / sparklines V1.2-6) **après** l’axe 2 si la priorité le confirme.
 
 ---
 

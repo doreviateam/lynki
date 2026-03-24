@@ -4,7 +4,7 @@
 
 **Ouverture** : 24 mars 2026
 
-**Références** : [`PLAN_V1_2_LYNKI.md`](./PLAN_V1_2_LYNKI.md) · [`BACKLOG_V1_2_LYNKI.md`](./BACKLOG_V1_2_LYNKI.md) · [`RELEASE_NOTE_LYNKI_V1_2_1.md`](./RELEASE_NOTE_LYNKI_V1_2_1.md) · [`BACKLOG_V1_3_LYNKI.md`](./BACKLOG_V1_3_LYNKI.md) · [`RELEASE_NOTE_LYNKI_V1_3.md`](./RELEASE_NOTE_LYNKI_V1_3.md) · tag **`lynki-v1.3`**
+**Références** : [`PLAN_V1_2_LYNKI.md`](./PLAN_V1_2_LYNKI.md) · [`BACKLOG_V1_2_LYNKI.md`](./BACKLOG_V1_2_LYNKI.md) · [`RELEASE_NOTE_LYNKI_V1_2_1.md`](./RELEASE_NOTE_LYNKI_V1_2_1.md) · [`BACKLOG_V1_3_LYNKI.md`](./BACKLOG_V1_3_LYNKI.md) · [`RELEASE_NOTE_LYNKI_V1_3.md`](./RELEASE_NOTE_LYNKI_V1_3.md) · tag **`lynki-v1.3`** · suite axe 2 : [`PLAN_V1_4_LYNKI.md`](./PLAN_V1_4_LYNKI.md)
 
 ---
 
