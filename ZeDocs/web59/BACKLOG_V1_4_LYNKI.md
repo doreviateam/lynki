@@ -35,7 +35,7 @@
 |----|-------|------|--------|
 | V1.4-1 | Encours — risque, segmentation, exposition client | `/encours` | `Fait` · passe 1 (24/03/2026) |
 | V1.4-2 | Flux net — dynamique encaissements / décaissements | `/flux-net` | `Fait` · passe 1 (24/03/2026) |
-| V1.4-3 | Business — activité sans pseudo-P&L | `/business` | `À faire` |
+| V1.4-3 | Business — activité sans pseudo-P&L | `/business` | `Fait` · passe 1 (24/03/2026) |
 | V1.4-4 | Harmonisation `/tresorerie` | `/tresorerie` | `À faire` |
 
 ---
@@ -160,7 +160,7 @@ Faire de `/encours` une page qui aide à répondre rapidement à :
 
 **V1.4-2 est livrée en première passe crédible** : périmètre, erreur réseau, états homogènes, KPI flux net + cartes encaissements / décaissements, bloc « contrôle lecture » (net détail), honnêteté sur **instruments sans `_details`** et sur **écart KPI vs net**, rappel **non-IFRS** — **sans nouveau backend**. Suites possibles non bloquantes : graphique d’évolution, bouton Actualiser aligné `/tresorerie`.
 
-**Prochain ticket naturel** : **V1.4-3 — `/business`**.
+**Enchaînement axe 2** : **V1.4-3 — `/business`** (voir ci-dessous), puis **V1.4-4 — `/tresorerie`**.
 
 ---
 
@@ -170,12 +170,18 @@ Faire de `/encours` une page qui aide à répondre rapidement à :
 
 ### DoD
 
-- [ ] **CA facturé** lisible ;
-- [ ] décomposition **ventes / achats** **si** tenue par les données ;
-- [ ] **top clients** ou **concentration** **si** tenue ;
-- [ ] rappel de l’**exposition AR** si pertinent et non redondant de façon trompeuse avec `/encours` ;
-- [ ] **pas** de synthèse trop ambitieuse (titre / sous-textes calibrés) ;
-- [ ] typecheck / lint OK.
+- [x] **CA facturé** lisible ;
+- [x] décomposition **ventes / achats** **si** tenue par les données ;
+- [x] **top clients** ou **concentration** **si** tenue ;
+- [x] rappel de l’**exposition AR** si pertinent et non redondant de façon trompeuse avec `/encours` ;
+- [x] **pas** de synthèse trop ambitieuse (titre / sous-textes calibrés) ;
+- [x] typecheck / lint OK.
+
+**Journal passe 1** : `units/dorevia-linky/app/(cockpit)/business/page.tsx` ; `units/dorevia-linky/components/cockpit-detail/cockpitBusinessStates.tsx`.
+
+**V1.4-3 est livrée en première passe crédible** : périmètre (période, société, tenant), erreur réseau + réessai, squelettes de chargement, bannières partielles (Metric Engine sans `_details`, KPI sans décomposition), CA facturé + bloc ventes/achats HT avec libellé **non P&L** sur le solde, concentration clients si `sales_by_partner`, aperçu AR avec renvoi explicite vers **`/encours`** — **sans nouveau backend**. Suites possibles non bloquantes : bouton Actualiser aligné `/tresorerie`, harmonisation fil d’Ariane sur les autres pages détail.
+
+**Prochain ticket naturel** : **V1.4-4 — `/tresorerie`** (harmonisation grammaire V1.4).
 
 ---
 

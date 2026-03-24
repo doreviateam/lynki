@@ -1,17 +1,26 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import Link from "next/link";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { ConfidenceScore } from "@/components/ConfidenceScore";
 import { TopBar } from "@/components/layout/TopBar";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { computeConfidenceScore } from "@/app/lib/confidence";
+import { navHrefWithTenant } from "@/components/layout/navTenantHref";
 import {
   CockpitFluxNetEmptyNotice,
   CockpitFluxNetLoadingSkeleton,
   CockpitFluxNetPartialBanner,
   CockpitFluxNetUnavailable,
 } from "@/components/cockpit-detail/cockpitFluxNetStates";
+import {
+  formatSeriesPeriodLabel,
+  mergePaymentsInOutSeries,
+  pickPaymentsGranularity,
+  type FluxNetPeriodPoint,
+  type PaymentsAggJson,
+} from "./fluxNetPaymentsSeries";
 
 const USE_METRIC_ENGINE = process.env.NEXT_PUBLIC_LINKY_USE_METRIC_ENGINE === "1";
 /** Tolérance affichage EUR sur écart KPI tuile vs net détail (normalisation côté API). */
@@ -27,6 +36,41 @@ function formatPeriodFr(from: string, to: string): string {
   const b = new Date(to);
   if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return "—";
   return `${a.toLocaleDateString("fr-FR")} – ${b.toLocaleDateString("fr-FR")}`;
+}
+
+function FluxNetEvolutionChart({ points }: { points: FluxNetPeriodPoint[] }) {
+  if (points.length < 2) return null;
+  const values = points.map((p) => p.net);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || Math.abs(max) || 1;
+  const pad = span * 0.08;
+  const yMin = min - pad;
+  const yMax = max + pad;
+  const w = 600;
+  const h = 200;
+  const toX = (i: number) => (i / (points.length - 1)) * w;
+  const toY = (v: number) => h - ((v - yMin) / (yMax - yMin)) * h;
+  const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${toX(i).toFixed(1)} ${toY(p.net).toFixed(1)}`).join(" ");
+  const areaD = `${pathD} L ${toX(points.length - 1).toFixed(1)} ${h} L 0 ${h} Z`;
+  const zeroInRange = yMin <= 0 && yMax >= 0;
+  const y0 = toY(0);
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="h-48 w-full" preserveAspectRatio="none" aria-hidden>
+      <defs>
+        <linearGradient id="fluxNetEvolutionGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#10b981" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#10b981" stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+      {zeroInRange ? (
+        <line x1={0} x2={w} y1={y0} y2={y0} stroke="var(--border)" strokeWidth={1} strokeDasharray="4 4" />
+      ) : null}
+      <path d={areaD} fill="url(#fluxNetEvolutionGrad)" />
+      <path d={pathD} fill="none" stroke="#34d399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }
 
 function companyLabelFromHook(
@@ -64,6 +108,55 @@ function FluxNetContent() {
     [companies, effectiveCompanyId, companiesLoading]
   );
   const periodLabel = period.from && period.to ? formatPeriodFr(period.from, period.to) : "—";
+  const pilotageHref = navHrefWithTenant("/", scopeTenantId);
+
+  const [evolutionPoints, setEvolutionPoints] = useState<FluxNetPeriodPoint[]>([]);
+  const [evolutionLoading, setEvolutionLoading] = useState(true);
+  const [evolutionError, setEvolutionError] = useState(false);
+
+  useEffect(() => {
+    if (!period.from || !period.to) return;
+    const g = pickPaymentsGranularity(period.from, period.to);
+    const qs = new URLSearchParams({
+      tenant: scopeTenantId,
+      date_debut: period.from,
+      date_fin: period.to,
+      granularity: g,
+    });
+    if (effectiveCompanyId) qs.set("company_id", effectiveCompanyId);
+
+    let cancelled = false;
+    setEvolutionLoading(true);
+    setEvolutionError(false);
+
+    const load = async () => {
+      try {
+        const [inRes, outRes] = await Promise.all([
+          fetch(`/api/payments-in?${qs}`, { cache: "no-store" }),
+          fetch(`/api/payments-out?${qs}`, { cache: "no-store" }),
+        ]);
+        if (cancelled) return;
+        const inOk = inRes.ok;
+        const outOk = outRes.ok;
+        const inJson: PaymentsAggJson | null = inOk ? await inRes.json().catch(() => null) : null;
+        const outJson: PaymentsAggJson | null = outOk ? await outRes.json().catch(() => null) : null;
+        if (cancelled) return;
+        setEvolutionPoints(mergePaymentsInOutSeries(inJson, outJson));
+        setEvolutionError(!inOk && !outOk);
+      } catch {
+        if (!cancelled) {
+          setEvolutionPoints([]);
+          setEvolutionError(true);
+        }
+      } finally {
+        if (!cancelled) setEvolutionLoading(false);
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [scopeTenantId, effectiveCompanyId, period.from, period.to]);
 
   const hasDetails = Boolean(details);
   const encaissements = details?.encaissements ?? null;
@@ -103,9 +196,9 @@ function FluxNetContent() {
       <main className="flex-1 overflow-y-auto pb-24">
         <header className="border-b border-[var(--border)] bg-[var(--bg-secondary)] px-6 py-4">
           <nav className="mb-2 flex items-center gap-2 text-sm text-[var(--muted)]">
-            <a href="/" className="transition-colors hover:text-[var(--text)]">
+            <Link href={pilotageHref} className="transition-colors hover:text-[var(--text)]">
               Pilotage
-            </a>
+            </Link>
             <Icon name="chevron_right" size={16} />
             <span className="font-medium text-[var(--text)]">Flux net</span>
           </nav>
@@ -241,6 +334,49 @@ function FluxNetContent() {
                   </p>
                 </div>
               ) : null}
+
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+                <h2 className="mb-1 text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                  Évolution du flux net
+                </h2>
+                <p className="mb-4 text-[10px] leading-relaxed text-[var(--muted)]">
+                  Série issue des agrégats <strong>encaissements</strong> et <strong>décaissements</strong> (Vault), même périmètre
+                  que ci-dessus — granularité <strong>{pickPaymentsGranularity(period.from, period.to) === "week" ? "hebdomadaire" : "mensuelle"}</strong>.
+                  Ce n’est pas le solde de trésorerie bancaire ; la somme des points peut différer du total période si les buckets ne
+                  couvrent pas exactement les mêmes opérations que l’agrégat global du cockpit.
+                </p>
+                {evolutionLoading ? (
+                  <div className="flex h-48 items-center justify-center text-sm text-[var(--muted)]">
+                    <span className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+                    Chargement de la série…
+                  </div>
+                ) : evolutionError || evolutionPoints.length < 2 ? (
+                  <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-[var(--border)] text-sm text-[var(--text-secondary)]">
+                    <div className="text-center px-4">
+                      <Icon name="show_chart" size={32} className="mb-2 mx-auto text-[var(--muted)]" />
+                      <p>Évolution non disponible pour cette période ou agrégats indisponibles.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <FluxNetEvolutionChart points={evolutionPoints} />
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-[var(--muted)]">
+                      <span>
+                        {formatSeriesPeriodLabel(evolutionPoints[0].period)} →{" "}
+                        {formatSeriesPeriodLabel(evolutionPoints[evolutionPoints.length - 1].period)}
+                      </span>
+                    </div>
+                  </>
+                )}
+                {evolutionPoints.length >= 2 ? (
+                  <div className="mt-3 flex items-center gap-4 text-xs text-[var(--muted)]">
+                    <span className="flex items-center gap-1.5">
+                      <span className="h-0.5 w-4 rounded bg-emerald-400" />
+                      Flux net (enc. − déc.) par période
+                    </span>
+                  </div>
+                ) : null}
+              </div>
 
               <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
                 <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
