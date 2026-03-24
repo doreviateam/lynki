@@ -52,6 +52,8 @@
 
 *Sortie attendue : écarts **nommés**, **ordonnés**, reliés à la **créa figée** (maquette / doc) et à l’**écran actuel** — avec ou sans atelier synchrone avec la création graphique.*
 
+**Critère d’entrée (ligne « Certain »)** : une ligne n’entre en **Certain** que si l’équipe peut **la montrer**, **la décrire factuellement**, et **dire comment constater sa fermeture**. Sinon → **Interprétatif** ou pas dans l’inventaire pour l’instant. *Premier pas recommandé : **au plus 3 lignes Certain**, puis figer **V1.5-1 à V1.5-3** et un **premier lot court et sûr**.*
+
 **Catégorie** : **`Certain`** *(objectivable, fermable sans interprétation fragile)* · **`Interprétatif`** *(à arbitrer plus tard ou avec prudence — pas ticket immédiat du premier lot).*
 
 **Impact** *(exemples de valeurs)* : lisibilité produit · cohérence visuelle · qualité d’usage · perception premium · dette UI *(une ou plusieurs, explicites)*.
@@ -117,6 +119,7 @@
 | 24 mars 2026 | Renforts : colonnes **Impact** et **Risque / dépendance** ; discipline 3–6 écarts / lot 2–4 tickets ; **preuve de fin** par ticket. |
 | 24 mars 2026 | **Règle d’atelier** : 5 points par écart (où / visible / pourquoi / fidélité créa / critère de fermeture). |
 | 24 mars 2026 | **Arbitrage sans créa en direct** : créa figée comme référence muette ; catégories **Certain / Interprétatif** ; premier lot conservateur ; règle noire sur blanc objectivable + faible ambiguïté. |
+| 24 mars 2026 | **Critère d’entrée inventaire** : montrer + description factuelle + critère de fermeture pour toute ligne **Certain** ; ≤ 3 lignes puis V1.5-1…3 + premier lot. |
 
 ---
 
