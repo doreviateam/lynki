@@ -4,8 +4,9 @@
 *Référence plan : [`PLAN_V1_2_LYNKI.md`](./PLAN_V1_2_LYNKI.md)*
 
 **Ouverture** : 24 mars 2026
-**Jalon V1.2 atteint** : 24 mars 2026 — tag `lynki-v1.2`
-**Critère de sortie satisfait** : V1.2-1 + V1.2-2 + V1.2-3 + V1.2-4 livrés (3 priorités hautes + 1 priorité moyenne)
+**Jalon V1.2 atteint** : 24 mars 2026 — tag `lynki-v1.2` (non déplacé)
+**Release étendue V1.2.1** : 24 mars 2026 — tag `lynki-v1.2.1` — V1.2-5 (suppression export PDF fantôme `/synthese`) ; note [`RELEASE_NOTE_LYNKI_V1_2_1.md`](./RELEASE_NOTE_LYNKI_V1_2_1.md)
+**Critère de sortie initial V1.2** : V1.2-1 + V1.2-2 + V1.2-3 + V1.2-4 livrés (3 priorités hautes + 1 priorité moyenne)
 
 ---
 
