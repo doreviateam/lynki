@@ -18,6 +18,10 @@
 3. **Premier lot très sûr** sans créa en direct : fort impact visuel, faible ambiguïté, **faisable en front seul**, peu de débat conceptuel — ex. hiérarchie, espacements, alignements, chrome commun, densité des cards, cohérence headers / sections ; reporter ton, narration visuelle fine, sujets « intention ».
 4. **Démarrage possible sans attendre** une personne : viser au début **3 écarts certains maximum**, puis **V1.5-1 à V1.5-3** sur cette base — V1.5 **sobre, objectivable, discipliné**.
 
+### Persona « Esther » *(méthode interne)*
+
+*Persona **CDG** (reporting consolidé), ancré sur les planches `stitch/synth_se_desktop_esther_canon_v5` : lire l’écran comme une **synthèse de conviction** — hiérarchie claire, **chaîne de confiance** (complétude / conformité), lien **chiffres → interprétation**. Utile pour **recette**, **ordre des blocs** et **copies**, sans obligation d’exposer le nom « Esther » dans l’UI.*
+
 ### Discipline d’arbitrage *(à respecter avant de remplir le backlog en masse)*
 
 * Ne pas **surcharger** l’inventaire d’un coup (éviter une liste de 15 écarts non priorisés).
@@ -166,6 +170,7 @@
 | 24 mars 2026 | **Thème clair opt-in** : `html.light` + tokens dérivés des maquettes `stitch_carole_61` (canon V5) ; persistance `localStorage` `linky-theme` ; `tailwind` en `darkMode: "class"` ; toggle dans la TopBar (+ login, alertes mobile, admin DLP). L’inventaire **clair/sombre** reste partiellement **interprétatif** tant que le défaut produit / la recette globale ne sont pas figés. |
 | 24 mars 2026 | **Alignement créa renforcé** : défaut navigateur = **clair** (Stitch) sauf `linky-theme=dark` ; cockpit desktop (bento, tuiles maîtresses, sparkline emerald, PROXY ambre, Business slate-900) calqué sur `pilotage_desktop_v_r_na_canon_v5` ; TopBar `h-16` / titre `text-lg font-bold`. |
 | 24 mars 2026 | **Page `/tresorerie`** : structure `d_tail_tr_sorerie_v_r_na_canon_v5` — en-tête retour Pilotage + actions (Exporter désactivé, Actualiser primaire noir/blanc), grille 12 (KPI héro 8 + bloc contexte slate-900), graphique 9 + panneau Gouvernance 3, courbe SVG h-64 / stroke 3 / dégradé type maquette. |
+| 24 mars 2026 | **Persona interne « Esther »** (CDG) : § dédié — méthode recette / copies / blocs ; pas de nom imposé en produit. |
 
 ---
 
