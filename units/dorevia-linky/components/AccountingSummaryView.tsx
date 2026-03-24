@@ -25,6 +25,7 @@ import {
   ACCOUNTING_BADGE_STUB,
   AccountingBlockEmptyNotice,
   AccountingBlockLoadingSkeleton,
+  AccountingBlockPerimeterLine,
   AccountingBlockUnavailable,
 } from "@/components/accounting-summary/accountingBlockStates";
 
@@ -73,6 +74,7 @@ function formatAmount(n: number | null | undefined): string {
 interface GeneralLedgerPanelProps {
   tenantId: string;
   companyId: string | null;
+  companyLabel: string;
   accountCode: string;
   period: { from: string; to: string };
   onClose: () => void;
@@ -88,7 +90,7 @@ function GLSkeleton() {
   );
 }
 
-function GeneralLedgerPanel({ tenantId, companyId, accountCode, period, onClose }: GeneralLedgerPanelProps) {
+function GeneralLedgerPanel({ tenantId, companyId, companyLabel, accountCode, period, onClose }: GeneralLedgerPanelProps) {
   const [data, setData] = useState<LynkiGeneralLedgerResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -126,14 +128,11 @@ function GeneralLedgerPanel({ tenantId, companyId, accountCode, period, onClose 
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Grand livre · BG → GL</p>
             <h3 className="mt-0.5 font-mono text-sm font-semibold text-[var(--text)]">{accountCode}</h3>
-            <p className="text-[10px] text-[var(--text-muted)]">
-              {period.from} → {period.to}
-              {data && (
-                <span className="ml-2 rounded-full bg-[var(--border)] px-1.5 py-0.5 font-sans text-[9px]">
-                  {data.data_source}
-                </span>
-              )}
-            </p>
+            <AccountingBlockPerimeterLine
+              periodLabel={`${period.from} → ${period.to}`}
+              companyLabel={companyLabel}
+              dataSource={data?.data_source}
+            />
           </div>
           <button
             type="button"
@@ -274,11 +273,12 @@ function TrialBalanceRow({ line, onDrill }: TrialBalanceRowProps) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface TrialBalanceBlockProps extends AccountingSummaryViewProps {
+  companyLabel: string;
   accountPrefixes?: string;
   rubricLabel?: string;
 }
 
-function TrialBalanceBlock({ tenantId, companyId, period, accountPrefixes, rubricLabel }: TrialBalanceBlockProps) {
+function TrialBalanceBlock({ tenantId, companyId, companyLabel, period, accountPrefixes, rubricLabel }: TrialBalanceBlockProps) {
   const [data, setData] = useState<LynkiTrialBalanceResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -339,16 +339,18 @@ function TrialBalanceBlock({ tenantId, companyId, period, accountPrefixes, rubri
     const isStub = data?.data_source === "stub";
     return (
       <div id="balance-generale" className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <h2 className="text-sm font-semibold text-[var(--text)]">{blockTitle}</h2>
-          <span className="rounded-full bg-[var(--warning)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
-            {isStub ? ACCOUNTING_BADGE_STUB : "Aucune ligne"}
-          </span>
-          {data && (
-            <span className="rounded-full bg-[var(--border)] px-2 py-0.5 text-[10px] font-mono text-[var(--text-muted)]">
-              {data.data_source}
+        <div className="mb-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-sm font-semibold text-[var(--text)]">{blockTitle}</h2>
+            <span className="rounded-full bg-[var(--warning)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
+              {isStub ? ACCOUNTING_BADGE_STUB : "Aucune ligne"}
             </span>
-          )}
+          </div>
+          <AccountingBlockPerimeterLine
+            periodLabel={`${period.from} → ${period.to}`}
+            companyLabel={companyLabel}
+            dataSource={data?.data_source}
+          />
         </div>
         <AccountingBlockEmptyNotice>
           {isStub
@@ -372,31 +374,38 @@ function TrialBalanceBlock({ tenantId, companyId, period, accountPrefixes, rubri
     <>
       <div id="balance-generale" className="rounded-xl border border-[var(--border)] bg-[var(--surface)]">
         {/* En-tête */}
-        <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-sm font-semibold text-[var(--text)]">{blockTitle}</h2>
-            {accountPrefixes && (
-              <span className="rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)] uppercase tracking-wider">
-                Filtré
+        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[var(--border)] px-5 py-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-sm font-semibold text-[var(--text)]">{blockTitle}</h2>
+              {accountPrefixes && (
+                <span className="rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)] uppercase tracking-wider">
+                  Filtré
+                </span>
+              )}
+              <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)] uppercase tracking-wider">
+                {data.lines.length} compte{data.lines.length > 1 ? "s" : ""}
               </span>
-            )}
-            <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)] uppercase tracking-wider">
-              {data.lines.length} compte{data.lines.length > 1 ? "s" : ""}
-            </span>
-            {balanced && (
-              <span className="rounded-full bg-[var(--positive)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--positive)] uppercase tracking-wider">
-                Équilibrée
-              </span>
-            )}
-            {!data.complete && (
-              <span className="rounded-full bg-[var(--warning)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider"
-                title="Couverture partielle — périmètre limité">
-                {ACCOUNTING_BADGE_PARTIAL}
-              </span>
-            )}
+              {balanced && (
+                <span className="rounded-full bg-[var(--positive)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--positive)] uppercase tracking-wider">
+                  Équilibrée
+                </span>
+              )}
+              {!data.complete && (
+                <span className="rounded-full bg-[var(--warning)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider"
+                  title="Couverture partielle — périmètre limité">
+                  {ACCOUNTING_BADGE_PARTIAL}
+                </span>
+              )}
+            </div>
+            <AccountingBlockPerimeterLine
+              periodLabel={`${period.from} → ${period.to}`}
+              companyLabel={companyLabel}
+              dataSource={data.data_source}
+            />
           </div>
-          <div className="flex items-center gap-3">
-            <div className="text-[10px] text-[var(--text-muted)]">
+          <div className="flex shrink-0 items-center gap-3">
+            <div className="text-[10px] text-right text-[var(--text-muted)]">
               Réf. v{data.referentiel_version}
               {data.vault_freshness && <> · {data.vault_freshness}</>}
             </div>
@@ -463,12 +472,14 @@ function ClassAggregationBlock({
   apiPath,
   tenantId,
   companyId,
+  companyLabel,
   period,
 }: {
   title: string;
   apiPath: ClassAggregationApiPath;
   tenantId: string;
   companyId: string | null;
+  companyLabel: string;
   period: { from: string; to: string };
 }) {
   const [data, setData] = useState<LynkiBalanceSheetResponse | LynkiIncomeStatementResponse | null>(null);
@@ -517,22 +528,28 @@ function ClassAggregationBlock({
 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)]">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-5 py-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-sm font-semibold text-[var(--text)]">{title}</h2>
-          {isStub && (
-            <span className="rounded-full bg-[var(--warning)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
-              {ACCOUNTING_BADGE_STUB}
-            </span>
-          )}
-          {!data.complete && !empty && (
-            <span className="rounded-full bg-[var(--warning)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
-              {ACCOUNTING_BADGE_PARTIAL}
-            </span>
-          )}
-          <span className="rounded-full bg-[var(--border)] px-2 py-0.5 text-[10px] font-mono text-[var(--text-muted)]">{data.data_source}</span>
+      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[var(--border)] px-5 py-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-sm font-semibold text-[var(--text)]">{title}</h2>
+            {isStub && (
+              <span className="rounded-full bg-[var(--warning)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
+                {ACCOUNTING_BADGE_STUB}
+              </span>
+            )}
+            {!data.complete && !empty && (
+              <span className="rounded-full bg-[var(--warning)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
+                {ACCOUNTING_BADGE_PARTIAL}
+              </span>
+            )}
+          </div>
+          <AccountingBlockPerimeterLine
+            periodLabel={`${period.from} → ${period.to}`}
+            companyLabel={companyLabel}
+            dataSource={data.data_source}
+          />
         </div>
-        <div className="text-[10px] text-[var(--text-muted)]">
+        <div className="shrink-0 text-[10px] text-right text-[var(--text-muted)]">
           Réf. v{data.referentiel_version}
           {data.vault_freshness && <> · {data.vault_freshness}</>}
         </div>
@@ -707,6 +724,7 @@ function RubricsBlock({
   apiPath,
   tenantId,
   companyId,
+  companyLabel,
   period,
   onDrillBG,
   enableCompare,
@@ -715,6 +733,7 @@ function RubricsBlock({
   apiPath: RubricsApiPath;
   tenantId: string;
   companyId: string | null;
+  companyLabel: string;
   period: { from: string; to: string };
   onDrillBG?: (prefixes: string, label: string) => void;
   enableCompare?: boolean;
@@ -770,30 +789,32 @@ function RubricsBlock({
 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)]">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-5 py-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-sm font-semibold text-[var(--text)]">{title}</h2>
-          <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)] uppercase tracking-wider">
-            rubriques
-          </span>
-          {hasComparison && (
-            <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold text-blue-400 uppercase tracking-wider">
-              Comparatif N/N-1
+      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[var(--border)] px-5 py-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-sm font-semibold text-[var(--text)]">{title}</h2>
+            <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)] uppercase tracking-wider">
+              rubriques
             </span>
-          )}
-          {isStub && (
-            <span className="rounded-full bg-[var(--warning)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
-              {ACCOUNTING_BADGE_STUB}
-            </span>
-          )}
-          {!data.complete && !empty && (
-            <span className="rounded-full bg-[var(--warning)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
-              {ACCOUNTING_BADGE_PARTIAL}
-            </span>
-          )}
-          <span className="rounded-full bg-[var(--border)] px-2 py-0.5 text-[10px] font-mono text-[var(--text-muted)]">{data.data_source}</span>
+            {isStub && (
+              <span className="rounded-full bg-[var(--warning)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
+                {ACCOUNTING_BADGE_STUB}
+              </span>
+            )}
+            {!data.complete && !empty && (
+              <span className="rounded-full bg-[var(--warning)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
+                {ACCOUNTING_BADGE_PARTIAL}
+              </span>
+            )}
+          </div>
+          <AccountingBlockPerimeterLine
+            periodLabel={`${period.from} → ${period.to}`}
+            companyLabel={companyLabel}
+            dataSource={data.data_source}
+            compareNvsN1={hasComparison}
+          />
         </div>
-        <div className="text-[10px] text-[var(--text-muted)]">
+        <div className="shrink-0 text-[10px] text-right text-[var(--text-muted)]">
           Réf. v{data.referentiel_version} · {data.detail_level}
           {data.vault_freshness && <> · {data.vault_freshness}</>}
           {hasComparison && data.period_previous_from && (
@@ -1060,12 +1081,14 @@ function AgedBalanceBlock({
   apiPath,
   tenantId,
   companyId,
+  companyLabel,
   period,
 }: {
   title: string;
   apiPath: AgedApiPath;
   tenantId: string;
   companyId: string | null;
+  companyLabel: string;
   period: { from: string; to: string };
 }) {
   const [data, setData] = useState<LynkiAgedReceivablesResponse | LynkiAgedPayablesResponse | null>(null);
@@ -1115,20 +1138,26 @@ function AgedBalanceBlock({
 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)]">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-5 py-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-sm font-semibold text-[var(--text)]">{title}</h2>
-          <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)] uppercase tracking-wider">
-            {lines.length} partenaire{lines.length > 1 ? "s" : ""}
-          </span>
-          {isStub && (
-            <span className="rounded-full bg-[var(--warning)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
-              {ACCOUNTING_BADGE_STUB}
+      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[var(--border)] px-5 py-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-sm font-semibold text-[var(--text)]">{title}</h2>
+            <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)] uppercase tracking-wider">
+              {lines.length} partenaire{lines.length > 1 ? "s" : ""}
             </span>
-          )}
-          <span className="rounded-full bg-[var(--border)] px-2 py-0.5 text-[10px] font-mono text-[var(--text-muted)]">{data.data_source}</span>
+            {isStub && (
+              <span className="rounded-full bg-[var(--warning)]/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)] uppercase tracking-wider">
+                {ACCOUNTING_BADGE_STUB}
+              </span>
+            )}
+          </div>
+          <AccountingBlockPerimeterLine
+            periodLabel={`Position au ${period.to}`}
+            companyLabel={companyLabel}
+            dataSource={data.data_source}
+          />
         </div>
-        <div className="text-[10px] text-[var(--text-muted)]">
+        <div className="shrink-0 text-[10px] text-right text-[var(--text-muted)]">
           Au {data.as_of_date} · Réf. v{data.referentiel_version}
         </div>
       </div>
@@ -1566,8 +1595,14 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
       </section>
 
       {/* Chaîne : Synthèse → BG pilote → GL (drill Sprint 03) */}
-      <TrialBalanceBlock tenantId={tenantId} companyId={companyIdsParam} period={effectivePeriod}
-        accountPrefixes={drillBG?.prefixes} rubricLabel={drillBG?.label} />
+      <TrialBalanceBlock
+        tenantId={tenantId}
+        companyId={companyIdsParam}
+        companyLabel={companyLabel}
+        period={effectivePeriod}
+        accountPrefixes={drillBG?.prefixes}
+        rubricLabel={drillBG?.label}
+      />
       {drillBG && (
         <button type="button" onClick={() => setDrillBG(null)}
           className="self-start sv2-btn text-xs -mt-4">
@@ -1581,6 +1616,7 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
         apiPath="/api/accounting/balance-sheet/rubrics"
         tenantId={tenantId}
         companyId={companyIdsParam}
+        companyLabel={companyLabel}
         period={effectivePeriod}
         onDrillBG={(prefixes, label) => setDrillBG({ prefixes, label })}
         enableCompare={enableCompare}
@@ -1590,6 +1626,7 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
         apiPath="/api/accounting/income-statement/rubrics"
         tenantId={tenantId}
         companyId={companyIdsParam}
+        companyLabel={companyLabel}
         period={effectivePeriod}
         onDrillBG={(prefixes, label) => setDrillBG({ prefixes, label })}
         enableCompare={enableCompare}
@@ -1606,6 +1643,7 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
             apiPath="/api/accounting/balance-sheet"
             tenantId={tenantId}
             companyId={companyIdsParam}
+            companyLabel={companyLabel}
             period={effectivePeriod}
           />
           <ClassAggregationBlock
@@ -1613,6 +1651,7 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
             apiPath="/api/accounting/income-statement"
             tenantId={tenantId}
             companyId={companyIdsParam}
+            companyLabel={companyLabel}
             period={effectivePeriod}
           />
         </div>
@@ -1624,6 +1663,7 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
         apiPath="/api/accounting/aged-receivables"
         tenantId={tenantId}
         companyId={companyIdsParam}
+        companyLabel={companyLabel}
         period={effectivePeriod}
       />
       <AgedBalanceBlock
@@ -1631,6 +1671,7 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
         apiPath="/api/accounting/aged-payables"
         tenantId={tenantId}
         companyId={companyIdsParam}
+        companyLabel={companyLabel}
         period={effectivePeriod}
       />
     </div>

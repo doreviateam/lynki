@@ -77,3 +77,27 @@ export function AccountingBlockEmptyNotice({ children }: { children: ReactNode }
     </p>
   );
 }
+
+/** Ligne de périmètre (V1.3-3) — sous le titre, une seule lecture, sans jargon inutile */
+export function AccountingBlockPerimeterLine({
+  periodLabel,
+  companyLabel,
+  dataSource,
+  compareNvsN1,
+}: {
+  periodLabel: string;
+  companyLabel: string;
+  dataSource?: string | null;
+  compareNvsN1?: boolean;
+}) {
+  const bits = [`Période : ${periodLabel}`, `Société : ${companyLabel}`];
+  if (dataSource === "vault") bits.push("Source : comptabilité (Vault)");
+  else if (dataSource === "stub") bits.push("Source : secours documenté");
+  else if (dataSource) bits.push(`Source : ${dataSource}`);
+  if (compareNvsN1) bits.push("Comparatif N/N-1");
+  return (
+    <p className="mt-1 max-w-full text-[10px] leading-snug text-[var(--text-muted)]" role="note">
+      {bits.join(" · ")}
+    </p>
+  );
+}

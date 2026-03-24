@@ -26,7 +26,7 @@
 |----|-------|---------|--------|
 | V1.3-1 | Résumé de lecture comité (entrée de synthèse) | Esther | `Fait` |
 | V1.3-2 | États vide / partiel / indisponible homogènes sur les blocs comptables | Esther | `Fait` |
-| V1.3-3 | Périmètre explicite par bloc (période, société, sources) | Véréna / Esther | `À faire` |
+| V1.3-3 | Périmètre explicite par bloc (période, société, sources) | Véréna / Esther | `Fait` |
 | V1.3-4 | Lecture comparative N vs N-1 (sous condition — voir audit § ci-dessous) | Esther | `Audité` |
 | V1.3-5 | Libellés et périmètre des exports par bloc (CSV / DOCX) | Esther | `À faire` |
 
@@ -101,9 +101,11 @@ Si, après V1.3-1 → V1.3-3, la priorité produit est ailleurs, **V1.3-4 peut r
 **Objectif** : chaque bloc comptable affiche clairement **période**, **société** (si applicable) et **source** de la donnée, pour lecture RAF sans ambiguïté.
 
 **DoD** :
-- [ ] au moins une ligne de périmètre cohérente par bloc principal ;
-- [ ] pas de texte générique trompeur ;
-- [ ] typecheck / lint OK.
+- [x] au moins une ligne de périmètre cohérente par bloc principal ;
+- [x] pas de texte générique trompeur ;
+- [x] typecheck / lint OK.
+
+**Livraison** : `AccountingBlockPerimeterLine` dans `accountingBlockStates.tsx` (période, société, source lisible vault/secours, option `Comparatif N/N-1` uniquement quand `hasComparison`). Branché sur `RubricsBlock`, `ClassAggregationBlock`, `AgedBalanceBlock` (`Position au …`), `TrialBalanceBlock` (y compris état vide), en-tête `GeneralLedgerPanel` (prêt si réutilisation). Libellé société = `companyLabel` (cohérent avec le header synthèse). Pastille `data_source` brute retirée des en-têtes au profit de la ligne de périmètre.
 
 ---
 
@@ -141,6 +143,7 @@ Si, après V1.3-1 → V1.3-3, la priorité produit est ailleurs, **V1.3-4 peut r
 |----|------|-------|
 | V1.3-1 | 24 mars 2026 | Bloc exécutif déterministe ; props depuis probe existante + `enableCompare`. |
 | V1.3-2 | 24 mars 2026 | États loading / unavailable / empty / badges harmonisés ; pas de changement de logique métier des APIs. |
+| V1.3-3 | 24 mars 2026 | Ligne de périmètre homogène sous les titres ; comparatif N/N-1 seulement sur rubriques avec données comparatives. |
 
 ---
 
