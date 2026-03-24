@@ -79,4 +79,4 @@ V1.5 sera considéré comme réussi si :
 
 ---
 
-*Plan Lynki V1.5 — convergence créa & consolidation visuelle — **brouillon de cadrage** jusqu’à complétion du backlog.*
+*Plan Lynki V1.5 — convergence créa & consolidation visuelle — **cadrage publié** le 24 mars 2026 ; **backlog détaillé** (`BACKLOG_V1_5_LYNKI.md`) **à compléter**.*
