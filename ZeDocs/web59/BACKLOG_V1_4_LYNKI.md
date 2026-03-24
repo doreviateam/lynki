@@ -63,9 +63,24 @@ Faire de `/encours` une page qui aide à répondre rapidement à :
 
 ### Premier mouvement sain (V1.4-1, avant code significatif)
 
-1. **Audit** de la surface actuelle de **`/encours`** et des **données réellement tenues** (routes, champs, stubs, limites Vault / Lynki).
+1. **Audit** selon la grille **§ Audit V1.4-1** ci-dessous (point de départ code : `units/dorevia-linky/app/(cockpit)/encours/page.tsx` + **hooks, routes API et agrégats réellement consommés** par cette page).
 2. **Trancher** la **première segmentation** affichable de façon honnête (équivalence métier ↔ champs disponibles).
 3. **Implémenter** la première version lisible selon la **structure cible** et le **DoD** (pas de « smart » implicite).
+
+### Audit V1.4-1 — grille (4 vérifications)
+
+**Point de départ** : `app/(cockpit)/encours/page.tsx` et tout ce qu’elle tire (fetch clients, hooks, `/api/*`, types de réponse).
+
+1. **Surface actuelle** — ce que la page affiche **réellement** ; ce qui reste **shell**, **placeholder** ou **fallback** non qualifié.
+2. **Données tenues** — KPI principal **oui/non** ; détail **par client** **oui/non** ; **échéances / ancienneté** réellement présentes **oui/non** ; **trous de périmètre** (période, société, source) documentés.
+3. **Segmentation honnête possible** — ex. à échoir / échu / critique **si** la donnée le porte ; sinon **version plus sobre** explicitement motivée par l’audit.
+4. **Écart à la structure cible** — header, KPI, segmentation, exposition par client, états homogènes : **déjà là / partiel / absent**.
+
+**Livrable d’audit** : répondre à **une seule question** —
+
+> **Quelle est la première version crédible de `/encours` qu’on peut livrer sans faux signal ni backend implicite ?**
+
+*(La réponse peut tenir en quelques paragraphes + liste de champs / écrans ; pas de rapport lourd.)*
 
 ### Structure cible
 
