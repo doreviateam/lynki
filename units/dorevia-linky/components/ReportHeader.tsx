@@ -16,6 +16,7 @@ import { useAccountingPeriods } from "@/app/lib/use-accounting-periods";
 import { DEFAULT_PRODUCT_NAME } from "@/app/lib/tenant-config-defaults";
 import { TenantSelector } from "@/components/TenantSelector";
 import { ReportHeaderContent } from "@/components/ReportHeaderContent";
+import { companyDisplayLabel, normalizeCompanyId } from "@/app/lib/company-id";
 
 export type ViewMode = "all" | "cash" | "business" | "corrections" | "pos_shops" | "pos_z";
 
@@ -116,7 +117,33 @@ export function ReportHeader({
     return year;
   });
 
-  const { periodStatuses } = useAccountingPeriods(tenantId, selectedCompanyId, periodYear);
+  const sanitizedCompanies = useMemo(() => {
+    return companies
+      .map((c) => {
+        const id = normalizeCompanyId(c.company_id);
+        if (!id) return null;
+        const label = companyDisplayLabel(c.display_name, c.company_id);
+        return {
+          company_id: id,
+          documents_count:
+            typeof c.documents_count === "number" && Number.isFinite(c.documents_count) ? c.documents_count : 0,
+          display_name: label.length > 0 ? label : id,
+        };
+      })
+      .filter((c) => c != null) as CompanyItem[];
+  }, [companies]);
+
+  const selectedCompanyIdForSelect = useMemo(() => {
+    if (selectedCompanyId == null || selectedCompanyId === "") return "";
+    if (typeof selectedCompanyId === "string") return selectedCompanyId;
+    return normalizeCompanyId(selectedCompanyId) ?? "";
+  }, [selectedCompanyId]);
+
+  const { periodStatuses } = useAccountingPeriods(
+    tenantId,
+    selectedCompanyIdForSelect || null,
+    periodYear
+  );
 
   // Synchroniser period prop → state local (si period vient d'une source externe)
   // getKeyAndYearFromPeriod reconnaît la période par défaut comme "ytd" pour éviter d'afficher "Janvier"
@@ -214,9 +241,9 @@ export function ReportHeader({
       onPeriodYearChange={setPeriodYear}
       periodOptionsToShow={periodOptionsToShow}
       yearsToShow={yearsToShow}
-      companies={companies}
+      companies={sanitizedCompanies}
       companiesLoading={companiesLoading}
-      selectedCompanyId={selectedCompanyId}
+      selectedCompanyId={selectedCompanyIdForSelect || null}
       onCompanyChange={onCompanyChange}
       moduleActif={moduleActif}
       showIntegrityBadge={showIntegrityBadge}

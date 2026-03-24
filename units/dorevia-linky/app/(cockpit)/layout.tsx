@@ -1,16 +1,21 @@
 "use client";
 
+import { Suspense } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
 
 export default function CockpitLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <Sidebar />
+      <Suspense fallback={<div className="fixed left-0 top-0 z-50 hidden h-full w-64 bg-slate-900 md:block" aria-hidden />}>
+        <Sidebar />
+      </Suspense>
       <div className="flex min-h-screen flex-col md:ml-64">
         {children}
       </div>
-      <BottomNav />
+      <Suspense fallback={null}>
+        <BottomNav />
+      </Suspense>
     </>
   );
 }

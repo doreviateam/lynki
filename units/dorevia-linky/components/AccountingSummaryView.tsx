@@ -37,6 +37,7 @@ import {
   buildRubricsCsvTooltip,
   buildTrialBalanceCsvTooltip,
 } from "@/components/accounting-summary/accountingBlockStates";
+import { companyDisplayLabel, normalizeCompanyId } from "@/app/lib/company-id";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AccountingSummaryView — Surface Synthèse comptable Lynki
@@ -52,8 +53,10 @@ interface CompanyOption {
   display_name?: string;
 }
 
-function extractNumericId(raw: string): number | null {
-  const match = raw.match(/(\d+)$/);
+function extractNumericId(raw: string | unknown): number | null {
+  const s = normalizeCompanyId(raw) ?? (typeof raw === "string" ? raw.trim() : "");
+  if (!s) return null;
+  const match = s.match(/(\d+)$/);
   return match ? parseInt(match[1], 10) : null;
 }
 
@@ -1420,11 +1423,16 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
   }, [tenantId, companyId]);
 
   const companyIdsParam = buildCompanyIdsParam(selectedIds);
-  const companyLabel = selectedIds.length === 0
-    ? "Toutes les sociétés"
-    : selectedIds.length === 1
-      ? companies.find((c) => extractNumericId(c.company_id) === selectedIds[0])?.display_name ?? `Société ${selectedIds[0]}`
-      : `${selectedIds.length} sociétés`;
+  const companyLabel =
+    selectedIds.length === 0
+      ? "Toutes les sociétés"
+      : selectedIds.length === 1
+        ? (() => {
+            const match = companies.find((c) => extractNumericId(c.company_id) === selectedIds[0]);
+            const text = companyDisplayLabel(match?.display_name, match?.company_id ?? selectedIds[0]);
+            return text || `Société ${selectedIds[0]}`;
+          })()
+        : `${selectedIds.length} sociétés`;
 
   const toggleCompany = useCallback((numId: number) => {
     setSelectedIds((prev) =>
@@ -1525,14 +1533,15 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
                       Toutes les sociétés
                     </button>
                     {companies.map((c) => {
+                      const idStr = normalizeCompanyId(c.company_id);
                       const numId = extractNumericId(c.company_id);
-                      if (numId === null) return null;
+                      if (numId === null || !idStr) return null;
                       const isSelected = selectedIds.includes(numId);
                       return (
-                        <button type="button" key={c.company_id}
+                        <button type="button" key={idStr}
                           onClick={() => toggleCompany(numId)}
                           className={`w-full text-left px-3 py-2 text-xs hover:bg-[var(--sv2-accent)]/10 transition-colors ${isSelected ? "font-bold text-[var(--sv2-accent)]" : "text-[var(--sv2-text)]"}`}>
-                          {isSelected ? "✓ " : ""}{c.display_name ?? c.company_id}
+                          {isSelected ? "✓ " : ""}{companyDisplayLabel(c.display_name, c.company_id)}
                         </button>
                       );
                     })}

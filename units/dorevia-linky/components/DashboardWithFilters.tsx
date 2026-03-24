@@ -32,6 +32,7 @@ import { AccountingSummaryView } from "@/components/AccountingSummaryView";
 import { getDefaultPeriod, type PeriodRange } from "@/app/lib/period-utils";
 import type { DashboardMetricsResponse } from "@/app/api/dashboard-metrics/route";
 import { recordUxSample } from "@/app/lib/ux-metrics";
+import { companyDisplayLabel, normalizeCompanyId } from "@/app/lib/company-id";
 
 const COMPANIES_TIMEOUT_MS = 5000;
 const DASHBOARD_METRICS_POLL_MS = 2 * 60 * 1000; // 2 min
@@ -257,7 +258,22 @@ function DashboardWithFiltersContent({
     })
       .then((r) => r.json())
       .then((data: CompanyItem[]) => {
-        const list = Array.isArray(data) ? data : [];
+        const raw = Array.isArray(data) ? data : [];
+        const list: CompanyItem[] = [];
+        for (const c of raw) {
+          const id = normalizeCompanyId(c.company_id);
+          if (!id) continue;
+          const documents_count =
+            typeof c.documents_count === "number" && Number.isFinite(c.documents_count)
+              ? c.documents_count
+              : 0;
+          const label = companyDisplayLabel(c.display_name, c.company_id);
+          list.push({
+            company_id: id,
+            documents_count,
+            ...(label && label !== id ? { display_name: label } : {}),
+          });
+        }
         setCompanies(list);
         // Auto-sélection : seulement si au moins une société a des documents Vault.
         // Si tout vient du manifest (documents_count: 0), garder "Tout" pour afficher les données agrégées.

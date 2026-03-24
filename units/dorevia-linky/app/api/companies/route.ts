@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { companyDisplayLabel, normalizeCompanyId } from "@/app/lib/company-id";
 
 const VAULT_URL = process.env.VAULT_URL || "http://localhost:8080";
 const DEFAULT_TENANT = process.env.TENANT_ID || "core";
@@ -11,6 +12,18 @@ export const dynamic = "force-dynamic";
 interface VaultCompanyItem {
   company_id: string;
   documents_count: number;
+}
+
+function normalizeVaultRow(raw: unknown): VaultCompanyItem | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const r = raw as Record<string, unknown>;
+  const company_id = normalizeCompanyId(r.company_id);
+  if (!company_id) return null;
+  const documents_count =
+    typeof r.documents_count === "number" && Number.isFinite(r.documents_count)
+      ? r.documents_count
+      : 0;
+  return { company_id, documents_count };
 }
 
 interface EnrichedCompanyItem extends VaultCompanyItem {
@@ -72,7 +85,12 @@ export async function GET(request: NextRequest) {
     clearTimeout(timeoutId);
     let data: VaultCompanyItem[] = [];
     if (res.ok) {
-      data = (await res.json()) as VaultCompanyItem[];
+      const parsed = await res.json();
+      const rows = Array.isArray(parsed) ? parsed : [];
+      for (const row of rows) {
+        const norm = normalizeVaultRow(row);
+        if (norm) data.push(norm);
+      }
     }
     // Si Vault erre ou renvoie vide, on continue pour appliquer le fallback manifest
 
@@ -85,7 +103,7 @@ export async function GET(request: NextRequest) {
       if (c.company_id === "odoo:0") continue;
       byId.set(c.company_id, {
         ...c,
-        display_name: displayNames[c.company_id] ?? c.company_id,
+        display_name: companyDisplayLabel(displayNames[c.company_id], c.company_id),
       });
     }
 
@@ -95,14 +113,13 @@ export async function GET(request: NextRequest) {
         byId.set(company_id, {
           company_id,
           documents_count: 0,
-          display_name: display_name || company_id,
+          display_name: companyDisplayLabel(display_name, company_id),
         });
       }
     }
 
-    const enriched = Array.from(byId.values()).sort((a, b) =>
-      (a.display_name ?? a.company_id).localeCompare(b.display_name ?? b.company_id)
-    );
+    const sortLabel = (x: EnrichedCompanyItem) => String(x.display_name ?? x.company_id);
+    const enriched = Array.from(byId.values()).sort((a, b) => sortLabel(a).localeCompare(sortLabel(b)));
 
     return NextResponse.json(enriched);
   } catch {

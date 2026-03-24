@@ -9,6 +9,7 @@ import type { DashboardMetricsResponse } from "@/app/api/dashboard-metrics/route
 import type { PeriodRange } from "@/app/lib/period-utils";
 import type { CardId } from "@/app/types/linky-tiles";
 import { computeConfidenceScore } from "@/app/lib/confidence";
+import { navHrefWithTenant } from "@/components/layout/navTenantHref";
 
 interface CockpitDesktopViewProps {
   tenantId: string;
@@ -61,6 +62,7 @@ export function CockpitDesktopView({
   const treasury = metrics?.treasury;
   const business = metrics?.business;
   const cash = metrics?.cash;
+  const h = (p: string) => navHrefWithTenant(p, tenantId);
 
   if (metricsLoading && !metrics) {
     return (
@@ -89,7 +91,7 @@ export function CockpitDesktopView({
         <div className="grid auto-rows-[160px] grid-cols-6 gap-4">
           {/* Trésorerie — 2×2 */}
           <Link
-            href="/tresorerie"
+            href={h("/tresorerie")}
             className="col-span-2 row-span-2 flex flex-col justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md"
           >
             <div>
@@ -110,7 +112,7 @@ export function CockpitDesktopView({
 
           {/* Business — 2×2 fond slate-900 */}
           <Link
-            href="/business"
+            href={h("/business")}
             className="col-span-2 row-span-2 flex flex-col justify-between rounded-xl bg-slate-900 p-5 text-left shadow-sm transition-all hover:shadow-md"
           >
             <div>
@@ -126,7 +128,7 @@ export function CockpitDesktopView({
 
           {/* Flux Net — 2×2 */}
           <Link
-            href="/flux-net"
+            href={h("/flux-net")}
             className="col-span-2 row-span-2 flex flex-col justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md"
           >
             <div>
@@ -152,7 +154,7 @@ export function CockpitDesktopView({
                 label={tile.label}
                 value={fmt(metric)}
                 confidence={conf(metric)}
-                href={tile.href}
+                href={tile.href ? h(tile.href) : undefined}
                 onClick={tile.href ? undefined : () => onSelectCard?.(tile.id)}
               />
             );
@@ -163,7 +165,7 @@ export function CockpitDesktopView({
         <div className="mt-6 grid grid-cols-3 gap-4">
           {/* Lien vers le détail trésorerie */}
           <Link
-            href="/tresorerie"
+            href={h("/tresorerie")}
             className="col-span-2 flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-emerald-600/30"
           >
             <div>
@@ -176,7 +178,7 @@ export function CockpitDesktopView({
           </Link>
 
           <Link
-            href="/alerts"
+            href={h("/alerts")}
             className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-emerald-600/30"
           >
             <div>

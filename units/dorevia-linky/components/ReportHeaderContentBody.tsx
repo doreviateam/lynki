@@ -5,6 +5,7 @@ import { IntegrityBadge } from "@/components/IntegrityBadge";
 import { TenantSelector } from "@/components/TenantSelector";
 import type { ReportHeaderContentProps } from "./ReportHeaderContent.types";
 import type { PeriodStatusMap } from "@/app/lib/use-accounting-periods";
+import { companyDisplayLabel, normalizeCompanyId, safeReactText } from "@/app/lib/company-id";
 
 export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
   const {
@@ -163,7 +164,15 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
               <label htmlFor="company-select" className="sr-only">Société</label>
               <select id="company-select" disabled={companiesLoading} value={selectedCompanyId ?? ""} onChange={(e) => onCompanyChange(e.target.value || null)} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]" aria-label="Société">
                 <option value="">Toutes les sociétés</option>
-                {companies.map((c) => <option key={c.company_id} value={c.company_id}>{c.display_name ?? c.company_id}</option>)}
+                {companies.map((c) => {
+                  const id = normalizeCompanyId(c.company_id);
+                  if (!id) return null;
+                  return (
+                    <option key={id} value={id}>
+                      {companyDisplayLabel(c.display_name, c.company_id)}
+                    </option>
+                  );
+                })}
               </select>
               {appView !== "synthese" && <span className="truncate text-sm text-[var(--muted)]">· {moduleActif}</span>}
             </div>
@@ -216,7 +225,15 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
           <label htmlFor="company-select-mobile" className="sr-only">Société</label>
           <select id="company-select-mobile" disabled={companiesLoading} value={selectedCompanyId ?? ""} onChange={(e) => onCompanyChange(e.target.value || null)} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]" aria-label="Société">
             <option value="">Toutes les sociétés</option>
-            {companies.map((c) => <option key={c.company_id} value={c.company_id}>{c.display_name ?? c.company_id}</option>)}
+            {companies.map((c) => {
+              const id = normalizeCompanyId(c.company_id);
+              if (!id) return null;
+              return (
+                <option key={id} value={id}>
+                  {companyDisplayLabel(c.display_name, c.company_id)}
+                </option>
+              );
+            })}
           </select>
           <label htmlFor="period-key-mobile" className="sr-only">Période</label>
           <select id="period-key-mobile" value={periodKey} onChange={(e) => onPeriodKeyChange(e.target.value)} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]">
@@ -263,13 +280,14 @@ function enrichPeriodLabel(
   year: number,
   statuses?: PeriodStatusMap,
 ): string {
-  if (!statuses || statuses.size === 0) return opt.label;
+  const base = safeReactText(opt.label) || safeReactText(opt.value);
+  if (!statuses || statuses.size === 0) return base;
   const month = parseInt(opt.value, 10);
-  if (Number.isNaN(month) || month < 1 || month > 12) return opt.label;
+  if (Number.isNaN(month) || month < 1 || month > 12) return base;
   const key = `${year}-${String(month).padStart(2, "0")}`;
   const info = statuses.get(key);
-  if (!info || info.status === "open") return opt.label;
-  return opt.label + (STATUS_SUFFIX[info.status] ?? "");
+  if (!info || info.status === "open") return base;
+  return base + (STATUS_SUFFIX[info.status] ?? "");
 }
 
 function getPeriodContextLabel(

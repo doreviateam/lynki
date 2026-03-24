@@ -6,7 +6,7 @@
 
 services:
   linky:
-    image: dorevia/linky:sprint19-2026-03-24
+    image: dorevia/linky:lynki-v1.4-20260324-r5
     container_name: linky_lab_sarl-la-platine
     restart: unless-stopped
     environment:

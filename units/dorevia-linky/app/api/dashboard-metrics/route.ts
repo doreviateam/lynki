@@ -78,8 +78,24 @@ export interface SalesByPartnerDetail {
 }
 
 export interface ArByPartnerDetail {
-  totals: { open_amount: number; overdue_amount: number; open_count_invoices: number; overdue_count_invoices: number; missing_due_date_count: number };
-  partners: Array<{ partner_id: string; partner_name?: string; open_amount: number; overdue_amount: number; share_percent: number }>;
+  totals: {
+    open_amount: number;
+    overdue_amount: number;
+    open_count_invoices: number;
+    overdue_count_invoices: number;
+    missing_due_date_count: number;
+    overdue_avg_days?: number;
+    overdue_max_days?: number;
+  };
+  partners: Array<{
+    partner_id: string;
+    partner_name?: string;
+    open_amount: number;
+    overdue_amount: number;
+    share_percent: number;
+    overdue_avg_days?: number;
+    overdue_max_days?: number;
+  }>;
   meta: { freshness: string; warnings?: string[] };
 }
 

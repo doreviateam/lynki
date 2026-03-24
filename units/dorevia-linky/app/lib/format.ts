@@ -46,11 +46,14 @@ function formatWithThousands(n: number, decimals = 0): string {
  * Formate les montants dans un texte (ex. "1434786 €" ou "1440 €" → "1 434 786 €" / "1 440 €").
  * Utile pour le discours DIVA généré par Mistral.
  * Utilise un formatage manuel pour garantir le séparateur de milliers partout.
+ * Accepte tout type (API parfois non strictement string) pour éviter un crash au rendu.
  */
-export function formatAmountsInText(text: string): string {
+export function formatAmountsInText(text: string | number | null | undefined): string {
+  if (text == null) return "";
+  const s = typeof text === "string" ? text : String(text);
   // Montants ≥ 1000 : 4+ chiffres consécutifs devant €, euros, EUR ou fin de segment
   const amountPattern = /\b(\d{4,})(?:[.,](\d+))?(?=\s*[€eE]|\s*[eE]uros?|\s*EUR|[\s)\]%\-–—]|$)/g;
-  return text.replace(amountPattern, (_, intPart, decPart) => {
+  return s.replace(amountPattern, (_, intPart, decPart) => {
     const num = decPart ? parseFloat(`${intPart}.${decPart}`) : parseInt(intPart, 10);
     const dec = decPart ? Math.min(decPart.length, 2) : 0;
     return formatWithThousands(num, dec);

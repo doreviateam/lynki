@@ -129,8 +129,9 @@ function takeFirstTwoSentences(text: string): string {
 }
 
 /** Normalisation éditoriale : termes EN → FR + épargne → trésorerie (langage cockpit). */
-function normalizeInsightFr(text: string): string {
-  return text
+function normalizeInsightFr(text: string | number | null | undefined): string {
+  const s = text == null ? "" : typeof text === "string" ? text : String(text);
+  return s
     .replace(/\bépargne\b/gi, "trésorerie")
     .replace(/d'épargne\b/gi, "de trésorerie")
     .replace(/\breceivables\b/gi, "créances")
@@ -142,8 +143,9 @@ function normalizeInsightFr(text: string): string {
 }
 
 /** Headline prêt pour affichage cockpit : 2 phrases max + normalisation FR. */
-function cockpitHeadline(raw: string | undefined): string {
-  const displayed = toDisplayHeadline(raw);
+function cockpitHeadline(raw: string | undefined | number | null): string {
+  const asStr = raw == null ? undefined : typeof raw === "string" ? raw : String(raw);
+  const displayed = toDisplayHeadline(asStr);
   const normalized = normalizeInsightFr(displayed);
   return takeFirstTwoSentences(normalized);
 }

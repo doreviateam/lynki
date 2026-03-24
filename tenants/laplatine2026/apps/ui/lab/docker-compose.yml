@@ -8,7 +8,7 @@ name: dorevia_ui_lab_laplatine2026
 
 services:
   linky:
-    image: dorevia/linky:lynki-v1.3-20260324
+    image: dorevia/linky:lynki-v1.4-20260324-r5
     container_name: linky_lab_laplatine2026
     restart: unless-stopped
     environment:

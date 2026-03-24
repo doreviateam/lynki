@@ -23,6 +23,7 @@ import {
 } from "@/app/lib/chart-granularity";
 import type { ChartType } from "@/app/lib/chart-type";
 import type { SeriesPoint } from "@/app/types/aggregations";
+import { companyDisplayLabel, normalizeCompanyId } from "@/app/lib/company-id";
 
 interface PosSessionItem {
   session_id: string;
@@ -140,7 +141,14 @@ function aggregateByShop(items: PosSessionItem[]): PosShopAggregation[] {
 }
 
 function getShopDisplayName(shopId: string, companies: CompanyItem[] = []): string {
-  const byId = new Map(companies.map((c) => [c.company_id, c.display_name ?? c.company_id]));
+  const byId = new Map(
+    companies
+      .map((c) => {
+        const id = normalizeCompanyId(c.company_id) ?? "";
+        return [id, companyDisplayLabel(c.display_name, c.company_id)] as const;
+      })
+      .filter(([id]) => id.length > 0)
+  );
   return byId.get(shopId) ?? byId.get(`odoo:${shopId}`) ?? shopId;
 }
 

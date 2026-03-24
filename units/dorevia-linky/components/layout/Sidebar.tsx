@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/Icon";
+import { navHrefWithTenant } from "@/components/layout/navTenantHref";
 
 interface NavItem {
   label: string;
@@ -35,6 +36,8 @@ function isActive(pathname: string, item: NavItem): boolean {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tenantQs = searchParams.get("tenant");
 
   return (
     <aside className="fixed left-0 top-0 z-50 hidden h-full w-64 flex-col overflow-y-auto border-r border-slate-800 bg-slate-900 px-3 py-4 text-sm font-medium text-white shadow-xl md:flex">
@@ -54,7 +57,7 @@ export function Sidebar() {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={navHrefWithTenant(item.href, tenantQs)}
               className={`flex items-center gap-3 rounded-md px-3 py-2 transition-all duration-200 active:origin-left active:scale-95 ${
                 active
                   ? "bg-emerald-600 text-white"

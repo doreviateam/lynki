@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/Icon";
+import { navHrefWithTenant } from "@/components/layout/navTenantHref";
 
 interface BottomNavItem {
   label: string;
@@ -24,6 +25,8 @@ function isActive(pathname: string, item: BottomNavItem): boolean {
 
 export function BottomNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tenantQs = searchParams.get("tenant");
 
   return (
     <nav className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around border-t border-slate-200 bg-white/80 pb-6 pt-2 shadow-[0_-1px_3px_0_rgba(0,0,0,0.05)] backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80 md:hidden">
@@ -32,7 +35,7 @@ export function BottomNav() {
         return (
           <Link
             key={item.href}
-            href={item.href}
+            href={navHrefWithTenant(item.href, tenantQs)}
             className={`flex flex-col items-center justify-center transition-all duration-200 ${
               active
                 ? "scale-95 font-semibold text-emerald-600 dark:text-emerald-400"
