@@ -23,16 +23,18 @@ Le passage **V1.3 → V1.4** marque un **nouveau jalon lisible** : après un cyc
 
 ---
 
-## 3. Périmètre V1.4 (brouillon — à décliner en backlog)
+## 3. Périmètre V1.4 et ordre d’exécution
 
-**Quatre sujets maximum** (ordre et découpage à trancher en tickets) :
+**Quatre tickets** — ordre **figé** dans [`BACKLOG_V1_4_LYNKI.md`](./BACKLOG_V1_4_LYNKI.md) :
 
-| # | Zone | Intention |
-|---|------|-----------|
-| 1 | **`/business`** | Enrichissement **utile** au-delà du shell — lecture et actions tenues. |
-| 2 | **`/flux-net`** | Idem. |
-| 3 | **`/encours`** | Idem. |
-| 4 | **`/tresorerie`** | **Harmonisation minimale** avec le même esprit (cohérence de lecture, pas refonte). |
+| Ordre | ID | Zone | Rationale courte |
+|-------|-----|------|------------------|
+| 1 | V1.4-1 | **`/encours`** | Le plus **actionnable** pour un RAF ; premier build axe 2. |
+| 2 | V1.4-2 | **`/flux-net`** | Lecture du **mouvement réel** après la grammaire Encours. |
+| 3 | V1.4-3 | **`/business`** | Enrichi quand le **détail** est mieux cadré. |
+| 4 | V1.4-4 | **`/tresorerie`** | **Alignement final** avec la grammaire V1.4 — pas le point de départ (page souvent la plus mature). |
+
+DoD détaillés : **même fichier backlog**.
 
 ---
 
@@ -48,8 +50,9 @@ Le passage **V1.3 → V1.4** marque un **nouveau jalon lisible** : après un cyc
 ## 5. Suite immédiate
 
 1. **Mini-recette** `/synthese` puis **push** branche + tag **`lynki-v1.3`** si ce n’est pas déjà fait.
-2. **Affiner** le backlog [`BACKLOG_V1_4_LYNKI.md`](./BACKLOG_V1_4_LYNKI.md) (priorisation, DoD par sujet).
-3. **Exécuter** par incréments courts ; tag de clôture **`lynki-v1.4`** à poser **à la fin** du chantier validé (release note associée recommandée).
+2. **Ouvrir V1.4-1 — `/encours`** (premier ticket exécutable — intention, structure cible et DoD dans le backlog).
+3. Enchaîner **V1.4-2 → V1.4-3 → V1.4-4** selon le backlog.
+4. Tag de clôture **`lynki-v1.4`** à la fin du chantier validé (release note recommandée).
 
 ---
 

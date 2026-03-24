@@ -20,26 +20,102 @@
 
 ---
 
-## Tableau de bord (squelette — à découper en tickets)
+## Ordre d’exécution (figé)
 
-| ID | Titre | Zone | Statut |
-|----|-------|------|--------|
-| V1.4-1 | Enrichissement utile `/business` | `/business` | `À faire` |
-| V1.4-2 | Enrichissement utile `/flux-net` | `/flux-net` | `À faire` |
-| V1.4-3 | Enrichissement utile `/encours` | `/encours` | `À faire` |
-| V1.4-4 | Harmonisation minimale avec `/tresorerie` | `/tresorerie` + cohérence | `À faire` |
-
-*Les IDs et le découpage peuvent être ajustés (sous-tickets, ordre) sans changer l’intention des quatre lignes.*
+1. **V1.4-1 — `/encours`** — le plus directement actionnable pour un RAF ; **premier ticket exécutable** après mini-recette `/synthese` + push `lynki-v1.3`.
+2. **V1.4-2 — `/flux-net`** — lecture du mouvement réel, une fois la grammaire détail amorcée sur Encours.
+3. **V1.4-3 — `/business`** — enrichissement quand la grammaire des pages détail est mieux posée.
+4. **V1.4-4 — `/tresorerie`** — **alignement final** avec la grammaire V1.4 ; pas un point de départ (page souvent la plus mature — éviter d’y toucher avant d’avoir cadré le reste).
 
 ---
 
-## Ordre d’exécution recommandé
+## Tableau de bord
 
-**À trancher en équipe** (dépend des dépendances data / API et de la valeur métier). En l’absence d’arbitrage :
+| ID | Titre | Zone | Statut |
+|----|-------|------|--------|
+| V1.4-1 | Encours — risque, segmentation, exposition client | `/encours` | `À faire` |
+| V1.4-2 | Flux net — dynamique encaissements / décaissements | `/flux-net` | `À faire` |
+| V1.4-3 | Business — activité sans pseudo-P&L | `/business` | `À faire` |
+| V1.4-4 | Harmonisation `/tresorerie` | `/tresorerie` | `À faire` |
 
-1. Poser pour chaque ligne un **objectif une phrase** + **DoD** avant tout code significatif.
-2. Traiter **une page à la fois** pour limiter le risque de dette transverse.
-3. Réserver **V1.4-4** (trésorerie) en fin de cycle ou en parallèle léger si c’est surtout de l’harmonisation UI / périmètre.
+---
+
+## V1.4-1 — Encours (`/encours`) — **premier ticket exécutable**
+
+### Intention produit
+
+Faire de `/encours` une page qui aide à répondre rapidement à :
+
+* **où** est le risque ;
+* **chez qui** ;
+* avec **quel niveau d’ancienneté** ;
+* et **quelle lecture prioritaire** en tirer.
+
+### Règles
+
+* **Pas** de nouvelle promesse de recouvrement, **pas** de recommandation automatique.
+* **Pas** de backend nouveau **si** les données déjà exposées (ou proxifiées) suffisent pour une **première vraie page** ; toute évolution API se fait **explicitement** et hors scope tacite.
+
+### Structure cible
+
+* en-tête de page ;
+* bloc **indicateur principal** ;
+* bloc **répartition / statut** des créances (segmentation lisible : à échoir / échu / critique, ou **équivalent strictement aligné sur la donnée tenue**) ;
+* bloc **exposition par client** avec **échéances visibles** ;
+* états **vide / partiel / indisponible** homogènes (réutiliser la grammaire V1.3 si pertinent).
+
+### DoD
+
+- [ ] indicateur principal **clair** ;
+- [ ] segmentation lisible du portefeuille (libellés honnêtes si agrégation partielle) ;
+- [ ] exposition **par client** avec échéances visibles lorsque la donnée le permet ;
+- [ ] **aucun** CTA ou lien sans action réelle ;
+- [ ] **périmètre explicite** (période, société, source / limites) ;
+- [ ] **fallback propre** si une sous-partie manque (pas de silence trompeur) ;
+- [ ] typecheck / lint OK sur les fichiers impactés.
+
+---
+
+## V1.4-2 — Flux net (`/flux-net`)
+
+**Objectif** : rendre la page lisible comme **lecture de dynamique**, pas comme simple reprise d’un KPI.
+
+### DoD
+
+- [ ] lecture **distincte** encaissements / décaissements ;
+- [ ] **période** clairement affichée ;
+- [ ] mention **explicite** si la lecture reste **proxy** ou **partielle** ;
+- [ ] structure **stable** même si certaines sous-données manquent ;
+- [ ] **aucun** vocabulaire suggérant une précision non tenue ;
+- [ ] typecheck / lint OK.
+
+---
+
+## V1.4-3 — Business (`/business`)
+
+**Objectif** : lecture **activité + exposition**, sans pseudo-P&L.
+
+### DoD
+
+- [ ] **CA facturé** lisible ;
+- [ ] décomposition **ventes / achats** **si** tenue par les données ;
+- [ ] **top clients** ou **concentration** **si** tenue ;
+- [ ] rappel de l’**exposition AR** si pertinent et non redondant de façon trompeuse avec `/encours` ;
+- [ ] **pas** de synthèse trop ambitieuse (titre / sous-textes calibrés) ;
+- [ ] typecheck / lint OK.
+
+---
+
+## V1.4-4 — Harmonisation `/tresorerie`
+
+**Objectif** : aligner la page **existante** avec la **grammaire V1.4** des autres détails.
+
+### DoD
+
+- [ ] header, périmètre, états et vocabulaire **alignés** avec le reste de l’axe 2 ;
+- [ ] **aucune régression** sur la page la plus mature (régression visuelle / fonctionnelle / perf à vérifier) ;
+- [ ] harmonisation **sans refonte** (pas de redesign large) ;
+- [ ] typecheck / lint OK.
 
 ---
 
@@ -51,4 +127,4 @@
 
 ---
 
-*Backlog V1.4 Lynki — axe 2 uniquement — 4 thèmes max au plan.*
+*Backlog V1.4 Lynki — axe 2 — ordre : Encours → Flux net → Business → Trésorerie.*
