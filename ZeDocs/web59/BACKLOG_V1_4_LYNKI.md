@@ -36,7 +36,7 @@
 | V1.4-1 | Encours — risque, segmentation, exposition client | `/encours` | `Fait` · passe 1 (24/03/2026) |
 | V1.4-2 | Flux net — dynamique encaissements / décaissements | `/flux-net` | `Fait` · passe 1 (24/03/2026) |
 | V1.4-3 | Business — activité sans pseudo-P&L | `/business` | `Fait` · passe 1 (24/03/2026) |
-| V1.4-4 | Harmonisation `/tresorerie` | `/tresorerie` | `À faire` |
+| V1.4-4 | Harmonisation `/tresorerie` | `/tresorerie` | `Fait` · passe 1 (24/03/2026) |
 
 ---
 
@@ -191,10 +191,16 @@ Faire de `/encours` une page qui aide à répondre rapidement à :
 
 ### DoD
 
-- [ ] header, périmètre, états et vocabulaire **alignés** avec le reste de l’axe 2 ;
-- [ ] **aucune régression** sur la page la plus mature (régression visuelle / fonctionnelle / perf à vérifier) ;
-- [ ] harmonisation **sans refonte** (pas de redesign large) ;
-- [ ] typecheck / lint OK.
+- [x] header, périmètre, états et vocabulaire **alignés** avec le reste de l’axe 2 ;
+- [x] **aucune régression** sur la page la plus mature (régression visuelle / fonctionnelle / perf à vérifier) ;
+- [x] harmonisation **sans refonte** (pas de redesign large) ;
+- [x] typecheck / lint OK.
+
+**Journal passe 1** : `units/dorevia-linky/app/(cockpit)/tresorerie/page.tsx` — fil d’Ariane `Link` + `navHrefWithTenant`, en-tête `h1` + phrase source (ERP/Vault), bandeau périmètre (période, société, tenant, dernier relevé), `metricsError` + `CockpitTreasuryUnavailable` / squelettes `CockpitTreasuryLoadingSkeleton`, bannières partielles (instruments / sans `_details.treasury`), bouton **Actualiser** → `handleRefreshMetrics`, fetch évolution avec contrôle `response.ok`, état vide global ; `units/dorevia-linky/components/cockpit-detail/cockpitTreasuryStates.tsx`.
+
+**Clôture passe 1** : la page `/tresorerie` suit la même grammaire que `/encours`, `/flux-net` et `/business` (périmètre, erreur réseau, chargement, honnêteté partielle) sans refonte du fond (KPI, rapprochement, courbe SVG, gouvernance).
+
+**Suite** : tag release **`lynki-v1.4`** + release note si validation produit.
 
 ---
 
