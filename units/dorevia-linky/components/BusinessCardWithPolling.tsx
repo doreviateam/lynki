@@ -16,6 +16,7 @@ import {
   type ChartGranularity,
 } from "@/app/lib/chart-granularity";
 import type { ChartType } from "@/app/lib/chart-type";
+import { navHrefWithTenant } from "@/components/layout/navTenantHref";
 
 const POLL_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 const ENABLE_LIVE_POLLING = process.env.NEXT_PUBLIC_LINKY_ENABLE_LIVE_POLLING === "1";
@@ -224,8 +225,12 @@ export function BusinessCardWithPolling({
           : primarySource === "erp"
             ? "Source : ERP (Odoo)"
             : "Source : Vault",
-        calculationRule: primarySource === "erp" ? "TTC, depuis l'ERP" : "TTC, scellé",
+        calculationRule:
+          primarySource === "erp"
+            ? "HT agrégés depuis l’ERP — lecture d’activité, pas P&L."
+            : "HT agrégés (Vault), scellés — lecture d’activité, pas P&L.",
       }}
+      encoursHref={navHrefWithTenant("/encours", tenantId ?? "core")}
       onFocusRequest={onFocusRequest}
       footer={footer}
       cardId={cardId}

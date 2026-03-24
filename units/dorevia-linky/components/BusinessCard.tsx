@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useMemo } from "react";
 import type {
   SalesAggregation,
@@ -17,7 +18,6 @@ import {
   INSTRUMENT_CARD_BASE,
   InstrumentCardHeader,
   InstrumentCardNav,
-  InstrumentCardStatusBadge,
   InstrumentCardFooter,
 } from "@/components/InstrumentCardChrome";
 import type { CardId } from "@/app/types/linky-tiles";
@@ -62,7 +62,15 @@ function ExposureBadge({ label }: { label: ExposureLabel }) {
   );
 }
 
-function ArByPartnerSection({ arByPartner, currency }: { arByPartner: ArByPartnerResponse; currency: string }) {
+function ArByPartnerSection({
+  arByPartner,
+  currency,
+  encoursHref,
+}: {
+  arByPartner: ArByPartnerResponse;
+  currency: string;
+  encoursHref?: string | null;
+}) {
   const [expandedEncours, setExpandedEncours] = useState(false);
   const [expandedRisque, setExpandedRisque] = useState(false);
   const { totals, partners, meta } = arByPartner;
@@ -131,6 +139,15 @@ function ArByPartnerSection({ arByPartner, currency }: { arByPartner: ArByPartne
       <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--text)]">
         Exposition de marge
       </h3>
+      {encoursHref ? (
+        <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
+          Pour la lecture prioritaire (échus, ancienneté, segmentation), utiliser{" "}
+          <Link href={encoursHref} className="font-medium text-[var(--accent)] underline-offset-2 hover:underline">
+            Encours clients
+          </Link>
+          .
+        </p>
+      ) : null}
 
       {/* Warnings — discrets */}
       {freshness !== "event_driven" && (
@@ -378,7 +395,7 @@ function ParetoTableSection({
         onClick={() => setExpanded(!expanded)}
         className="flex w-full items-center justify-between text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors"
       >
-        <span>Concentration clients (Pareto 80/20)</span>
+        <span>Concentration — CA facturé par client</span>
         <span className="tabular-nums text-[var(--accent)]">
           {items.length} partenaire{items.length > 1 ? "s" : ""}
           {paretoInsight && ` · ${paretoInsight}`}
@@ -501,6 +518,8 @@ interface BusinessCardProps {
   cardId?: CardId;
   onNavigateToCard?: (cardId: CardId) => void;
   onBackToCockpit?: () => void;
+  /** Lien vers `/encours` (tenant-aware) — rappel lecture prioritaire créances */
+  encoursHref?: string | null;
 }
 
 export function BusinessCard({
@@ -524,6 +543,7 @@ export function BusinessCard({
   cardId,
   onNavigateToCard,
   onBackToCockpit,
+  encoursHref,
 }: BusinessCardProps) {
   const error = errorSales || errorPurchases;
   const arTotals = arByPartner?.totals;
@@ -582,27 +602,10 @@ export function BusinessCard({
 
   const salesTotal = salesData?.total_ht ?? salesData?.total ?? 0;
   const purchasesTotalRaw = purchasesData?.total_ht ?? purchasesData?.total ?? 0;
-  // Achats = charges : on soustrait la valeur absolue pour obtenir la marge (Ventes HT - Achats HT)
   const purchasesTotal = Math.abs(purchasesTotalRaw);
+  /** Écart masses HT agrégées — pas un résultat d’exploitation (aligné page /business V1.4-3). */
   const net = salesTotal - purchasesTotal;
   const currency = salesData?.currency ?? purchasesData?.currency ?? "EUR";
-
-  const tauxRaw = salesTotal > 0 ? net / salesTotal : null;
-  const tauxDisplay =
-    tauxRaw != null
-      ? Math.abs(tauxRaw) < 0.05
-        ? "0.0"
-        : (tauxRaw * 100).toFixed(1)
-      : null;
-
-  const marginStatus =
-    tauxRaw != null
-      ? tauxRaw >= 0.25
-        ? { label: "Solide", severity: "success" as const }
-        : tauxRaw >= 0.1
-          ? { label: "À surveiller", severity: "vigilance" as const }
-          : { label: "Exposée", severity: "alert" as const }
-      : null;
 
   const businessFooterMeta = useMemo(() => {
     const items = salesByPartner?.items ?? [];
@@ -617,41 +620,40 @@ export function BusinessCard({
   }, [salesByPartner?.items]);
 
   return (
-    <section className={`${INSTRUMENT_CARD_BASE} ${net >= 0 ? "border-[var(--positive)]" : "border-[var(--negative)]"}`}>
+    <section className={INSTRUMENT_CARD_BASE}>
       {cardId && onNavigateToCard && (
         <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader
         icon={iconNode}
         title="BUSINESS"
-        badges={
-          marginStatus ? (
-            <InstrumentCardStatusBadge label={marginStatus.label} severity={marginStatus.severity} />
-          ) : undefined
-        }
-        kpiLabel="Marge commerciale"
+        kpiLabel="CA facturé (HT)"
         kpiValue={
-          <span className={net >= 0 ? "text-[var(--positive)]" : "text-[var(--negative)]"}>
-            {formatSignedAmount(net)}
-          </span>
+          <span className="tabular-nums font-bold text-[var(--text)]">{formatAmount(salesTotal, currency)}</span>
         }
       />
+      <p className="mt-1 text-[10px] leading-relaxed text-[var(--muted)]">
+        Facturation HT retenue sur la période — pas un chiffre d’affaires comptable exhaustif hors périmètre servi.
+      </p>
 
-      {/* Synthèse : marge d’abord, puis ventes, achats + statut marge */}
       <div className="space-y-2 text-sm">
-        {tauxDisplay != null && (
-          <div className="flex justify-between items-baseline">
-            <span className="text-[var(--text-secondary)]">Taux de marge</span>
-            <span className="tabular-nums font-semibold text-[var(--text)]">{tauxDisplay} %</span>
-          </div>
-        )}
-        <div className="flex justify-between items-baseline">
-          <span className="text-[var(--text-secondary)]">Ventes HT</span>
-          <span className="tabular-nums font-semibold text-[var(--text)]">{formatAmount(salesTotal, currency)}</span>
-        </div>
         <div className="flex justify-between items-baseline">
           <span className="text-[var(--text-secondary)]">Achats HT</span>
-          <span className="tabular-nums font-semibold text-[var(--text)]">{formatAmount(purchasesTotal, currency)}</span>
+          <span className="tabular-nums font-semibold text-amber-400">{formatAmount(purchasesTotal, currency)}</span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <div className="flex justify-between items-baseline">
+            <span className="text-[var(--text-secondary)]">Solde ventes − achats</span>
+            <span
+              className={`tabular-nums font-semibold ${net >= 0 ? "text-[var(--text)]" : "text-[var(--negative)]"}`}
+            >
+              {formatSignedAmount(net, currency)}
+            </span>
+          </div>
+          <p className="text-[10px] leading-relaxed text-[var(--muted)]">
+            Différence sur masses HT agrégées — <strong className="font-semibold">pas</strong> un compte de résultat ni une marge
+            métier.
+          </p>
         </div>
       </div>
 
@@ -659,8 +661,8 @@ export function BusinessCard({
         storageKey="linky-business-chart-expanded"
         sectionTitle="Évolution"
         interpretationOverride={{
-          primary: "Ventes vs achats sur la période.",
-          secondary: "Marge : écart entre les deux séries.",
+          primary: "Volumes ventes et achats HT sur la période (pilotage).",
+          secondary: "L’écart entre les deux séries n’est pas un résultat d’exploitation.",
         }}
         chartType={chartType}
         onChartTypeChange={onChartTypeChange ?? (() => {})}
@@ -683,7 +685,7 @@ export function BusinessCard({
         <ParetoTableSection salesByPartner={salesByPartner} arByPartner={arByPartner} currency={currency} />
       )}
       {showArSection && arByPartner && (
-        <ArByPartnerSection arByPartner={arByPartner} currency={currency} />
+        <ArByPartnerSection arByPartner={arByPartner} currency={currency} encoursHref={encoursHref} />
       )}
       <InstrumentCardFooter meta={businessFooterMeta} />
       {footer}
