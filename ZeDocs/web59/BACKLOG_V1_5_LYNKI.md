@@ -13,6 +13,16 @@
 * Viser d’abord **3 à 6 écarts les plus structurants**, les ordonner, puis figer **V1.5-1 / V1.5-2 / V1.5-3** (et au-delà seulement si l’arbitrage le justifie).
 * **Premier lot livrable** : viser **2 à 4 tickets maximum** ; les lots suivants après clôture ou validation du premier.
 
+### Règle d’atelier *(5 points par écart retenu)*
+
+*Avec la créa / produit : pour **chaque** écart retenu, ne valider que ce qui suit — le backlog se remplit proprement sans dériver.*
+
+1. **Où** est l’écart (zone, route, capture prod ou référence écran actuel si utile).
+2. **En quoi** il est visible (symptôme concret à l’écran).
+3. **Pourquoi** il compte (lisibilité, cohérence, usage, perception, etc.).
+4. **Quel niveau de fidélité** à la créa est attendu (reproduction stricte, adaptation raisonnée, équivalent fonctionnel).
+5. **Comment on saura qu’il est fermé** (aligné sur la **preuve de fin** du ticket).
+
 ---
 
 ## Convention de statut
@@ -92,6 +102,7 @@
 |------|-------|
 | 24 mars 2026 | Ouverture du fichier — squelette ; inventaire et ordre **à compléter** après arbitrage. |
 | 24 mars 2026 | Renforts : colonnes **Impact** et **Risque / dépendance** ; discipline 3–6 écarts / lot 2–4 tickets ; **preuve de fin** par ticket. |
+| 24 mars 2026 | **Règle d’atelier** : 5 points par écart (où / visible / pourquoi / fidélité créa / critère de fermeture). |
 
 ---
 
