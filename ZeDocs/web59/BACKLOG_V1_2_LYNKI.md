@@ -4,6 +4,8 @@
 *Référence plan : [`PLAN_V1_2_LYNKI.md`](./PLAN_V1_2_LYNKI.md)*
 
 **Ouverture** : 24 mars 2026
+**Jalon V1.2 atteint** : 24 mars 2026 — tag `lynki-v1.2`
+**Critère de sortie satisfait** : V1.2-1 + V1.2-2 + V1.2-3 + V1.2-4 livrés (3 priorités hautes + 1 priorité moyenne)
 
 ---
 
@@ -22,10 +24,10 @@
 
 | ID | Titre | Priorité | Statut |
 |----|-------|---------|--------|
-| V1.2-1 | Navigation détail multi-tuiles desktop | Haute | `À faire` |
-| V1.2-2 | Filtre lecture alertes (urgence / vigilance / suivi) | Haute | `À faire` |
-| V1.2-3 | Projection J+30 Trésorerie | Haute | `À faire` |
-| V1.2-4 | Tuiles C manquantes dans le canon desktop | Moyenne | `À faire` |
+| V1.2-1 | Navigation détail multi-tuiles desktop | Haute | `Fait` |
+| V1.2-2 | Filtre lecture alertes (urgence / vigilance / suivi) | Haute | `Fait` |
+| V1.2-3 | Projection J+30 Trésorerie | Haute | `Fait` |
+| V1.2-4 | Tuiles C manquantes dans le canon desktop | Moyenne | `Fait` |
 | V1.2-5 | Export CSV / rapport de conformité | Moyenne | `À faire` |
 | V1.2-6 | Mini-graphes sparklines tuiles secondaires mobile | Basse | `À faire` |
 
@@ -132,20 +134,26 @@ Ajouter un filtre rapide côté client permettant d'isoler un niveau ou de l'exc
 **Priorité** : Haute
 **Statut** : `À faire`
 
-### Contexte
+### Décision canonique — figée
 
-La projection J+30 est mentionnée dans les tuiles Trésorerie (mobile et desktop) avec le label "aperçu V2". Elle reste donc non branchée. Deux options : la brancher sur une vraie donnée, ou la masquer proprement tant qu'elle n'est pas disponible.
-
-### Décision à trancher avant implémentation
+> **La projection J+30 Trésorerie ne sera affichée que si elle repose sur une donnée réelle, identifiée et qualifiée. À défaut, Lynki affichera un état d'indisponibilité explicite plutôt qu'une estimation artificielle.**
 
 | Option | Condition | Action |
 |--------|-----------|--------|
-| A — Brancher | Un endpoint de projection existe ou peut être créé rapidement | Afficher la projection avec badge "Projection J+30" |
-| B — Masquer | Aucun endpoint disponible | Supprimer le texte "aperçu V2" et laisser la zone vide ou absente |
+| A — Brancher | Un endpoint de projection existe et est qualifié | Afficher la valeur avec badge "Projection J+30" et source explicite |
+| B — Masquer | Aucun endpoint disponible ou donnée non qualifiée | Supprimer tout label "aperçu V2" ; afficher "Projection J+30 indisponible dans le périmètre courant" |
 
-**Règle absolue** : aucune valeur fictive ou hardcodée ne peut subsister.
+**Règle absolue** : aucune valeur fictive, aucun pseudo-calcul décoratif.
 
-### Fichiers impactés
+### Contexte
+
+La projection J+30 est mentionnée dans les tuiles Trésorerie (mobile et desktop) avec le label "aperçu V2". Ce label est lui-même trompeur — il laisse entendre qu'une valeur existe mais n'est pas encore exposée. Il doit être supprimé ou remplacé par un état honnête.
+
+### Première action à réaliser
+
+Auditer `CockpitMobileView.tsx`, `CockpitDesktopView.tsx` et `app/(cockpit)/tresorerie/page.tsx` pour localiser tous les emplacements qui mentionnent "aperçu V2", une valeur de projection hardcodée, ou un bloc conditionnel non branché.
+
+### Fichiers potentiellement impactés
 
 - `units/dorevia-linky/components/CockpitMobileView.tsx`
 - `units/dorevia-linky/components/CockpitDesktopView.tsx`
@@ -153,10 +161,11 @@ La projection J+30 est mentionnée dans les tuiles Trésorerie (mobile et deskto
 
 ### DoD
 
-- [ ] décision A ou B tranchée et documentée
+- [ ] audit des occurrences "aperçu V2" / projection J+30 réalisé
+- [ ] option A ou B appliquée selon disponibilité de l'endpoint
 - [ ] si option A : projection affichée avec source et qualification explicites
-- [ ] si option B : label "aperçu V2" supprimé, zone proprement gérée
-- [ ] aucune valeur fictive visible
+- [ ] si option B : label "aperçu V2" supprimé, état "indisponible" propre
+- [ ] aucune valeur fictive visible nulle part
 - [ ] lint/typecheck OK
 
 ---
@@ -249,7 +258,10 @@ BFR et Encours (données les plus stables et utiles en mobile).
 
 | ID | Date | Notes de clôture |
 |----|------|-----------------|
-| — | — | — |
+| V1.2-1 | 24 mars 2026 | Routes `/business`, `/flux-net`, `/encours` créées. CompactTile enrichi d'un prop `href`. Commit `bfd56cfd`. |
+| V1.2-2 | 24 mars 2026 | Chips Toutes/Urgence/Vigilance/Suivi sur `/alerts`. Cas A — taxonomie déjà normalisée. Commit `bfd56cfd`. |
+| V1.2-3 | 24 mars 2026 | Option B actée — suppression du label "Projection J+30 — aperçu V2" dans `CockpitMobileView`. Aucun endpoint J+30 n'existe. Commit `71ff9873`. |
+| V1.2-4 | 24 mars 2026 | Points de vente (`pos_shops`) et Z de caisse (`pos_z`) ajoutés à SECONDARY. Grille secondaire extraite en `grid-cols-4` (8 tuiles = 2 lignes de 4). Canon V5 complet : 12 tuiles. Commit `bcc20945`. |
 
 ---
 
