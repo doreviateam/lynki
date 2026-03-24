@@ -122,7 +122,6 @@ export function CockpitMobileView({
           <div className="mt-3 text-2xl font-bold tabular-nums text-white">
             {formatKpi(treasury)}
           </div>
-          <div className="mt-1 text-xs text-slate-500">Projection J+30 — aperçu V2</div>
         </button>
 
         {/* Business + Flux Net — 2 colonnes */}
