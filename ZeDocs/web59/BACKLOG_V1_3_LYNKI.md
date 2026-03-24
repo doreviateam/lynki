@@ -151,6 +151,7 @@ Si, après V1.3-1 → V1.3-3, la priorité produit est ailleurs, **V1.3-4 peut r
 | V1.3-5 | 24 mars 2026 | Libellés CSV/DOCX + tooltips périmètre ; distinction nette CSV bloc vs rapport Diva. |
 | V1.3-4 | 24 mars 2026 | **Abandonné** (séquence axe 1) : comparatif rubriques déjà lisible ; pas de build surface sans gain net démontré. |
 | **Axe 1** | 24 mars 2026 | **Clôture substantielle** : 4/5 tickets livrés, 1/5 abandonné volontairement après arbitrage — pas de code additionnel requis pour « finir » V1.3 sur cet axe. |
+| **Release** | 24 mars 2026 | [`RELEASE_NOTE_LYNKI_V1_3.md`](./RELEASE_NOTE_LYNKI_V1_3.md) · tag Git **`lynki-v1.3`**. |
 
 ---
 
