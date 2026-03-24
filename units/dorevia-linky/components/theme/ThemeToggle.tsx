@@ -34,8 +34,8 @@ export function ThemeToggle() {
       type="button"
       onClick={handleClick}
       className="rounded-lg p-1.5 text-[var(--muted)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text)]"
-      title={isLight ? "Passer au thème sombre" : "Passer au thème clair (canon Stitch)"}
-      aria-label={isLight ? "Activer le thème sombre" : "Activer le thème clair"}
+      title={isLight ? "Passer au thème sombre (cockpit historique)" : "Passer au thème clair — aligné créa Stitch"}
+      aria-label={isLight ? "Activer le thème sombre" : "Activer le thème clair (créa canon)"}
       aria-pressed={isLight}
     >
       <Icon name={isLight ? "dark_mode" : "light_mode"} size={20} />

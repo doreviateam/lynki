@@ -1,4 +1,7 @@
-/** Préférence thème Lynki — alignement clair sur `ZeDocs/web59/stitch_carole_61` (canon V5). */
+/**
+ * Préférence thème Lynki — alignement sur `ZeDocs/web59/stitch_carole_61` (canon V5, thème clair).
+ * Défaut navigateur : **clair** (script `layout.tsx`). `linky-theme: dark` = cockpit sombre historique.
+ */
 
 export const LINKY_THEME_STORAGE_KEY = "linky-theme";
 

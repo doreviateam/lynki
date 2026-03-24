@@ -39,6 +39,22 @@ function conf(raw: { valueKind?: string } | null | undefined): ConfidenceLevel {
   }
 }
 
+/** Libellé période — même esprit que les sous-titres `pilotage_*_canon_v5` (Stitch). */
+function formatCockpitPeriodRange(p: PeriodRange): string {
+  const a = new Date(`${p.from}T12:00:00`);
+  const b = new Date(`${p.to}T12:00:00`);
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return "";
+  return `${a.toLocaleDateString("fr-FR")} – ${b.toLocaleDateString("fr-FR")}`;
+}
+
+/** Barres sparkline : dégradé emerald comme `pilotage_desktop_v_r_na_canon_v5/code.html`. */
+function sparkBarClass(pct: number): string {
+  if (pct >= 80) return "bg-emerald-600 dark:bg-emerald-500/85";
+  if (pct >= 65) return "bg-emerald-400 dark:bg-emerald-500/65";
+  if (pct >= 55) return "bg-emerald-200 dark:bg-emerald-500/50";
+  return "bg-emerald-100 dark:bg-emerald-500/40";
+}
+
 const SECONDARY: { id: CardId; icon: string; label: string; key: string; href?: string }[] = [
   { id: "working_capital", icon: "account_balance_wallet", label: "BFR", key: "working_capital" },
   { id: "encours", icon: "pending_actions", label: "Encours", key: "encours", href: "/encours" },
@@ -63,6 +79,8 @@ export function CockpitDesktopView({
   const business = metrics?.business;
   const cash = metrics?.cash;
   const h = (p: string) => navHrefWithTenant(p, tenantId);
+  const periodLine = formatCockpitPeriodRange(period);
+  const sparkHeights = [40, 55, 45, 70, 65, 85, 60, 75, 50, 80, 72, 78];
 
   if (metricsLoading && !metrics) {
     return (
@@ -84,67 +102,88 @@ export function CockpitDesktopView({
         subtitle={`Arrêté ${new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}`}
       />
 
-      <main className="flex-1 p-6">
-        <h2 className="mb-6 text-lg font-bold text-[var(--text)]">Pilotage Stratégique</h2>
+      <main className="flex-1 overflow-y-auto p-6">
+        <div className="mb-6">
+          <h2 className="text-2xl font-extrabold tracking-tight text-[var(--text)]">Pilotage Stratégique</h2>
+          {periodLine ? (
+            <p className="mt-1 text-sm text-[var(--muted)]">Période affichée : {periodLine}</p>
+          ) : null}
+        </div>
 
-        {/* Bento grid — 3 tuiles maîtresses 2×2 */}
-        <div className="grid auto-rows-[160px] grid-cols-6 gap-4">
-          {/* Trésorerie — 2×2 */}
+        {/* Bento — grille responsive comme `pilotage_desktop_v_r_na_canon_v5` (1 / 4 / 6 colonnes) */}
+        <div className="grid auto-rows-[160px] grid-cols-1 gap-4 md:grid-cols-4 lg:grid-cols-6">
+          {/* Trésorerie — bandeau emerald, icône wallet, sparkline, badge SYNCHRO */}
           <Link
             href={h("/tresorerie")}
-            className="col-span-2 row-span-2 flex flex-col justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md"
+            className="group relative col-span-1 row-span-2 flex flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md md:col-span-2 lg:col-span-2"
           >
-            <div>
-              <div className="mb-1 flex items-center justify-between">
+            <div className="absolute left-0 top-0 h-1 w-full bg-emerald-600" aria-hidden />
+            <div className="mb-4 flex items-start justify-between gap-2 pr-1">
+              <div className="min-w-0">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Trésorerie</span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                  SYNCHRO OK
-                </span>
+                <div className="mt-2 text-3xl font-black tabular-nums tracking-tight text-[var(--text)]">{fmt(treasury)}</div>
               </div>
-              <div className="mt-3 text-2xl font-bold tabular-nums text-[var(--text)]">{fmt(treasury)}</div>
+              <span className="shrink-0 rounded-lg bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+                <Icon name="account_balance_wallet" size={22} filled />
+              </span>
             </div>
-            <div className="mt-auto flex items-end gap-1">
-              {[40, 55, 45, 60, 50, 65, 70, 60, 75, 80, 72, 85].map((h, i) => (
-                <div key={i} className="w-2 rounded-t bg-emerald-500/60" style={{ height: `${h}%` }} />
+            <div className="mt-auto flex h-24 max-w-full items-end gap-0.5 sm:gap-1">
+              {sparkHeights.map((ht, i) => (
+                <div
+                  key={i}
+                  className={`min-w-0 flex-1 rounded-t ${sparkBarClass(ht)}`}
+                  style={{ height: `${ht}%` }}
+                />
               ))}
+            </div>
+            <div className="pointer-events-none absolute bottom-4 right-4 flex items-center gap-1 rounded border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/50 dark:text-emerald-400">
+              <Icon name="check_circle" size={12} />
+              SYNCHRO OK
             </div>
           </Link>
 
-          {/* Business — 2×2 fond slate-900 */}
+          {/* Business — tuile sombre + bordure slate (canon Stitch) */}
           <Link
             href={h("/business")}
-            className="col-span-2 row-span-2 flex flex-col justify-between rounded-xl bg-slate-900 p-5 text-left shadow-sm transition-all hover:shadow-md"
+            className="relative col-span-1 row-span-2 flex flex-col justify-between overflow-hidden rounded-xl border border-slate-800 bg-slate-900 p-5 text-left shadow-xl transition-all hover:shadow-2xl md:col-span-2 lg:col-span-2"
           >
+            <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-emerald-900/20 blur-3xl" aria-hidden />
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Business</span>
-              <div className="mt-3 text-2xl font-bold tabular-nums text-white">{fmt(business)}</div>
+              <div className="mt-3 text-3xl font-black tabular-nums tracking-tight text-white">{fmt(business)}</div>
             </div>
-            <div className="mt-auto">
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+            <div className="relative mt-auto flex items-center justify-between">
+              <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400">
+                <Icon name="trending_up" size={14} />
+                MTD
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                <Icon name="verified" size={12} filled />
                 CERTIFIÉ
               </span>
             </div>
           </Link>
 
-          {/* Flux Net — 2×2 */}
+          {/* Flux Net — badge PROXY en ambre (canon Stitch, pas bleu) */}
           <Link
             href={h("/flux-net")}
-            className="col-span-2 row-span-2 flex flex-col justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md"
+            className="col-span-1 row-span-2 flex flex-col justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md md:col-span-2 lg:col-span-2"
           >
             <div>
-              <div className="mb-1 flex items-center justify-between">
+              <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Flux Net</span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold text-blue-400">
+                <span className="inline-flex items-center gap-1 rounded border border-amber-100 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:border-amber-500/35 dark:bg-amber-500/15 dark:text-amber-400">
+                  <Icon name="warning" size={12} />
                   PROXY DATA
                 </span>
               </div>
-              <div className="mt-3 text-2xl font-bold tabular-nums text-[var(--text)]">{fmt(cash)}</div>
+              <div className="mt-3 text-3xl font-black tabular-nums tracking-tight text-[var(--text)]">{fmt(cash)}</div>
             </div>
           </Link>
         </div>
 
-        {/* Tuiles secondaires — 8 tuiles B+C, 4 colonnes × 2 lignes */}
-        <div className="mt-4 grid grid-cols-4 gap-4">
+        {/* Tuiles secondaires — 2 col. mobile, 4 desktop (canon) */}
+        <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
           {SECONDARY.map((tile) => {
             const metric = metrics?.[tile.key as keyof DashboardMetricsResponse] as { value?: unknown; formatted?: string; valueKind?: string } | undefined;
             return (
@@ -161,12 +200,11 @@ export function CockpitDesktopView({
           })}
         </div>
 
-        {/* Bottom section — trésorerie détail + alertes */}
-        <div className="mt-6 grid grid-cols-3 gap-4">
-          {/* Lien vers le détail trésorerie */}
+        {/* Bottom — pleine largeur sur mobile */}
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
           <Link
             href={h("/tresorerie")}
-            className="col-span-2 flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-emerald-600/30"
+            className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-emerald-600/30 md:col-span-2"
           >
             <div>
               <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Détail trésorerie</h3>

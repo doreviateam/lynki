@@ -4,8 +4,8 @@ import Script from "next/script";
 import "./globals.css";
 import "./synthese-v2.css";
 
-/** Anti-flash : même clé que `app/lib/theme.ts` */
-const LINKY_THEME_INIT = `(function(){try{var k="linky-theme";var t=localStorage.getItem(k);var r=document.documentElement;if(t==="light"){r.classList.add("light");r.classList.remove("dark");}else{r.classList.remove("light");r.classList.add("dark");}}catch(e){document.documentElement.classList.add("dark");document.documentElement.classList.remove("light");}})();`;
+/** Anti-flash : défaut = clair (canon Stitch) ; `linky-theme=dark` pour l’ancien cockpit sombre. */
+const LINKY_THEME_INIT = `(function(){try{var k="linky-theme";var t=localStorage.getItem(k);var r=document.documentElement;if(t==="dark"){r.classList.remove("light");r.classList.add("dark");}else{r.classList.add("light");r.classList.remove("dark");}}catch(e){document.documentElement.classList.add("light");document.documentElement.classList.remove("dark");}})();`;
 
 /** Poids alignés sur les maquettes canon (`stitch_carole_61` / pilotage_*_canon_v5) */
 const inter = Inter({

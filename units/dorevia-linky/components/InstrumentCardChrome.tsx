@@ -259,7 +259,7 @@ export interface CompactTileProps {
 }
 
 const COMPACT_TILE_CLASS =
-  "flex flex-col gap-2 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--card)] p-4 text-left shadow-sm transition-all hover:border-emerald-600/40 hover:shadow-md active:scale-[0.98]";
+  "group flex flex-col gap-2 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--card)] p-4 text-left shadow-sm transition-all hover:border-emerald-500 hover:shadow-md active:scale-[0.98]";
 
 function CompactTileInner({ icon, label, value, confidence, trend, trendPositive }: Omit<CompactTileProps, "onClick" | "href">) {
   return (
@@ -273,7 +273,7 @@ function CompactTileInner({ icon, label, value, confidence, trend, trendPositive
         </span>
         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">{label}</span>
       </div>
-      <span className="text-lg font-bold tabular-nums text-[var(--text)]">{value}</span>
+      <span className="text-xl font-bold tabular-nums text-[var(--text)]">{value}</span>
       <div className="flex items-center gap-2">
         {confidence && <ConfidenceBadge level={confidence} />}
         {trend && (
