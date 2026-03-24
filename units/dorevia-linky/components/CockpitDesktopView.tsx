@@ -86,9 +86,8 @@ export function CockpitDesktopView({
         {/* Bento grid — 6 colonnes, auto-rows 160px */}
         <div className="grid auto-rows-[160px] grid-cols-6 gap-4">
           {/* Trésorerie — 2×2 */}
-          <button
-            type="button"
-            onClick={() => onSelectCard?.("treasury")}
+          <Link
+            href="/tresorerie"
             className="col-span-2 row-span-2 flex flex-col justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md"
           >
             <div>
@@ -105,7 +104,7 @@ export function CockpitDesktopView({
                 <div key={i} className="w-2 rounded-t bg-emerald-500/60" style={{ height: `${h}%` }} />
               ))}
             </div>
-          </button>
+          </Link>
 
           {/* Business — 2×2 fond slate-900 */}
           <button
@@ -157,7 +156,7 @@ export function CockpitDesktopView({
           })}
         </div>
 
-        {/* Bottom section — trésorerie détail + alertes + AI */}
+        {/* Bottom section — trésorerie détail + alertes */}
         <div className="mt-6 grid grid-cols-3 gap-4">
           {/* Lien vers le détail trésorerie */}
           <Link
@@ -173,28 +172,16 @@ export function CockpitDesktopView({
             <Icon name="chevron_right" size={20} className="text-[var(--muted)]" />
           </Link>
 
-          {/* Alertes + AI */}
-          <div className="space-y-4">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-              <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
-                <Icon name="auto_awesome" size={14} filled className="text-emerald-400" />
-                Prévision IA
-              </h3>
-              <p className="text-sm text-[var(--text-secondary)]">
-                Analyse disponible via Diva — aperçu V2
-              </p>
+          <Link
+            href="/alerts"
+            className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-emerald-600/30"
+          >
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Alertes &amp; signaux</h3>
+              <p className="mt-1 text-sm text-[var(--muted)]">Voir les alertes</p>
             </div>
-            <Link
-              href="/alerts"
-              className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-emerald-600/30"
-            >
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Alertes &amp; signaux</h3>
-                <p className="mt-1 text-sm text-[var(--muted)]">Voir les alertes</p>
-              </div>
-              <Icon name="chevron_right" size={20} className="text-[var(--muted)]" />
-            </Link>
-          </div>
+            <Icon name="chevron_right" size={20} className="text-[var(--muted)]" />
+          </Link>
         </div>
 
         {/* Insight Diva */}

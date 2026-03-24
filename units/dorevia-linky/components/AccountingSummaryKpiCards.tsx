@@ -23,6 +23,39 @@ interface CardModel {
   refLine: string;
 }
 
+function unavailableCards(reason: string): CardModel[] {
+  return [
+    {
+      title: "Bilan",
+      subtitle: "Total actif (rubriques)",
+      value: "—",
+      state: "unavailable",
+      refLine: `Réf. lynki.accounting.balance_sheet — ${reason}`,
+    },
+    {
+      title: "Compte de résultat",
+      subtitle: "Résultat net (somme rubriques)",
+      value: "—",
+      state: "unavailable",
+      refLine: `Réf. lynki.accounting.income_statement — ${reason}`,
+    },
+    {
+      title: "Tiers",
+      subtitle: "Partenaires suivis (clients + fourn.)",
+      value: "—",
+      state: "unavailable",
+      refLine: `Réf. balances âgées — ${reason}`,
+    },
+    {
+      title: "Grand livre",
+      subtitle: "Comptes actifs (balance générale)",
+      value: "—",
+      state: "unavailable",
+      refLine: `Réf. lynki.accounting.trial_balance — ${reason}`,
+    },
+  ];
+}
+
 function formatMoney(n: number): string {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
@@ -184,7 +217,7 @@ export function AccountingSummaryKpiCards({ tenantId, companyId, period }: Accou
 
         setCards(out);
       })
-      .catch(() => setCards(null))
+      .catch(() => setCards(unavailableCards("indisponible sur ce périmètre")))
       .finally(() => setLoading(false));
 
     return () => c.abort();
@@ -204,7 +237,11 @@ export function AccountingSummaryKpiCards({ tenantId, companyId, period }: Accou
   }
 
   if (!cards || cards.length === 0) {
-    return null;
+    return (
+      <div className="sv2-card p-5 text-xs text-[var(--sv2-text-muted)]">
+        Les indicateurs de synthèse ne sont pas disponibles pour ce périmètre.
+      </div>
+    );
   }
 
   return (

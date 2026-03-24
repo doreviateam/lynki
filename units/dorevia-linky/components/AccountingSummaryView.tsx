@@ -51,7 +51,10 @@ interface AccountingSummaryViewProps {
   period: { from: string; to: string };
 }
 
-function formatAmount(n: number): string {
+type AccountingCoverageState = "loading" | "ready" | "partial" | "empty" | "unavailable";
+
+function formatAmount(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(n)) return "—";
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(n);
 }
 
@@ -252,9 +255,9 @@ function TrialBalanceRow({ line, onDrill }: TrialBalanceRowProps) {
     >
       <td className="py-2 pr-4 font-mono text-xs text-[var(--text-secondary)] whitespace-nowrap">{line.account_code}</td>
       <td className="py-2 pr-4 text-sm text-[var(--text)] truncate max-w-[200px]" title={line.account_name}>{line.account_name}</td>
-      <td className="py-2 pr-4 text-right text-sm tabular-nums text-[var(--text-secondary)]">{formatAmount(line.debit)}</td>
-      <td className="py-2 pr-4 text-right text-sm tabular-nums text-[var(--text-secondary)]">{formatAmount(line.credit)}</td>
-      <td className={`py-2 text-right text-sm font-semibold tabular-nums ${balanceClass}`}>{formatAmount(line.balance)}</td>
+      <td className="py-2 pr-4 text-right text-sm tabular-nums whitespace-nowrap text-[var(--text-secondary)]">{formatAmount(line.debit)}</td>
+      <td className="py-2 pr-4 text-right text-sm tabular-nums whitespace-nowrap text-[var(--text-secondary)]">{formatAmount(line.credit)}</td>
+      <td className={`py-2 text-right text-sm font-semibold tabular-nums whitespace-nowrap ${balanceClass}`}>{formatAmount(line.balance)}</td>
       <td className="py-2 pl-2 text-right">
         <span className="inline-flex items-center text-[10px] text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity">
           GL →
@@ -421,9 +424,9 @@ function TrialBalanceBlock({ tenantId, companyId, period, accountPrefixes, rubri
         {/* Tableau (lignes cliquables → drill GL) */}
         <div className="overflow-x-auto px-5 pb-4 pt-2">
           <p className="mb-2 text-[10px] text-[var(--text-muted)]">Cliquez sur un compte pour voir le grand livre</p>
-          <table className="w-full">
+          <table className="w-full border-separate border-spacing-0">
             <thead>
-              <tr className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              <tr className="border-b border-[var(--border)] text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                 <th className="pb-2 pr-4 text-left">Compte</th>
                 <th className="pb-2 pr-4 text-left">Libellé</th>
                 <th className="pb-2 pr-4 text-right">Débit</th>
@@ -442,11 +445,11 @@ function TrialBalanceBlock({ tenantId, companyId, period, accountPrefixes, rubri
               ))}
             </tbody>
             <tfoot className="border-t-2 border-[var(--border)]">
-              <tr className="text-xs font-bold text-[var(--text)]">
-                <td colSpan={2} className="pt-2 pr-4">Total</td>
-                <td className="pt-2 pr-4 text-right tabular-nums">{formatAmount(totalDebit)}</td>
-                <td className="pt-2 pr-4 text-right tabular-nums">{formatAmount(totalCredit)}</td>
-                <td className={`pt-2 text-right tabular-nums ${balanced ? "text-[var(--positive)]" : "text-[var(--negative)]"}`}>
+              <tr className="bg-[var(--accent-soft)]/10 text-xs font-bold text-[var(--text)]">
+                <td colSpan={2} className="pt-2.5 pr-4">Total</td>
+                <td className="pt-2.5 pr-4 text-right tabular-nums whitespace-nowrap">{formatAmount(totalDebit)}</td>
+                <td className="pt-2.5 pr-4 text-right tabular-nums whitespace-nowrap">{formatAmount(totalCredit)}</td>
+                <td className={`pt-2.5 text-right tabular-nums whitespace-nowrap ${balanced ? "text-[var(--positive)]" : "text-[var(--negative)]"}`}>
                   {formatAmount(totalBalance)}
                 </td>
                 <td />
@@ -575,16 +578,16 @@ function ClassAggregationBlock({
           </p>
         )}
         {empty ? (
-          <p className="text-xs text-[var(--text-secondary)]">
+          <p className="rounded-lg bg-[var(--accent-soft)]/10 px-3 py-2 text-xs text-[var(--text-secondary)]">
             {isStub
               ? "Réponse de secours : aucune donnée agrégée."
               : "Aucune ligne pour les classes concernées sur cette période (ou données absentes dans le Vault)."}
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full border-separate border-spacing-0 text-sm">
               <thead>
-                <tr className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                <tr className="border-b border-[var(--border)] text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                   <th className="pb-2 pr-4 text-left">Classe</th>
                   <th className="pb-2 pr-4 text-left">Libellé</th>
                   <th className="pb-2 text-right">Solde net</th>
@@ -595,11 +598,9 @@ function ClassAggregationBlock({
                   <tr key={row.class} className="border-b border-[var(--border)] last:border-0">
                     <td className="py-2 pr-4 font-mono text-xs text-[var(--text-secondary)]">{row.class}</td>
                     <td className="py-2 pr-4 text-[var(--text)]">{row.label}</td>
-                    <td
-                      className={`py-2 text-right tabular-nums font-medium ${
-                        row.balance < 0 ? "text-[var(--negative)]" : row.balance > 0 ? "text-[var(--positive)]" : "text-[var(--text-secondary)]"
-                      }`}
-                    >
+                    <td className={`py-2 text-right tabular-nums whitespace-nowrap font-medium ${
+                      row.balance < 0 ? "text-[var(--negative)]" : row.balance > 0 ? "text-[var(--positive)]" : "text-[var(--text-secondary)]"
+                    }`}>
                       {formatAmount(row.balance)}
                     </td>
                   </tr>
@@ -859,7 +860,7 @@ function RubricsBlock({
           </div>
         )}
         {empty ? (
-          <p className="text-xs text-[var(--text-secondary)]">
+          <p className="rounded-lg bg-[var(--accent-soft)]/10 px-3 py-2 text-xs text-[var(--text-secondary)]">
             {isStub ? "Réponse de secours — aucune donnée." : "Aucune rubrique peuplée sur cette période."}
           </p>
         ) : (
@@ -871,10 +872,10 @@ function RubricsBlock({
               return (
                 <div key={section}>
                   <h3 className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-2">{sectionLabel}</h3>
-                  <table className="w-full text-sm">
+                  <table className="w-full border-separate border-spacing-0 text-sm">
                     {hasComparison && (
                       <thead>
-                        <tr className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+                        <tr className="border-b border-[var(--border)] text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
                           <th className="pb-1 text-left font-medium">Rubrique</th>
                           <th className="pb-1 text-right font-medium">N</th>
                           <th className="pb-1 text-right font-medium">N-1</th>
@@ -907,20 +908,20 @@ function RubricsBlock({
                               {isSIG && <span className="ml-1 text-[9px] text-blue-400">SIG</span>}
                               {hasDrill && <span className="ml-1 text-[9px] text-[var(--accent)]">→ BG</span>}
                             </td>
-                            <td className={`py-2 text-right tabular-nums font-medium ${
+                            <td className={`py-2 text-right tabular-nums whitespace-nowrap font-medium ${
                               row.amount < 0 ? "text-[var(--negative)]" : row.amount > 0 ? "text-[var(--positive)]" : "text-[var(--text-secondary)]"
                             } ${isFormula ? "font-bold" : ""}`}>
                               {formatAmount(row.amount)}
                             </td>
                             {hasComparison && (
                               <>
-                                <td className={`py-2 text-right tabular-nums text-[var(--text-secondary)] ${isFormula ? "font-semibold" : ""}`}>
+                                <td className={`py-2 text-right tabular-nums whitespace-nowrap text-[var(--text-secondary)] ${isFormula ? "font-semibold" : ""}`}>
                                   {amountN1 !== null ? formatAmount(amountN1) : "—"}
                                 </td>
-                                <td className={`py-2 text-right tabular-nums ${variationColor(row.rubric_id, delta)} ${isFormula ? "font-semibold" : ""}`}>
+                                <td className={`py-2 text-right tabular-nums whitespace-nowrap ${variationColor(row.rubric_id, delta)} ${isFormula ? "font-semibold" : ""}`}>
                                   {delta !== null ? (delta > 0 ? "+" : "") + formatAmount(delta) : "—"}
                                 </td>
-                                <td className={`py-2 text-right tabular-nums text-xs ${variationColor(row.rubric_id, delta)}`}>
+                                <td className={`py-2 text-right tabular-nums whitespace-nowrap text-xs ${variationColor(row.rubric_id, delta)}`}>
                                   {formatDeltaPct(row.amount, amountN1)}
                                 </td>
                               </>
@@ -930,14 +931,14 @@ function RubricsBlock({
                       })}
                     </tbody>
                     <tfoot className="border-t-2 border-[var(--border)]">
-                      <tr className="text-xs font-bold text-[var(--text)]">
-                        <td className="pt-2">Total {sectionLabel}</td>
-                        <td className={`pt-2 text-right tabular-nums ${sectionTotal < 0 ? "text-[var(--negative)]" : "text-[var(--positive)]"}`}>
+                      <tr className="bg-[var(--accent-soft)]/10 text-xs font-bold text-[var(--text)]">
+                        <td className="pt-2.5">Total {sectionLabel}</td>
+                        <td className={`pt-2.5 text-right tabular-nums whitespace-nowrap ${sectionTotal < 0 ? "text-[var(--negative)]" : "text-[var(--positive)]"}`}>
                           {formatAmount(sectionTotal)}
                         </td>
                         {hasComparison && (
                           <>
-                            <td className="pt-2 text-right tabular-nums text-[var(--text-secondary)]">
+                            <td className="pt-2.5 text-right tabular-nums whitespace-nowrap text-[var(--text-secondary)]">
                               {(() => {
                                 const prevTotal = sectionLines.reduce((s, l) => {
                                   const p = previousByRubricId.get(l.rubric_id);
@@ -1233,12 +1234,12 @@ function AgedBalanceBlock({
           </div>
         )}
         {empty ? (
-          <p className="text-xs text-[var(--text-secondary)]">
+          <p className="rounded-lg bg-[var(--accent-soft)]/10 px-3 py-2 text-xs text-[var(--text-secondary)]">
             {isStub ? "Réponse de secours — aucune donnée." : "Aucun encours tiers sur cette date."}
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-xs">
+            <table className="w-full border-separate border-spacing-0 text-xs">
               <thead>
                 <tr className="border-b-2 border-[var(--border)] text-[10px] text-[var(--text-muted)] uppercase tracking-wider">
                   <th className="py-2 text-left font-semibold">Partenaire</th>
@@ -1258,14 +1259,14 @@ function AgedBalanceBlock({
                     {AGED_TRANCHES.map((t) => {
                       const val = row[t.key];
                       return (
-                        <td key={t.key} className={`py-1.5 text-right tabular-nums ${
+                        <td key={t.key} className={`py-1.5 text-right tabular-nums whitespace-nowrap ${
                           Math.abs(val) < 0.01 ? "text-[var(--text-muted)]" : val > 0 ? "text-[var(--text)]" : "text-[var(--negative)]"
                         }`}>
                           {Math.abs(val) < 0.01 ? "—" : formatAmount(val)}
                         </td>
                       );
                     })}
-                    <td className={`py-1.5 text-right tabular-nums font-semibold ${
+                    <td className={`py-1.5 text-right tabular-nums whitespace-nowrap font-semibold ${
                       row.total < 0 ? "text-[var(--negative)]" : "text-[var(--text)]"
                     }`}>
                       {formatAmount(row.total)}
@@ -1274,12 +1275,12 @@ function AgedBalanceBlock({
                 ))}
               </tbody>
               <tfoot className="border-t-2 border-[var(--border)]">
-                <tr className="text-xs font-bold text-[var(--text)]">
-                  <td className="pt-2">Total</td>
+                <tr className="bg-[var(--accent-soft)]/10 text-xs font-bold text-[var(--text)]">
+                  <td className="pt-2.5">Total</td>
                   {AGED_TRANCHES.map((t) => (
-                    <td key={t.key} className="pt-2 text-right tabular-nums">{formatAmount(totals[t.key])}</td>
+                    <td key={t.key} className="pt-2.5 text-right tabular-nums whitespace-nowrap">{formatAmount(totals[t.key])}</td>
                   ))}
-                  <td className="pt-2 text-right tabular-nums">{formatAmount(totals.total)}</td>
+                  <td className="pt-2.5 text-right tabular-nums whitespace-nowrap">{formatAmount(totals.total)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -1350,6 +1351,7 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
   const [customRange, setCustomRange] = useState<{ from: string; to: string }>({ from: period.from, to: period.to });
   const effectivePeriod = computePeriod(period, periodMode, customRange);
   const enableCompare = periodMode !== "n-1";
+  const [coverageState, setCoverageState] = useState<AccountingCoverageState>("loading");
 
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -1382,6 +1384,70 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
       prev.includes(numId) ? prev.filter((id) => id !== numId) : Array.from(new Set([...prev, numId])).sort((a, b) => a - b)
     );
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    setCoverageState("loading");
+
+    const params = new URLSearchParams({
+      tenant: tenantId,
+      date_debut: effectivePeriod.from,
+      date_fin: effectivePeriod.to,
+      ...(companyIdsParam ? { company_ids: companyIdsParam } : {}),
+    });
+
+    const parseCount = (raw: unknown): number => {
+      if (!raw || typeof raw !== "object") return 0;
+      const data = raw as { lines?: unknown[] };
+      return Array.isArray(data.lines) ? data.lines.length : 0;
+    };
+
+    Promise.allSettled([
+      fetch(`/api/accounting/trial-balance?${params}`, { cache: "no-store", signal: controller.signal }).then((r) => r.ok ? r.json() : null),
+      fetch(`/api/accounting/balance-sheet/rubrics?${params}`, { cache: "no-store", signal: controller.signal }).then((r) => r.ok ? r.json() : null),
+      fetch(`/api/accounting/income-statement/rubrics?${params}`, { cache: "no-store", signal: controller.signal }).then((r) => r.ok ? r.json() : null),
+    ])
+      .then((results) => {
+        if (controller.signal.aborted) return;
+        const fulfilled = results
+          .filter((r): r is PromiseFulfilledResult<unknown> => r.status === "fulfilled")
+          .map((r) => r.value)
+          .filter(Boolean);
+
+        if (fulfilled.length === 0) {
+          setCoverageState("unavailable");
+          return;
+        }
+
+        const counts = fulfilled.map((v) => parseCount(v));
+        const totalLines = counts.reduce((sum, c) => sum + c, 0);
+        const hasAnyLine = totalLines > 0;
+
+        let hasPartial = false;
+        for (const v of fulfilled) {
+          if (typeof v === "object" && v !== null && "complete" in (v as object)) {
+            const complete = (v as { complete?: boolean }).complete;
+            if (complete === false) hasPartial = true;
+          }
+        }
+
+        if (!hasAnyLine) {
+          setCoverageState("empty");
+          return;
+        }
+        setCoverageState(hasPartial ? "partial" : "ready");
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setCoverageState("unavailable");
+      })
+      .finally(() => clearTimeout(timer));
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [tenantId, companyIdsParam, effectivePeriod.from, effectivePeriod.to]);
 
   return (
     <div className="synthese-scope mx-auto flex min-h-0 flex-1 w-full max-w-5xl flex-col px-4 pb-16 pt-6 space-y-6">
@@ -1464,6 +1530,46 @@ export function AccountingSummaryView({ tenantId, companyId, period }: Accountin
           <span className="sv2-badge sv2-badge-unavailable">{companyLabel}</span>
           <span className="sv2-badge sv2-badge-unavailable">{periodLabel(periodMode, effectivePeriod)}</span>
         </div>
+
+        {coverageState !== "ready" && (
+          <div
+            className="rounded-xl border px-4 py-3 text-sm"
+            style={{
+              borderColor:
+                coverageState === "unavailable"
+                  ? "color-mix(in srgb, var(--sv2-warning) 40%, transparent)"
+                  : "var(--sv2-border)",
+              background:
+                coverageState === "unavailable"
+                  ? "color-mix(in srgb, var(--sv2-warning) 10%, transparent)"
+                  : "var(--sv2-surface)",
+            }}
+          >
+            {coverageState === "loading" && (
+              <p className="text-[var(--sv2-text-muted)]">
+                Vérification du périmètre comptable en cours…
+              </p>
+            )}
+            {coverageState === "empty" && (
+              <p className="text-[var(--sv2-text-muted)]">
+                Les données comptables sont actuellement insuffisantes pour alimenter toutes les sections.
+                La structure de synthèse reste disponible avec des états vides par bloc.
+              </p>
+            )}
+            {coverageState === "partial" && (
+              <p className="text-[var(--sv2-text-muted)]">
+                La synthèse est disponible avec une couverture partielle sur ce périmètre.
+                Certains blocs peuvent afficher des valeurs incomplètes.
+              </p>
+            )}
+            {coverageState === "unavailable" && (
+              <p className="text-[var(--sv2-text-muted)]">
+                Les restitutions comptables ne sont pas joignables pour le moment.
+                Les blocs conservent un affichage stable et indiquent leur indisponibilité.
+              </p>
+            )}
+          </div>
+        )}
       </header>
 
       {/* ─── Vue d'ensemble : chaîne de lecture (T99 matrice #2) ─── */}

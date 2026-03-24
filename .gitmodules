@@ -1,0 +1,9 @@
+[submodule "sources/oca/account-analytic"]
+	path = sources/oca/account-analytic
+	url = https://github.com/OCA/account-analytic.git
+[submodule "sources/oca/dms"]
+	path = sources/oca/dms
+	url = https://github.com/OCA/dms.git
+[submodule "sources/oca/stock-logistics-barcode"]
+	path = sources/oca/stock-logistics-barcode
+	url = https://github.com/OCA/stock-logistics-barcode.git
