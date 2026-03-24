@@ -55,7 +55,7 @@ Tant que l’axe 1 est retenu, V1.3 vise typiquement :
 ## 5. Suite immédiate
 
 1. **Valider** l’axe prioritaire (idéalement **Axe 1**) en une réunion courte ou arbitrage écrit.
-2. **Exécuter** le backlog : [`BACKLOG_V1_3_LYNKI.md`](./BACKLOG_V1_3_LYNKI.md) — **5 mini-tickets** sur l’axe 1 uniquement ; **ordre de build** : V1.3-1 → V1.3-2 → V1.3-3 → V1.3-5, puis **V1.3-4 seulement si** verdict post-audit et post-V1.3-3 (détail et audit figés dans le backlog).
+2. **Exécuter** le backlog : [`BACKLOG_V1_3_LYNKI.md`](./BACKLOG_V1_3_LYNKI.md) — **5 mini-tickets** sur l’axe 1 uniquement ; **ordre de build** : V1.3-1 → V1.3-2 → V1.3-3 → V1.3-5, puis **V1.3-4 seulement si** verdict post-audit et post-V1.3-3 (détail et audit figés dans le backlog). *État au 24 mars 2026 : axe 1 substantiellement livré ; V1.3-4 **non retenu** (abandonné pour cette séquence) après micro-arbitrage produit.*
 3. **Ne pas** modifier les tags `lynki-v1.2` / `lynki-v1.2.1` ; le premier tag V1.3 sera posé **à la clôture** du chantier (ex. `lynki-v1.3`).
 
 ---

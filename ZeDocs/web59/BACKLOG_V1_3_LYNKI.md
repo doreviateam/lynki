@@ -27,7 +27,7 @@
 | V1.3-1 | Résumé de lecture comité (entrée de synthèse) | Esther | `Fait` |
 | V1.3-2 | États vide / partiel / indisponible homogènes sur les blocs comptables | Esther | `Fait` |
 | V1.3-3 | Périmètre explicite par bloc (période, société, sources) | Véréna / Esther | `Fait` |
-| V1.3-4 | Lecture comparative N vs N-1 (sous condition — voir audit § ci-dessous) | Esther | `Audité` |
+| V1.3-4 | Lecture comparative N vs N-1 (sous condition — voir audit § ci-dessous) | Esther | `Abandonné` |
 | V1.3-5 | Libellés et périmètre des exports par bloc (CSV / DOCX) | Esther | `Fait` |
 
 ---
@@ -43,7 +43,7 @@
 | 2 | **Build V1.3-2** — états homogènes |
 | 3 | **Build V1.3-3** — périmètre explicite par bloc |
 | 4 | **Build V1.3-5** — libellés exports (après périmètres clairs) |
-| 5 | **Build V1.3-4** — **uniquement si** le verdict post-V1.3-3 reste favorable et le périmètre d’implémentation est tranché |
+| 5 | **Build V1.3-4** — **non retenu** après décision produit du 24 mars 2026 (voir § V1.3-4) |
 
 ---
 
@@ -111,18 +111,20 @@ Si, après V1.3-1 → V1.3-3, la priorité produit est ailleurs, **V1.3-4 peut r
 
 ## V1.3-4 — Lecture comparative N vs N-1
 
-**Statut ticket** : `Audité` — voir **§ Audit V1.3-4** ci-dessus. **Pas de premier ticket de build.**
+**Statut ticket** : **`Abandonné`** pour la séquence V1.3 axe 1 (24 mars 2026). L’audit reste valable (§ Audit V1.3-4).
 
-**Objectif** : après V1.3-1 … V1.3-5, **si** l’équipe maintient la priorité : renforcer ou étendre **uniquement** des comparatifs **déjà soutenus** par l’API (en pratique : rubriques bilan / CdR), ou trancher **Abandonné** / report si le gain ne vaut pas le risque.
+**Décision produit (micro-arbitrage)** : après livraison V1.3-1 → V1.3-5, **pas de gain de lisibilité net** identifié qui justifierait un build de surface supplémentaire sur `RubricsBlock` sans risque de sur-promesse ou d’alourdir la synthèse. Le comparatif N/N-1 est **déjà** exposé de façon cohérente : colonnes N, N-1, Δ, Δ % ; dates N-1 en en-tête ; mention dans la ligne de périmètre ; export CSV aligné ; résumé comité et audit explicites sur le seul périmètre rubriques.
 
-**Point d’attention** : ne pas introduire de **faux confort** (pourcentages décoratifs, périmètres N / N-1 non alignés).
+**Motif** : l’axe 1 est **substantiellement livré** ; V1.3-4 restait **conditionnel** — ouvrir un chantier « un peu plus » sur le comparatif aurait surtout pu réintroduire du flou (promesse élargie, cosmétique peu utile).
+
+**Si réouverture ultérieure** : uniquement une **petite** amélioration **dans `RubricsBlock` uniquement**, sans nouveau backend, avec critère de gain de lecture **démontrable** en amont.
 
 **DoD** (implémentation, **conditionnelle**) :
 - [x] audit documentaire tranché (figé § Audit V1.3-4) ;
-- [ ] si implémentation : périmètre produit explicitement limité (ex. rubriques uniquement) ;
-- [ ] si implémentation : affichage qualifié, pas de promesse sur trial balance / âgées sans backend ;
-- [ ] si non implémentation : ticket **Abandonné** ou reporté avec motif ;
-- [ ] typecheck / lint OK.
+- [ ] si implémentation : périmètre produit explicitement limité (ex. rubriques uniquement) — *non applicable* ;
+- [ ] si implémentation : affichage qualifié, pas de promesse sur trial balance / âgées sans backend — *non applicable* ;
+- [x] si non implémentation : ticket **Abandonné** avec motif (ci-dessus) ;
+- [x] typecheck / lint OK — *aucun changement de code requis pour clôturer ce ticket*.
 
 ---
 
@@ -147,6 +149,8 @@ Si, après V1.3-1 → V1.3-3, la priorité produit est ailleurs, **V1.3-4 peut r
 | V1.3-2 | 24 mars 2026 | États loading / unavailable / empty / badges harmonisés ; pas de changement de logique métier des APIs. |
 | V1.3-3 | 24 mars 2026 | Ligne de périmètre homogène sous les titres ; comparatif N/N-1 seulement sur rubriques avec données comparatives. |
 | V1.3-5 | 24 mars 2026 | Libellés CSV/DOCX + tooltips périmètre ; distinction nette CSV bloc vs rapport Diva. |
+| V1.3-4 | 24 mars 2026 | **Abandonné** (séquence axe 1) : comparatif rubriques déjà lisible ; pas de build surface sans gain net démontré. |
+| **Axe 1** | 24 mars 2026 | **Clôture substantielle** : 4/5 tickets livrés, 1/5 abandonné volontairement après arbitrage — pas de code additionnel requis pour « finir » V1.3 sur cet axe. |
 
 ---
 
