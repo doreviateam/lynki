@@ -4,7 +4,7 @@
 
 **Ouverture** : 24 mars 2026
 
-**Références** : [`RELEASE_NOTE_LYNKI_V1_4.md`](./RELEASE_NOTE_LYNKI_V1_4.md) · [`PLAN_V1_4_LYNKI.md`](./PLAN_V1_4_LYNKI.md) · [`BACKLOG_V1_4_LYNKI.md`](./BACKLOG_V1_4_LYNKI.md)
+**Références** : [`RELEASE_NOTE_LYNKI_V1_4.md`](./RELEASE_NOTE_LYNKI_V1_4.md) · [`PLAN_V1_4_LYNKI.md`](./PLAN_V1_4_LYNKI.md) · [`BACKLOG_V1_4_LYNKI.md`](./BACKLOG_V1_4_LYNKI.md) · [`BACKLOG_V1_5_LYNKI.md`](./BACKLOG_V1_5_LYNKI.md)
 
 ---
 
@@ -71,7 +71,7 @@ V1.5 sera considéré comme réussi si :
 
 1. **Git** : push branche, push tag **`lynki-v1.4`**, merge selon le process du dépôt.
 2. **Stinger** : décision explicite (alignement image ou écart documenté).
-3. **Backlog V1.5** : ouverture de **`BACKLOG_V1_5_LYNKI.md`** avec :
+3. **Backlog V1.5** : [`BACKLOG_V1_5_LYNKI.md`](./BACKLOG_V1_5_LYNKI.md) **ouvert** (squelette) — à compléter avec :
    - inventaire ciblé des écarts majeurs ;
    - arbitrage produit / créa ;
    - ordre de traitement ;
@@ -79,4 +79,4 @@ V1.5 sera considéré comme réussi si :
 
 ---
 
-*Plan Lynki V1.5 — convergence créa & consolidation visuelle — **cadrage publié** le 24 mars 2026 ; **backlog détaillé** (`BACKLOG_V1_5_LYNKI.md`) **à compléter**.*
+*Plan Lynki V1.5 — convergence créa & consolidation visuelle — **cadrage publié** le 24 mars 2026 ; [`BACKLOG_V1_5_LYNKI.md`](./BACKLOG_V1_5_LYNKI.md) **ouvert** (squelette) — **détail d’exécution à compléter** après arbitrage créa / produit.*
