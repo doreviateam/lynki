@@ -166,7 +166,7 @@ Ces états sont **obligatoires** au niveau conceptuel : tout indicateur sensible
 
 | État | Rôle pour l’utilisateur | Repère couleur (handoff V1) |
 |------|-------------------------|-----------------------------|
-| **Fiable / confirmée** | Lecture pour arbitrage en confiance | Vert (#10B981) |
+| **Fiable / confirmée** | Lecture pour arbitrage en confiance | Vert (**#10B981** — repère handoff V1 ; **voir note V1.5** ci-dessous) |
 | **Partielle** | Lecture possible, périmètre incomplet | Ambre (#F59E0B) |
 | **Estimée / proxy** | Chiffre utile mais non définitif | Style adouci + label type « ESTIMÉE » |
 | **À rapprocher** | Flux ou lignes non totalement réconciliés | Bleu (#3B82F6) |
@@ -174,6 +174,8 @@ Ces états sont **obligatoires** au niveau conceptuel : tout indicateur sensible
 | **Anomalie détectée** | Donnée présente mais incohérente / critique | Rouge (#EF4444) |
 
 **Règle** : la qualité de la donnée est une **couche transverse** du produit, pas un ornement.
+
+> **Note V1.5 (mars 2026)** — Alignement **maquettes canon Stitch** (`stitch_carole_61`, token Material `on-tertiary-container`, `lynki_sovereign/DESIGN.md` tertiaire) : l’implémentation Lynki utilise le token CSS **`--confidence-fiable: #059669`** pour l’état *Fiable* là où la grammaire confiance s’appuie sur ce jeton. La teinte **#10B981** reste la référence **handoff** et correspond au **Tailwind `emerald-500`** sur de nombreux écrans ; l’écart hex est **volontaire** lorsque la créa Stitch est prioritaire sur ce point.
 
 ---
 
