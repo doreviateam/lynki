@@ -163,6 +163,7 @@
 | 24 mars 2026 | **Critère d’entrée inventaire** : montrer + description factuelle + critère de fermeture pour toute ligne **Certain** ; ≤ 3 lignes puis V1.5-1…3 + premier lot. |
 | 24 mars 2026 | **Inventaire initial** : 3 écarts **Certain** (typo, rayons, vert Fiable) + 1 **Interprétatif** (clair/sombre) ; ordre V1.5-1→3 ; premier lot = ces 3 tickets ; détail rédigé. |
 | 24 mars 2026 | **Ordre code** documenté : implémentation **2+3 puis 1** ; tokens `--radius-card` / `--radius-xl` → `0.5rem` (canon V5 `xl`) ; `--confidence-fiable` → `#10B981` ; trésorerie SVG sur le token. **En cours** jusqu’à captures DoD + non-régression visuelle. |
+| 24 mars 2026 | **Thème clair opt-in** : `html.light` + tokens dérivés des maquettes `stitch_carole_61` (canon V5) ; persistance `localStorage` `linky-theme` ; `tailwind` en `darkMode: "class"` ; toggle dans la TopBar (+ login, alertes mobile, admin DLP). L’inventaire **clair/sombre** reste partiellement **interprétatif** tant que le défaut produit / la recette globale ne sont pas figés. |
 
 ---
 

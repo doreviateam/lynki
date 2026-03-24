@@ -6,6 +6,7 @@ import { ConfidenceScore } from "@/components/ConfidenceScore";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { computeConfidenceScore } from "@/app/lib/confidence";
 import { adaptMetricsToAlerts, type AlertSeverity, type AlertItem } from "@/app/lib/alerts-adapter";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 type FilterLevel = "all" | AlertSeverity;
 
@@ -94,19 +95,22 @@ const FILTER_OPTIONS: {
     id: "urgent",
     label: "Urgence",
     icon: "error",
-    activeClass: "bg-red-500/20 text-red-400 border-red-500/50",
+    activeClass:
+      "border-red-400 bg-red-500/15 text-red-700 dark:border-red-500/50 dark:bg-red-500/20 dark:text-red-400",
   },
   {
     id: "vigilance",
     label: "Vigilance",
     icon: "warning",
-    activeClass: "bg-amber-500/20 text-amber-400 border-amber-500/50",
+    activeClass:
+      "border-amber-400 bg-amber-500/15 text-amber-800 dark:border-amber-500/50 dark:bg-amber-500/20 dark:text-amber-400",
   },
   {
     id: "suivi",
     label: "Suivi",
     icon: "info",
-    activeClass: "bg-slate-500/20 text-slate-300 border-slate-500/50",
+    activeClass:
+      "border-slate-400 bg-slate-500/15 text-slate-700 dark:border-slate-500/50 dark:bg-slate-500/20 dark:text-slate-300",
   },
 ];
 
@@ -144,7 +148,10 @@ function AlertsContent() {
             <p className="text-xs text-[var(--muted)]">Signaux priorisés · Source : données réelles</p>
           </div>
         </div>
-        <ConfidenceScore score={confidenceScore} compact />
+        <div className="flex shrink-0 items-center gap-2">
+          <ThemeToggle />
+          <ConfidenceScore score={confidenceScore} compact />
+        </div>
       </header>
 
       {/* Filtre par niveau */}

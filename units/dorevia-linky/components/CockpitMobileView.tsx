@@ -8,6 +8,7 @@ import type { DashboardMetricsResponse } from "@/app/api/dashboard-metrics/route
 import type { PeriodRange } from "@/app/lib/period-utils";
 import type { CardId } from "@/app/types/linky-tiles";
 import { computeConfidenceScore } from "@/app/lib/confidence";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 interface CockpitMobileViewProps {
   tenantId: string;
@@ -85,9 +86,12 @@ export function CockpitMobileView({
             <p className="text-xs text-[var(--muted)]">Pilotage dirigeant</p>
           </div>
         </div>
-        <button className="rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--hover)]">
-          <Icon name="sync_saved_locally" size={20} />
-        </button>
+        <div className="flex items-center gap-0.5">
+          <ThemeToggle />
+          <button type="button" className="rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--hover)]" aria-label="Synchroniser">
+            <Icon name="sync_saved_locally" size={20} />
+          </button>
+        </div>
       </header>
 
       {/* Data Integrity Score */}

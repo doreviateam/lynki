@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import "./synthese-v2.css";
+
+/** Anti-flash : même clé que `app/lib/theme.ts` */
+const LINKY_THEME_INIT = `(function(){try{var k="linky-theme";var t=localStorage.getItem(k);var r=document.documentElement;if(t==="light"){r.classList.add("light");r.classList.remove("dark");}else{r.classList.remove("light");r.classList.add("dark");}}catch(e){document.documentElement.classList.add("dark");document.documentElement.classList.remove("light");}})();`;
 
 /** Poids alignés sur les maquettes canon (`stitch_carole_61` / pilotage_*_canon_v5) */
 const inter = Inter({
@@ -22,14 +26,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={inter.variable}>
+    <html lang="fr" className={inter.variable} suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         />
       </head>
-      <body className="min-h-screen font-sans antialiased" style={{ background: "var(--bg)" }}>{children}</body>
+      <body className="min-h-screen font-sans antialiased" style={{ background: "var(--bg)" }} suppressHydrationWarning>
+        <Script id="linky-theme-init" strategy="beforeInteractive">
+          {LINKY_THEME_INIT}
+        </Script>
+        {children}
+      </body>
     </html>
   );
 }

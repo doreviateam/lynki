@@ -15,6 +15,7 @@
   --border:          #223B5B;
   --text:            #E6EEF8;
   --text-secondary:  #A8B4C8;
+  --text-muted:      #A8B4C8;
   --muted:           #A8B4C8;
   --hover:           #1F3653;
 
@@ -71,6 +72,43 @@
   --tile-help-bg-hover: #1f3653;
   --tile-help-border: rgba(34, 59, 91, 0.35);
   --tile-help-border-hover: #223b5b;
+}
+
+/*
+ * Thème clair — tokens dérivés des maquettes `stitch_carole_61` (pilotage_*_canon_v5, Material palette).
+ * Mapping rapide sombre → clair : --bg ≈ background/surface (#f8f9ff), cartes blanches, texte slate-900.
+ * La sidebar reste slate-900 (comme le HTML canon) ; le bandeau haut utilise --bg-secondary (slate-50).
+ */
+html.light {
+  --bg:              #f8f9ff;
+  --bg-secondary:    #f8fafc;
+  --surface:         #ffffff;
+  --border:          #e2e8f0;
+  --text:            #0f172a;
+  --text-secondary:  #64748b;
+  --text-muted:      #64748b;
+  --muted:           #64748b;
+  --hover:           #f1f5f9;
+
+  --card:            #ffffff;
+  --accent-soft:     rgba(59, 130, 246, 0.12);
+  --shadow-card:     0 1px 2px 0 rgb(15 23 42 / 0.06);
+
+  --logo-dorevia:    #64748b;
+  --logo-lynki:      #0f172a;
+
+  --status-neutral:  #64748b;
+  --negative-soft:   rgba(239, 68, 68, 0.08);
+
+  --tile-a-border-color: #e2e8f0;
+  --tile-a-bg:           #ffffff;
+
+  --tile-help-text:         #64748b;
+  --tile-help-text-hover:   #475569;
+  --tile-help-bg:           rgba(248, 250, 252, 0.92);
+  --tile-help-bg-hover:     #f1f5f9;
+  --tile-help-border:       #e2e8f0;
+  --tile-help-border-hover: #cbd5e1;
 }
 
 body {

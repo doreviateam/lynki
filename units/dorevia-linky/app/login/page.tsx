@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export default function LoginPage() {
   const [token, setToken] = useState("");
@@ -34,7 +35,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-[var(--bg)] px-4">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-xl">
         <div className="mb-6 text-center">
           <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">

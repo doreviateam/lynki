@@ -6,6 +6,7 @@
  */
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const DEFAULT_TENANT = "core";
 
@@ -77,10 +78,13 @@ export default function DlpConfigPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <header className="border-b border-[var(--border)] bg-[var(--card)] px-4 py-4">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <Link href="/" className="text-sm font-medium text-[var(--accent)] hover:underline">
-            Cockpit
-          </Link>
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Link href="/" className="text-sm font-medium text-[var(--accent)] hover:underline">
+              Cockpit
+            </Link>
+            <ThemeToggle />
+          </div>
           <h1 className="text-lg font-semibold text-[var(--text)]">Paramétrage des décisions</h1>
         </div>
       </header>
