@@ -4,7 +4,7 @@
 
 **Référence plan (cadrage publié)** : [`PLAN_V1_5_LYNKI.md`](./PLAN_V1_5_LYNKI.md) · **Jalon précédent** : tag **`lynki-v1.4`** · [`RELEASE_NOTE_LYNKI_V1_4.md`](./RELEASE_NOTE_LYNKI_V1_4.md)
 
-**Ouverture (squelette)** : 24 mars 2026  
+**Ouverture** : 24 mars 2026 — **inventaire initial « Certain »** posé à partir des **sources canon** du dépôt ([`DOSSIER_HANDOFF_DESIGN_LYNKI_V1.md`](./DOSSIER_HANDOFF_DESIGN_LYNKI_V1.md), [`INVENTAIRE_STITCH_CAROLE_61.md`](./INVENTAIRE_STITCH_CAROLE_61.md)).  
 **Règle** : chaque ticket **nomme** un écart ou un lot **borné** ; pas de « polish » non priorisé ni de fourre-tout.
 
 > **En l’absence de validation directe de la créa**, V1.5 ne traite d’abord que les **écarts visuels objectivables** et à **faible ambiguïté** (voir § **Arbitrage à partir de la créa figée** ci-dessous).
@@ -48,9 +48,9 @@
 
 ---
 
-## Inventaire des écarts créa ↔ produit *(à alimenter)*
+## Inventaire des écarts créa ↔ produit
 
-*Sortie attendue : écarts **nommés**, **ordonnés**, reliés à la **créa figée** (maquette / doc) et à l’**écran actuel** — avec ou sans atelier synchrone avec la création graphique.*
+*Références canon dans le dépôt : `ZeDocs/web59/stitch_carole_61/` — maquettes **`*_canon_v5`**, spécifications `design_system_*.html`, handoff [`DOSSIER_HANDOFF_DESIGN_LYNKI_V1.md`](./DOSSIER_HANDOFF_DESIGN_LYNKI_V1.md).*
 
 **Critère d’entrée (ligne « Certain »)** : une ligne n’entre en **Certain** que si l’équipe peut **la montrer**, **la décrire factuellement**, et **dire comment constater sa fermeture**. Sinon → **Interprétatif** ou pas dans l’inventaire pour l’instant. *Premier pas recommandé : **au plus 3 lignes Certain**, puis figer **V1.5-1 à V1.5-3** et un **premier lot court et sûr**.*
 
@@ -62,18 +62,18 @@
 
 | # | Zone (écran) | Écart (résumé factuel) | Réf. créa / figma / doc | Catégorie | Impact | Risque / dépendance | Priorité (P1…) | Notes |
 |---|--------------|------------------------|-------------------------|-----------|--------|---------------------|----------------|-------|
-| 1 | _ex. cockpit / pilotage_ | _…_ | _…_ | _Certain \| Interprétatif_ | _…_ | _…_ | _…_ | |
-| 2 | _ex. page détail_ | _…_ | _…_ | _…_ | _…_ | _…_ | _…_ | |
-| 3 | _ex. synthèse / transverse_ | _…_ | _…_ | _…_ | _…_ | _…_ | _…_ | |
+| 1 | Transverse (toute app) | **Typographie** : le canon Stitch / Fidelity impose **Inter** pour titres, corps et labels (`pilotage_desktop_v_r_na_canon_v5/code.html`, `stitch/lynki_sovereign/DESIGN.md`). Lynki charge **IBM Plex Sans en premier** dans `font-sans` (`app/layout.tsx`, `tailwind.config.js`, `globals.css` `body`). | `stitch/pilotage_desktop_v_r_na_canon_v5/code.html` ; `DESIGN.md` ; prod `units/dorevia-linky/` | **Certain** | Cohérence visuelle · lisibilité | front seul | P1 | Fermeture : stack typo **alignée** sur Inter-first **ou** décision produit documentée + mise à jour handoff. |
+| 2 | Transverse (cards, chrome) | **Rayons** : le canon pilotage V5 définit des arrondis Tailwind étendus (**`DEFAULT` 0,125rem**, **`xl` 0,5rem**). Lynki utilise **`--radius-card: 0.75rem`** (12px) et `--radius-xl` identique dans `globals.css`. | `stitch/pilotage_desktop_v_r_na_canon_v5/code.html` (bloc `borderRadius`) ; `globals.css` | **Certain** | Cohérence visuelle · perception premium | front seul | P2 | Fermeture : tokens rayons **alignés** sur l’échelle canon **ou** tableau d’équivalence écrit + prod mise à jour. |
+| 3 | Transverse (badges confiance, états) | **Vert « Fiable »** : le handoff V1 fixe la confiance **Fiable / confirmée** en **`#10B981`** ([`DOSSIER_HANDOFF_DESIGN_LYNKI_V1.md`](./DOSSIER_HANDOFF_DESIGN_LYNKI_V1.md) §8). Lynki expose **`--confidence-fiable: #059669`** (`globals.css`), déjà proche du vert accent créa mais **hex différent**. | Handoff §8 ; `globals.css` | **Certain** | Cohérence visuelle · grammaire confiance | front seul | P2 | Fermeture : **`#10B981`** appliqué aux usages « Fiable » concernés **ou** exception produit notée + handoff ajusté. |
+| 4 | Cockpit pilotage (desktop) | **Thème clair vs sombre** : la maquette canon V5 est en **`html.light`** avec fonds clairs (`#f8f9ff`, surfaces « container »). Lynki cockpit est en **thème sombre** (tokens `--bg` `#0F1B2D`, etc.). | `stitch/pilotage_desktop_v_r_na_canon_v5/screen.png` ; `globals.css` | **Interprétatif** | Perception premium · cohérence | arbitrage produit requis | — | Ne pas traiter en ticket V1.5 tant que la **décision** clair vs sombre n’est pas explicite ; risque de refonte implicite. |
 
 ---
 
-## Ordre d’exécution *(à figer après arbitrage)*
+## Ordre d’exécution *(figé — premier passage)*
 
-*Une fois l’inventaire validé, lister ici l’ordre **figé** des tickets (ex. V1.5-1 → V1.5-2 …) avec une phrase de rationale par étape.*
-
-1. _[À compléter]_
-2. _[À compléter]_
+1. **V1.5-1 — Typographie** : impact global immédiat ; conditionne la « voix » visuelle de toute l’app.
+2. **V1.5-2 — Rayons / tokens carte** : visible sur cockpit, détail, synthèse ; faible ambiguïté une fois l’échelle choisie.
+3. **V1.5-3 — Couleur Fiable (confiance)** : alignement sémantique handoff ↔ prod ; vérifier les composants qui consomment `--confidence-fiable` / `linky-confidence-fiable`.
 
 ---
 
@@ -81,24 +81,57 @@
 
 | ID | Titre | Zone | Statut |
 |----|-------|------|--------|
-| _V1.5-1_ | _[À intituler après arbitrage]_ | _[cockpit \| détail \| synthèse \| transverse]_ | `À faire` |
+| **V1.5-1** | Typographie : Inter-first vs IBM Plex prioritaire | Transverse | `À faire` |
+| **V1.5-2** | Rayons cartes / chrome : échelle canon V5 vs tokens Lynki | Transverse | `À faire` |
+| **V1.5-3** | Confiance « Fiable » : `#10B981` handoff vs `#059669` prod | Transverse | `À faire` |
 
 ---
 
-## Premier lot livrable *(à définir)*
+## Premier lot livrable *(figé — 3 tickets)*
 
-*Cible : **2 à 4 tickets** maximum pour le premier lot.*
+*Cible : **V1.5-1 → V1.5-3** (écarts **Certain** uniquement).*
 
-- [ ] **Périmètre** : _écrans / composants inclus_
-- [ ] **DoD** : _critères de fin testables (dont non-régression grammaire V1.4)_
-- [ ] **Référence créa** : _lien ou version figée_
-- [ ] **Preuve de fin** : _voir § Détail des tickets — aligné avec captures / routes / validations_
+- [ ] **Périmètre** : `units/dorevia-linky` — typo globale, tokens CSS, classes Tailwind liées ; pas de changement de logique métier.
+- [ ] **DoD** : critères de fin par ticket (§ Détail) ; **non-régression V1.4** (pages détail + synthèse + pilotage) ; pas de régression d’accessibilité contrastes non assumée.
+- [ ] **Référence créa** : ligne **Canon V5** — chemins sous `ZeDocs/web59/stitch_carole_61/` + [`DOSSIER_HANDOFF_DESIGN_LYNKI_V1.md`](./DOSSIER_HANDOFF_DESIGN_LYNKI_V1.md).
+- [ ] **Preuve de fin** : captures avant/après (pilotage + une page détail + synthèse si pertinent) + revue produit pour les trois tickets.
 
 ---
 
-## Détail des tickets *(à rédiger ticket par ticket)*
+## Détail des tickets
 
-*Chaque ticket V1.5-x reprendra : intention produit, règles, structure cible, DoD, fichiers / composants touchés (indicatif).*
+### V1.5-1 — Typographie (Inter-first)
+
+| | |
+|--|--|
+| **Où** | Toute l’app (`font-sans`, `body`). |
+| **Visible** | Rendu des textes différent de la maquette Inter-only (métriques, sensation de « voix »). |
+| **Pourquoi** | Cohérence avec la **créa canon** et les specs Fidelity / Stitch. |
+| **Fidélité** | **Stricte** attendue par défaut : **Inter** comme police principale ; IBM Plex retiré ou réservé à un usage **explicitement** secondaire si arbitrage. |
+| **Fermeture** | `tailwind.config.js` + `layout.tsx` + `globals.css` : ordre des polices aligné ; capture `/` + `/tresorerie` + `/synthese`. |
+| **Fichiers indicatifs** | `units/dorevia-linky/app/layout.tsx`, `tailwind.config.js`, `app/globals.css` |
+
+### V1.5-2 — Rayons (cartes / chrome)
+
+| | |
+|--|--|
+| **Où** | Cartes, encarts, boutons selon usage des tokens `--radius-*`. |
+| **Visible** | Coins plus ou moins arrondis que le canon V5 (comparaison `code.html` vs prod). |
+| **Pourquoi** | Même « famille » de composants entre maquette et produit. |
+| **Fidélité** | Reproduire l’**échelle** du canon (ou documenter équivalence 1:1 en rem). |
+| **Fermeture** | Tokens mis à jour + captures cockpit / carte typique. |
+| **Fichiers indicatifs** | `app/globals.css`, composants qui utilisent `rounded-*` / variables radius |
+
+### V1.5-3 — Vert « Fiable » (confiance)
+
+| | |
+|--|--|
+| **Où** | Badges / scores de confiance, légendes « Fiable ». |
+| **Visible** | Teinte de vert différente de `#10B981` là où l’état « Fiable » s’applique. |
+| **Pourquoi** | Alignement sur la **grammaire de confiance** handoff V1. |
+| **Fidélité** | **`#10B981`** pour l’état Fiable **ou** mise à jour du handoff si exception. |
+| **Fermeture** | Liste des usages + capture ; contraste WCAG non dégradé. |
+| **Fichiers indicatifs** | `app/globals.css`, `ConfidenceScore`, tuiles cockpit |
 
 ### Preuve de fin *(chaque ticket — à cocher à la clôture)*
 
@@ -120,7 +153,8 @@
 | 24 mars 2026 | **Règle d’atelier** : 5 points par écart (où / visible / pourquoi / fidélité créa / critère de fermeture). |
 | 24 mars 2026 | **Arbitrage sans créa en direct** : créa figée comme référence muette ; catégories **Certain / Interprétatif** ; premier lot conservateur ; règle noire sur blanc objectivable + faible ambiguïté. |
 | 24 mars 2026 | **Critère d’entrée inventaire** : montrer + description factuelle + critère de fermeture pour toute ligne **Certain** ; ≤ 3 lignes puis V1.5-1…3 + premier lot. |
+| 24 mars 2026 | **Inventaire initial** : 3 écarts **Certain** (typo, rayons, vert Fiable) + 1 **Interprétatif** (clair/sombre) ; ordre V1.5-1→3 ; premier lot = ces 3 tickets ; détail rédigé. |
 
 ---
 
-*Backlog Lynki V1.5 — **brouillon vivant** : le plan fixe la doctrine ; ce fichier porte l’exécution une fois l’inventaire des écarts posé.*
+*Backlog Lynki V1.5 — **brouillon vivant** : le plan fixe la doctrine ; ce fichier porte l’**exécution** (inventaire et tickets **amorcés** — à valider en revue produit puis implémenter).*
