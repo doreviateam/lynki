@@ -18,6 +18,7 @@ import {
   INSTRUMENT_CARD_BASE,
   InstrumentCardHeader,
   InstrumentCardNav,
+  InstrumentCardStatusBadge,
   InstrumentCardFooter,
 } from "@/components/InstrumentCardChrome";
 import type { CardId } from "@/app/types/linky-tiles";
@@ -607,6 +608,24 @@ export function BusinessCard({
   const net = salesTotal - purchasesTotal;
   const currency = salesData?.currency ?? purchasesData?.currency ?? "EUR";
 
+  const tauxRaw = salesTotal > 0 ? net / salesTotal : null;
+  const tauxDisplay =
+    tauxRaw != null
+      ? Math.abs(tauxRaw) < 0.05
+        ? "0,0"
+        : (tauxRaw * 100).toFixed(1).replace(".", ",")
+      : null;
+
+  /** Lecture rapide des masses HT — pas une « marge commerciale » (V1.4-3). */
+  const activityBalanceStatus =
+    tauxRaw == null
+      ? null
+      : tauxRaw >= 0.25
+        ? { label: "Ventes nettement au-dessus des achats HT", severity: "success" as const }
+        : tauxRaw >= 0.1
+          ? { label: "Achats HT significatifs vs ventes", severity: "vigilance" as const }
+          : { label: "Achats HT proches ou au-dessus des ventes", severity: "alert" as const };
+
   const businessFooterMeta = useMemo(() => {
     const items = salesByPartner?.items ?? [];
     if (items.length > 0) {
@@ -619,14 +638,26 @@ export function BusinessCard({
     return "Snapshot au posting · Source Vault";
   }, [salesByPartner?.items]);
 
+  const hasPostedCounts = postedSalesCount != null || postedPurchasesCount != null;
+
   return (
-    <section className={INSTRUMENT_CARD_BASE}>
+    <section
+      className={`${INSTRUMENT_CARD_BASE} ${net >= 0 ? "border-[var(--positive)]" : "border-[var(--negative)]"}`}
+    >
       {cardId && onNavigateToCard && (
         <InstrumentCardNav currentCardId={cardId} onNavigate={onNavigateToCard} onBackToCockpit={onBackToCockpit} />
       )}
       <InstrumentCardHeader
         icon={iconNode}
         title="BUSINESS"
+        badges={
+          activityBalanceStatus ? (
+            <InstrumentCardStatusBadge
+              label={activityBalanceStatus.label}
+              severity={activityBalanceStatus.severity}
+            />
+          ) : undefined
+        }
         kpiLabel="CA facturé (HT)"
         kpiValue={
           <span className="tabular-nums font-bold text-[var(--text)]">{formatAmount(salesTotal, currency)}</span>
@@ -635,12 +666,49 @@ export function BusinessCard({
       <p className="mt-1 text-[10px] leading-relaxed text-[var(--muted)]">
         Facturation HT retenue sur la période — pas un chiffre d’affaires comptable exhaustif hors périmètre servi.
       </p>
+      {hasPostedCounts ? (
+        <p className="mt-1 text-[10px] text-[var(--text-secondary)]">
+          Pièces comptabilisées (indicatif) :{" "}
+          <span className="tabular-nums font-medium text-[var(--text)]">
+            {postedSalesCount != null ? (
+              <>
+                {postedSalesCount} {postedSalesCount === 1 ? "vente" : "ventes"}
+              </>
+            ) : (
+              "—"
+            )}
+          </span>
+          {" · "}
+          <span className="tabular-nums font-medium text-[var(--text)]">
+            {postedPurchasesCount != null ? (
+              <>
+                {postedPurchasesCount} {postedPurchasesCount === 1 ? "achat" : "achats"}
+              </>
+            ) : (
+              "—"
+            )}
+          </span>
+        </p>
+      ) : null}
 
       <div className="space-y-2 text-sm">
+        <div className="flex justify-between items-baseline">
+          <span className="text-[var(--text-secondary)]">Ventes HT</span>
+          <span className="tabular-nums font-semibold text-emerald-400">{formatAmount(salesTotal, currency)}</span>
+        </div>
         <div className="flex justify-between items-baseline">
           <span className="text-[var(--text-secondary)]">Achats HT</span>
           <span className="tabular-nums font-semibold text-amber-400">{formatAmount(purchasesTotal, currency)}</span>
         </div>
+        {tauxDisplay != null && (
+          <div
+            className="flex justify-between items-baseline"
+            title="(Ventes HT − Achats HT) ÷ Ventes HT — indicateur de déséquilibre des masses agrégées, pas une marge métier."
+          >
+            <span className="text-[var(--text-secondary)]">Ratio solde / ventes HT</span>
+            <span className="tabular-nums font-semibold text-[var(--text)]">{tauxDisplay} %</span>
+          </div>
+        )}
         <div className="flex flex-col gap-0.5">
           <div className="flex justify-between items-baseline">
             <span className="text-[var(--text-secondary)]">Solde ventes − achats</span>
@@ -662,7 +730,8 @@ export function BusinessCard({
         sectionTitle="Évolution"
         interpretationOverride={{
           primary: "Volumes ventes et achats HT sur la période (pilotage).",
-          secondary: "L’écart entre les deux séries n’est pas un résultat d’exploitation.",
+          secondary:
+            "L’écart entre les deux séries n’est pas un résultat d’exploitation. Le ratio solde / ventes (carte) est un indicateur HT simplifié.",
         }}
         chartType={chartType}
         onChartTypeChange={onChartTypeChange ?? (() => {})}
