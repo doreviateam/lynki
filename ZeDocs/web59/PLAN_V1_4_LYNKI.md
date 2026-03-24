@@ -52,7 +52,7 @@ DoD détaillés : **même fichier backlog**.
 1. **Mini-recette** `/synthese` puis **push** branche + tag **`lynki-v1.3`** si ce n’est pas déjà fait.
 2. **Ouvrir V1.4-1 — `/encours`** (premier ticket exécutable — intention, structure cible et DoD dans le backlog).
 3. Enchaîner **V1.4-2 → V1.4-3 → V1.4-4** selon le backlog.
-4. Tag de clôture **`lynki-v1.4`** à la fin du chantier validé (squelette : [`RELEASE_NOTE_LYNKI_V1_4.md`](./RELEASE_NOTE_LYNKI_V1_4.md)).
+4. Tag de clôture **`lynki-v1.4`** — **posé** le 24 mars 2026 ; release note : [`RELEASE_NOTE_LYNKI_V1_4.md`](./RELEASE_NOTE_LYNKI_V1_4.md).
 
 ---
 

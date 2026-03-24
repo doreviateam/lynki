@@ -200,7 +200,7 @@ Faire de `/encours` une page qui aide à répondre rapidement à :
 
 **Clôture passe 1** : la page `/tresorerie` suit la même grammaire que `/encours`, `/flux-net` et `/business` (périmètre, erreur réseau, chargement, honnêteté partielle) sans refonte du fond (KPI, rapprochement, courbe SVG, gouvernance).
 
-**Suite** : tag release **`lynki-v1.4`** + release note si validation produit.
+**Suite** : **faite** — tag **`lynki-v1.4`** + [`RELEASE_NOTE_LYNKI_V1_4.md`](./RELEASE_NOTE_LYNKI_V1_4.md) (gel 24 mars 2026, recette go sur image lab r13).
 
 ---
 
@@ -209,7 +209,7 @@ Faire de `/encours` une page qui aide à répondre rapidement à :
 | ID / jalons | Date | Notes |
 |-------------|------|-------|
 | Audit V1.4-1 | 24 mars 2026 | [`AUDIT_V1_4_1_ENCOURS.md`](./AUDIT_V1_4_1_ENCOURS.md) — surface, données, segmentation, écarts, verdict. |
-| *—* | *—* | *À compléter au fil des livraisons.* |
+| **Gel axe 2 V1.4** | 24 mars 2026 | Tag **`lynki-v1.4`** ; image lab **`lynki-v1.4-20260324-r13`** ; [`RELEASE_NOTE_LYNKI_V1_4.md`](./RELEASE_NOTE_LYNKI_V1_4.md). |
 
 ---
 
