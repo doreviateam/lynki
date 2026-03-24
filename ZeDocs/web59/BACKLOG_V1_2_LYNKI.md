@@ -28,7 +28,7 @@
 | V1.2-2 | Filtre lecture alertes (urgence / vigilance / suivi) | Haute | `Fait` |
 | V1.2-3 | Projection J+30 Trésorerie | Haute | `Fait` |
 | V1.2-4 | Tuiles C manquantes dans le canon desktop | Moyenne | `Fait` |
-| V1.2-5 | Export CSV / rapport de conformité | Moyenne | `À faire` |
+| V1.2-5 | Export CSV / rapport de conformité | Moyenne | `Fait` |
 | V1.2-6 | Mini-graphes sparklines tuiles secondaires mobile | Basse | `À faire` |
 
 ---
@@ -199,26 +199,28 @@ Identifier les 2 tuiles C cibles (à confirmer sur spec canon V5) :
 
 **Persona** : Esther / Véréna
 **Priorité** : Moyenne
-**Statut** : `À faire`
+**Statut** : `Fait`
 
-### Contexte
+### Décision canonique — figée
 
-Des boutons d'export sont présents sur `/tresorerie` et `/synthese` mais la logique de déclenchement est absente ou incomplète.
+> **Aucun export global PDF n'est exposé dans la synthèse tant qu'aucune sortie réelle, qualifiée et branchée n'existe pour cette action. Les exports disponibles restent portés localement par les blocs métier qui les supportent réellement.**
 
-### Périmètre minimal recommandé
+### Contexte (post-audit)
 
-Commencer par 2 exports concrets et utiles :
+- Les exports **CSV** (balance générale, rubriques, balance âgée) et **DOCX** (Diva) étaient déjà branchés dans `AccountingSummaryView` et blocs associés.
+- `/tresorerie` : aucun bouton d'export fantôme.
+- Seul problème : bouton sticky **« Export PDF »** sur `synthese/page.tsx` sans handler ni API.
 
-1. **Export trésorerie** : tableau de rapprochement bancaire en CSV
-2. **Export rubriques bilan/CdR** : déjà implémenté dans `AccountingSummaryView` — à vérifier et valider sur les boutons visibles
+### Livrable V1.2-5
+
+**Option B** — suppression pure du bouton « Export PDF » du footer sticky. Aucun texte de remplacement (les exports par blocs restent visibles).
 
 ### DoD
 
-- [ ] bouton "Export trésorerie" déclenche un fetch + blob download réel
-- [ ] bouton "Export synthèse" cohérent avec les exports déjà présents dans les blocs comptables
-- [ ] gestion d'erreur propre (Vault indisponible, timeout)
-- [ ] pas de bouton fantôme ou silencieux résiduel
-- [ ] lint/typecheck OK
+- [x] bouton « Export PDF » supprimé de `app/(reporting)/synthese/page.tsx`
+- [x] aucune promesse d'export global non tenue sur la page
+- [x] exports réels par blocs inchangés
+- [x] lint/typecheck OK — commit `f00feadd`
 
 ---
 
@@ -262,6 +264,7 @@ BFR et Encours (données les plus stables et utiles en mobile).
 | V1.2-2 | 24 mars 2026 | Chips Toutes/Urgence/Vigilance/Suivi sur `/alerts`. Cas A — taxonomie déjà normalisée. Commit `bfd56cfd`. |
 | V1.2-3 | 24 mars 2026 | Option B actée — suppression du label "Projection J+30 — aperçu V2" dans `CockpitMobileView`. Aucun endpoint J+30 n'existe. Commit `71ff9873`. |
 | V1.2-4 | 24 mars 2026 | Points de vente (`pos_shops`) et Z de caisse (`pos_z`) ajoutés à SECONDARY. Grille secondaire extraite en `grid-cols-4` (8 tuiles = 2 lignes de 4). Canon V5 complet : 12 tuiles. Commit `bcc20945`. |
+| V1.2-5 | 24 mars 2026 | Audit : CSV/DOCX déjà branchés par blocs ; suppression du footer « Export PDF » fantôme sur `/synthese`. Commit `f00feadd`. |
 
 ---
 
