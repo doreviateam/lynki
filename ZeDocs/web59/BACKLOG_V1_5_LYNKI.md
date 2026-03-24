@@ -7,6 +7,12 @@
 **Ouverture (squelette)** : 24 mars 2026  
 **Règle** : chaque ticket **nomme** un écart ou un lot **borné** ; pas de « polish » non priorisé ni de fourre-tout.
 
+### Discipline d’arbitrage *(à respecter avant de remplir le backlog en masse)*
+
+* Ne pas **surcharger** l’inventaire d’un coup (éviter une liste de 15 écarts non priorisés).
+* Viser d’abord **3 à 6 écarts les plus structurants**, les ordonner, puis figer **V1.5-1 / V1.5-2 / V1.5-3** (et au-delà seulement si l’arbitrage le justifie).
+* **Premier lot livrable** : viser **2 à 4 tickets maximum** ; les lots suivants après clôture ou validation du premier.
+
 ---
 
 ## Convention de statut
@@ -25,11 +31,15 @@
 
 *Sortie attendue de l’atelier produit / créa : écarts **nommés**, **ordonnés**, reliés aux livrables créa (Carole).*
 
-| # | Zone (écran) | Écart (résumé factuel) | Réf. créa / figma / doc | Priorité (P1…) | Notes |
-|---|--------------|------------------------|-------------------------|----------------|-------|
-| 1 | _ex. cockpit / pilotage_ | _…_ | _…_ | _…_ | |
-| 2 | _ex. page détail_ | _…_ | _…_ | _…_ | |
-| 3 | _ex. synthèse / transverse_ | _…_ | _…_ | _…_ | |
+**Impact** *(exemples de valeurs)* : lisibilité produit · cohérence visuelle · qualité d’usage · perception premium · dette UI *(une ou plusieurs, explicites)*.
+
+**Risque / dépendance** *(exemples)* : front seul · arbitrage design requis · composant transverse · **bloqué** : référence créa manquante ou imprécise.
+
+| # | Zone (écran) | Écart (résumé factuel) | Réf. créa / figma / doc | Impact | Risque / dépendance | Priorité (P1…) | Notes |
+|---|--------------|------------------------|-------------------------|--------|---------------------|----------------|-------|
+| 1 | _ex. cockpit / pilotage_ | _…_ | _…_ | _…_ | _…_ | _…_ | |
+| 2 | _ex. page détail_ | _…_ | _…_ | _…_ | _…_ | _…_ | |
+| 3 | _ex. synthèse / transverse_ | _…_ | _…_ | _…_ | _…_ | _…_ | |
 
 ---
 
@@ -52,15 +62,27 @@
 
 ## Premier lot livrable *(à définir)*
 
+*Cible : **2 à 4 tickets** maximum pour le premier lot.*
+
 - [ ] **Périmètre** : _écrans / composants inclus_
 - [ ] **DoD** : _critères de fin testables (dont non-régression grammaire V1.4)_
 - [ ] **Référence créa** : _lien ou version figée_
+- [ ] **Preuve de fin** : _voir § Détail des tickets — aligné avec captures / routes / validations_
 
 ---
 
 ## Détail des tickets *(à rédiger ticket par ticket)*
 
 *Chaque ticket V1.5-x reprendra : intention produit, règles, structure cible, DoD, fichiers / composants touchés (indicatif).*
+
+### Preuve de fin *(chaque ticket — à cocher à la clôture)*
+
+* Objectif : fermeture **vérifiable** et communicable (comité / créa / interne).
+
+- [ ] **Capture avant / après** (ou équivalent objectif : maquette vs prod).
+- [ ] **Route(s) / zone(s)** concernées, nommées explicitement.
+- [ ] **Validation** : créa et/ou produit selon le périmètre du ticket.
+- [ ] **Non-régression V1.4** : grammaire pages détail / synthèse **OK** (aucune régression connue non assumée).
 
 ---
 
@@ -69,6 +91,7 @@
 | Date | Notes |
 |------|-------|
 | 24 mars 2026 | Ouverture du fichier — squelette ; inventaire et ordre **à compléter** après arbitrage. |
+| 24 mars 2026 | Renforts : colonnes **Impact** et **Risque / dépendance** ; discipline 3–6 écarts / lot 2–4 tickets ; **preuve de fin** par ticket. |
 
 ---
 
