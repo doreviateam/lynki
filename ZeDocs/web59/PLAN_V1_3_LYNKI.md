@@ -1,0 +1,61 @@
+# Plan V1.3 — Lynki (mini-cadrage)
+
+*Ouverture courte du chantier **Lynki V1.3** après clôture sérieuse de **V1.2** (`lynki-v1.2`) et prolongation **V1.2.1** (`lynki-v1.2.1`). Ce document ne lance pas une refonte : il **choisit le prochain gain métier réel** et un **axe prioritaire unique**.*
+
+**Ouverture** : 24 mars 2026
+
+**Références** : [`PLAN_V1_2_LYNKI.md`](./PLAN_V1_2_LYNKI.md) · [`BACKLOG_V1_2_LYNKI.md`](./BACKLOG_V1_2_LYNKI.md) · [`RELEASE_NOTE_LYNKI_V1_2_1.md`](./RELEASE_NOTE_LYNKI_V1_2_1.md)
+
+---
+
+## 1. Objet du document
+
+Définir **une intention V1.3** et **un seul axe prioritaire** pour la suite du produit, sans rouvrir V1.2 ni traiter **V1.2-6** (sparklines mobile) par inertie.
+
+**Règle** : V1.2 est **figée** ; V1.2-6 reste un **bonus isolé** reportable à tout moment dans V1.3 ou hors release si besoin.
+
+---
+
+## 2. Point de départ
+
+* **V1.2** : clôturée — jalon `lynki-v1.2` (milestone fonctionnelle : navigation desktop, alertes, projection J+30 honnête, canon 12 tuiles).
+* **V1.2.1** : cohérence produit — `lynki-v1.2.1` (suppression export PDF fantôme sur `/synthese`, V1.2-5).
+* **V1.2-6** : **non engagé** dans ce cadrage — polish mobile / sparklines, faible levier métier par rapport à un palier de lecture financière.
+
+---
+
+## 3. Trois axes candidats et arbitrage recommandé
+
+| Axe | Intitulé | Levier |
+|-----|----------|--------|
+| **1** | **Synthèse comptable / reporting** | Différenciation, usage Esther / Véréna, promesse « lecture financière sérieuse » |
+| **2** | Profondeur métier de certaines pages détail | Compléter `/business`, `/flux-net`, `/encours`, `/tresorerie` au-delà des shells |
+| **3** | Polish mobile | Sparklines et densité Max — **rebascule naturelle de V1.2-6** |
+
+**Arbitrage recommandé (à valider en équipe)** : **Axe 1** en priorité V1.3.
+
+> La suite la plus intelligente n’est pas d’ajouter un petit effet visuel mobile, mais d’ouvrir le **prochain palier métier lisible** de Lynki.
+
+---
+
+## 4. Périmètre V1.3 (brouillon — à affiner en backlog)
+
+Tant que l’axe 1 est retenu, V1.3 vise typiquement :
+
+* enrichir **`/synthese`** et les **blocs comptables** (rubriques, balances, preuves, exports déjà présents) avec des **lectures ou restitutions** plus utiles pour comité / RAF ;
+* **sans** refonte du shell Lynki ni du design system ;
+* **sans** promesses non tenues (même discipline que V1.2-3 / V1.2-5).
+
+**Hors périmètre par défaut** : refonte navigation globale, nouveau moteur d’alertes backend, sparklines mobile **sauf** décision explicite de reprioriser l’axe 3.
+
+---
+
+## 5. Suite immédiate
+
+1. **Valider** l’axe prioritaire (idéalement **Axe 1**) en une réunion courte ou arbitrage écrit.
+2. **Créer** un fichier léger `BACKLOG_V1_3_LYNKI.md` avec **3 à 6 mini-tickets** ciblés sur l’axe retenu (pas de tunnel documentaire).
+3. **Ne pas** modifier les tags `lynki-v1.2` / `lynki-v1.2.1` ; le premier tag V1.3 sera posé **à la clôture** du chantier (ex. `lynki-v1.3`).
+
+---
+
+*Mini-cadrage V1.3 — prêt pour arbitrage d’axe et ouverture de backlog.*
