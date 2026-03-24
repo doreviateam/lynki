@@ -21,7 +21,11 @@ export function ConfidenceScore({ score, label, compact = false }: ConfidenceSco
     return (
       <span
         className="inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs font-semibold"
-        style={{ borderColor: `${color}30`, backgroundColor: `${color}10`, color }}
+        style={{
+          borderColor: `color-mix(in srgb, ${color} 32%, transparent)`,
+          backgroundColor: `color-mix(in srgb, ${color} 12%, var(--card))`,
+          color,
+        }}
       >
         <Icon name="verified_user" size={14} filled />
         {pct.toFixed(1)} % {label ?? "Fiable"}

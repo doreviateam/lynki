@@ -38,7 +38,7 @@ export function BottomNav() {
             href={navHrefWithTenant(item.href, tenantQs)}
             className={`flex flex-col items-center justify-center transition-all duration-200 ${
               active
-                ? "scale-95 font-semibold text-emerald-600 dark:text-emerald-400"
+                ? "scale-95 font-semibold text-[var(--confidence-fiable)]"
                 : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
             }`}
           >

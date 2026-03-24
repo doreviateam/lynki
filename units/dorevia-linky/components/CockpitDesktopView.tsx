@@ -47,12 +47,12 @@ function formatCockpitPeriodRange(p: PeriodRange): string {
   return `${a.toLocaleDateString("fr-FR")} – ${b.toLocaleDateString("fr-FR")}`;
 }
 
-/** Barres sparkline : dégradé emerald comme `pilotage_desktop_v_r_na_canon_v5/code.html`. */
+/** Barres sparkline — teinte unique `--confidence-fiable` (Stitch), intensité selon hauteur. */
 function sparkBarClass(pct: number): string {
-  if (pct >= 80) return "bg-emerald-600 dark:bg-emerald-500/85";
-  if (pct >= 65) return "bg-emerald-400 dark:bg-emerald-500/65";
-  if (pct >= 55) return "bg-emerald-200 dark:bg-emerald-500/50";
-  return "bg-emerald-100 dark:bg-emerald-500/40";
+  if (pct >= 80) return "bg-linky-confidence-fiable";
+  if (pct >= 65) return "bg-linky-confidence-fiable/90";
+  if (pct >= 55) return "bg-linky-confidence-fiable/75";
+  return "bg-linky-confidence-fiable/55";
 }
 
 const SECONDARY: { id: CardId; icon: string; label: string; key: string; href?: string }[] = [
@@ -86,7 +86,7 @@ export function CockpitDesktopView({
     return (
       <div className="flex flex-1 items-center justify-center py-20">
         <div className="flex items-center gap-2 text-[var(--muted)]">
-          <span className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-linky-confidence-fiable border-t-transparent" />
           <span className="text-sm">Chargement…</span>
         </div>
       </div>
@@ -117,13 +117,13 @@ export function CockpitDesktopView({
             href={h("/tresorerie")}
             className="group relative col-span-1 row-span-2 flex flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md md:col-span-2 lg:col-span-2"
           >
-            <div className="absolute left-0 top-0 h-1 w-full bg-emerald-600" aria-hidden />
+            <div className="absolute left-0 top-0 h-1 w-full bg-[var(--confidence-fiable)]" aria-hidden />
             <div className="mb-4 flex items-start justify-between gap-2 pr-1">
               <div className="min-w-0">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Trésorerie</span>
                 <div className="mt-2 text-3xl font-black tabular-nums tracking-tight text-[var(--text)]">{fmt(treasury)}</div>
               </div>
-              <span className="shrink-0 rounded-lg bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+              <span className="shrink-0 rounded-lg bg-[color-mix(in_srgb,var(--confidence-fiable)_12%,var(--card))] p-2 text-[var(--confidence-fiable)]">
                 <Icon name="account_balance_wallet" size={22} filled />
               </span>
             </div>
@@ -136,28 +136,35 @@ export function CockpitDesktopView({
                 />
               ))}
             </div>
-            <div className="pointer-events-none absolute bottom-4 right-4 flex items-center gap-1 rounded border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/50 dark:text-emerald-400">
+            <div className="pointer-events-none absolute bottom-4 right-4 flex items-center gap-1 rounded border border-[color-mix(in_srgb,var(--confidence-fiable)_35%,var(--border))] bg-[color-mix(in_srgb,var(--confidence-fiable)_10%,var(--card))] px-2 py-0.5 text-[10px] font-bold text-[var(--confidence-fiable)]">
               <Icon name="check_circle" size={12} />
               SYNCHRO OK
             </div>
           </Link>
 
-          {/* Business — tuile sombre + bordure slate (canon Stitch) */}
+          {/* Business — même enveloppe que les autres tuiles en clair ; accent sombre réservé au thème dark */}
           <Link
             href={h("/business")}
-            className="relative col-span-1 row-span-2 flex flex-col justify-between overflow-hidden rounded-xl border border-slate-800 bg-slate-900 p-5 text-left shadow-xl transition-all hover:shadow-2xl md:col-span-2 lg:col-span-2"
+            className="relative col-span-1 row-span-2 flex flex-col justify-between overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:shadow-xl dark:hover:shadow-2xl md:col-span-2 lg:col-span-2"
           >
-            <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-emerald-900/20 blur-3xl" aria-hidden />
+            <div
+              className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-[color-mix(in_srgb,var(--confidence-fiable)_18%,transparent)] blur-3xl dark:bg-emerald-900/20"
+              aria-hidden
+            />
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Business</span>
-              <div className="mt-3 text-3xl font-black tabular-nums tracking-tight text-white">{fmt(business)}</div>
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] dark:text-slate-400">
+                Business
+              </span>
+              <div className="mt-3 text-3xl font-black tabular-nums tracking-tight text-[var(--text)] dark:text-white">
+                {fmt(business)}
+              </div>
             </div>
             <div className="relative mt-auto flex items-center justify-between">
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400">
+              <span className="inline-flex items-center gap-1 text-xs font-bold text-[var(--confidence-fiable)]">
                 <Icon name="trending_up" size={14} />
                 MTD
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--confidence-fiable)_15%,transparent)] px-2 py-0.5 text-[10px] font-bold text-[var(--confidence-fiable)] dark:bg-emerald-500/15 dark:text-emerald-400">
                 <Icon name="verified" size={12} filled />
                 CERTIFIÉ
               </span>
@@ -204,7 +211,7 @@ export function CockpitDesktopView({
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
           <Link
             href={h("/tresorerie")}
-            className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-emerald-600/30 md:col-span-2"
+            className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-[color-mix(in_srgb,var(--confidence-fiable)_40%,var(--border))] md:col-span-2"
           >
             <div>
               <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Détail trésorerie</h3>
@@ -217,7 +224,7 @@ export function CockpitDesktopView({
 
           <Link
             href={h("/alerts")}
-            className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-emerald-600/30"
+            className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-[color-mix(in_srgb,var(--confidence-fiable)_40%,var(--border))]"
           >
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Alertes &amp; signaux</h3>

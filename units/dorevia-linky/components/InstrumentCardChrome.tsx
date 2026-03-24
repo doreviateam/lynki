@@ -259,7 +259,7 @@ export interface CompactTileProps {
 }
 
 const COMPACT_TILE_CLASS =
-  "group flex flex-col gap-2 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--card)] p-4 text-left shadow-sm transition-all hover:border-emerald-500 hover:shadow-md active:scale-[0.98]";
+  "group flex flex-col gap-2 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--card)] p-4 text-left shadow-sm transition-all hover:border-linky-confidence-fiable/55 hover:shadow-md active:scale-[0.98]";
 
 function CompactTileInner({ icon, label, value, confidence, trend, trendPositive }: Omit<CompactTileProps, "onClick" | "href">) {
   return (

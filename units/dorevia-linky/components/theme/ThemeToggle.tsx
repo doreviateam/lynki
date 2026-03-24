@@ -10,7 +10,7 @@ import { applyLinkyTheme, type LinkyTheme } from "@/app/lib/theme";
  */
 export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
-  const [mode, setMode] = useState<LinkyTheme>("dark");
+  const [mode, setMode] = useState<LinkyTheme>("light");
 
   useEffect(() => {
     setMounted(true);

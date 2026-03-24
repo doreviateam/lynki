@@ -38,12 +38,12 @@
   --logo-dorevia:    #8f9bab;
   --logo-lynki:      #f1f5f9;
 
-  /* Sémantique */
-  --positive:        #22C55E;
+  /* Sémantique — vert « positif / OK » aligné sur Stitch (--confidence-fiable), pas emerald Tailwind */
+  --positive:        var(--confidence-fiable);
   --negative:        #EF4444;
   --negative-soft:   rgba(239, 68, 68, 0.12);
   --warning:         #F59E0B;
-  --status-ok:       #22C55E;
+  --status-ok:       var(--confidence-fiable);
   --status-watch:    #F59E0B;
   --status-alert:    #EF4444;
   --status-neutral:  #9FB3C8;

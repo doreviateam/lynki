@@ -25,7 +25,13 @@ export function TopBar({
         {scoreDisplay && (
           <>
             <span className="text-[var(--border)]">|</span>
-            <span className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-600/30 dark:bg-emerald-600/10 dark:text-emerald-400">
+            <span
+              className="flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs font-semibold text-[var(--confidence-fiable)]"
+              style={{
+                borderColor: "color-mix(in srgb, var(--confidence-fiable) 35%, transparent)",
+                backgroundColor: "color-mix(in srgb, var(--confidence-fiable) 12%, var(--bg-secondary))",
+              }}
+            >
               <Icon name="verified_user" size={14} filled />
               {scoreDisplay} {confidenceLabel ?? "Fiable"}
             </span>
@@ -47,7 +53,7 @@ export function TopBar({
         <button className="rounded-lg p-1.5 text-[var(--muted)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text)]">
           <Icon name="settings" size={20} />
         </button>
-        <div className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
+        <div className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--confidence-fiable)] text-xs font-bold text-white">
           V
         </div>
       </div>

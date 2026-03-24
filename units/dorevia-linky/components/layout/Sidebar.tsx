@@ -42,7 +42,7 @@ export function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 z-50 hidden h-full w-64 flex-col overflow-y-auto border-r border-slate-800 bg-slate-900 px-3 py-4 text-sm font-medium text-white shadow-xl md:flex">
       <div className="mb-8 flex items-center gap-3 px-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded bg-emerald-600 font-black tracking-tight text-white">
+        <div className="flex h-10 w-10 items-center justify-center rounded bg-[var(--confidence-fiable)] font-black tracking-tight text-white">
           L
         </div>
         <div>
@@ -60,7 +60,7 @@ export function Sidebar() {
               href={navHrefWithTenant(item.href, tenantQs)}
               className={`flex items-center gap-3 rounded-md px-3 py-2 transition-all duration-200 active:origin-left active:scale-95 ${
                 active
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-[var(--confidence-fiable)] text-white"
                   : "text-slate-400 hover:bg-slate-800 hover:text-white"
               }`}
             >
