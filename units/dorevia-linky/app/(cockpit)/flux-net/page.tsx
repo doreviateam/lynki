@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { ConfidenceScore } from "@/components/ConfidenceScore";
 import { TopBar } from "@/components/layout/TopBar";
@@ -14,13 +14,17 @@ import {
   CockpitFluxNetPartialBanner,
   CockpitFluxNetUnavailable,
 } from "@/components/cockpit-detail/cockpitFluxNetStates";
+import type { PaymentsAggregation } from "@/app/types/aggregations";
+import { toPositiveSeries } from "@/app/lib/chart-utils";
 import {
-  formatSeriesPeriodLabel,
-  mergePaymentsInOutSeries,
-  pickPaymentsGranularity,
-  type FluxNetPeriodPoint,
-  type PaymentsAggJson,
-} from "./fluxNetPaymentsSeries";
+  getAvailableGranularities,
+  getDefaultChartGranularity,
+  GRANULARITY_LABELS,
+  type ChartGranularity,
+} from "@/app/lib/chart-granularity";
+import { computeFluxNetInsight } from "@/app/lib/flux-net-insight";
+import { DualSeriesChart } from "@/components/DualSeriesChart";
+import { formatSeriesPeriodLabel } from "./fluxNetPaymentsSeries";
 
 const USE_METRIC_ENGINE = process.env.NEXT_PUBLIC_LINKY_USE_METRIC_ENGINE === "1";
 /** Tolérance affichage EUR sur écart KPI tuile vs net détail (normalisation côté API). */
@@ -36,41 +40,6 @@ function formatPeriodFr(from: string, to: string): string {
   const b = new Date(to);
   if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return "—";
   return `${a.toLocaleDateString("fr-FR")} – ${b.toLocaleDateString("fr-FR")}`;
-}
-
-function FluxNetEvolutionChart({ points }: { points: FluxNetPeriodPoint[] }) {
-  if (points.length < 2) return null;
-  const values = points.map((p) => p.net);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min || Math.abs(max) || 1;
-  const pad = span * 0.08;
-  const yMin = min - pad;
-  const yMax = max + pad;
-  const w = 600;
-  const h = 200;
-  const toX = (i: number) => (i / (points.length - 1)) * w;
-  const toY = (v: number) => h - ((v - yMin) / (yMax - yMin)) * h;
-  const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${toX(i).toFixed(1)} ${toY(p.net).toFixed(1)}`).join(" ");
-  const areaD = `${pathD} L ${toX(points.length - 1).toFixed(1)} ${h} L 0 ${h} Z`;
-  const zeroInRange = yMin <= 0 && yMax >= 0;
-  const y0 = toY(0);
-
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-48 w-full" preserveAspectRatio="none" aria-hidden>
-      <defs>
-        <linearGradient id="fluxNetEvolutionGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#10b981" stopOpacity="0.28" />
-          <stop offset="100%" stopColor="#10b981" stopOpacity="0.02" />
-        </linearGradient>
-      </defs>
-      {zeroInRange ? (
-        <line x1={0} x2={w} y1={y0} y2={y0} stroke="var(--border)" strokeWidth={1} strokeDasharray="4 4" />
-      ) : null}
-      <path d={areaD} fill="url(#fluxNetEvolutionGrad)" />
-      <path d={pathD} fill="none" stroke="#34d399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
 }
 
 function companyLabelFromHook(
@@ -110,18 +79,35 @@ function FluxNetContent() {
   const periodLabel = period.from && period.to ? formatPeriodFr(period.from, period.to) : "—";
   const pilotageHref = navHrefWithTenant("/", scopeTenantId);
 
-  const [evolutionPoints, setEvolutionPoints] = useState<FluxNetPeriodPoint[]>([]);
+  const [paymentsIn, setPaymentsIn] = useState<PaymentsAggregation | null>(null);
+  const [paymentsOut, setPaymentsOut] = useState<PaymentsAggregation | null>(null);
   const [evolutionLoading, setEvolutionLoading] = useState(true);
   const [evolutionError, setEvolutionError] = useState(false);
 
+  const availableGranularities = useMemo(
+    () =>
+      period.from && period.to ? getAvailableGranularities(period.from, period.to) : (["month"] as ChartGranularity[]),
+    [period.from, period.to]
+  );
+
+  const [chartGranularity, setChartGranularity] = useState<ChartGranularity>("month");
+  const [relativeTo100, setRelativeTo100] = useState(false);
+  const handleChartGranularityChange = useCallback((g: ChartGranularity) => setChartGranularity(g), []);
+
   useEffect(() => {
     if (!period.from || !period.to) return;
-    const g = pickPaymentsGranularity(period.from, period.to);
+    setChartGranularity((prev) =>
+      availableGranularities.includes(prev) ? prev : getDefaultChartGranularity(period.from, period.to)
+    );
+  }, [period.from, period.to, availableGranularities]);
+
+  useEffect(() => {
+    if (!period.from || !period.to) return;
     const qs = new URLSearchParams({
       tenant: scopeTenantId,
       date_debut: period.from,
       date_fin: period.to,
-      granularity: g,
+      granularity: chartGranularity,
     });
     if (effectiveCompanyId) qs.set("company_id", effectiveCompanyId);
 
@@ -138,14 +124,16 @@ function FluxNetContent() {
         if (cancelled) return;
         const inOk = inRes.ok;
         const outOk = outRes.ok;
-        const inJson: PaymentsAggJson | null = inOk ? await inRes.json().catch(() => null) : null;
-        const outJson: PaymentsAggJson | null = outOk ? await outRes.json().catch(() => null) : null;
+        const inJson: PaymentsAggregation | null = inOk ? await inRes.json().catch(() => null) : null;
+        const outJson: PaymentsAggregation | null = outOk ? await outRes.json().catch(() => null) : null;
         if (cancelled) return;
-        setEvolutionPoints(mergePaymentsInOutSeries(inJson, outJson));
+        setPaymentsIn(inJson);
+        setPaymentsOut(outJson);
         setEvolutionError(!inOk && !outOk);
       } catch {
         if (!cancelled) {
-          setEvolutionPoints([]);
+          setPaymentsIn(null);
+          setPaymentsOut(null);
           setEvolutionError(true);
         }
       } finally {
@@ -156,7 +144,31 @@ function FluxNetContent() {
     return () => {
       cancelled = true;
     };
-  }, [scopeTenantId, effectiveCompanyId, period.from, period.to]);
+  }, [scopeTenantId, effectiveCompanyId, period.from, period.to, chartGranularity]);
+
+  const inTotal = paymentsIn?.total ?? 0;
+  const outTotalRaw = paymentsOut?.total ?? 0;
+  const outTotal = Math.abs(outTotalRaw);
+  const seriesInRaw = paymentsIn?.series ?? [];
+  const seriesOutRaw = paymentsOut?.series ?? [];
+  const evolutionCurrency = paymentsIn?.currency ?? paymentsOut?.currency ?? "EUR";
+  const effectiveChartType = chartGranularity === "week" ? "line" : "bar";
+
+  const { primary: insightPrimary } = useMemo(
+    () => computeFluxNetInsight(inTotal, outTotal, seriesInRaw, seriesOutRaw, chartGranularity),
+    [inTotal, outTotal, seriesInRaw, seriesOutRaw, chartGranularity]
+  );
+
+  const periodExtent = useMemo(() => {
+    const periods = Array.from(
+      new Set([...seriesInRaw.map((p) => p.period), ...seriesOutRaw.map((p) => p.period)])
+    ).sort();
+    if (periods.length === 0) return null;
+    return { first: periods[0], last: periods[periods.length - 1] };
+  }, [seriesInRaw, seriesOutRaw]);
+
+  const granuleFr =
+    chartGranularity === "week" ? "hebdomadaire" : chartGranularity === "day" ? "journalière" : "mensuelle";
 
   const hasDetails = Boolean(details);
   const encaissements = details?.encaissements ?? null;
@@ -337,45 +349,104 @@ function FluxNetContent() {
 
               <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
                 <h2 className="mb-1 text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
-                  Évolution du flux net
+                  Évolution
                 </h2>
                 <p className="mb-4 text-[10px] leading-relaxed text-[var(--muted)]">
-                  Série issue des agrégats <strong>encaissements</strong> et <strong>décaissements</strong> (Vault), même périmètre
-                  que ci-dessus — granularité <strong>{pickPaymentsGranularity(period.from, period.to) === "week" ? "hebdomadaire" : "mensuelle"}</strong>.
-                  Ce n’est pas le solde de trésorerie bancaire ; la somme des points peut différer du total période si les buckets ne
-                  couvrent pas exactement les mêmes opérations que l’agrégat global du cockpit.
+                  Même lecture que la carte <strong>FLUX NET</strong> du tableau de bord : volumes{" "}
+                  <strong>encaissements</strong> et <strong>décaissements</strong> (Vault), granularité{" "}
+                  <strong>{granuleFr}</strong> selon le sélecteur ci-dessous. En semaine : courbes ; sinon : barres groupées.
+                  Ce n’est pas le solde de trésorerie bancaire.
                 </p>
                 {evolutionLoading ? (
                   <div className="flex h-48 items-center justify-center text-sm text-[var(--muted)]">
                     <span className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
                     Chargement de la série…
                   </div>
-                ) : evolutionError || evolutionPoints.length < 2 ? (
+                ) : evolutionError ? (
                   <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-[var(--border)] text-sm text-[var(--text-secondary)]">
-                    <div className="text-center px-4">
-                      <Icon name="show_chart" size={32} className="mb-2 mx-auto text-[var(--muted)]" />
+                    <div className="px-4 text-center">
+                      <Icon name="show_chart" size={32} className="mx-auto mb-2 text-[var(--muted)]" />
                       <p>Évolution non disponible pour cette période ou agrégats indisponibles.</p>
                     </div>
                   </div>
                 ) : (
                   <>
-                    <FluxNetEvolutionChart points={evolutionPoints} />
-                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-[var(--muted)]">
-                      <span>
-                        {formatSeriesPeriodLabel(evolutionPoints[0].period)} →{" "}
-                        {formatSeriesPeriodLabel(evolutionPoints[evolutionPoints.length - 1].period)}
-                      </span>
+                    <div className="mb-3 flex flex-wrap items-center gap-2">
+                      <span className="sr-only">Granularité du graphique</span>
+                      <div className="flex gap-1 rounded-md bg-[var(--muted-soft)] p-0.5">
+                        {availableGranularities.map((g) => (
+                          <button
+                            key={g}
+                            type="button"
+                            onClick={() => {
+                              if (availableGranularities.length > 1) handleChartGranularityChange(g);
+                            }}
+                            aria-pressed={chartGranularity === g}
+                            className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
+                              chartGranularity === g
+                                ? "bg-[var(--accent)] text-white"
+                                : "text-[var(--text-secondary)] hover:bg-[var(--border)]"
+                            } ${availableGranularities.length === 1 ? "cursor-default" : ""}`}
+                          >
+                            {GRANULARITY_LABELS[g]}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex gap-1 rounded-md bg-[var(--muted-soft)] p-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setRelativeTo100(false)}
+                          aria-pressed={!relativeTo100}
+                          className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
+                            !relativeTo100
+                              ? "bg-[var(--accent)] text-white"
+                              : "text-[var(--text-secondary)] hover:bg-[var(--border)]"
+                          }`}
+                        >
+                          Montants
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRelativeTo100(true)}
+                          aria-pressed={relativeTo100}
+                          className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
+                            relativeTo100
+                              ? "bg-[var(--accent)] text-white"
+                              : "text-[var(--text-secondary)] hover:bg-[var(--border)]"
+                          }`}
+                        >
+                          Répartition %
+                        </button>
+                      </div>
                     </div>
+                    <DualSeriesChart
+                      series1={toPositiveSeries(seriesInRaw)}
+                      series2={toPositiveSeries(seriesOutRaw)}
+                      total1={Math.abs(inTotal)}
+                      total2={outTotal}
+                      label1="Encaissements"
+                      label2="Décaissements"
+                      granularity={chartGranularity}
+                      chartType={effectiveChartType}
+                      currency={evolutionCurrency}
+                      relativeTo100={relativeTo100}
+                    />
+                    <p className="mt-2 text-xs text-[var(--text-secondary)]">
+                      <span className="font-semibold text-[var(--positive)]">{insightPrimary}</span>
+                    </p>
+                    <p className="mt-1 text-[10px] text-[var(--muted)]">
+                      Source : Vault (<code className="text-[10px]">payments-in</code>,{" "}
+                      <code className="text-[10px]">payments-out</code>) — mêmes séries que la carte FLUX NET.
+                    </p>
+                    {periodExtent ? (
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-[var(--muted)]">
+                        <span>
+                          {formatSeriesPeriodLabel(periodExtent.first)} → {formatSeriesPeriodLabel(periodExtent.last)}
+                        </span>
+                      </div>
+                    ) : null}
                   </>
                 )}
-                {evolutionPoints.length >= 2 ? (
-                  <div className="mt-3 flex items-center gap-4 text-xs text-[var(--muted)]">
-                    <span className="flex items-center gap-1.5">
-                      <span className="h-0.5 w-4 rounded bg-emerald-400" />
-                      Flux net (enc. − déc.) par période
-                    </span>
-                  </div>
-                ) : null}
               </div>
 
               <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
