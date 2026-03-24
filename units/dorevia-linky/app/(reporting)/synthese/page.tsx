@@ -95,17 +95,13 @@ function SyntheseContent() {
         </div>
 
         {/* Barre d'actions */}
-        <div className="sticky bottom-0 flex items-center justify-between border-t border-[var(--border)] bg-[var(--bg-secondary)] px-6 py-3">
+        <div className="sticky bottom-0 flex items-center border-t border-[var(--border)] bg-[var(--bg-secondary)] px-6 py-3">
           <button
             onClick={() => router.push("/")}
             className="flex items-center gap-2 rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--hover)]"
           >
             <Icon name="arrow_back" size={16} />
             Retour Pilotage
-          </button>
-          <button className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700">
-            <Icon name="picture_as_pdf" size={16} />
-            Export PDF
           </button>
         </div>
       </main>
