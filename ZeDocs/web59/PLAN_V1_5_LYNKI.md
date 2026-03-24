@@ -12,7 +12,7 @@
 
 > **V1.5 vise à rapprocher l’implémentation Lynki de la créa cible, en renforçant la cohérence visuelle, la qualité d’usage et la lisibilité produit.**
 
-**Référence haute** : la créa portée par Carole sert de cible pour réduire l’écart avec ce que Lynki affiche déjà, sans surpromesse ni refonte globale implicite.
+**Référence haute** : la **créa cible** (livrables graphiques figés, ex. travail de Carole) sert de référence pour réduire l’écart avec ce que Lynki affiche déjà — y compris en **comparaison muette** maquette ↔ prod si la validation synchrone n’est pas disponible (voir [`BACKLOG_V1_5_LYNKI.md`](./BACKLOG_V1_5_LYNKI.md) § *Arbitrage à partir de la créa figée*).
 
 ---
 

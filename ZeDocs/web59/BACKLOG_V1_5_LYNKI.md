@@ -7,6 +7,17 @@
 **Ouverture (squelette)** : 24 mars 2026  
 **Règle** : chaque ticket **nomme** un écart ou un lot **borné** ; pas de « polish » non priorisé ni de fourre-tout.
 
+> **En l’absence de validation directe de la créa**, V1.5 ne traite d’abord que les **écarts visuels objectivables** et à **faible ambiguïté** (voir § **Arbitrage à partir de la créa figée** ci-dessous).
+
+### Arbitrage à partir de la créa figée *(méthode « froide » — pas d’atelier synchrone requis)*
+
+*La **créa sert de référence muette** : maquette / fichiers figés, écrans actuels, intention produit. On compare **ce qui est montré** à **ce qui est livré**, sans deviner des intentions au-delà de l’évidence visuelle.*
+
+1. **Écarts objectivables seulement** pour démarrer — formulations du type : hiérarchie visuelle plus faible que la créa ; rythme / espacements / densité qui cassent la lecture ; composant fonctionnel mais moins « premium » ; grammaire non homogène avec le reste. Si l’écart repose sur une **interprétation** de designer, le noter en **interprétatif / à arbitrer**, pas en ticket immédiat.
+2. **Deux catégories** dans l’inventaire : **écarts certains** (visibles, concrets, fermables sans présence créa) · **écarts interprétatifs** (plus tard ou avec prudence) — éviter les faux tickets design.
+3. **Premier lot très sûr** sans créa en direct : fort impact visuel, faible ambiguïté, **faisable en front seul**, peu de débat conceptuel — ex. hiérarchie, espacements, alignements, chrome commun, densité des cards, cohérence headers / sections ; reporter ton, narration visuelle fine, sujets « intention ».
+4. **Démarrage possible sans attendre** une personne : viser au début **3 écarts certains maximum**, puis **V1.5-1 à V1.5-3** sur cette base — V1.5 **sobre, objectivable, discipliné**.
+
 ### Discipline d’arbitrage *(à respecter avant de remplir le backlog en masse)*
 
 * Ne pas **surcharger** l’inventaire d’un coup (éviter une liste de 15 écarts non priorisés).
@@ -15,7 +26,7 @@
 
 ### Règle d’atelier *(5 points par écart retenu)*
 
-*Avec la créa / produit : pour **chaque** écart retenu, ne valider que ce qui suit — le backlog se remplit proprement sans dériver.*
+*En atelier **synchrone** créa / produit **ou** en revue **asynchrone** sur la même base : pour **chaque** écart retenu, ne valider que ce qui suit — le backlog se remplit proprement sans dériver.*
 
 1. **Où** est l’écart (zone, route, capture prod ou référence écran actuel si utile).
 2. **En quoi** il est visible (symptôme concret à l’écran).
@@ -39,17 +50,19 @@
 
 ## Inventaire des écarts créa ↔ produit *(à alimenter)*
 
-*Sortie attendue de l’atelier produit / créa : écarts **nommés**, **ordonnés**, reliés aux livrables créa (Carole).*
+*Sortie attendue : écarts **nommés**, **ordonnés**, reliés à la **créa figée** (maquette / doc) et à l’**écran actuel** — avec ou sans atelier synchrone avec la création graphique.*
+
+**Catégorie** : **`Certain`** *(objectivable, fermable sans interprétation fragile)* · **`Interprétatif`** *(à arbitrer plus tard ou avec prudence — pas ticket immédiat du premier lot).*
 
 **Impact** *(exemples de valeurs)* : lisibilité produit · cohérence visuelle · qualité d’usage · perception premium · dette UI *(une ou plusieurs, explicites)*.
 
 **Risque / dépendance** *(exemples)* : front seul · arbitrage design requis · composant transverse · **bloqué** : référence créa manquante ou imprécise.
 
-| # | Zone (écran) | Écart (résumé factuel) | Réf. créa / figma / doc | Impact | Risque / dépendance | Priorité (P1…) | Notes |
-|---|--------------|------------------------|-------------------------|--------|---------------------|----------------|-------|
-| 1 | _ex. cockpit / pilotage_ | _…_ | _…_ | _…_ | _…_ | _…_ | |
-| 2 | _ex. page détail_ | _…_ | _…_ | _…_ | _…_ | _…_ | |
-| 3 | _ex. synthèse / transverse_ | _…_ | _…_ | _…_ | _…_ | _…_ | |
+| # | Zone (écran) | Écart (résumé factuel) | Réf. créa / figma / doc | Catégorie | Impact | Risque / dépendance | Priorité (P1…) | Notes |
+|---|--------------|------------------------|-------------------------|-----------|--------|---------------------|----------------|-------|
+| 1 | _ex. cockpit / pilotage_ | _…_ | _…_ | _Certain \| Interprétatif_ | _…_ | _…_ | _…_ | |
+| 2 | _ex. page détail_ | _…_ | _…_ | _…_ | _…_ | _…_ | _…_ | |
+| 3 | _ex. synthèse / transverse_ | _…_ | _…_ | _…_ | _…_ | _…_ | _…_ | |
 
 ---
 
@@ -91,7 +104,7 @@
 
 - [ ] **Capture avant / après** (ou équivalent objectif : maquette vs prod).
 - [ ] **Route(s) / zone(s)** concernées, nommées explicitement.
-- [ ] **Validation** : créa et/ou produit selon le périmètre du ticket.
+- [ ] **Validation** : créa et/ou produit selon le périmètre du ticket ; **si pas de créa en direct** : validation **produit** et/ou **revue interne** suffisante pour les lots **objectivables** (aligné avec la § Arbitrage créa figée).
 - [ ] **Non-régression V1.4** : grammaire pages détail / synthèse **OK** (aucune régression connue non assumée).
 
 ---
@@ -103,6 +116,7 @@
 | 24 mars 2026 | Ouverture du fichier — squelette ; inventaire et ordre **à compléter** après arbitrage. |
 | 24 mars 2026 | Renforts : colonnes **Impact** et **Risque / dépendance** ; discipline 3–6 écarts / lot 2–4 tickets ; **preuve de fin** par ticket. |
 | 24 mars 2026 | **Règle d’atelier** : 5 points par écart (où / visible / pourquoi / fidélité créa / critère de fermeture). |
+| 24 mars 2026 | **Arbitrage sans créa en direct** : créa figée comme référence muette ; catégories **Certain / Interprétatif** ; premier lot conservateur ; règle noire sur blanc objectivable + faible ambiguïté. |
 
 ---
 
