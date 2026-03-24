@@ -26,8 +26,8 @@ export function BusinessChart(props: BusinessChartProps) {
       series2={purchasesSeriesNorm}
       total1={props.salesTotal}
       total2={props.purchasesTotal}
-      label1="Ventes TTC"
-      label2="Achats TTC"
+      label1="Ventes HT"
+      label2="Achats HT"
       pieLabel1="Ventes HT"
       pieLabel2="Achats HT"
     />

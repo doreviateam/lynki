@@ -63,6 +63,7 @@ export function BusinessCardWithPolling({
   onBackToCockpit,
 }: BusinessCardWithPollingProps) {
   const requestSeqRef = useRef(0);
+  const seriesOnlySeqRef = useRef(0);
   const [salesData, setSalesData] = useState<SalesAggregation | null>(initialSalesData);
   const [purchasesData, setPurchasesData] = useState<PurchasesAggregation | null>(initialPurchasesData);
   const [salesByPartner, setSalesByPartner] = useState<SalesByPartnerResponse | null>(null);
@@ -113,6 +114,46 @@ export function BusinessCardWithPolling({
     setDataSourceFallback(false);
     setLoading(false);
   }, [useSnapshotBusiness, snapshotBusiness]);
+
+  /**
+   * Mode snapshot : KPI / Pareto / AR viennent du dashboard ; les séries temporelles ne sont pas dans le snapshot.
+   * On charge ventes / achats (même granularité) uniquement pour alimenter le graphique d’évolution.
+   */
+  useEffect(() => {
+    if (!useSnapshotBusiness) return;
+    const seq = ++seriesOnlySeqRef.current;
+    const params = new URLSearchParams({
+      tenant: tenantId ?? "core",
+      date_debut: period.from,
+      date_fin: period.to,
+      granularity: chartGranularity,
+      ...(companyId && { company_id: companyId }),
+    });
+    const loadSeries = async () => {
+      try {
+        const [resSales, resPurchases] = await Promise.all([
+          fetch(`/api/sales?${params.toString()}`, { cache: "no-store", headers: { Accept: "application/json" } }),
+          fetch(`/api/purchases?${params.toString()}`, { cache: "no-store", headers: { Accept: "application/json" } }),
+        ]);
+        if (seq !== seriesOnlySeqRef.current) return;
+        const jsonSales = resSales.ok ? ((await resSales.json()) as SalesAggregation) : null;
+        const jsonPurchases = resPurchases.ok ? ((await resPurchases.json()) as PurchasesAggregation) : null;
+        if (seq !== seriesOnlySeqRef.current) return;
+        if (jsonSales?.series?.length) {
+          setSalesData((prev) => (prev ? { ...prev, series: jsonSales.series ?? [] } : prev));
+        }
+        if (jsonPurchases?.series?.length) {
+          setPurchasesData((prev) => (prev ? { ...prev, series: jsonPurchases.series ?? [] } : prev));
+        }
+      } catch {
+        /* silencieux : le graphique reste sur agrégat total ou vide */
+      }
+    };
+    void loadSeries();
+    return () => {
+      seriesOnlySeqRef.current += 1;
+    };
+  }, [useSnapshotBusiness, tenantId, period.from, period.to, companyId, chartGranularity]);
 
   useEffect(() => {
     if (useSnapshotBusiness) return;

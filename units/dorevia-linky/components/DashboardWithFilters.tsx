@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { ChartExpandedProvider } from "@/app/context/ChartExpandedContext";
+import { ChartExpandedProvider, useChartExpanded } from "@/app/context/ChartExpandedContext";
 import { ChromeAdaptiveProvider, useChromeAdaptive } from "@/app/context/ChromeAdaptiveContext";
 import { TenantProvider, useTenantContext } from "@/app/context/TenantContext";
 import { ReportHeader, type ViewMode } from "@/components/ReportHeader";
@@ -131,6 +131,45 @@ function adaptInstrumentsToDashboard(
 }
 
 const DEFAULT_TENANT = "core";
+
+function chartCardIdForViewMode(viewMode: ViewMode): CardId | null {
+  if (viewMode === "business") return "business";
+  if (viewMode === "cash") return "cash";
+  if (viewMode === "corrections") return "credit_notes";
+  return null;
+}
+
+/** Clés `storageKey` des blocs Évolution — une seule ouverte à la fois (`ChartExpandedContext`). */
+const FOCUS_CARD_CHART_STORAGE_KEY: Partial<Record<CardId, string>> = {
+  treasury: "linky-tresorerie-position-evolution",
+  treasury_position: "linky-treasury-chart-expanded",
+  cash: "linky-cash-chart-expanded",
+  business: "linky-business-chart-expanded",
+  working_capital: "linky-bfr-evolution",
+  encours: "linky-encours-evolution",
+  ebitda: "linky-ebe-evolution",
+  taxes: "linky-taxes-chart-expanded",
+  credit_notes: "linky-credit-notes-chart-expanded",
+  refunds: "linky-refunds-chart-expanded",
+};
+
+function FocusChartSync({
+  focusedCardId,
+  viewMode,
+}: {
+  focusedCardId: CardId | null;
+  viewMode: ViewMode;
+}) {
+  const chartExpanded = useChartExpanded();
+  useEffect(() => {
+    if (!chartExpanded) return;
+    const cardId = focusedCardId ?? chartCardIdForViewMode(viewMode);
+    if (!cardId) return;
+    const key = FOCUS_CARD_CHART_STORAGE_KEY[cardId];
+    if (key) chartExpanded.setActiveKey(key);
+  }, [focusedCardId, viewMode, chartExpanded]);
+  return null;
+}
 
 interface CompanyItem {
   company_id: string;
@@ -470,6 +509,7 @@ function DashboardWithFiltersContent({
 
   return (
     <ChartExpandedProvider>
+    <FocusChartSync focusedCardId={focusedCardId} viewMode={viewMode} />
     <TenantProvider requestedTenant={requestedTenant} onSetTenantNavigate={onSetTenantNavigate} onResolvedTenantChange={onResolvedTenantChange}>
     <DashboardErrorBoundary>
     <TenantLoadingGate>
