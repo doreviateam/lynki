@@ -6,7 +6,7 @@ name: dorevia_linky_generic
 
 services:
   linky:
-    image: dorevia/linky:lynki-v1.4-20260324-r8
+    image: dorevia/linky:lynki-v1.4-20260324-r9
     container_name: linky_generic
     restart: unless-stopped
     environment:
