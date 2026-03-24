@@ -45,6 +45,8 @@ const SECONDARY: { id: CardId; icon: string; label: string; key: string; href?: 
   { id: "ebitda", icon: "trending_up", label: "EBE", key: "ebitda" },
   { id: "credit_notes", icon: "note_alt", label: "Notes crédit", key: "credit_notes" },
   { id: "refunds", icon: "currency_exchange", label: "Rembours.", key: "refunds" },
+  { id: "pos_shops", icon: "storefront", label: "Points de vente", key: "pos_shops" },
+  { id: "pos_z", icon: "receipt", label: "Z de caisse", key: "pos_z" },
 ];
 
 export function CockpitDesktopView({
@@ -83,7 +85,7 @@ export function CockpitDesktopView({
       <main className="flex-1 p-6">
         <h2 className="mb-6 text-lg font-bold text-[var(--text)]">Pilotage Stratégique</h2>
 
-        {/* Bento grid — 6 colonnes, auto-rows 160px */}
+        {/* Bento grid — 3 tuiles maîtresses 2×2 */}
         <div className="grid auto-rows-[160px] grid-cols-6 gap-4">
           {/* Trésorerie — 2×2 */}
           <Link
@@ -137,8 +139,10 @@ export function CockpitDesktopView({
               <div className="mt-3 text-2xl font-bold tabular-nums text-[var(--text)]">{fmt(cash)}</div>
             </div>
           </Link>
+        </div>
 
-          {/* Secondary tiles — 1×1 each */}
+        {/* Tuiles secondaires — 8 tuiles B+C, 4 colonnes × 2 lignes */}
+        <div className="mt-4 grid grid-cols-4 gap-4">
           {SECONDARY.map((tile) => {
             const metric = metrics?.[tile.key as keyof DashboardMetricsResponse] as { value?: unknown; formatted?: string; valueKind?: string } | undefined;
             return (
