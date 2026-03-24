@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { IntegrityBadge } from "@/components/IntegrityBadge";
 import { TenantSelector } from "@/components/TenantSelector";
+import { CockpitAppBarRow } from "@/components/layout/CockpitAppBarRow";
 import type { ReportHeaderContentProps } from "./ReportHeaderContent.types";
 import type { PeriodStatusMap } from "@/app/lib/use-accounting-periods";
 import { companyDisplayLabel, normalizeCompanyId, safeReactText } from "@/app/lib/company-id";
@@ -45,12 +46,192 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
     onExpandChrome,
     onNavigateToAppView,
     periodStatuses,
+    cockpitAppBar,
   } = props;
 
   const periodStatusLabel = useMemo(() => getPeriodContextLabel(periodKey, periodYear, periodStatuses), [periodKey, periodYear, periodStatuses]);
 
+  const menuIcon = (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-6 w-6 text-[var(--text)]">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    </svg>
+  );
+
+  const overflowNav = (
+    <>
+      {tenantCtx?.availableTenants && tenantCtx.availableTenants.length > 1 && <TenantSelector variant="menu" onCloseMenu={() => setMenuOpen(false)} />}
+      {appView !== "synthese" && (
+        <>
+          <div className="border-b border-[var(--border)] px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Comptabilité</div>
+          {(
+            [
+              ["all", "Tout"],
+              ["cash", "Cash"],
+              ["business", "Business"],
+              ["corrections", "Corrections"],
+            ] as const
+          ).map(([mode, label]) => (
+            <button
+              key={mode}
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                onViewModeChange(mode);
+                setMenuOpen(false);
+              }}
+              className={`block w-full px-3 py-2 text-left text-sm ${viewMode === mode ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]" : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"}`}
+            >
+              {label}
+            </button>
+          ))}
+          <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Point de vente</div>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              onViewModeChange("pos_shops");
+              setMenuOpen(false);
+            }}
+            className={`block w-full px-3 py-2 text-left text-sm ${viewMode === "pos_shops" ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]" : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"}`}
+          >
+            Points de vente
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              onViewModeChange("pos_z");
+              setMenuOpen(false);
+            }}
+            className={`block w-full px-3 py-2 text-left text-sm ${viewMode === "pos_z" ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]" : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"}`}
+          >
+            Z de caisse <span className="text-[10px] text-[var(--muted)]">(à venir)</span>
+          </button>
+        </>
+      )}
+      <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Applications</div>
+      <a
+        href={ODOO_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        role="menuitem"
+        onClick={() => setMenuOpen(false)}
+        className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+      >
+        Odoo (système source)
+      </a>
+      <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Administration</div>
+      <a
+        href="/admin/dlp-config"
+        role="menuitem"
+        onClick={() => setMenuOpen(false)}
+        className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+      >
+        Paramétrage des décisions
+      </a>
+      {workspace?.sources?.map((s) => (
+        <a
+          key={s.id}
+          href={s.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          role="menuitem"
+          onClick={() => setMenuOpen(false)}
+          className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+        >
+          {s.label}
+        </a>
+      ))}
+      {workspace?.apps?.map((a) => (
+        <a
+          key={a.id}
+          href={a.href ?? "#"}
+          role="menuitem"
+          onClick={() => setMenuOpen(false)}
+          className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+        >
+          {a.label}
+        </a>
+      ))}
+      {chromeAdaptive && showPinChrome && (
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            chromeAdaptive.setChromePinned(!chromeAdaptive.chromePinned);
+            setMenuOpen(false);
+          }}
+          className={`block w-full px-3 py-2 text-left text-sm ${chromeAdaptive.chromePinned ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]" : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"}`}
+        >
+          Garder le bandeau visible
+        </button>
+      )}
+    </>
+  );
+
   const content = (
-    <div className="mx-auto max-w-4xl px-4 py-3">
+    <div className={`mx-auto px-4 py-3 ${cockpitAppBar ? "max-w-none" : "max-w-4xl"}`}>
+      {cockpitAppBar && currentApp === "linky" ? (
+        <div className="pb-1">
+          <CockpitAppBarRow
+            beforeTitleSlot={tenantBadgeOrSelector}
+            confidenceScore={cockpitAppBar.confidenceScore}
+            confidenceLabel={cockpitAppBar.confidenceLabel}
+            subtitle={cockpitAppBar.subtitle}
+            showSearchField
+            trailingSlot={
+              <>
+                <div className="relative sm:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+                    aria-label="Menu"
+                    aria-expanded={menuOpen}
+                  >
+                    {menuIcon}
+                  </button>
+                  {menuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" aria-hidden data-chrome-lock="true" onClick={() => setMenuOpen(false)} />
+                      <nav
+                        className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg"
+                        role="menu"
+                        data-chrome-lock="true"
+                      >
+                        {overflowNav}
+                      </nav>
+                    </>
+                  )}
+                </div>
+                <div className="relative hidden sm:block">
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+                    aria-label="Menu"
+                    aria-expanded={menuOpen}
+                  >
+                    {menuIcon}
+                  </button>
+                  {menuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" aria-hidden data-chrome-lock="true" onClick={() => setMenuOpen(false)} />
+                      <nav
+                        className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg"
+                        role="menu"
+                        data-chrome-lock="true"
+                      >
+                        {overflowNav}
+                      </nav>
+                    </>
+                  )}
+                </div>
+              </>
+            }
+          />
+        </div>
+      ) : (
       <div className="relative flex items-center justify-between gap-3">
         <div className="z-10 flex shrink-0 items-center gap-2 sm:gap-3">
           <a href="/" className="group transition-[filter] duration-[160ms] ease-out hover:brightness-[1.04]" aria-label="Retour à l'accueil">
@@ -72,29 +253,13 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
           {currentApp === "linky" && (
             <div className="relative sm:hidden">
               <button type="button" onClick={() => setMenuOpen(!menuOpen)} className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]" aria-label="Menu" aria-expanded={menuOpen}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#FFF" className="h-6 w-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                {menuIcon}
               </button>
               {menuOpen && (
                 <>
                   <div className="fixed inset-0 z-40" aria-hidden data-chrome-lock="true" onClick={() => setMenuOpen(false)} />
                   <nav className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg" role="menu" data-chrome-lock="true">
-                    {tenantCtx?.availableTenants && tenantCtx.availableTenants.length > 1 && <TenantSelector variant="menu" onCloseMenu={() => setMenuOpen(false)} />}
-                    {appView !== "synthese" && (<>
-                    <div className="border-b border-[var(--border)] px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Comptabilité</div>
-                    {([["all", "Tout"], ["cash", "Cash"], ["business", "Business"], ["corrections", "Corrections"]] as const).map(([mode, label]) => (
-                      <button key={mode} type="button" role="menuitem" onClick={() => { onViewModeChange(mode); setMenuOpen(false); }} className={`block w-full px-3 py-2 text-left text-sm ${viewMode === mode ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]" : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"}`}>{label}</button>
-                    ))}
-                    <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Point de vente</div>
-                    <button type="button" role="menuitem" onClick={() => { onViewModeChange("pos_shops"); setMenuOpen(false); }} className={`block w-full px-3 py-2 text-left text-sm ${viewMode === "pos_shops" ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]" : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"}`}>Points de vente</button>
-                    <button type="button" role="menuitem" onClick={() => { onViewModeChange("pos_z"); setMenuOpen(false); }} className={`block w-full px-3 py-2 text-left text-sm ${viewMode === "pos_z" ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]" : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"}`}>Z de caisse <span className="text-[10px] text-[var(--muted)]">(à venir)</span></button>
-                    </>)}
-                    <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Applications</div>
-                    <a href={ODOO_URL} target="_blank" rel="noopener noreferrer" role="menuitem" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]">Odoo (système source)</a>
-                    <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Administration</div>
-                    <a href="/admin/dlp-config" role="menuitem" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]">Paramétrage des décisions</a>
-                    {workspace?.sources?.map((s) => <a key={s.id} href={s.href} target="_blank" rel="noopener noreferrer" role="menuitem" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]">{s.label}</a>)}
-                    {workspace?.apps?.map((a) => <a key={a.id} href={a.href ?? "#"} role="menuitem" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]">{a.label}</a>)}
-                    {chromeAdaptive && showPinChrome && <button type="button" role="menuitem" onClick={() => { chromeAdaptive.setChromePinned(!chromeAdaptive.chromePinned); setMenuOpen(false); }} className={`block w-full px-3 py-2 text-left text-sm ${chromeAdaptive.chromePinned ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]" : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"}`}>Garder le bandeau visible</button>}
+                    {overflowNav}
                   </nav>
                 </>
               )}
@@ -103,29 +268,13 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
           {currentApp === "linky" && (
             <div className="relative hidden sm:block">
               <button type="button" onClick={() => setMenuOpen(!menuOpen)} className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]" aria-label="Menu" aria-expanded={menuOpen}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#FFF" className="h-6 w-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                {menuIcon}
               </button>
               {menuOpen && (
                 <>
                   <div className="fixed inset-0 z-40" aria-hidden data-chrome-lock="true" onClick={() => setMenuOpen(false)} />
                   <nav className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg" role="menu" data-chrome-lock="true">
-                    {tenantCtx?.availableTenants && tenantCtx.availableTenants.length > 1 && <TenantSelector variant="menu" onCloseMenu={() => setMenuOpen(false)} />}
-                    {appView !== "synthese" && (<>
-                    <div className="border-b border-[var(--border)] px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Comptabilité</div>
-                    {([["all", "Tout"], ["cash", "Cash"], ["business", "Business"], ["corrections", "Corrections"]] as const).map(([mode, label]) => (
-                      <button key={mode} type="button" role="menuitem" onClick={() => { onViewModeChange(mode); setMenuOpen(false); }} className={`block w-full px-3 py-2 text-left text-sm ${viewMode === mode ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]" : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"}`}>{label}</button>
-                    ))}
-                    <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Point de vente</div>
-                    <button type="button" role="menuitem" onClick={() => { onViewModeChange("pos_shops"); setMenuOpen(false); }} className={`block w-full px-3 py-2 text-left text-sm ${viewMode === "pos_shops" ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]" : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"}`}>Points de vente</button>
-                    <button type="button" role="menuitem" onClick={() => { onViewModeChange("pos_z"); setMenuOpen(false); }} className={`block w-full px-3 py-2 text-left text-sm ${viewMode === "pos_z" ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]" : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"}`}>Z de caisse <span className="text-[10px] text-[var(--muted)]">(à venir)</span></button>
-                    </>)}
-                    <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Applications</div>
-                    <a href={ODOO_URL} target="_blank" rel="noopener noreferrer" role="menuitem" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]">Odoo (système source)</a>
-                    <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Administration</div>
-                    <a href="/admin/dlp-config" role="menuitem" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]">Paramétrage des décisions</a>
-                    {workspace?.sources?.map((s) => <a key={s.id} href={s.href} target="_blank" rel="noopener noreferrer" role="menuitem" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]">{s.label}</a>)}
-                    {workspace?.apps?.map((a) => <a key={a.id} href={a.href ?? "#"} role="menuitem" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 text-left text-sm text-[var(--text)] no-underline hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]">{a.label}</a>)}
-                    {chromeAdaptive && showPinChrome && <button type="button" role="menuitem" onClick={() => { chromeAdaptive.setChromePinned(!chromeAdaptive.chromePinned); setMenuOpen(false); }} className={`block w-full px-3 py-2 text-left text-sm ${chromeAdaptive.chromePinned ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]" : "text-[var(--text)] hover:bg-[var(--accent-soft)]/50"}`}>Garder le bandeau visible</button>}
+                    {overflowNav}
                   </nav>
                 </>
               )}
@@ -133,6 +282,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
           )}
         </div>
       </div>
+      )}
       {currentApp === "linky" && !chromeCompact && onNavigateToAppView && (
         <div className="mt-2 mb-1 hidden sm:flex sm:justify-center" role="tablist" aria-label="Vue de l'application">
           {(["pilotage", "synthese"] as const).map((view) => {

@@ -40,4 +40,13 @@ export interface ReportHeaderContentProps {
   onRefreshMetrics: (() => void) | undefined;
   onExpandChrome: (() => void) | undefined;
   periodStatuses?: PeriodStatusMap;
+  /**
+   * Mode aligné `stitch_carole_61` / `pilotage_desktop_v_r_na_canon_v5` :
+   * première ligne = barre cockpit (titre Lynki, badge fiabilité, recherche) au lieu du bloc produit Dorevia.
+   */
+  cockpitAppBar?: {
+    confidenceScore: number | null;
+    confidenceLabel?: string;
+    subtitle?: string;
+  };
 }

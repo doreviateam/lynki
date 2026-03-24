@@ -64,6 +64,12 @@ interface ReportHeaderProps {
   /** SPEC_UX_NAVIGATION §5 : masquer kpiMode en Synthèse */
   appView?: "pilotage" | "synthese";
   onNavigateToAppView?: (view: "pilotage" | "synthese") => void;
+  /** Barre type maquette canon (évite le double bandeau avec CockpitDesktopView) */
+  cockpitAppBar?: {
+    confidenceScore: number | null;
+    confidenceLabel?: string;
+    subtitle?: string;
+  };
 }
 
 export function ReportHeader({
@@ -88,6 +94,7 @@ export function ReportHeader({
   onExpandChrome,
   appView = "pilotage",
   onNavigateToAppView,
+  cockpitAppBar,
 }: ReportHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectFocused, setSelectFocused] = useState(false);
@@ -254,6 +261,7 @@ export function ReportHeader({
       onExpandChrome={onExpandChrome}
       onNavigateToAppView={onNavigateToAppView}
       periodStatuses={periodStatuses}
+      cockpitAppBar={cockpitAppBar}
     />
   );
 

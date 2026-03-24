@@ -33,6 +33,7 @@ import { getDefaultPeriod, type PeriodRange } from "@/app/lib/period-utils";
 import type { DashboardMetricsResponse } from "@/app/api/dashboard-metrics/route";
 import { recordUxSample } from "@/app/lib/ux-metrics";
 import { companyDisplayLabel, normalizeCompanyId } from "@/app/lib/company-id";
+import { computeConfidenceScore } from "@/app/lib/confidence";
 
 const COMPANIES_TIMEOUT_MS = 5000;
 const DASHBOARD_METRICS_POLL_MS = 2 * 60 * 1000; // 2 min
@@ -351,6 +352,16 @@ function DashboardWithFiltersContent({
 
   // Fetch dashboard-metrics : pour IconGrid/Diva quand vue "all", et sealed_count pour le badge (toujours)
   const showIconGrid = viewMode === "all" && !focusedCardId;
+  const cockpitDesktopMerged =
+    showIconGrid && interactionMode === "desktop" && appView === "pilotage";
+  const cockpitBarScore = cockpitDesktopMerged ? computeConfidenceScore(dashboardMetrics) : null;
+  const cockpitSubtitle = `Arrêté ${new Date().toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
   const effectiveCompanyId =
     FORCED_COMPANY_ID ??
     selectedCompanyId ??
@@ -543,10 +554,26 @@ function DashboardWithFiltersContent({
           onExpandChrome={() => revealChrome("tap_trigger")}
           appView={appView}
           onNavigateToAppView={setAppView}
+          cockpitAppBar={
+            cockpitDesktopMerged
+              ? {
+                  confidenceScore: cockpitBarScore,
+                  confidenceLabel:
+                    cockpitBarScore === 100
+                      ? "Fiable"
+                      : cockpitBarScore != null
+                        ? "Partielle"
+                        : undefined,
+                  subtitle: cockpitSubtitle,
+                }
+              : undefined
+          }
         />
       </div>
 
-      <main className={`mx-auto flex min-h-0 flex-1 w-full max-w-4xl flex-col px-4 pb-16 ${chromeVisible ? "pt-6" : "pt-4"}`}>
+      <main
+        className={`mx-auto flex min-h-0 flex-1 w-full flex-col pb-16 ${cockpitDesktopMerged ? "max-w-none px-6" : "max-w-4xl px-4"} ${chromeVisible ? "pt-6" : "pt-4"}`}
+      >
         {/* Vue Synthèse comptable (Lot 2 — AccountingSummaryView) */}
         {appView === "synthese" ? (
           <AccountingSummaryView
@@ -579,6 +606,7 @@ function DashboardWithFiltersContent({
               metrics={dashboardMetrics}
               metricsLoading={metricsLoading}
               onSelectCard={(id) => setFocusedCardId(id)}
+              hideTopBar={cockpitDesktopMerged}
             />
           )
         ) : (

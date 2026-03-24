@@ -18,6 +18,8 @@ interface CockpitDesktopViewProps {
   metrics: DashboardMetricsResponse | null;
   metricsLoading: boolean;
   onSelectCard?: (id: CardId) => void;
+  /** Quand la barre est fusionnée dans `ReportHeader` (canon Stitch desktop). */
+  hideTopBar?: boolean;
 }
 
 function fmt(raw: { value?: unknown; formatted?: string } | null | undefined): string {
@@ -73,6 +75,7 @@ export function CockpitDesktopView({
   metrics,
   metricsLoading,
   onSelectCard,
+  hideTopBar = false,
 }: CockpitDesktopViewProps) {
   const integrityScore = computeConfidenceScore(metrics);
   const treasury = metrics?.treasury;
@@ -95,14 +98,16 @@ export function CockpitDesktopView({
 
   return (
     <>
-      <TopBar
-        confidenceScore={integrityScore}
-        confidenceLabel="Fiable"
-        title="Lynki Desktop Cockpit"
-        subtitle={`Arrêté ${new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}`}
-      />
+      {!hideTopBar ? (
+        <TopBar
+          confidenceScore={integrityScore}
+          confidenceLabel="Fiable"
+          title="Lynki Desktop Cockpit"
+          subtitle={`Arrêté ${new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}`}
+        />
+      ) : null}
 
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className={`flex-1 overflow-y-auto ${hideTopBar ? "px-0 py-4 md:py-6" : "p-6"}`}>
         <div className="mb-6">
           <h2 className="text-2xl font-extrabold tracking-tight text-[var(--text)]">Pilotage Stratégique</h2>
           {periodLine ? (

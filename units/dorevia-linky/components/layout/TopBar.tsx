@@ -1,7 +1,6 @@
 "use client";
 
-import { Icon } from "@/components/Icon";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { CockpitAppBarRow } from "@/components/layout/CockpitAppBarRow";
 
 interface TopBarProps {
   confidenceScore?: number | null;
@@ -16,47 +15,15 @@ export function TopBar({
   title = "Lynki Desktop Cockpit",
   subtitle,
 }: TopBarProps) {
-  const scoreDisplay = confidenceScore != null ? `${confidenceScore.toFixed(1)} %` : null;
-
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[var(--border)] bg-[var(--bg-secondary)] px-6">
-      <div className="flex min-w-0 flex-1 items-center gap-4">
-        <h1 className="truncate text-lg font-bold tracking-tight text-[var(--text)]">{title}</h1>
-        {scoreDisplay && (
-          <>
-            <span className="text-[var(--border)]">|</span>
-            <span
-              className="flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs font-semibold text-[var(--confidence-fiable)]"
-              style={{
-                borderColor: "color-mix(in srgb, var(--confidence-fiable) 35%, transparent)",
-                backgroundColor: "color-mix(in srgb, var(--confidence-fiable) 12%, var(--bg-secondary))",
-              }}
-            >
-              <Icon name="verified_user" size={14} filled />
-              {scoreDisplay} {confidenceLabel ?? "Fiable"}
-            </span>
-          </>
-        )}
-        {subtitle && (
-          <span className="text-xs text-[var(--muted)]">{subtitle}</span>
-        )}
-      </div>
-
-      <div className="flex items-center gap-3">
-        <ThemeToggle />
-        <button className="rounded-lg p-1.5 text-[var(--muted)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text)]">
-          <Icon name="search" size={20} />
-        </button>
-        <button className="rounded-lg p-1.5 text-[var(--muted)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text)]">
-          <Icon name="notifications" size={20} />
-        </button>
-        <button className="rounded-lg p-1.5 text-[var(--muted)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text)]">
-          <Icon name="settings" size={20} />
-        </button>
-        <div className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--confidence-fiable)] text-xs font-bold text-white">
-          V
-        </div>
-      </div>
+    <header className="sticky top-0 z-40 flex h-16 items-center border-b border-[var(--border)] bg-[var(--bg-secondary)] px-6">
+      <CockpitAppBarRow
+        title={title}
+        subtitle={subtitle}
+        confidenceScore={confidenceScore}
+        confidenceLabel={confidenceLabel}
+        showSearchField
+      />
     </header>
   );
 }
