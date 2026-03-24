@@ -139,10 +139,10 @@ export function BusinessCardWithPolling({
         const jsonSales = resSales.ok ? ((await resSales.json()) as SalesAggregation) : null;
         const jsonPurchases = resPurchases.ok ? ((await resPurchases.json()) as PurchasesAggregation) : null;
         if (seq !== seriesOnlySeqRef.current) return;
-        if (jsonSales?.series?.length) {
+        if (jsonSales != null && resSales.ok) {
           setSalesData((prev) => (prev ? { ...prev, series: jsonSales.series ?? [] } : prev));
         }
-        if (jsonPurchases?.series?.length) {
+        if (jsonPurchases != null && resPurchases.ok) {
           setPurchasesData((prev) => (prev ? { ...prev, series: jsonPurchases.series ?? [] } : prev));
         }
       } catch {

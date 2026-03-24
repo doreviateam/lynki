@@ -46,6 +46,11 @@ interface CardChartSectionProps {
   interpretationOverride?: InterpretationOverride;
   /** SPEC FLUX NET v1.1 : masquer le sélecteur barre/courbe/camembert (type piloté par granularité) */
   hideChartTypeSelector?: boolean;
+  /**
+   * Bloc toujours déplié, sans concurrence `ChartExpandedContext` (ex. carte Business : graphique CA visible
+   * même si une autre carte monopolise la clé active du contexte partagé).
+   */
+  alwaysOpen?: boolean;
   children: React.ReactNode;
 }
 
@@ -131,6 +136,7 @@ export function CardChartSection({
   whyContent,
   interpretationOverride,
   hideChartTypeSelector = false,
+  alwaysOpen = false,
   children,
 }: CardChartSectionProps) {
   const [relativeTo100, setRelativeTo100] = useState(false);
@@ -139,6 +145,7 @@ export function CardChartSection({
   const chartCtx = useChartExpanded();
 
   useEffect(() => {
+    if (alwaysOpen) return;
     if (!chartCtx) {
       try {
         if (sessionStorage.getItem(storageKey) === "true") setLocalExpanded(true);
@@ -146,10 +153,11 @@ export function CardChartSection({
         /* ignore */
       }
     }
-  }, [chartCtx, storageKey]);
+  }, [alwaysOpen, chartCtx, storageKey]);
 
-  const expanded = chartCtx ? chartCtx.activeKey === storageKey : localExpanded;
+  const expanded = alwaysOpen ? true : chartCtx ? chartCtx.activeKey === storageKey : localExpanded;
   const toggleExpanded = useCallback(() => {
+    if (alwaysOpen) return;
     if (chartCtx) {
       chartCtx.setActiveKey(expanded ? null : storageKey);
     } else {
@@ -163,32 +171,36 @@ export function CardChartSection({
         return next;
       });
     }
-  }, [chartCtx, expanded, storageKey]);
+  }, [alwaysOpen, chartCtx, expanded, storageKey]);
 
   const showStateContent = state && (state === "empty" || state === "coming_soon" || state === "error" || state === "loading");
 
   return (
     <div className="mt-4 pt-4 border-t border-[var(--border)]">
-      <button
-        type="button"
-        onClick={toggleExpanded}
-        className="flex w-full items-center justify-between gap-2 rounded py-1 -mx-1 px-1 text-left hover:bg-[var(--muted-soft)] transition-colors"
-        aria-expanded={expanded}
-      >
-        <span className="text-sm font-semibold text-[var(--text-secondary)] flex items-center gap-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            className={`h-4 w-4 text-[var(--text-secondary)] transition-transform ${expanded ? "rotate-90" : ""}`}
-            aria-hidden
-          >
-            <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.06l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-          </svg>
-          {sectionTitle}
-        </span>
-        <span className="text-xs text-[var(--text-secondary)]">{expanded ? "Réduire" : "Afficher"}</span>
-      </button>
+      {alwaysOpen ? (
+        <h3 className="mb-2 text-sm font-semibold text-[var(--text-secondary)]">{sectionTitle}</h3>
+      ) : (
+        <button
+          type="button"
+          onClick={toggleExpanded}
+          className="flex w-full items-center justify-between gap-2 rounded py-1 -mx-1 px-1 text-left hover:bg-[var(--muted-soft)] transition-colors"
+          aria-expanded={expanded}
+        >
+          <span className="text-sm font-semibold text-[var(--text-secondary)] flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className={`h-4 w-4 text-[var(--text-secondary)] transition-transform ${expanded ? "rotate-90" : ""}`}
+              aria-hidden
+            >
+              <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.06l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+            </svg>
+            {sectionTitle}
+          </span>
+          <span className="text-xs text-[var(--text-secondary)]">{expanded ? "Réduire" : "Afficher"}</span>
+        </button>
+      )}
       {expanded && (
         <>
           {showStateContent ? (

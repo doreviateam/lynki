@@ -72,8 +72,8 @@ function ArByPartnerSection({
   currency: string;
   encoursHref?: string | null;
 }) {
-  const [expandedEncours, setExpandedEncours] = useState(false);
-  const [expandedRisque, setExpandedRisque] = useState(false);
+  const [expandedEncours, setExpandedEncours] = useState(true);
+  const [expandedRisque, setExpandedRisque] = useState(true);
   const { totals, partners, meta } = arByPartner;
   const openAmount = totals?.open_amount ?? 0;
   const overdueAmount = totals?.overdue_amount ?? 0;
@@ -213,7 +213,7 @@ function ArByPartnerSection({
           onClick={() => setExpandedEncours(!expandedEncours)}
           className="flex w-full items-center justify-between text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors"
         >
-          <span>Encours client — exposition par partenaire</span>
+          <span>Encours par partenaire — montants et délais</span>
           <span className="tabular-nums text-[var(--accent)]">
             {formatAmount(openAmount, currency)}
             {encoursPartners.length > 0 && ` · ${encoursPartners.length} partenaire${encoursPartners.length > 1 ? "s" : ""}`}
@@ -263,7 +263,7 @@ function ArByPartnerSection({
           onClick={() => setExpandedRisque(!expandedRisque)}
           className="flex w-full items-center justify-between text-sm font-semibold text-[var(--text)] hover:text-[var(--accent)] transition-colors"
         >
-          <span>Clients à risque (retard)</span>
+          <span>Clients en retard — tableau de paiement</span>
           <span className="tabular-nums text-amber-400 font-medium">
             {formatAmount(overdueAmount, currency)}
             {risquePartners.length > 0 && ` · ${risquePartners.length} partenaire${risquePartners.length > 1 ? "s" : ""}`}
@@ -358,7 +358,7 @@ function ParetoTableSection({
   arByPartner?: ArByPartnerResponse | null;
   currency: string;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [activeTab, setActiveTab] = useState<ParetoTab>("A");
   const items = salesByPartner.items ?? [];
   const { A, B, C } = partitionByABC(items);
@@ -396,7 +396,7 @@ function ParetoTableSection({
         onClick={() => setExpanded(!expanded)}
         className="flex w-full items-center justify-between text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors"
       >
-        <span>Concentration — CA facturé par client</span>
+        <span>Concentration — CA par client et délai moyen de paiement</span>
         <span className="tabular-nums text-[var(--accent)]">
           {items.length} partenaire{items.length > 1 ? "s" : ""}
           {paretoInsight && ` · ${paretoInsight}`}
@@ -727,7 +727,8 @@ export function BusinessCard({
 
       <CardChartSection
         storageKey="linky-business-chart-expanded"
-        sectionTitle="Évolution"
+        sectionTitle="Évolution du CA et des achats (HT)"
+        alwaysOpen
         interpretationOverride={{
           primary: "Volumes ventes et achats HT sur la période (pilotage).",
           secondary:
