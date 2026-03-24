@@ -65,12 +65,19 @@ function TreasurySvgChart({ series }: TreasurySvgChartProps) {
     <svg viewBox={`0 0 ${w} ${h}`} className="h-48 w-full" preserveAspectRatio="none">
       <defs>
         <linearGradient id="tGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#059669" stopOpacity="0.3" />
-          <stop offset="100%" stopColor="#059669" stopOpacity="0.02" />
+          <stop offset="0%" stopColor="var(--confidence-fiable)" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="var(--confidence-fiable)" stopOpacity="0.02" />
         </linearGradient>
       </defs>
       <path d={area} fill="url(#tGrad)" />
-      <path d={path} fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d={path}
+        fill="none"
+        stroke="var(--confidence-fiable)"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

@@ -4,8 +4,9 @@
 
 :root {
   /* Design System Linky — Cockpit dark (SPEC_LINKY_VISUEL_FYGR v1.3) */
-  --radius-xl: 0.75rem;
-  --radius-card: 0.75rem; /* 12px — aligné wireframe */
+  /* Canon pilotage V5 : `xl` = 0.5rem (8px) — voir stitch pilotage_desktop_v_r_na_canon_v5 */
+  --radius-xl: 0.5rem;
+  --radius-card: 0.5rem;
 
   /* Palette dark — tokens cockpit */
   --bg:              #0F1B2D;
@@ -18,7 +19,7 @@
   --hover:           #1F3653;
 
   /* Confiance / intégrité — canon v5 */
-  --confidence-fiable:    #059669;
+  --confidence-fiable:    #10B981; /* handoff DOSSIER_HANDOFF_DESIGN_LYNKI_V1 §8 */
   --confidence-partielle: #F59E0B;
   --confidence-proxy:     #3B82F6;
   --confidence-estimee:   #8B5CF6;

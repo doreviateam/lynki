@@ -71,9 +71,17 @@
 
 ## Ordre d’exécution *(figé — premier passage)*
 
+*Numérotation et **priorité documentaire** inchangées* : elles servent la **traçabilité** (typo = le plus structurant côté « story » produit).
+
 1. **V1.5-1 — Typographie** : impact global immédiat ; conditionne la « voix » visuelle de toute l’app.
 2. **V1.5-2 — Rayons / tokens carte** : visible sur cockpit, détail, synthèse ; faible ambiguïté une fois l’échelle choisie.
 3. **V1.5-3 — Couleur Fiable (confiance)** : alignement sémantique handoff ↔ prod ; vérifier les composants qui consomment `--confidence-fiable` / `linky-confidence-fiable`.
+
+### Ordre d’implémentation recommandé *(code — même lot)*
+
+* **En pratique** : traiter **V1.5-2 + V1.5-3 ensemble** en premier (tokens CSS, faible rayonnement, peu de surprises), puis **V1.5-1** (Inter-first : fort rayonnement — densité, troncatures, rythme).  
+* **Passe visuelle** après 2+3 : cockpit + une page détail + `/synthese` ; recette plus attentive après 1 (titres, cards, tableaux, mobile/desktop).  
+* **Clair / sombre** : reste **hors** de ce lot (ligne **Interprétatif** inventaire).
 
 ---
 
@@ -82,8 +90,8 @@
 | ID | Titre | Zone | Statut |
 |----|-------|------|--------|
 | **V1.5-1** | Typographie : Inter-first vs IBM Plex prioritaire | Transverse | `À faire` |
-| **V1.5-2** | Rayons cartes / chrome : échelle canon V5 vs tokens Lynki | Transverse | `À faire` |
-| **V1.5-3** | Confiance « Fiable » : `#10B981` handoff vs `#059669` prod | Transverse | `À faire` |
+| **V1.5-2** | Rayons cartes / chrome : échelle canon V5 vs tokens Lynki | Transverse | `En cours` |
+| **V1.5-3** | Confiance « Fiable » : `#10B981` handoff vs `#059669` prod | Transverse | `En cours` |
 
 ---
 
@@ -154,6 +162,7 @@
 | 24 mars 2026 | **Arbitrage sans créa en direct** : créa figée comme référence muette ; catégories **Certain / Interprétatif** ; premier lot conservateur ; règle noire sur blanc objectivable + faible ambiguïté. |
 | 24 mars 2026 | **Critère d’entrée inventaire** : montrer + description factuelle + critère de fermeture pour toute ligne **Certain** ; ≤ 3 lignes puis V1.5-1…3 + premier lot. |
 | 24 mars 2026 | **Inventaire initial** : 3 écarts **Certain** (typo, rayons, vert Fiable) + 1 **Interprétatif** (clair/sombre) ; ordre V1.5-1→3 ; premier lot = ces 3 tickets ; détail rédigé. |
+| 24 mars 2026 | **Ordre code** documenté : implémentation **2+3 puis 1** ; tokens `--radius-card` / `--radius-xl` → `0.5rem` (canon V5 `xl`) ; `--confidence-fiable` → `#10B981` ; trésorerie SVG sur le token. **En cours** jusqu’à captures DoD + non-régression visuelle. |
 
 ---
 
