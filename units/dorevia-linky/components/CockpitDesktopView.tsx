@@ -38,9 +38,9 @@ function conf(raw: { valueKind?: string } | null | undefined): ConfidenceLevel {
   }
 }
 
-const SECONDARY: { id: CardId; icon: string; label: string; key: string }[] = [
+const SECONDARY: { id: CardId; icon: string; label: string; key: string; href?: string }[] = [
   { id: "working_capital", icon: "account_balance_wallet", label: "BFR", key: "working_capital" },
-  { id: "encours", icon: "pending_actions", label: "Encours", key: "encours" },
+  { id: "encours", icon: "pending_actions", label: "Encours", key: "encours", href: "/encours" },
   { id: "taxes", icon: "receipt_long", label: "Taxes", key: "taxes" },
   { id: "ebitda", icon: "trending_up", label: "EBE", key: "ebitda" },
   { id: "credit_notes", icon: "note_alt", label: "Notes crédit", key: "credit_notes" },
@@ -107,9 +107,8 @@ export function CockpitDesktopView({
           </Link>
 
           {/* Business — 2×2 fond slate-900 */}
-          <button
-            type="button"
-            onClick={() => onSelectCard?.("business")}
+          <Link
+            href="/business"
             className="col-span-2 row-span-2 flex flex-col justify-between rounded-xl bg-slate-900 p-5 text-left shadow-sm transition-all hover:shadow-md"
           >
             <div>
@@ -121,12 +120,11 @@ export function CockpitDesktopView({
                 CERTIFIÉ
               </span>
             </div>
-          </button>
+          </Link>
 
           {/* Flux Net — 2×2 */}
-          <button
-            type="button"
-            onClick={() => onSelectCard?.("cash")}
+          <Link
+            href="/flux-net"
             className="col-span-2 row-span-2 flex flex-col justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md"
           >
             <div>
@@ -138,7 +136,7 @@ export function CockpitDesktopView({
               </div>
               <div className="mt-3 text-2xl font-bold tabular-nums text-[var(--text)]">{fmt(cash)}</div>
             </div>
-          </button>
+          </Link>
 
           {/* Secondary tiles — 1×1 each */}
           {SECONDARY.map((tile) => {
@@ -150,7 +148,8 @@ export function CockpitDesktopView({
                 label={tile.label}
                 value={fmt(metric)}
                 confidence={conf(metric)}
-                onClick={() => onSelectCard?.(tile.id)}
+                href={tile.href}
+                onClick={tile.href ? undefined : () => onSelectCard?.(tile.id)}
               />
             );
           })}

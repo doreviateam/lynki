@@ -22,6 +22,7 @@
  */
 
 import type { ReactNode } from "react";
+import Link from "next/link";
 import type { CardId } from "@/app/types/linky-tiles";
 
 /** Ordre de navigation entre cards (aligné sur l’ordre d’affichage dans le cockpit). */
@@ -253,15 +254,16 @@ export interface CompactTileProps {
   trend?: string;
   trendPositive?: boolean;
   onClick?: () => void;
+  /** Si fourni, la tuile est rendue comme un <Link> vers cette route. */
+  href?: string;
 }
 
-export function CompactTile({ icon, label, value, confidence, trend, trendPositive, onClick }: CompactTileProps) {
+const COMPACT_TILE_CLASS =
+  "flex flex-col gap-2 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--card)] p-4 text-left shadow-sm transition-all hover:border-emerald-600/40 hover:shadow-md active:scale-[0.98]";
+
+function CompactTileInner({ icon, label, value, confidence, trend, trendPositive }: Omit<CompactTileProps, "onClick" | "href">) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex flex-col gap-2 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--card)] p-4 text-left shadow-sm transition-all hover:border-emerald-600/40 hover:shadow-md active:scale-[0.98]"
-    >
+    <>
       <div className="flex items-center gap-2">
         <span
           className="material-symbols-outlined text-[var(--muted)]"
@@ -280,6 +282,21 @@ export function CompactTile({ icon, label, value, confidence, trend, trendPositi
           </span>
         )}
       </div>
+    </>
+  );
+}
+
+export function CompactTile({ icon, label, value, confidence, trend, trendPositive, onClick, href }: CompactTileProps) {
+  if (href) {
+    return (
+      <Link href={href} className={COMPACT_TILE_CLASS}>
+        <CompactTileInner icon={icon} label={label} value={value} confidence={confidence} trend={trend} trendPositive={trendPositive} />
+      </Link>
+    );
+  }
+  return (
+    <button type="button" onClick={onClick} className={COMPACT_TILE_CLASS}>
+      <CompactTileInner icon={icon} label={label} value={value} confidence={confidence} trend={trend} trendPositive={trendPositive} />
     </button>
   );
 }

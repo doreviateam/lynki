@@ -1,11 +1,13 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { ConfidenceScore } from "@/components/ConfidenceScore";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { computeConfidenceScore } from "@/app/lib/confidence";
 import { adaptMetricsToAlerts, type AlertSeverity, type AlertItem } from "@/app/lib/alerts-adapter";
+
+type FilterLevel = "all" | AlertSeverity;
 
 const SEVERITY_CONFIG: Record<AlertSeverity, { label: string; icon: string; borderColor: string; badgeClass: string }> = {
   urgent: {
@@ -76,10 +78,43 @@ function AlertCard({ alert }: { alert: AlertItem }) {
   );
 }
 
+const FILTER_OPTIONS: {
+  id: FilterLevel;
+  label: string;
+  icon: string;
+  activeClass: string;
+}[] = [
+  {
+    id: "all",
+    label: "Toutes",
+    icon: "filter_list",
+    activeClass: "bg-[var(--text)] text-[var(--bg)] border-[var(--text)]",
+  },
+  {
+    id: "urgent",
+    label: "Urgence",
+    icon: "error",
+    activeClass: "bg-red-500/20 text-red-400 border-red-500/50",
+  },
+  {
+    id: "vigilance",
+    label: "Vigilance",
+    icon: "warning",
+    activeClass: "bg-amber-500/20 text-amber-400 border-amber-500/50",
+  },
+  {
+    id: "suivi",
+    label: "Suivi",
+    icon: "info",
+    activeClass: "bg-slate-500/20 text-slate-300 border-slate-500/50",
+  },
+];
+
 function AlertsContent() {
   const { dashboardMetrics, metricsLoading } = useDashboardData();
   const confidenceScore = computeConfidenceScore(dashboardMetrics);
   const alerts = adaptMetricsToAlerts(dashboardMetrics);
+  const [activeFilter, setActiveFilter] = useState<FilterLevel>("all");
 
   const alertsBySeverity = {
     urgent: alerts.filter((a) => a.severity === "urgent"),
@@ -87,9 +122,19 @@ function AlertsContent() {
     suivi: alerts.filter((a) => a.severity === "suivi"),
   };
 
+  const counters: Record<FilterLevel, number> = {
+    all: alerts.length,
+    urgent: alertsBySeverity.urgent.length,
+    vigilance: alertsBySeverity.vigilance.length,
+    suivi: alertsBySeverity.suivi.length,
+  };
+
+  const filteredAlerts: AlertItem[] =
+    activeFilter === "all" ? alerts : alerts.filter((a) => a.severity === activeFilter);
+
   return (
     <main className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col px-4 pb-24 pt-6">
-      <header className="mb-6 flex items-center justify-between">
+      <header className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-700 text-sm font-bold text-white md:hidden">
             M
@@ -102,6 +147,36 @@ function AlertsContent() {
         <ConfidenceScore score={confidenceScore} compact />
       </header>
 
+      {/* Filtre par niveau */}
+      {!metricsLoading && alerts.length > 0 && (
+        <div className="mb-6 flex flex-wrap gap-2" role="group" aria-label="Filtrer par niveau d'alerte">
+          {FILTER_OPTIONS.map((opt) => {
+            const isActive = activeFilter === opt.id;
+            const count = counters[opt.id];
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setActiveFilter(opt.id)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-all ${
+                  isActive
+                    ? opt.activeClass
+                    : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--text-secondary)]"
+                }`}
+              >
+                <Icon name={opt.icon} size={12} filled={isActive} />
+                {opt.label}
+                {count > 0 && (
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] tabular-nums leading-none ${isActive ? "bg-white/20" : "bg-[var(--border)]"}`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {metricsLoading ? (
         <div className="flex flex-1 items-center justify-center py-20">
           <div className="flex items-center gap-2 text-[var(--muted)]">
@@ -110,6 +185,7 @@ function AlertsContent() {
           </div>
         </div>
       ) : alerts.length === 0 ? (
+        /* État vide global — aucune alerte toutes catégories */
         <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
           <Icon name="check_circle" size={48} className="text-emerald-500" />
           <p className="text-lg font-medium text-[var(--text)]">Aucune alerte majeure</p>
@@ -117,7 +193,27 @@ function AlertsContent() {
             Les signaux apparaîtront ici lorsque des anomalies seront détectées dans vos données.
           </p>
         </div>
-      ) : (
+      ) : filteredAlerts.length === 0 ? (
+        /* État vide par filtre actif */
+        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[var(--border)] py-16 text-center">
+          <Icon
+            name={FILTER_OPTIONS.find((o) => o.id === activeFilter)?.icon ?? "filter_list"}
+            size={32}
+            className="text-[var(--muted)]"
+          />
+          <p className="text-sm font-medium text-[var(--text-secondary)]">
+            Aucune alerte dans cette catégorie.
+          </p>
+          <button
+            type="button"
+            onClick={() => setActiveFilter("all")}
+            className="mt-1 text-xs text-[var(--muted)] underline-offset-2 hover:text-[var(--text)] hover:underline"
+          >
+            Voir toutes les alertes
+          </button>
+        </div>
+      ) : activeFilter === "all" ? (
+        /* Vue globale — sections par niveau */
         <div className="space-y-8">
           {alertsBySeverity.urgent.length > 0 && (
             <section>
@@ -154,6 +250,11 @@ function AlertsContent() {
               </div>
             </section>
           )}
+        </div>
+      ) : (
+        /* Vue filtrée — liste plate pour le niveau sélectionné */
+        <div className="space-y-4">
+          {filteredAlerts.map((a) => <AlertCard key={a.id} alert={a} />)}
         </div>
       )}
     </main>
