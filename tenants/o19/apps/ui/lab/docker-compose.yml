@@ -8,7 +8,7 @@ name: dorevia_ui_lab_o19
 
 services:
   linky:
-    image: dorevia/linky:lynki-v1.5-20260325-a2127af2
+    image: dorevia/linky:lynki-v1.5-20260325-9b8bb4df
     container_name: linky_lab_o19
     restart: unless-stopped
     environment:
