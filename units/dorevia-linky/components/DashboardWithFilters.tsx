@@ -526,9 +526,19 @@ function DashboardWithFiltersContent({
     <TenantLoadingGate>
     <TenantErrorView>
     <div key={scopeTenantId} className="flex min-h-screen flex-col">
-      {/* Header : fond opaque (aligné footer), bordure basse ; masqué après inactivité */}
+      {/* Réserve d’espace pour le header fixe (hauteur max alignée sur le bandeau ReportHeader) */}
       <div
-        className={`sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg-secondary)] transition-[transform,max-height] duration-300 ease-out motion-reduce:duration-0 ${chromeVisible ? "overflow-visible" : "overflow-hidden"}`}
+        aria-hidden
+        className="shrink-0 transition-[height,max-height] duration-300 ease-out motion-reduce:duration-0"
+        style={{
+          height: chromeVisible ? 140 : 0,
+          maxHeight: chromeVisible ? 140 : 0,
+          overflow: "hidden",
+        }}
+      />
+      {/* Header : fixe sous la sidebar desktop ; masqué après inactivité (translate) */}
+      <div
+        className={`fixed top-0 left-0 right-0 z-40 border-b border-[var(--border)] bg-[var(--bg-secondary)] transition-[transform,max-height] duration-300 ease-out motion-reduce:duration-0 md:left-64 ${chromeVisible ? "overflow-visible" : "overflow-hidden"}`}
         style={{
           transform: chromeVisible ? "translateY(0)" : "translateY(-100%)",
           maxHeight: chromeVisible ? "140px" : "0",

@@ -267,7 +267,7 @@ export function ReportHeader({
 
   return (
     <header
-      className={`sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg-secondary)]/95 backdrop-blur-sm shadow-sm ${chromeCompact ? "max-h-[72px]" : "max-h-[140px]"}`}
+      className={`relative w-full overflow-hidden shadow-sm ${chromeCompact ? "max-h-[72px]" : "max-h-[140px]"}`}
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       {headerContent}
