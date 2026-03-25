@@ -201,7 +201,7 @@ Le ticket traite uniquement la lisibilité sémantique et l’alignement des lib
 
 * **Constat :** les statuts API de la carte Trésorerie doivent se traduire en **doctrine d’état** unique et lisible ([spec §5.4](./SPEC_CARTES_MAITRESSES_LINKY.md)), sans mélanger fraîcheur et qualité.
 * **Décision / sortie attendue :** mapping centralisé **Fiable** / **Partiel** / **En attente** / **Indisponible** selon `treasury.status` — voir [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **§5.3** ; **contour fin** et absence de vert trompeur en **Partiel** — **§5.3.1** / doctrine **§5.4.7**.
-* **Statut :** Fait — `treasuryCockpitPrimaryBadge` + `cockpit-master-card-outline` ; déploiement lab **`LINKY_UI_BUILD_REF=1fd8df08`** ; **R60-004** **OK** ; détail [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **§5.3** / **§13**.
+* **Statut :** Fait — `treasuryCockpitPrimaryBadge` + `cockpit-master-card-outline` ; déploiement lab **`LINKY_UI_BUILD_REF=d013f91d`** ; **R60-004** **OK** ; détail [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **§5.3** / **§13**.
 
 #### W60-105 — Enrichir légèrement la matière visuelle sans nuire au chiffre
 
