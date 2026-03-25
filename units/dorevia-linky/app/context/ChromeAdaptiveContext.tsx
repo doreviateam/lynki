@@ -60,7 +60,8 @@ export function ChromeAdaptiveProvider({ children }: { children: React.ReactNode
   const interactionMode = useInteractionMode();
   // État initial toujours expanded (spec v1.1.1 § 7decies) ; pas de transition avant montage client
   const [chromeState, setChromeState] = useState<ChromeState>("expanded");
-  const [chromePinned, setChromePinnedState] = useState(false);
+  /** Par défaut épinglé : pas de masquage auto (lab / usage produit) ; l’utilisateur peut désactiver via le menu. */
+  const [chromePinned, setChromePinnedState] = useState(true);
   const mountedRef = useRef(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cooldownUntilRef = useRef(0);
@@ -84,14 +85,32 @@ export function ChromeAdaptiveProvider({ children }: { children: React.ReactNode
     }
   }, []);
 
+  const scheduleHide = useCallback(() => {
+    if (frozenRef.current || chromePinnedRef.current || reducedMotionRef.current) return;
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => {
+      hideTimerRef.current = null;
+      if (frozenRef.current || chromePinnedRef.current || reducedMotionRef.current) return;
+      const mode = interactionModeRef.current;
+      setChromeState((prev) => {
+        if (prev === "frozen") return prev;
+        return mode === "desktop" ? "hidden" : "compact";
+      });
+      cooldownUntilRef.current = Date.now() + CHROME_TRANSITION_COOLDOWN_MS;
+    }, CHROME_HIDE_AFTER_MS);
+  }, []);
+
   const setChromePinned = useCallback((pinned: boolean) => {
     recordChromePinnedToggle(pinned);
+    chromePinnedRef.current = pinned;
     setChromePinnedState(pinned);
     if (pinned && hideTimerRef.current) {
       clearTimeout(hideTimerRef.current);
       hideTimerRef.current = null;
+    } else if (!pinned) {
+      scheduleHide();
     }
-  }, []);
+  }, [scheduleHide]);
 
   const revealChrome = useCallback((cause?: ChromeRevealCause) => {
     const now = Date.now();
@@ -107,21 +126,6 @@ export function ChromeAdaptiveProvider({ children }: { children: React.ReactNode
 
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     if (frozenRef.current || chromePinnedRef.current || reducedMotionRef.current) return;
-    hideTimerRef.current = setTimeout(() => {
-      hideTimerRef.current = null;
-      if (frozenRef.current || chromePinnedRef.current || reducedMotionRef.current) return;
-      const mode = interactionModeRef.current;
-      setChromeState((prev) => {
-        if (prev === "frozen") return prev;
-        return mode === "desktop" ? "hidden" : "compact";
-      });
-      cooldownUntilRef.current = Date.now() + CHROME_TRANSITION_COOLDOWN_MS;
-    }, CHROME_HIDE_AFTER_MS);
-  }, []);
-
-  const scheduleHide = useCallback(() => {
-    if (frozenRef.current || chromePinnedRef.current || reducedMotionRef.current) return;
-    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     hideTimerRef.current = setTimeout(() => {
       hideTimerRef.current = null;
       if (frozenRef.current || chromePinnedRef.current || reducedMotionRef.current) return;
