@@ -11,7 +11,15 @@ import type { CardId } from "@/app/types/linky-tiles";
 import { computeConfidenceScore } from "@/app/lib/confidence";
 import { navHrefWithTenant } from "@/components/layout/navTenantHref";
 import { UI_STATE_LABELS } from "@/app/lib/cockpit/ui-state-labels";
-import { buildTreasuryCockpitTileModel } from "@/app/lib/cockpit/treasury-cockpit-tile";
+import {
+  buildTreasuryCockpitTileModel,
+  treasuryCockpitPrimaryBadge,
+} from "@/app/lib/cockpit/treasury-cockpit-tile";
+import {
+  metricConfidenceOutlineClass,
+  treasuryMasterCardOutlineClass,
+  treasuryWalletIconSurfaceClass,
+} from "@/app/lib/cockpit/cockpit-master-card-outline";
 
 interface CockpitDesktopViewProps {
   tenantId: string;
@@ -79,18 +87,10 @@ export function CockpitDesktopView({
   const h = (p: string) => navHrefWithTenant(p, tenantId);
   const periodLine = formatCockpitPeriodRange(period);
 
-  const treasuryBadge =
-    treasuryTile.treasuryStatus === "ok"
-      ? { label: UI_STATE_LABELS.sync_ok, wrap: "border-[color-mix(in_srgb,var(--confidence-fiable)_35%,var(--border))] bg-[color-mix(in_srgb,var(--confidence-fiable)_10%,var(--card))] text-[var(--confidence-fiable)]" }
-      : treasuryTile.treasuryStatus === "watch"
-        ? {
-            label: UI_STATE_LABELS.to_confirm,
-            wrap: "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/35 dark:bg-amber-500/15 dark:text-amber-400",
-          }
-        : {
-            label: UI_STATE_LABELS.unavailable,
-            wrap: "border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)]",
-          };
+  const treasuryPrimaryBadge = treasuryCockpitPrimaryBadge(treasuryTile.treasuryStatus);
+  const treasuryOutline = treasuryMasterCardOutlineClass(treasuryTile.treasuryStatus);
+  const businessOutline = metricConfidenceOutlineClass(conf(business));
+  const cashOutline = metricConfidenceOutlineClass(conf(cash));
 
   if (metricsLoading && !metrics) {
     return (
@@ -124,25 +124,34 @@ export function CockpitDesktopView({
 
         {/* Bento — grille responsive comme `pilotage_desktop_v_r_na_canon_v5` (1 / 4 / 6 colonnes) */}
         <div className="grid auto-rows-[160px] grid-cols-1 gap-4 md:grid-cols-4 lg:grid-cols-6">
-          {/* Trésorerie — bandeau emerald, icône wallet, sparkline, badge SYNCHRO */}
+          {/* Trésorerie — contour fin = fiabilité (doctrine §5.4) ; pas de liseré haut vert si Partiel */}
           <Link
             href={h("/tresorerie")}
-            className="group relative col-span-1 row-span-2 flex flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md md:col-span-2 lg:col-span-2"
+            className={`group relative col-span-1 row-span-2 flex h-full min-h-0 flex-col overflow-hidden rounded-xl bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md md:col-span-2 lg:col-span-2 ${treasuryOutline}`}
           >
-            <div className="absolute left-0 top-0 h-1 w-full bg-[var(--confidence-fiable)]" aria-hidden />
-            <div className="mb-3 flex items-start justify-between gap-2 pr-1">
-              <div className="min-w-0">
+            {/* En-tête : montant + colonne droite (badge qualité dans le flux — évite chevauchement avec « Volume à rapprocher ») */}
+            <div className="flex items-start justify-between gap-3 pr-0.5">
+              <div className="min-w-0 flex-1">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Trésorerie</span>
                 <div className="mt-2 text-3xl font-black tabular-nums tracking-tight text-[var(--text)]">{fmt(treasury)}</div>
                 <p className="mt-0.5 text-[11px] font-medium text-[var(--text-secondary)]">Solde validé (Vault)</p>
               </div>
-              <span className="shrink-0 rounded-lg bg-[color-mix(in_srgb,var(--confidence-fiable)_12%,var(--card))] p-2 text-[var(--confidence-fiable)]">
-                <Icon name="account_balance_wallet" size={22} filled />
-              </span>
+              <div className="flex shrink-0 flex-col items-end gap-2">
+                <span
+                  className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-bold ${treasuryPrimaryBadge.desktopWrap}`}
+                  title={treasury?.status_reason ?? undefined}
+                >
+                  <Icon name={treasuryPrimaryBadge.iconName} size={12} />
+                  {treasuryPrimaryBadge.label}
+                </span>
+                <span className={`rounded-lg p-2 ${treasuryWalletIconSurfaceClass(treasuryTile.treasuryStatus)}`}>
+                  <Icon name="account_balance_wallet" size={22} filled />
+                </span>
+              </div>
             </div>
 
-            {/* W60-101 — zone centrale lisible (données réelles, pas de barres décoratives) */}
-            <div className="mt-auto flex min-h-0 flex-col gap-2.5 pr-1">
+            {/* Bloc métier : rempli le bas de carte en répartissant le groupe (flex-1 + justify-center) */}
+            <div className="mt-3 flex min-h-0 flex-1 flex-col justify-center gap-3 pr-0.5">
               <div title="Part des flux couverts par preuve bancaire sur la période affichée">
                 <div className="flex items-baseline justify-between gap-2 text-[10px] font-bold uppercase tracking-wide text-[var(--text-secondary)]">
                   <span>Couverture probante</span>
@@ -159,12 +168,16 @@ export function CockpitDesktopView({
                   aria-label="Couverture probante"
                 >
                   <div
-                    className="h-full rounded-full bg-[var(--confidence-fiable)] transition-[width] duration-300"
+                    className={`h-full rounded-full transition-[width] duration-300 ${
+                      treasuryTile.treasuryStatus === "ok"
+                        ? "bg-[var(--confidence-fiable)]"
+                        : "bg-slate-400 dark:bg-slate-500"
+                    }`}
                     style={{ width: treasuryTile.coveragePct != null ? `${treasuryTile.coveragePct}%` : "0%" }}
                   />
                 </div>
               </div>
-              <div className="flex items-baseline justify-between gap-2 text-xs">
+              <div className="flex items-baseline justify-between gap-2 border-t border-[var(--border)] pt-3 text-xs">
                 <span className="text-[var(--text-secondary)]">Écart ERP − Vault</span>
                 <span
                   className="shrink-0 font-semibold tabular-nums text-[var(--text)]"
@@ -175,28 +188,17 @@ export function CockpitDesktopView({
               </div>
               <div className="flex items-baseline justify-between gap-2 text-xs">
                 <span className="text-[var(--text-secondary)]">Volume à rapprocher</span>
-                <span className="shrink-0 font-semibold tabular-nums text-[var(--text)]">
+                <span className="shrink-0 text-right font-semibold tabular-nums text-[var(--text)]">
                   {treasuryTile.rapproFormatted ?? "—"}
                 </span>
               </div>
-            </div>
-
-            <div
-              className={`pointer-events-none absolute bottom-4 right-4 flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-bold ${treasuryBadge.wrap}`}
-              title={treasury?.status_reason ?? undefined}
-            >
-              <Icon
-                name={treasuryTile.treasuryStatus === "ok" ? "check_circle" : treasuryTile.treasuryStatus === "watch" ? "warning" : "info"}
-                size={12}
-              />
-              {treasuryBadge.label}
             </div>
           </Link>
 
           {/* Business — même enveloppe que les autres tuiles en clair ; accent sombre réservé au thème dark */}
           <Link
             href={h("/business")}
-            className="relative col-span-1 row-span-2 flex flex-col justify-between overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:shadow-xl dark:hover:shadow-2xl md:col-span-2 lg:col-span-2"
+            className={`relative col-span-1 row-span-2 flex flex-col justify-between overflow-hidden rounded-xl bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md dark:bg-slate-900 dark:shadow-xl dark:hover:shadow-2xl md:col-span-2 lg:col-span-2 ${businessOutline}`}
           >
             <div
               className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-[color-mix(in_srgb,var(--confidence-fiable)_18%,transparent)] blur-3xl dark:bg-emerald-900/20"
@@ -225,7 +227,7 @@ export function CockpitDesktopView({
           {/* Flux Net — badge PROXY en ambre (canon Stitch, pas bleu) */}
           <Link
             href={h("/flux-net")}
-            className="col-span-1 row-span-2 flex flex-col justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md md:col-span-2 lg:col-span-2"
+            className={`col-span-1 row-span-2 flex flex-col justify-between rounded-xl bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md md:col-span-2 lg:col-span-2 ${cashOutline}`}
           >
             <div>
               <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
