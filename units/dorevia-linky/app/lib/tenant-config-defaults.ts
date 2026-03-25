@@ -21,7 +21,7 @@ export const defaultChromeConfig: TenantChromeConfig = {
   },
   behavior: {
     allowAutoHide: true,
-    defaultChromePinned: false,
+    defaultChromePinned: true,
   },
 };
 

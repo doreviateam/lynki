@@ -274,7 +274,8 @@ function DashboardWithFiltersContent({
       setSelectedCompanyId(null);
       setPeriod(getDefaultPeriod());
       chromeAdaptive?.revealChrome?.();
-      chromeAdaptive?.setChromePinned?.(config?.chrome?.behavior?.defaultChromePinned ?? false);
+      // true par défaut : sans quoi la spec « ?? false » forçait le masquage auto dès chargement tenant
+      chromeAdaptive?.setChromePinned?.(config?.chrome?.behavior?.defaultChromePinned ?? true);
     },
     [chromeAdaptive]
   );

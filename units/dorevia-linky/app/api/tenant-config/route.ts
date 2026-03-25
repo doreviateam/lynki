@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       },
       behavior: {
         allowAutoHide: true,
-        defaultChromePinned: false,
+        defaultChromePinned: true,
       },
     },
     workspace: {
