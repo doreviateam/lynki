@@ -1,7 +1,7 @@
 # Plan Web60 — Linky UI
 
 **Fichier canonique :** `PLAN_WEB60_LINKY_UI.md`
-**Version :** 1.1.19 — mars 2026  
+**Version :** 1.1.20 — mars 2026  
 **Référence créa figée :** `ZeDocs/web59/stitch_carole_61`
 **Espace de travail actif :** `ZeDocs/web60`
 **Périmètre prioritaire :** cockpit **Pilotage**
@@ -314,20 +314,20 @@ Le dossier `ZeDocs/web60` doit au minimum contenir les pièces suivantes :
 * `PLAN_WEB60_LINKY_UI.md` — cadrage général du lot ;
 * `DOCTRINE_ETATS_UI_LINKY.md` — norme d’états et de badges ;
 * `SPEC_CARTES_MAITRESSES_LINKY.md` — spécification des cartes Trésorerie / Business / Flux net ;
-* `BACKLOG_WEB60_LINKY.md` — suivi opérationnel (**v1.1.8**, items **W60-xxx**, priorités P0–P3, axes A–E) ;
-* `RECETTE_WEB60_LINKY.md` — protocole de validation Pilotage (**v1.1.15** : chrome, doctrine visible, T/B/F, second rang, **R60-001 … R60-010**, personas, sortie « montrable », CR).  
-* `EXECUTION_TICKETS_WEB60_LINKY.md` — fermeture par **passes** et tickets **T-W60-xxx** (miroir **W60-xxx**), **R60** ([recette §10](./RECETTE_WEB60_LINKY.md)), **lab public** / **UI hash**, régimes d’usage, DoD persona/viewport, **§13** journal / **§13.1** gabarit **T-W60-001**, **§4.2** clôture **W60-005**, **§5.3** / **§5.3.1** **W60-103**, **§14** PR trio **T-W60-001 → T-W60-003** — **v1.1.17**.
+* `BACKLOG_WEB60_LINKY.md` — suivi opérationnel (**v1.1.9**, items **W60-xxx**, priorités P0–P3, axes A–E) ;
+* `RECETTE_WEB60_LINKY.md` — protocole de validation Pilotage (**v1.1.16** : chrome, doctrine visible, T/B/F, second rang, **R60-001 … R60-010**, personas, sortie « montrable », CR).  
+* `EXECUTION_TICKETS_WEB60_LINKY.md` — fermeture par **passes** et tickets **T-W60-xxx** (miroir **W60-xxx**), **R60** ([recette §10](./RECETTE_WEB60_LINKY.md)), **lab public** / **UI hash**, régimes d’usage, DoD persona/viewport, **§13** journal / **§13.1** gabarit **T-W60-001**, **§4.2** clôture **W60-005**, **§5** Passe 2 P0 **W60-101–103** **Fait**, **§14** PR trio **T-W60-001 → T-W60-003** — **v1.1.18**.
 
 **Synthèse versions / statuts** (à aligner sur la [recette §2.2](./RECETTE_WEB60_LINKY.md) lors des publications) :
 
 | Pièce | Fichier | Version | Statut |
 |-------|---------|---------|--------|
-| Cadre | `PLAN_WEB60_LINKY_UI.md` | v1.1.19 | Cadrage publié |
+| Cadre | `PLAN_WEB60_LINKY_UI.md` | v1.1.20 | Cadrage publié |
 | Norme | `DOCTRINE_ETATS_UI_LINKY.md` | v1.1.2 | Doctrine publiée (**§5.4** / **§5.4.7** cartes principales) |
-| Spec | `SPEC_CARTES_MAITRESSES_LINKY.md` | v1.1.16 | Spécification publiée |
-| Arbitrages | `BACKLOG_WEB60_LINKY.md` | v1.1.8 | Backlog ouvert |
-| Validation | `RECETTE_WEB60_LINKY.md` | v1.1.15 | Protocole de validation publié |
-| Fermeture par blocs | `EXECUTION_TICKETS_WEB60_LINKY.md` | v1.1.17 | Guide d’exécution publié (5 passes + recette ; Passe 2 **§5.1**–**§5.3.1** ; lab public / **UI hash** ; §13 journal ; §4.2 **W60-005** ; §14 trame **T-W60-002**) |
+| Spec | `SPEC_CARTES_MAITRESSES_LINKY.md` | v1.1.17 | Spécification publiée |
+| Arbitrages | `BACKLOG_WEB60_LINKY.md` | v1.1.9 | Backlog ouvert |
+| Validation | `RECETTE_WEB60_LINKY.md` | v1.1.16 | Protocole de validation publié |
+| Fermeture par blocs | `EXECUTION_TICKETS_WEB60_LINKY.md` | v1.1.18 | Guide d’exécution publié (5 passes + recette ; Passe 2 P0 **W60-101–103** **Fait** ; **R60-004** ; lab public / **UI hash** ; §13 journal ; §4.2 **W60-005** ; §14 trame **T-W60-002**) |
 
 **Build, déploiement et recette — priorité lab :** l’environnement de référence pour valider les changements Web60 est [https://lab.linky.doreviateam.com/?tenant=laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026) (détails dans [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) et [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md)).
 
@@ -481,6 +481,7 @@ La formule de cap du lot Web60 est la suivante :
 | **1.1.17** | **EXECUTION v1.1.15**, recette **v1.1.13**, backlog **v1.1.6** ; **W60-101** / **W60-102** **En cours** ; tableau §8 aligné. |
 | **1.1.18** | **EXECUTION v1.1.16**, recette **v1.1.14**, backlog **v1.1.7**, spec **v1.1.15** ; **W60-103** ; tableau §8 aligné. |
 | **1.1.19** | **EXECUTION v1.1.17**, recette **v1.1.15**, backlog **v1.1.8**, spec **v1.1.16**, doctrine **v1.1.2** ; **§5.3.1** contour cockpit ; tableau §8 aligné. |
+| **1.1.20** | **EXECUTION v1.1.18**, recette **v1.1.16**, backlog **v1.1.9**, spec **v1.1.17** ; **W60-103** / **T-W60-103** **Fait** ; **R60-004** ; tableau §8 aligné. |
 
 ---
 

@@ -1,11 +1,11 @@
 # Exécution des tickets Web60 — Linky (Pilotage)
 
 **Fichier canonique :** `EXECUTION_TICKETS_WEB60_LINKY.md`  
-**Version :** 1.1.17 — mars 2026  
+**Version :** 1.1.18 — mars 2026  
 **Lot :** Web60  
 **Statut :** guide d’exécution publié  
 
-**Références :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.8** (vérité **W60-xxx**) · [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.19** · [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.2** · [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.16** · [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.15**  
+**Références :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.9** (vérité **W60-xxx**) · [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.20** · [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.2** · [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** · [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16**  
 
 **Code applicatif principal :** `units/dorevia-linky/`
 
@@ -169,12 +169,14 @@ Les contrôles **R60-001 … R60-010** sont définis dans la [recette §10](./RE
 |-------|--------------|---|-------------|-------------|
 | T-W60-101 | W60-101 | P0 | Densification Trésorerie (carte A) | Fait |
 | T-W60-102 | W60-102 | P0 | Remplacer « Synchro OK » comme lecture principale | Fait |
-| T-W60-103 | W60-103 | P0 | État principal de qualité cohérent | En cours |
+| T-W60-103 | W60-103 | P0 | État principal de qualité cohérent | Fait |
 | T-W60-104 | W60-104 | P1 | « Synchro OK » en secondaire (arbitrage) | À faire |
 | T-W60-105 | W60-105 | P1 | Matière visuelle sans nuire au chiffre | À faire |
 | T-W60-106 | W60-106 | P1 | Clic → détail stable | À faire |
 | T-W60-107 | W60-107 | P1 | États dégradés partiel / attente / indispo | À faire |
 | T-W60-108 | W60-108 | P1 | Lecture instantanée Max | À faire |
+
+**Statut (bloc P0 Trésorerie W60-101–103) :** **Fait** — **R60-004** **OK** en [recette §10](./RECETTE_WEB60_LINKY.md) ; la suite Passe 2 (**T-W60-104…108**) reste ouverte selon priorité backlog.
 
 ### 5.1 W60-101 — Densification Trésorerie maîtresse
 
@@ -185,8 +187,7 @@ Les contrôles **R60-001 … R60-010** sont définis dans la [recette §10](./RE
 #### 5.1.1 Avancement code *(≠ clôture lab)*
 
 * **Fichiers :** `app/lib/cockpit/treasury-cockpit-tile.ts`, `components/CockpitDesktopView.tsx`, `components/CockpitMobileView.tsx`.  
-* **Suite :** ligne **§13** (journal) si pas encore saisie ; **R60-004** : cocher quand **W60-103** + recette §10 alignés.  
-* **R60-004** recette reste ouverte tant que **W60-103** n’est pas **Fait** sur **lab** ; **W60-104** (secondaire « Synchro OK ») peut suivre.
+* **Suite :** **W60-103** / **T-W60-103** clôturés (**§13**, **R60-004**) ; prochain focus Passe 2 : **W60-104** (secondaire « Synchro OK ») si arbitré.
 
 #### 5.1.2 Polish composition — desktop *(arbitrage produit, sans geler le ticket)*
 
@@ -273,7 +274,7 @@ Le montant principal est bien posé, mais la carte n’offre pas encore assez de
 
 ### 5.3 W60-103 — État principal de qualité cohérent (spec §5.4)
 
-**Statut :** En cours *(badge + **contour fin** desktop ; **Fait** après capture **lab** post-deploy et arbitrage **R60-004**)*  
+**Statut :** Fait *(badge + **contour fin** desktop et mobile ; déploiement **`./scripts/deploy-linky-lab.sh`** ; build **`LINKY_UI_BUILD_REF=1f6cd569`** ; **R60-004** **OK**)*  
 
 **Mapping** (`metrics.treasury.status` → badge unique) :
 
@@ -288,7 +289,7 @@ Le montant principal est bien posé, mais la carte n’offre pas encore assez de
 
 * **Doctrine figée** : [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.2** — **§5.4.7** (implémentation).  
 * **Code :** `app/lib/cockpit/cockpit-master-card-outline.ts` ; `CockpitDesktopView.tsx` — cartes **Trésorerie**, **Business**, **Flux net** : plus de **liseré haut** vert ; **contour** selon état principal (Trésorerie : **Partiel** ⇒ **neutre**, pas de vert dominant) ; barre **couverture probante** en ton **neutre** si statut ≠ `ok` ; pastille **wallet** sans vert si ≠ `ok`.  
-* **Branche / PR (type) :** `web60-w60-103-tresorerie-contour-etat` · `[Web60][T-W60-103][W60-103] Trésorerie — contour fin et état principal cohérent`
+* **Branche / PR :** `web60-w60-103-tresorerie-contour-etat` · PR GitHub : [créer / suivre la PR](https://github.com/doreviateam/lynki/pull/new/web60-w60-103-tresorerie-contour-etat) · titre **`[Web60][T-W60-103][W60-103] Trésorerie — contour fin et état principal cohérent`**.
 
 **Repères code :** `treasury-cockpit-tile.ts` (`treasuryCockpitPrimaryBadge`), `cockpit-master-card-outline.ts`, `CockpitDesktopView.tsx`, `CockpitMobileView.tsx`.
 
@@ -419,6 +420,7 @@ Chemins relatifs à `units/dorevia-linky/`.
 |------|-------------|------------------------------|
 | 25 mars 2026 | T-W60-001 / W60-001 | Lab `laplatine2026` validé. Lexique d’état visible normalisé sur Pilotage. « Proxy data » a disparu au profit de **Proxy**. R60-001 OK, R60-002 OK. Contrôle desktop Véréna validé ; smoke mobile Max validé. T-W60-001 / W60-001 passés **Fait**. |
 | 25 mars 2026 | T-W60-005 / W60-005 | Microcopy preuves **vue** vs **cumulées** : `IntegrityBadge`, `LinkyFooter`, `SyncInProgress`. Pas de changement backend ; `npm run build` OK. Voir **§4.2**. |
+| 25 mars 2026 | T-W60-103 / W60-103 *(rappel W60-101 / W60-102)* | Bloc P0 Trésorerie : badge qualité unique (`treasuryCockpitPrimaryBadge`) + **contour fin** / pas de vert trompeur en **Partiel** (`cockpit-master-card-outline`, `CockpitDesktopView`, `CockpitMobileView`). Branche **`web60-w60-103-tresorerie-contour-etat`** poussée **`origin`**, commit **`1f6cd569`**. Déploiement **`./scripts/deploy-linky-lab.sh`** sur l’hôte lab → **`LINKY_UI_BUILD_REF=1f6cd569`**. **R60-004** **OK** ([recette §10](./RECETTE_WEB60_LINKY.md)). **T-W60-103** / **W60-103** → **Fait** *(DoD **§12.7** : garder une passe **desktop Véréna** + **smoke mobile Max** sur [lab `laplatine2026`](https://lab.linky.doreviateam.com/?tenant=laplatine2026) en routine avant bascule prod)*. |
 
 **Règle :** ne pas renseigner ce tableau ni passer les statuts **§4** / backlog en **Fait** tant que la validation **lab** ([`laplatine2026`](https://lab.linky.doreviateam.com/?tenant=laplatine2026)) et les **R60** indiqués ne sont pas **OK** (la doc reste vérité **après** preuve, pas intention seule).
 
@@ -535,6 +537,7 @@ Une **PR par ticket** (ou commits atomiques dans une même PR si équipe préfè
 | **1.1.15** | **Passe 2** : **§5.1.1** avancement **W60-101** ; **§5.2** **W60-102** badge **Fiable** ; tableaux **T-W60-101/102** **En cours** ; backlog **v1.1.6**. |
 | **1.1.16** | **§5.3** **W60-103** : `treasuryCockpitPrimaryBadge` (Fiable / Partiel / En attente / Indisponible) ; **T-W60-103** **En cours** ; backlog **v1.1.7**. |
 | **1.1.17** | **§5.3.1** contour fin cockpit (`cockpit-master-card-outline`) ; **W60-101** / **W60-102** / **T-W60-101** / **T-W60-102** **Fait** ; **T-W60-103** **En cours** (capture **lab**) ; doctrine **v1.1.2** ; parité **desktop + mobile** (`CockpitMobileView`). |
+| **1.1.18** | Clôture **T-W60-103** / **W60-103** : push branche, **`deploy-linky-lab.sh`**, **`1f6cd569`** ; **§13** journal ; **R60-004** **OK** ; bloc P0 Trésorerie **W60-101–103** **Fait** ; backlog **v1.1.9**, recette **v1.1.16**, plan **v1.1.20**, spec **v1.1.17**. |
 
 ---
 

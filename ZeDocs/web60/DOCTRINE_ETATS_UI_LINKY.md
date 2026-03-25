@@ -3,7 +3,7 @@
 **Fichier canonique :** `DOCTRINE_ETATS_UI_LINKY.md`
 **Version :** 1.1.2 — mars 2026
 **Lot :** Web60
-**Référence de cadrage :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.19** (cadrage publié)
+**Référence de cadrage :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.20** (cadrage publié)
 **Référence créa figée :** `ZeDocs/web59/stitch_carole_61`
 **Statut :** doctrine publiée
 
@@ -743,10 +743,10 @@ Une recette d’état UI doit vérifier au minimum :
 
 Cette doctrine a vocation à être relayée par :
 
-* [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.16** (spécification publiée) ;
-* [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.8** (items **W60-xxx**) ;
-* [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.15** (protocole de validation publié) ;
-* [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.17** (passes, **lab public** / **UI hash**, **§13** journal / **§13.1** gabarit **T-W60-001** ; **§4.2** **W60-005** ; **§5.3** / **§5.3.1** **W60-103** ; **§14** trame **T-W60-002** ; lab **`laplatine2026`**).
+* [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** (spécification publiée) ;
+* [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.9** (items **W60-xxx**) ;
+* [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16** (protocole de validation publié) ;
+* [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18** (passes, **lab public** / **UI hash**, **§13** journal / **§13.1** gabarit **T-W60-001** ; **§4.2** **W60-005** ; **§5** Passe 2 P0 **W60-101–103** **Fait** ; **§14** trame **T-W60-002** ; lab **`laplatine2026`**).
 
 Elle constitue la norme de référence pour les futurs arbitrages d’états sur le cockpit **Pilotage**.
 

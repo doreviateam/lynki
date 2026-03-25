@@ -1,9 +1,9 @@
 # Backlog Web60 — Linky UI
 
 **Fichier canonique :** `BACKLOG_WEB60_LINKY.md`  
-**Version :** 1.1.8 — mars 2026  
+**Version :** 1.1.9 — mars 2026  
 **Lot :** Web60  
-**Références de cadrage :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.19**, [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.2**, [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.16** · **Recette :** [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.15** · **Exécution :** [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.17** (passes, **T-W60-xxx**, **R60** ; **lab public** = vérité recette + **UI hash** ; **§13** = journal, **§13.1** = gabarit **T-W60-001** ; **§4.2** = clôture **W60-005** ; **§5.1**–**§5.3.1** = **W60-101**–**W60-103** ; **§14** trio Passe 1) · **Déploiement prioritaire :** [lab + laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026)  
+**Références de cadrage :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.20**, [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.2**, [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** · **Recette :** [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16** · **Exécution :** [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18** (passes, **T-W60-xxx**, **R60** ; **lab public** = vérité recette + **UI hash** ; **§13** = journal, **§13.1** = gabarit **T-W60-001** ; **§4.2** = clôture **W60-005** ; **§5** Passe 2 P0 **W60-101**–**W60-103** **Fait** ; **§14** trio Passe 1) · **Déploiement prioritaire :** [lab + laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026)  
 **Référence créa figée :** `ZeDocs/web59/stitch_carole_61`  
 **Statut :** backlog ouvert
 
@@ -176,7 +176,7 @@ Le ticket traite uniquement la lisibilité sémantique et l’alignement des lib
 |----|------|-------------|-----------|-----|----------|-------------|--------|
 | W60-101 | Trésorerie | Réaffirmer la dominance visuelle de Trésorerie | Certain | C | P0 | Max, Véréna | Fait |
 | W60-102 | Trésorerie | Remplacer le badge unique « Synchro OK » comme lecture principale | Certain | C | P0 | Max, Véréna, Esther | Fait |
-| W60-103 | Trésorerie | Introduire un état principal de qualité cohérent | Certain | C | P0 | Max, Véréna | En cours |
+| W60-103 | Trésorerie | Introduire un état principal de qualité cohérent | Certain | C | P0 | Max, Véréna | Fait |
 | W60-104 | Trésorerie | Décider si « Synchro OK » reste visible en secondaire | Interprétatif | C | P1 | Véréna | À arbitrer |
 | W60-105 | Trésorerie | Enrichir légèrement la matière visuelle sans nuire au chiffre | Interprétatif | C | P1 | Max | À arbitrer |
 | W60-106 | Trésorerie | Stabiliser la structure du clic vers le détail | Dette de stabilisation | C | P1 | Véréna, Esther | À faire |
@@ -201,7 +201,7 @@ Le ticket traite uniquement la lisibilité sémantique et l’alignement des lib
 
 * **Constat :** les statuts API de la carte Trésorerie doivent se traduire en **doctrine d’état** unique et lisible ([spec §5.4](./SPEC_CARTES_MAITRESSES_LINKY.md)), sans mélanger fraîcheur et qualité.
 * **Décision / sortie attendue :** mapping centralisé **Fiable** / **Partiel** / **En attente** / **Indisponible** selon `treasury.status` — voir [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **§5.3** ; **contour fin** et absence de vert trompeur en **Partiel** — **§5.3.1** / doctrine **§5.4.7**.
-* **Statut :** En cours — code `treasuryCockpitPrimaryBadge` + `cockpit-master-card-outline` ; **Fait** après capture **lab** et arbitrage **R60-004**.
+* **Statut :** Fait — `treasuryCockpitPrimaryBadge` + `cockpit-master-card-outline` ; déploiement lab **`1f6cd569`** ; **R60-004** **OK** ; détail [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **§5.3** / **§13**.
 
 #### W60-105 — Enrichir légèrement la matière visuelle sans nuire au chiffre
 
@@ -379,6 +379,7 @@ Le backlog doit rester un outil de fermeture produit, pas une inflation de ticke
 | 25 mars 2026 | **v1.1.6** : **EXECUTION v1.1.15** — **W60-101** / **W60-102** **En cours** (densification + badge **Fiable**) ; **§5.1.1** / **§5.2**. |
 | 25 mars 2026 | **v1.1.7** : **EXECUTION v1.1.16** — **W60-103** / **T-W60-103** **En cours** ; **§5.3** `treasuryCockpitPrimaryBadge`. |
 | 25 mars 2026 | **v1.1.8** : **EXECUTION v1.1.17** — **§5.3.1** contour cockpit ; **W60-101** / **W60-102** **Fait** ; **W60-103** **En cours** (preuve **lab**) ; doctrine **v1.1.2**. |
+| 25 mars 2026 | **v1.1.9** : **EXECUTION v1.1.18** — **W60-103** / **T-W60-103** **Fait** ; **§13** ; **R60-004** **OK** ; recette **v1.1.16**, plan **v1.1.20**, spec **v1.1.17**. |
 
 ---
 
@@ -411,6 +412,7 @@ Le backlog doit rester un outil de fermeture produit, pas une inflation de ticke
 | **1.1.6** | **EXECUTION v1.1.15** : **W60-101** / **W60-102** **En cours** ; **§5.1.1** / **§5.2**. |
 | **1.1.7** | **EXECUTION v1.1.16** : **W60-103** **En cours** ; **§5.3** mapping qualité Trésorerie. |
 | **1.1.8** | **EXECUTION v1.1.17** : **§5.3.1** ; **W60-101** / **W60-102** **Fait** ; **W60-103** **En cours** ; doctrine **v1.1.2**, spec **v1.1.16**, recette **v1.1.15**, plan **v1.1.19**. |
+| **1.1.9** | **EXECUTION v1.1.18** : **W60-103** **Fait** ; **R60-004** ; **§13** ; spec **v1.1.17**, recette **v1.1.16**, plan **v1.1.20**. |
 
 ---
 

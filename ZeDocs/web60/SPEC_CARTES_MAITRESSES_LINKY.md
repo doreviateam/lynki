@@ -1,9 +1,9 @@
 # Spécification des cartes maîtresses — Linky
 
 **Fichier canonique :** `SPEC_CARTES_MAITRESSES_LINKY.md`
-**Version :** 1.1.16 — mars 2026  
+**Version :** 1.1.17 — mars 2026  
 **Lot :** Web60  
-**Références de cadrage :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.19**, [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.2** · **Backlog :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.8** · **Recette :** [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.15** · **Exécution :** [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.17** · **Lab :** [laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026)
+**Références de cadrage :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.20**, [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.2** · **Backlog :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.9** · **Recette :** [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16** · **Exécution :** [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18** · **Lab :** [laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026)
 **Référence créa figée :** `ZeDocs/web59/stitch_carole_61`
 **Périmètre :** régime **Pilotage** — cartes **Trésorerie**, **Business**, **Flux net**
 **Statut :** spécification publiée
@@ -705,9 +705,9 @@ La recette ne doit pas se limiter à une validation graphique générale ; elle 
 
 Cette spécification a vocation à être relayée par :
 
-* [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.8** (items **W60-xxx**) ;
-* [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.15** (protocole de validation publié) ;
-* [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.17** (passes, **lab public** / **UI hash**, **§13** journal / **§13.1** gabarit ; **§4.2** **W60-005** ; **§5.3** / **§5.3.1** **W60-103** ; **§14** trame **T-W60-002** ; lab **`laplatine2026`**).
+* [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.9** (items **W60-xxx**) ;
+* [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16** (protocole de validation publié) ;
+* [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18** (passes, **lab public** / **UI hash**, **§13** journal / **§13.1** gabarit ; **§4.2** **W60-005** ; **§5** Passe 2 P0 **W60-101–103** **Fait** ; **§14** trame **T-W60-002** ; lab **`laplatine2026`**).
 
 Elle constitue la pièce de référence pour la fermeture produit des trois cartes maîtresses en Web60.
 
@@ -740,6 +740,7 @@ Elle constitue la pièce de référence pour la fermeture produit des trois cart
 | **1.1.14** | Plan **v1.1.17**, backlog **v1.1.6**, **EXECUTION v1.1.15**, recette **v1.1.13** ; Passe 2 **W60-101** / **W60-102** **En cours** ; renvois en-tête et §15. |
 | **1.1.15** | Plan **v1.1.18**, backlog **v1.1.7**, **EXECUTION v1.1.16**, recette **v1.1.14** ; **W60-103** mapping qualité Trésorerie ; renvois en-tête et §15. |
 | **1.1.16** | Plan **v1.1.19**, backlog **v1.1.8**, **EXECUTION v1.1.17**, recette **v1.1.15**, doctrine **v1.1.2** ; **§5.3.1** contour cockpit / **Partiel** sans vert trompeur ; renvois en-tête et §15. |
+| **1.1.17** | Plan **v1.1.20**, backlog **v1.1.9**, **EXECUTION v1.1.18**, recette **v1.1.16** ; **W60-103** **Fait**, **R60-004** **OK** ; renvois en-tête et §15. |
 
 ---
 
