@@ -274,7 +274,7 @@ Le montant principal est bien posé, mais la carte n’offre pas encore assez de
 
 ### 5.3 W60-103 — État principal de qualité cohérent (spec §5.4)
 
-**Statut :** Fait *(badge + **contour fin** desktop et mobile ; déploiement **`./scripts/deploy-linky-lab.sh`** ; build **`LINKY_UI_BUILD_REF=1f6cd569`** ; **R60-004** **OK**)*  
+**Statut :** Fait *(badge + **contour fin** desktop et mobile ; déploiement **`./scripts/deploy-linky-lab.sh`** ; build **`LINKY_UI_BUILD_REF=1fd8df08`** (HEAD au rebuild ; code cockpit **1f6cd569**) ; **R60-004** **OK**)*  
 
 **Mapping** (`metrics.treasury.status` → badge unique) :
 
@@ -420,7 +420,7 @@ Chemins relatifs à `units/dorevia-linky/`.
 |------|-------------|------------------------------|
 | 25 mars 2026 | T-W60-001 / W60-001 | Lab `laplatine2026` validé. Lexique d’état visible normalisé sur Pilotage. « Proxy data » a disparu au profit de **Proxy**. R60-001 OK, R60-002 OK. Contrôle desktop Véréna validé ; smoke mobile Max validé. T-W60-001 / W60-001 passés **Fait**. |
 | 25 mars 2026 | T-W60-005 / W60-005 | Microcopy preuves **vue** vs **cumulées** : `IntegrityBadge`, `LinkyFooter`, `SyncInProgress`. Pas de changement backend ; `npm run build` OK. Voir **§4.2**. |
-| 25 mars 2026 | T-W60-103 / W60-103 *(rappel W60-101 / W60-102)* | Bloc P0 Trésorerie : badge qualité unique (`treasuryCockpitPrimaryBadge`) + **contour fin** / pas de vert trompeur en **Partiel** (`cockpit-master-card-outline`, `CockpitDesktopView`, `CockpitMobileView`). Branche **`web60-w60-103-tresorerie-contour-etat`** poussée **`origin`**, commit **`1f6cd569`**. Déploiement **`./scripts/deploy-linky-lab.sh`** sur l’hôte lab → **`LINKY_UI_BUILD_REF=1f6cd569`**. **R60-004** **OK** ([recette §10](./RECETTE_WEB60_LINKY.md)). **T-W60-103** / **W60-103** → **Fait** *(DoD **§12.7** : garder une passe **desktop Véréna** + **smoke mobile Max** sur [lab `laplatine2026`](https://lab.linky.doreviateam.com/?tenant=laplatine2026) en routine avant bascule prod)*. |
+| 25 mars 2026 | T-W60-103 / W60-103 *(rappel W60-101 / W60-102)* | Bloc P0 Trésorerie : badge qualité unique (`treasuryCockpitPrimaryBadge`) + **contour fin** / pas de vert trompeur en **Partiel** (`cockpit-master-card-outline`, `CockpitDesktopView`, `CockpitMobileView`). Branche **`web60-w60-103-tresorerie-contour-etat`** poussée **`origin`** ; commit cockpit **1f6cd569** ; tête branche **1fd8df08** (docs clôture). Déploiement **`./scripts/deploy-linky-lab.sh`** sur l’hôte lab → **`LINKY_UI_BUILD_REF=1fd8df08`**. **R60-004** **OK** ([recette §10](./RECETTE_WEB60_LINKY.md)). **T-W60-103** / **W60-103** → **Fait** *(DoD **§12.7** : garder une passe **desktop Véréna** + **smoke mobile Max** sur [lab `laplatine2026`](https://lab.linky.doreviateam.com/?tenant=laplatine2026) en routine avant bascule prod)*. |
 
 **Règle :** ne pas renseigner ce tableau ni passer les statuts **§4** / backlog en **Fait** tant que la validation **lab** ([`laplatine2026`](https://lab.linky.doreviateam.com/?tenant=laplatine2026)) et les **R60** indiqués ne sont pas **OK** (la doc reste vérité **après** preuve, pas intention seule).
 
@@ -537,7 +537,7 @@ Une **PR par ticket** (ou commits atomiques dans une même PR si équipe préfè
 | **1.1.15** | **Passe 2** : **§5.1.1** avancement **W60-101** ; **§5.2** **W60-102** badge **Fiable** ; tableaux **T-W60-101/102** **En cours** ; backlog **v1.1.6**. |
 | **1.1.16** | **§5.3** **W60-103** : `treasuryCockpitPrimaryBadge` (Fiable / Partiel / En attente / Indisponible) ; **T-W60-103** **En cours** ; backlog **v1.1.7**. |
 | **1.1.17** | **§5.3.1** contour fin cockpit (`cockpit-master-card-outline`) ; **W60-101** / **W60-102** / **T-W60-101** / **T-W60-102** **Fait** ; **T-W60-103** **En cours** (capture **lab**) ; doctrine **v1.1.2** ; parité **desktop + mobile** (`CockpitMobileView`). |
-| **1.1.18** | Clôture **T-W60-103** / **W60-103** : push branche, **`deploy-linky-lab.sh`**, **`1f6cd569`** ; **§13** journal ; **R60-004** **OK** ; bloc P0 Trésorerie **W60-101–103** **Fait** ; backlog **v1.1.9**, recette **v1.1.16**, plan **v1.1.20**, spec **v1.1.17**. |
+| **1.1.18** | Clôture **T-W60-103** / **W60-103** : push branche, **`deploy-linky-lab.sh`**, **`LINKY_UI_BUILD_REF=1fd8df08`** ; **§13** journal ; **R60-004** **OK** ; bloc P0 Trésorerie **W60-101–103** **Fait** ; backlog **v1.1.9**, recette **v1.1.16**, plan **v1.1.20**, spec **v1.1.17**. |
 
 ---
 
