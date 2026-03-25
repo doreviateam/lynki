@@ -10,6 +10,8 @@ import type { PeriodRange } from "@/app/lib/period-utils";
 import type { CardId } from "@/app/types/linky-tiles";
 import { computeConfidenceScore } from "@/app/lib/confidence";
 import { navHrefWithTenant } from "@/components/layout/navTenantHref";
+import { UI_STATE_LABELS } from "@/app/lib/cockpit/ui-state-labels";
+import { buildTreasuryCockpitTileModel } from "@/app/lib/cockpit/treasury-cockpit-tile";
 
 interface CockpitDesktopViewProps {
   tenantId: string;
@@ -49,14 +51,6 @@ function formatCockpitPeriodRange(p: PeriodRange): string {
   return `${a.toLocaleDateString("fr-FR")} – ${b.toLocaleDateString("fr-FR")}`;
 }
 
-/** Barres sparkline — teinte unique `--confidence-fiable` (Stitch), intensité selon hauteur. */
-function sparkBarClass(pct: number): string {
-  if (pct >= 80) return "bg-linky-confidence-fiable";
-  if (pct >= 65) return "bg-linky-confidence-fiable/90";
-  if (pct >= 55) return "bg-linky-confidence-fiable/75";
-  return "bg-linky-confidence-fiable/55";
-}
-
 const SECONDARY: { id: CardId; icon: string; label: string; key: string; href?: string }[] = [
   { id: "working_capital", icon: "account_balance_wallet", label: "BFR", key: "working_capital" },
   { id: "encours", icon: "pending_actions", label: "Encours", key: "encours", href: "/encours" },
@@ -81,9 +75,22 @@ export function CockpitDesktopView({
   const treasury = metrics?.treasury;
   const business = metrics?.business;
   const cash = metrics?.cash;
+  const treasuryTile = buildTreasuryCockpitTileModel(metrics);
   const h = (p: string) => navHrefWithTenant(p, tenantId);
   const periodLine = formatCockpitPeriodRange(period);
-  const sparkHeights = [40, 55, 45, 70, 65, 85, 60, 75, 50, 80, 72, 78];
+
+  const treasuryBadge =
+    treasuryTile.treasuryStatus === "ok"
+      ? { label: UI_STATE_LABELS.sync_ok, wrap: "border-[color-mix(in_srgb,var(--confidence-fiable)_35%,var(--border))] bg-[color-mix(in_srgb,var(--confidence-fiable)_10%,var(--card))] text-[var(--confidence-fiable)]" }
+      : treasuryTile.treasuryStatus === "watch"
+        ? {
+            label: UI_STATE_LABELS.to_confirm,
+            wrap: "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/35 dark:bg-amber-500/15 dark:text-amber-400",
+          }
+        : {
+            label: UI_STATE_LABELS.unavailable,
+            wrap: "border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)]",
+          };
 
   if (metricsLoading && !metrics) {
     return (
@@ -101,7 +108,7 @@ export function CockpitDesktopView({
       {!hideTopBar ? (
         <TopBar
           confidenceScore={integrityScore}
-          confidenceLabel="Fiable"
+          confidenceLabel={UI_STATE_LABELS.reliable}
           title="Lynki Desktop Cockpit"
           subtitle={`Arrêté ${new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}`}
         />
@@ -123,27 +130,66 @@ export function CockpitDesktopView({
             className="group relative col-span-1 row-span-2 flex flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md md:col-span-2 lg:col-span-2"
           >
             <div className="absolute left-0 top-0 h-1 w-full bg-[var(--confidence-fiable)]" aria-hidden />
-            <div className="mb-4 flex items-start justify-between gap-2 pr-1">
+            <div className="mb-3 flex items-start justify-between gap-2 pr-1">
               <div className="min-w-0">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Trésorerie</span>
                 <div className="mt-2 text-3xl font-black tabular-nums tracking-tight text-[var(--text)]">{fmt(treasury)}</div>
+                <p className="mt-0.5 text-[11px] font-medium text-[var(--text-secondary)]">Solde validé (Vault)</p>
               </div>
               <span className="shrink-0 rounded-lg bg-[color-mix(in_srgb,var(--confidence-fiable)_12%,var(--card))] p-2 text-[var(--confidence-fiable)]">
                 <Icon name="account_balance_wallet" size={22} filled />
               </span>
             </div>
-            <div className="mt-auto flex h-24 max-w-full items-end gap-0.5 sm:gap-1">
-              {sparkHeights.map((ht, i) => (
+
+            {/* W60-101 — zone centrale lisible (données réelles, pas de barres décoratives) */}
+            <div className="mt-auto flex min-h-0 flex-col gap-2.5 pr-1">
+              <div title="Part des flux couverts par preuve bancaire sur la période affichée">
+                <div className="flex items-baseline justify-between gap-2 text-[10px] font-bold uppercase tracking-wide text-[var(--text-secondary)]">
+                  <span>Couverture probante</span>
+                  <span className="tabular-nums text-[var(--text)]">
+                    {treasuryTile.coveragePct != null ? `${treasuryTile.coveragePct} %` : "—"}
+                  </span>
+                </div>
                 <div
-                  key={i}
-                  className={`min-w-0 flex-1 rounded-t ${sparkBarClass(ht)}`}
-                  style={{ height: `${ht}%` }}
-                />
-              ))}
+                  className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-[var(--border)]"
+                  role="progressbar"
+                  aria-valuenow={treasuryTile.coveragePct ?? undefined}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Couverture probante"
+                >
+                  <div
+                    className="h-full rounded-full bg-[var(--confidence-fiable)] transition-[width] duration-300"
+                    style={{ width: treasuryTile.coveragePct != null ? `${treasuryTile.coveragePct}%` : "0%" }}
+                  />
+                </div>
+              </div>
+              <div className="flex items-baseline justify-between gap-2 text-xs">
+                <span className="text-[var(--text-secondary)]">Écart ERP − Vault</span>
+                <span
+                  className="shrink-0 font-semibold tabular-nums text-[var(--text)]"
+                  title="Solde comptable (ERP) moins position validée (Vault)"
+                >
+                  {treasuryTile.erpDeltaFormatted ?? "—"}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between gap-2 text-xs">
+                <span className="text-[var(--text-secondary)]">Volume à rapprocher</span>
+                <span className="shrink-0 font-semibold tabular-nums text-[var(--text)]">
+                  {treasuryTile.rapproFormatted ?? "—"}
+                </span>
+              </div>
             </div>
-            <div className="pointer-events-none absolute bottom-4 right-4 flex items-center gap-1 rounded border border-[color-mix(in_srgb,var(--confidence-fiable)_35%,var(--border))] bg-[color-mix(in_srgb,var(--confidence-fiable)_10%,var(--card))] px-2 py-0.5 text-[10px] font-bold text-[var(--confidence-fiable)]">
-              <Icon name="check_circle" size={12} />
-              SYNCHRO OK
+
+            <div
+              className={`pointer-events-none absolute bottom-4 right-4 flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-bold ${treasuryBadge.wrap}`}
+              title={treasury?.status_reason ?? undefined}
+            >
+              <Icon
+                name={treasuryTile.treasuryStatus === "ok" ? "check_circle" : treasuryTile.treasuryStatus === "watch" ? "warning" : "info"}
+                size={12}
+              />
+              {treasuryBadge.label}
             </div>
           </Link>
 
@@ -171,7 +217,7 @@ export function CockpitDesktopView({
               </span>
               <span className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--confidence-fiable)_15%,transparent)] px-2 py-0.5 text-[10px] font-bold text-[var(--confidence-fiable)] dark:bg-emerald-500/15 dark:text-emerald-400">
                 <Icon name="verified" size={12} filled />
-                CERTIFIÉ
+                {UI_STATE_LABELS.certified.toUpperCase()}
               </span>
             </div>
           </Link>
@@ -186,7 +232,7 @@ export function CockpitDesktopView({
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Flux Net</span>
                 <span className="inline-flex items-center gap-1 rounded border border-amber-100 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:border-amber-500/35 dark:bg-amber-500/15 dark:text-amber-400">
                   <Icon name="warning" size={12} />
-                  PROXY DATA
+                  {UI_STATE_LABELS.proxy.toUpperCase()}
                 </span>
               </div>
               <div className="mt-3 text-3xl font-black tabular-nums tracking-tight text-[var(--text)]">{fmt(cash)}</div>

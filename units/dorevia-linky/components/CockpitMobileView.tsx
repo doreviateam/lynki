@@ -9,6 +9,8 @@ import type { PeriodRange } from "@/app/lib/period-utils";
 import type { CardId } from "@/app/types/linky-tiles";
 import { computeConfidenceScore } from "@/app/lib/confidence";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { UI_STATE_LABELS } from "@/app/lib/cockpit/ui-state-labels";
+import { buildTreasuryCockpitTileModel } from "@/app/lib/cockpit/treasury-cockpit-tile";
 
 interface CockpitMobileViewProps {
   tenantId: string;
@@ -60,7 +62,15 @@ export function CockpitMobileView({
   const treasury = metrics?.treasury;
   const business = metrics?.business;
   const cash = metrics?.cash;
+  const treasuryTile = buildTreasuryCockpitTileModel(metrics);
   const integrityScore = computeConfidenceScore(metrics);
+
+  const treasuryMobileBadge =
+    treasuryTile.treasuryStatus === "ok"
+      ? { label: UI_STATE_LABELS.sync_ok, className: "bg-emerald-600/15 text-emerald-400" }
+      : treasuryTile.treasuryStatus === "watch"
+        ? { label: UI_STATE_LABELS.to_confirm, className: "bg-amber-500/15 text-amber-400" }
+        : { label: UI_STATE_LABELS.unavailable, className: "bg-slate-500/15 text-slate-400" };
 
   if (metricsLoading && !metrics) {
     return (
@@ -110,21 +120,45 @@ export function CockpitMobileView({
               <Icon name="account_balance" size={20} className="text-emerald-400" />
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Trésorerie</span>
             </div>
-            {inferConfidence(treasury) === "fiable" ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                <Icon name="verified" size={12} filled />
-                Fiable
-              </span>
-            ) : inferConfidence(treasury) === "partielle" ? (
-              <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-400">Partielle</span>
-            ) : inferConfidence(treasury) === "proxy" ? (
-              <span className="inline-flex items-center rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold text-blue-400">Proxy</span>
-            ) : (
-              <span className="inline-flex items-center rounded-full bg-slate-500/15 px-2 py-0.5 text-[10px] font-semibold text-slate-400">Estimée</span>
-            )}
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${treasuryMobileBadge.className}`}
+              title={treasury?.status_reason ?? undefined}
+            >
+              <Icon
+                name={treasuryTile.treasuryStatus === "ok" ? "check_circle" : treasuryTile.treasuryStatus === "watch" ? "warning" : "info"}
+                size={12}
+                filled={treasuryTile.treasuryStatus === "ok"}
+              />
+              {treasuryMobileBadge.label}
+            </span>
           </div>
           <div className="mt-3 text-2xl font-bold tabular-nums text-white">
             {formatKpi(treasury)}
+          </div>
+          <p className="mt-1 text-[10px] font-medium text-slate-400">Solde validé (Vault)</p>
+          <div className="mt-3 space-y-2 border-t border-white/10 pt-3 text-left">
+            <div title="Part des flux couverts par preuve bancaire">
+              <div className="flex justify-between text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                <span>Couverture probante</span>
+                <span className="tabular-nums text-slate-200">
+                  {treasuryTile.coveragePct != null ? `${treasuryTile.coveragePct} %` : "—"}
+                </span>
+              </div>
+              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-600/80">
+                <div
+                  className="h-full rounded-full bg-emerald-400/90"
+                  style={{ width: treasuryTile.coveragePct != null ? `${treasuryTile.coveragePct}%` : "0%" }}
+                />
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 text-[11px] text-slate-300">
+              <span className="text-slate-400">Écart ERP − Vault</span>
+              <span className="shrink-0 font-semibold tabular-nums text-white">{treasuryTile.erpDeltaFormatted ?? "—"}</span>
+            </div>
+            <div className="flex justify-between gap-2 text-[11px] text-slate-300">
+              <span className="text-slate-400">Volume à rapprocher</span>
+              <span className="shrink-0 font-semibold tabular-nums text-white">{treasuryTile.rapproFormatted ?? "—"}</span>
+            </div>
           </div>
         </button>
 
@@ -143,13 +177,13 @@ export function CockpitMobileView({
               {formatKpi(business)}
             </div>
             {inferConfidence(business) === "fiable" ? (
-              <span className="mt-1 inline-flex items-center rounded-full bg-emerald-600/15 px-2 py-0.5 text-[9px] font-semibold text-emerald-400">Fiable</span>
+              <span className="mt-1 inline-flex items-center rounded-full bg-emerald-600/15 px-2 py-0.5 text-[9px] font-semibold text-emerald-400">{UI_STATE_LABELS.reliable}</span>
             ) : inferConfidence(business) === "proxy" ? (
-              <span className="mt-1 inline-flex items-center rounded-full bg-blue-500/15 px-2 py-0.5 text-[9px] font-semibold text-blue-400">Proxy</span>
+              <span className="mt-1 inline-flex items-center rounded-full bg-blue-500/15 px-2 py-0.5 text-[9px] font-semibold text-blue-400">{UI_STATE_LABELS.proxy}</span>
             ) : inferConfidence(business) === "estimee" ? (
-              <span className="mt-1 inline-flex items-center rounded-full bg-slate-500/15 px-2 py-0.5 text-[9px] font-semibold text-slate-400">Estimée</span>
+              <span className="mt-1 inline-flex items-center rounded-full bg-slate-500/15 px-2 py-0.5 text-[9px] font-semibold text-slate-400">{UI_STATE_LABELS.estimated}</span>
             ) : (
-              <span className="mt-1 inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-semibold text-amber-400">Partielle</span>
+              <span className="mt-1 inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-semibold text-amber-400">{UI_STATE_LABELS.partial}</span>
             )}
           </button>
 
@@ -166,13 +200,13 @@ export function CockpitMobileView({
               {formatKpi(cash)}
             </div>
             {inferConfidence(cash) === "fiable" ? (
-              <span className="mt-1 inline-flex items-center rounded-full bg-emerald-600/15 px-2 py-0.5 text-[9px] font-semibold text-emerald-400">Fiable</span>
+              <span className="mt-1 inline-flex items-center rounded-full bg-emerald-600/15 px-2 py-0.5 text-[9px] font-semibold text-emerald-400">{UI_STATE_LABELS.reliable}</span>
             ) : inferConfidence(cash) === "proxy" ? (
-              <span className="mt-1 inline-flex items-center rounded-full bg-blue-500/15 px-2 py-0.5 text-[9px] font-semibold text-blue-400">Proxy</span>
+              <span className="mt-1 inline-flex items-center rounded-full bg-blue-500/15 px-2 py-0.5 text-[9px] font-semibold text-blue-400">{UI_STATE_LABELS.proxy}</span>
             ) : inferConfidence(cash) === "partielle" ? (
-              <span className="mt-1 inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-semibold text-amber-400">Partielle</span>
+              <span className="mt-1 inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-semibold text-amber-400">{UI_STATE_LABELS.partial}</span>
             ) : (
-              <span className="mt-1 inline-flex items-center rounded-full bg-slate-500/15 px-2 py-0.5 text-[9px] font-semibold text-slate-400">Estimée</span>
+              <span className="mt-1 inline-flex items-center rounded-full bg-slate-500/15 px-2 py-0.5 text-[9px] font-semibold text-slate-400">{UI_STATE_LABELS.estimated}</span>
             )}
           </button>
         </div>
