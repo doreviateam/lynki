@@ -13,8 +13,9 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        /* Canon Stitch / Fidelity : Inter seule pour titres, corps, labels (ZeDocs/web59/stitch_carole_61) */
+        /* Corps / UI : Inter (Stitch). Titres : Manrope (réf. ZeDocs/web61/references/observatory-mock.html). */
         sans: ["var(--font-inter)", "system-ui", "-apple-system", "sans-serif"],
+        headline: ["var(--font-manrope)", "var(--font-inter)", "system-ui", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       colors: {
@@ -49,7 +50,7 @@ module.exports = {
       },
       /* pilotage_desktop_v_r_na_canon_v5 : DEFAULT 0.125rem, lg 0.25rem, xl 0.5rem — on n’écrase pas `full` (pills / spinners) */
       borderRadius: {
-        xl: "0.5rem",
+        xl: "0.75rem",
         "linky-card": "var(--radius-card)",
         "linky-badge": "6px",
       },

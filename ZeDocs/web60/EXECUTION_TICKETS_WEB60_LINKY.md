@@ -1,11 +1,11 @@
 # Exécution des tickets Web60 — Linky (Pilotage)
 
 **Fichier canonique :** `EXECUTION_TICKETS_WEB60_LINKY.md`  
-**Version :** 1.1.18 — mars 2026  
+**Version :** 1.1.19 — mars 2026  
 **Lot :** Web60  
 **Statut :** guide d’exécution publié  
 
-**Références :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.9** (vérité **W60-xxx**) · [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.20** · [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.2** · [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** · [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16**  
+**Références :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.10** (vérité **W60-xxx**) · [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.23** · [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.3** · [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** · [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16** · **Web61 —** [`cdcf.md`](../web61/cdcf.md) (cahier des charges fonctionnel, **norme supérieure** pour refonte Pilotage / détail) · [`ROADMAP_REFONTE_LINKY_STITCH_CAROLE_61.md`](../web61/ROADMAP_REFONTE_LINKY_STITCH_CAROLE_61.md) · [`TABLEAU_TRACE_CDCF6_TRESORERIE.md`](../web61/TABLEAU_TRACE_CDCF6_TRESORERIE.md) (registre §6 Trésorerie ↔ code)  
 
 **Code applicatif principal :** `units/dorevia-linky/`
 
@@ -287,7 +287,7 @@ Le montant principal est bien posé, mais la carte n’offre pas encore assez de
 
 #### 5.3.1 Contour fin, liseré supprimé, Trésorerie honnête *(doctrine §5.4)*
 
-* **Doctrine figée** : [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.2** — **§5.4.7** (implémentation).  
+* **Doctrine figée** : [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.3** — **§5.4.7** (implémentation).  
 * **Code :** `app/lib/cockpit/cockpit-master-card-outline.ts` ; `CockpitDesktopView.tsx` — cartes **Trésorerie**, **Business**, **Flux net** : plus de **liseré haut** vert ; **contour** selon état principal (Trésorerie : **Partiel** ⇒ **neutre**, pas de vert dominant) ; barre **couverture probante** en ton **neutre** si statut ≠ `ok` ; pastille **wallet** sans vert si ≠ `ok`.  
 * **Branche / PR :** `web60-w60-103-tresorerie-contour-etat` · PR GitHub : [créer / suivre la PR](https://github.com/doreviateam/lynki/pull/new/web60-w60-103-tresorerie-contour-etat) · titre **`[Web60][T-W60-103][W60-103] Trésorerie — contour fin et état principal cohérent`**.
 
@@ -514,6 +514,15 @@ Une **PR par ticket** (ou commits atomiques dans une même PR si équipe préfè
 
 ---
 
+## 16. Raccord Web61 — CDCF et registre Trésorerie
+
+Les passes Web60 (états, cartes maîtresses, recette **R60-xxx**) restent le **cadre d’exécution ticketé** du lot courant. Pour toute **refonte** ou **granularité fonctionnelle** au-delà (header, deux vues, grammaire tuile §5, fiche Trésorerie §6), la **norme de fond** est le [`cdcf.md`](../web61/cdcf.md) : l’implémentation vise à **coller au CDCF** ; Stitch et le plan [`ROADMAP_REFONTE_LINKY_STITCH_CAROLE_61.md`](../web61/ROADMAP_REFONTE_LINKY_STITCH_CAROLE_61.md) orientent le **rendu**.
+
+* **Registre vivant (Trésorerie)** : [`TABLEAU_TRACE_CDCF6_TRESORERIE.md`](../web61/TABLEAU_TRACE_CDCF6_TRESORERIE.md) — exigences **§6** et blocs **§7.2** (lignes S7-xx) ; colonnes **Décision / arbitrage** et **Ticket / PR** pour les écarts CDCF ↔ code.
+* **Recette** : après changement structurant §6, mettre à jour le registre et rejouer les **R60** pertinents sur le **lab** (`./scripts/deploy-linky-lab.sh`).
+
+---
+
 ## Historique des versions
 
 | Version | Contenu |
@@ -538,6 +547,7 @@ Une **PR par ticket** (ou commits atomiques dans une même PR si équipe préfè
 | **1.1.16** | **§5.3** **W60-103** : `treasuryCockpitPrimaryBadge` (Fiable / Partiel / En attente / Indisponible) ; **T-W60-103** **En cours** ; backlog **v1.1.7**. |
 | **1.1.17** | **§5.3.1** contour fin cockpit (`cockpit-master-card-outline`) ; **W60-101** / **W60-102** / **T-W60-101** / **T-W60-102** **Fait** ; **T-W60-103** **En cours** (capture **lab**) ; doctrine **v1.1.2** ; parité **desktop + mobile** (`CockpitMobileView`). |
 | **1.1.18** | Clôture **T-W60-103** / **W60-103** : push branche, **`deploy-linky-lab.sh`**, **`LINKY_UI_BUILD_REF=d013f91d`** ; scripts lab versionnés ; **§13** journal ; **R60-004** **OK** ; bloc P0 Trésorerie **W60-101–103** **Fait** ; backlog **v1.1.9**, recette **v1.1.16**, plan **v1.1.20**, spec **v1.1.17**. |
+| **1.1.19** | **§16** raccord **Web61** : références [`cdcf.md`](../web61/cdcf.md), roadmap refonte Stitch, registre [`TABLEAU_TRACE_CDCF6_TRESORERIE.md`](../web61/TABLEAU_TRACE_CDCF6_TRESORERIE.md) ; principe **refonte au plus près du CDCF**. |
 
 ---
 

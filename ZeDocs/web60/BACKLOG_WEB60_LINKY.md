@@ -1,9 +1,9 @@
 # Backlog Web60 — Linky UI
 
 **Fichier canonique :** `BACKLOG_WEB60_LINKY.md`  
-**Version :** 1.1.9 — mars 2026  
+**Version :** 1.1.10 — mars 2026  
 **Lot :** Web60  
-**Références de cadrage :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.20**, [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.2**, [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** · **Recette :** [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16** · **Exécution :** [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18** (passes, **T-W60-xxx**, **R60** ; **lab public** = vérité recette + **UI hash** ; **§13** = journal, **§13.1** = gabarit **T-W60-001** ; **§4.2** = clôture **W60-005** ; **§5** Passe 2 P0 **W60-101**–**W60-103** **Fait** ; **§14** trio Passe 1) · **Déploiement prioritaire :** [lab + laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026)  
+**Références de cadrage :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.23**, [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.3**, [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** · **Recette :** [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16** · **Exécution :** [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18** (passes, **T-W60-xxx**, **R60** ; **lab public** = vérité recette + **UI hash** ; **§13** = journal, **§13.1** = gabarit **T-W60-001** ; **§4.2** = clôture **W60-005** ; **§5** Passe 2 P0 **W60-101**–**W60-103** **Fait** ; **§14** trio Passe 1) · **Déploiement prioritaire :** [lab + laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026)  
 **Référence créa figée :** `ZeDocs/web59/stitch_carole_61`  
 **Statut :** backlog ouvert
 
@@ -139,8 +139,15 @@ Ce backlog privilégie la fermeture de blocs plutôt que l’amélioration diffu
 | W60-008 | Global | Stabiliser le ton coloriel des états de vigilance | Interprétatif | B | P2 | Max, Véréna | À arbitrer |
 | W60-009 | Global | Réduire le sur-badging des signaux positifs | Certain | B | P1 | Max, Véréna | À faire |
 | W60-010 | Chrome | Rendre la barre haute plus explicite sur l’arrêté / fraîcheur | Interprétatif | A | P2 | Max, Véréna, Esther | À arbitrer |
+| W60-011 | Chrome | Lexique Pilotage accessible (menu latéral **Lexique** + page **Aide**) | Certain | A | P2 | Max, Véréna, Esther | Fait |
 
 ### 5.1 Détail des items prioritaires globaux
+
+#### W60-011 — Lexique Pilotage accessible (sidebar / Aide)
+
+* **Constat :** le lexique doctrine (Fiable, Partiel, Proxy, etc.) n’était pas atteignable depuis l’UI ; les utilisateurs ne pouvaient pas s’y référer sans doc externe.
+* **Décision / sortie attendue :** entrée **Lexique** (ancre `#lexique`) et **Aide** dans le pied de menu latéral desktop ; page **`/aide`** avec section lexique alignée sur `UI_STATE_LABELS` / doctrine Web60.
+* **Statut :** Fait — `Sidebar.tsx`, `app/(cockpit)/aide`, `app/(reporting)/aide`, `lexique-pilotage.ts`, `AideLexiquePage.tsx`.
 
 #### W60-001 — Normaliser le lexique d’état visible
 
@@ -380,6 +387,7 @@ Le backlog doit rester un outil de fermeture produit, pas une inflation de ticke
 | 25 mars 2026 | **v1.1.7** : **EXECUTION v1.1.16** — **W60-103** / **T-W60-103** **En cours** ; **§5.3** `treasuryCockpitPrimaryBadge`. |
 | 25 mars 2026 | **v1.1.8** : **EXECUTION v1.1.17** — **§5.3.1** contour cockpit ; **W60-101** / **W60-102** **Fait** ; **W60-103** **En cours** (preuve **lab**) ; doctrine **v1.1.2**. |
 | 25 mars 2026 | **v1.1.9** : **EXECUTION v1.1.18** — **W60-103** / **T-W60-103** **Fait** ; **§13** ; **R60-004** **OK** ; recette **v1.1.16**, plan **v1.1.20**, spec **v1.1.17**. |
+| 25 mars 2026 | **v1.1.10** : **W60-011** **Fait** — lexique + Aide dans menu latéral, route **`/aide`**. |
 
 ---
 
@@ -413,6 +421,7 @@ Le backlog doit rester un outil de fermeture produit, pas une inflation de ticke
 | **1.1.7** | **EXECUTION v1.1.16** : **W60-103** **En cours** ; **§5.3** mapping qualité Trésorerie. |
 | **1.1.8** | **EXECUTION v1.1.17** : **§5.3.1** ; **W60-101** / **W60-102** **Fait** ; **W60-103** **En cours** ; doctrine **v1.1.2**, spec **v1.1.16**, recette **v1.1.15**, plan **v1.1.19**. |
 | **1.1.9** | **EXECUTION v1.1.18** : **W60-103** **Fait** ; **R60-004** ; **§13** ; spec **v1.1.17**, recette **v1.1.16**, plan **v1.1.20**. |
+| **1.1.10** | **W60-011** **Fait** : lexique / Aide sidebar + **`/aide`**. |
 
 ---
 

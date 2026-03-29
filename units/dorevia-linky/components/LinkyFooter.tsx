@@ -12,6 +12,16 @@ const DOREVIA_VAULT_LINK =
 
 const DEFAULT_VAULT_LINK_LABEL = "Dorevia Vault";
 
+/** W60-005 : distinguer le total cumulé (footer) du compteur « vue » (header) */
+const PROOF_CUMULATIVE_TITLE =
+  "Total des preuves scellées disponibles pour ce tenant et la société affichée (si une société est sélectionnée), toutes périodes confondues.";
+
+/** Révision du bundle Next (injectée au build Docker) — permet de vérifier que le lab sert bien la dernière image */
+const LINKY_UI_BUILD_REF =
+  typeof process.env.NEXT_PUBLIC_LINKY_UI_BUILD_REF === "string" && process.env.NEXT_PUBLIC_LINKY_UI_BUILD_REF.length > 0
+    ? process.env.NEXT_PUBLIC_LINKY_UI_BUILD_REF
+    : "—";
+
 interface PlatformStatus {
   vault_status: string;
   sources: Array<{ name: string; status: string }>;
@@ -122,9 +132,9 @@ export function LinkyFooter({
 
   const proofBlock =
     sealedCount != null ? (
-      <span>Preuves scellées : {sealedCount.toLocaleString("fr-FR")} ✓</span>
+      <span title={PROOF_CUMULATIVE_TITLE}>Cumul preuves · {sealedCount.toLocaleString("fr-FR")} ✓</span>
     ) : (
-      <span>Preuves scellées : —</span>
+      <span title={PROOF_CUMULATIVE_TITLE}>Cumul preuves · —</span>
     );
   const lastSealBlock =
     lastSealAgo != null ? (
@@ -147,37 +157,51 @@ export function LinkyFooter({
 
   return (
     <footer
-      className="fixed bottom-0 left-0 right-0 z-20 shrink-0 border-t border-[var(--border)] bg-[var(--bg-secondary)] px-4 py-2.5"
-      style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+      className="fixed bottom-0 left-0 right-0 z-20 shrink-0 border-t border-[var(--border)] bg-[var(--footer-bar)] px-3 py-1.5 md:left-72"
+      style={{ paddingBottom: "max(0.35rem, env(safe-area-inset-bottom))" }}
     >
-      <div className="mx-auto max-w-4xl overflow-x-auto">
-        {/* Une seule ligne — fond opaque, pas de retour à la ligne ; une seule mention Vault (lien) */}
-        <div className="hidden sm:flex flex-nowrap items-center justify-center gap-x-4 text-xs text-[var(--text)] min-w-0">
-          <span className="font-medium tabular-nums shrink-0">{proofBlock}</span>
-          {sep}
-          <span className="tabular-nums shrink-0" title={uxTitle}>UX P95 : {uxP95Text} {uxIndicator}</span>
-          {lastSealBlock && (
-            <>
-              {sep}
-              <span className="shrink-0">{lastSealBlock}</span>
-            </>
-          )}
-          {sep}
-          <span className="shrink-0">{sourcesBlock}</span>
-          {sep}
-          <a
-            href={DOREVIA_VAULT_LINK}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Données financières vérifiables — Linky consomme les documents scellés dans le Vault"
-            className="opacity-80 hover:opacity-100 hover:text-[var(--text)] hover:underline transition-all shrink-0 text-[var(--text-secondary)]"
-          >
-            {vaultLinkLabel}
-          </a>
-          {sep}
-          <span className="tabular-nums shrink-0 text-[var(--text-secondary)]">{version}</span>
-          {sep}
-          <span className="shrink-0 text-[var(--text-secondary)]">© doreviateam 2026</span>
+      <div className="mx-auto w-full min-w-0 max-w-none overflow-x-auto">
+        {/*
+          Grille 1fr | auto | 1fr : le bloc métadonnées reste centré dans la barre ;
+          le copyright reste ancré à droite (même largeur de colonnes latérales pour un vrai centrage).
+        */}
+        <div className="hidden sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-x-2 sm:py-0">
+          <span className="min-w-0" aria-hidden />
+          <div className="flex min-w-0 flex-nowrap items-center justify-center gap-x-2 overflow-x-auto text-[10px] leading-snug text-[color-mix(in_srgb,var(--text-secondary)_86%,var(--muted)_14%)] opacity-[0.88] [scrollbar-width:thin]">
+            <span className="shrink-0 tabular-nums">{proofBlock}</span>
+            {sep}
+            <span className="shrink-0 tabular-nums" title={uxTitle}>
+              UX {uxP95Text} {uxIndicator}
+            </span>
+            {lastSealBlock && (
+              <>
+                {sep}
+                <span className="shrink-0">{lastSealBlock}</span>
+              </>
+            )}
+            {sep}
+            <span className="shrink-0">{sourcesBlock}</span>
+            {sep}
+            <a
+              href={DOREVIA_VAULT_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Données financières vérifiables — Linky consomme les documents scellés dans le Vault"
+              className="shrink-0 text-[color-mix(in_srgb,var(--text-secondary)_88%,var(--muted)_12%)] transition-all hover:text-[var(--text)] hover:underline"
+            >
+              {vaultLinkLabel}
+            </a>
+            {sep}
+            <span
+              className="shrink-0 tabular-nums"
+              title={`Révision UI Linky (build) : ${LINKY_UI_BUILD_REF}`}
+            >
+              {version}
+            </span>
+          </div>
+          <div className="flex min-w-0 justify-end pl-2">
+            <span className="shrink-0 text-xs text-[var(--text-secondary)]">© doreviateam 2026</span>
+          </div>
         </div>
         {/* Mobile — une ligne compacte ; tap ouvre le drawer "confiance système" si showTrustDrawer (tenant config) */}
         <div className="sm:hidden">
@@ -191,13 +215,14 @@ export function LinkyFooter({
             }}
             className="w-full flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-xs text-[var(--text-secondary)] py-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-inset"
             aria-label="Ouvrir les informations de confiance système"
+            title={PROOF_CUMULATIVE_TITLE}
           >
             <span className="text-[var(--text)]">Vault</span>
             <span className="text-[var(--border)]" aria-hidden>·</span>
             {sealedCount != null ? (
-              <span className="tabular-nums">{sealedCount.toLocaleString("fr-FR")} preuves ✓</span>
+              <span className="tabular-nums">{sealedCount.toLocaleString("fr-FR")} cumulées ✓</span>
             ) : (
-              <span>— preuves</span>
+              <span>— cumulées</span>
             )}
             <span className="text-[var(--border)]" aria-hidden>·</span>
             <span className="text-[var(--muted)]">Toucher pour détails</span>
@@ -256,6 +281,10 @@ export function LinkyFooter({
                     {sep}
                     <span className="tabular-nums">{version}</span>
                     {sep}
+                    <span className="tabular-nums" title="Révision UI Linky (build image)">
+                      UI {LINKY_UI_BUILD_REF}
+                    </span>
+                    {sep}
                     <span>© doreviateam 2026</span>
                   </div>
                 </div>
@@ -264,13 +293,16 @@ export function LinkyFooter({
           )}
             </>
           ) : (
-            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-xs text-[var(--text-secondary)] py-2">
+            <div
+              className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-xs text-[var(--text-secondary)] py-2"
+              title={PROOF_CUMULATIVE_TITLE}
+            >
               <span className="text-[var(--text)]">Vault</span>
               <span className="text-[var(--border)]" aria-hidden>·</span>
               {sealedCount != null ? (
-                <span className="tabular-nums">{sealedCount.toLocaleString("fr-FR")} preuves ✓</span>
+                <span className="tabular-nums">{sealedCount.toLocaleString("fr-FR")} cumulées ✓</span>
               ) : (
-                <span>— preuves</span>
+                <span>— cumulées</span>
               )}
             </div>
           )}

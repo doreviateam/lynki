@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<!--
+  Référence visuelle partielle — maquette type « Observatory » (HTML statique).
+  Usage : comparer typo (Manrope titres + Inter corps), ambiance dark slate, et écarts avec Lynki / CDCF web61.
+  Ne pas traiter comme spec fonctionnelle : pas de rail métier Lynki, pas de contexte tenant/société/période.
+-->
+<html class="dark" lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Observatory — référence Lynki (mix)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #3b82f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    h1, .headline {
+      font-family: "Manrope", "Inter", sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .shell { display: flex; min-height: 100vh; }
+    .rail {
+      width: 240px;
+      border-right: 1px solid var(--border);
+      background: #020617;
+      padding: 1.25rem;
+    }
+    .rail h2 { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin: 1rem 0 0.5rem; }
+    .rail a { display: block; padding: 0.5rem 0.75rem; border-radius: 0.5rem; color: var(--muted); text-decoration: none; font-size: 0.875rem; }
+    .rail a:hover { background: var(--surface); color: var(--text); }
+    main { flex: 1; padding: 1.5rem 2rem; }
+    header.page { margin-bottom: 1.5rem; }
+    header.page h1 { font-size: 1.5rem; margin: 0 0 0.25rem; }
+    header.page p { margin: 0; font-size: 0.875rem; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem;
+    }
+    .card .label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+    .card .value { font-size: 1.75rem; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 0.35rem; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="rail" aria-label="Navigation (maquette)">
+      <div class="headline" style="font-size:1.125rem;">Observatory</div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-top:0.25rem;">Démo UI uniquement</div>
+      <h2>Menu</h2>
+      <a href="#">Vue cockpit</a>
+      <a href="#">Rapports</a>
+      <h2>Outils</h2>
+      <a href="#">Paramètres</a>
+    </aside>
+    <main>
+      <header class="page">
+        <h1>Pilotage</h1>
+        <p>Sous-titre ou contexte fictif — la maquette ne formalise pas tenant / société / période.</p>
+      </header>
+      <section class="grid" aria-label="Cartes KPI fictives">
+        <article class="card">
+          <div class="label">Indicateur A</div>
+          <div class="value">128 k€</div>
+        </article>
+        <article class="card">
+          <div class="label">Indicateur B</div>
+          <div class="value">94 %</div>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

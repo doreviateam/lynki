@@ -8,7 +8,7 @@ interface PlatformStatus {
   integrity_state: IntegrityState;
   tooltip_cause: string | null;
   sealed_pct: number | null;
-  /** Même source que le footer — pour afficher 8 partout (header = footer) */
+  /** Fallback si le cockpit ne fournit pas sealedCount — total tenant (aligné footer) */
   sealed_count_total: number | null;
 }
 
@@ -32,9 +32,22 @@ interface IntegrityBadgeProps {
   sealedCountComplete?: boolean;
   /** Rafraîchir les métriques (recalcule le nombre de preuves) */
   onRefresh?: () => void;
+  /** Classes additionnelles sur le conteneur (ex. densité contextuelle header). */
+  className?: string;
+  /**
+   * `secondary` : signal de confiance — même information, rendu plus discret (ne rivalise pas avec les filtres).
+   */
+  visualWeight?: "default" | "secondary";
 }
 
-export function IntegrityBadge({ tenantId, sealedCount, sealedCountComplete = true, onRefresh }: IntegrityBadgeProps) {
+export function IntegrityBadge({
+  tenantId,
+  sealedCount,
+  sealedCountComplete = true,
+  onRefresh,
+  className = "",
+  visualWeight = "default",
+}: IntegrityBadgeProps) {
   const [status, setStatus] = useState<PlatformStatus | null>(null);
 
   useEffect(() => {
@@ -75,24 +88,33 @@ export function IntegrityBadge({ tenantId, sealedCount, sealedCountComplete = tr
   const state = status.integrity_state;
   const baseLabel = LABELS[state];
   const countFromStatus = status.sealed_count_total != null && status.sealed_count_total >= 0 ? status.sealed_count_total : null;
-  /** Une seule source : priorité au prop (dashboard-metrics) pour aligner header et footer, sinon platform/status */
-  const displayCount = typeof sealedCount === "number" && sealedCount >= 0 ? sealedCount : countFromStatus;
+  const isViewScopedCount = typeof sealedCount === "number" && sealedCount >= 0;
+  /** Prop cockpit (période + périmètre affichés) en priorité, sinon fallback platform/status (total ≈ footer) */
+  const displayCount = isViewScopedCount ? sealedCount : countFromStatus;
   const hasCount = displayCount != null;
   const pct = status.sealed_pct;
   const complete = sealedCountComplete !== false;
+  const viewLabelSuffix = isViewScopedCount ? "preuves de la vue" : "preuves cumulées";
   const label =
     hasCount && displayCount != null
       ? complete
-        ? `${displayCount} preuves scellées`
-        : `${displayCount} preuves (partiel)`
+        ? `${displayCount} ${viewLabelSuffix}`
+        : `${displayCount} ${viewLabelSuffix} (partiel)`
       : pct != null && (state === "STATE_OK" || state === "STATE_PARTIAL")
         ? `${pct} % couverts`
         : baseLabel;
   const icon = ICONS[state];
+  const tooltipViewComplete = "Preuves scellées correspondant au périmètre et à la période affichés.";
+  const tooltipCumulativeComplete =
+    "Total des preuves scellées disponibles pour ce tenant et la société affichée (si une société est sélectionnée), toutes périodes confondues.";
   let tooltipBase = hasCount
     ? complete
-      ? "Factures, paiements et sessions POS scellés. Comptage total pour la période."
-      : "Données partielles : certaines sources n'ont pas répondu. Le chiffre peut être incomplet. Rafraîchir pour réessayer."
+      ? isViewScopedCount
+        ? tooltipViewComplete
+        : tooltipCumulativeComplete
+      : isViewScopedCount
+        ? `${tooltipViewComplete} Données partielles : certaines sources n'ont pas répondu. Le chiffre peut être incomplet. Rafraîchir pour réessayer.`
+        : `${tooltipCumulativeComplete} Données partielles : le total peut être incomplet. Rafraîchir pour réessayer.`
     : label;
   if (hasCount && complete && pct === 100) {
     tooltipBase += "\n\nCouverture : 100 % des flux détectés";
@@ -106,28 +128,44 @@ export function IntegrityBadge({ tenantId, sealedCount, sealedCountComplete = tr
         ? "text-[var(--positive)] border-[var(--positive)]/30 bg-[var(--positive)]/5"
         : "text-[var(--negative)] border-[var(--negative)]/30 bg-[var(--negative)]/5";
 
+  const leftAccentClass =
+    !complete || state === "STATE_PARTIAL"
+      ? "border-l-amber-500/45"
+      : state === "STATE_OK"
+        ? "border-l-emerald-500/40"
+        : "border-l-red-500/50";
+
+  const shellClass =
+    visualWeight === "secondary"
+      ? `border border-[color-mix(in_srgb,var(--border)_30%,transparent)] border-l-2 ${leftAccentClass} bg-[color-mix(in_srgb,var(--surface)_96%,transparent)] text-[color-mix(in_srgb,var(--text-secondary)_88%,var(--muted)_12%)] !font-normal text-[10px] sm:text-[10px]`
+      : colorClass;
+
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium ${colorClass}`}
+      className={`inline-flex w-max max-w-full shrink-0 flex-nowrap items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium ${visualWeight === "secondary" ? "!gap-1 !px-1.5 !py-px" : ""} ${shellClass} ${className}`.trim()}
       title={title}
       data-testid="integrity-badge"
     >
-      <span aria-hidden>{icon}</span>
-      <span className="hidden sm:inline" data-testid="integrity-badge-label">{label}</span>
-      {onRefresh && (
+      <span className="inline-flex shrink-0 items-center gap-1">
+        <span aria-hidden>{icon}</span>
+        <span className="hidden sm:inline" data-testid="integrity-badge-label">
+          {label}
+        </span>
+      </span>
+      {onRefresh ? (
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             onRefresh();
           }}
-          className="ml-0.5 rounded p-0.5 hover:bg-black/10 hover:bg-white/10"
+          className="shrink-0 rounded p-0.5 hover:bg-black/10 hover:bg-white/10"
           title="Rafraîchir le nombre de preuves"
           aria-label="Rafraîchir"
         >
           <span aria-hidden>↻</span>
         </button>
-      )}
+      ) : null}
     </span>
   );
 }

@@ -14,6 +14,7 @@ import {
   CockpitTreasuryPartialBanner,
   CockpitTreasuryUnavailable,
 } from "@/components/cockpit-detail/cockpitTreasuryStates";
+import { confidenceLabelFromScore, UI_STATE_LABELS } from "@/app/lib/cockpit/ui-state-labels";
 
 const USE_METRIC_ENGINE = process.env.NEXT_PUBLIC_LINKY_USE_METRIC_ENGINE === "1";
 
@@ -174,7 +175,7 @@ function TresorerieContent() {
     <>
       <TopBar
         confidenceScore={confidenceScore}
-        confidenceLabel={confidenceScore === 100 ? "Fiable" : confidenceScore !== null ? "Partielle" : undefined}
+        confidenceLabel={confidenceLabelFromScore(confidenceScore)}
         title="Lynki Desktop Cockpit"
       />
 
@@ -300,7 +301,11 @@ function TresorerieContent() {
                     <div className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-2 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/50 dark:text-emerald-400">
                       <Icon name="verified" size={20} filled className="text-emerald-600 dark:text-emerald-400" />
                       <span className="text-sm font-extrabold">
-                        {confidenceScore === 100 ? "FIABLE" : confidenceScore != null ? "PARTIELLE" : "—"}
+                        {confidenceScore === 100
+                          ? UI_STATE_LABELS.reliable.toUpperCase()
+                          : confidenceScore != null
+                            ? UI_STATE_LABELS.partial.toUpperCase()
+                            : UI_STATE_LABELS.pending.toUpperCase()}
                       </span>
                     </div>
                     {reconciliationRate != null ? (

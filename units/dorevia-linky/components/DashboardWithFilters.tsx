@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useState, useEffect, useLayoutEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { ChartExpandedProvider, useChartExpanded } from "@/app/context/ChartExpandedContext";
 import { ChromeAdaptiveProvider, useChromeAdaptive } from "@/app/context/ChromeAdaptiveContext";
@@ -33,6 +33,7 @@ import { getDefaultPeriod, type PeriodRange } from "@/app/lib/period-utils";
 import type { DashboardMetricsResponse } from "@/app/api/dashboard-metrics/route";
 import { recordUxSample } from "@/app/lib/ux-metrics";
 import { companyDisplayLabel, normalizeCompanyId } from "@/app/lib/company-id";
+import { confidenceLabelFromScore } from "@/app/lib/cockpit/ui-state-labels";
 import { computeConfidenceScore } from "@/app/lib/confidence";
 
 const COMPANIES_TIMEOUT_MS = 5000;
@@ -228,23 +229,12 @@ function DashboardWithFiltersContent({
     },
     [router, pathname, searchParams]
   );
-  // ── Navigation Pilotage / Synthèse (SPEC_UX_NAVIGATION_LYNKI §2–§4) ──────
-  // Source de vérité : URL ?view=pilotage|synthese  — fallback "pilotage"
+  // Vue cockpit : `/?view=synthese` redirige serveur vers `/synthese` ; le header ne propose plus de toggle.
   const [appView, setAppViewState] = useState<AppView>(() => parseAppView(searchParams.get("view")) ?? initialAppView);
 
-  // Synchroniser avec l'URL dès hydratation et à chaque changement de searchParams
   useEffect(() => {
     setAppViewState(parseAppView(searchParams.get("view")));
   }, [searchParams]);
-
-  const setAppView = useCallback(
-    (view: AppView) => {
-      const next = new URLSearchParams(searchParams.toString());
-      next.set("view", view);
-      router.push(`${pathname}?${next.toString()}`);
-    },
-    [router, pathname, searchParams]
-  );
 
   const [primarySource, setPrimarySource] = useState<"erp" | "vault">("vault");
   const [companies, setCompanies] = useState<CompanyItem[]>([]);
@@ -355,14 +345,30 @@ function DashboardWithFiltersContent({
   const showIconGrid = viewMode === "all" && !focusedCardId;
   const cockpitDesktopMerged =
     showIconGrid && interactionMode === "desktop" && appView === "pilotage";
+  /** Réserve sous le header quand le cockpit n’est pas fusionné (bandeau classique). */
+  const reportChromeReservePx = 140;
+  /** Valeur initiale / secours pour la hauteur du shell cockpit (évite un flash avant mesure). */
+  const cockpitMergedShellFallbackPx = 200;
+  const cockpitHeaderShellRef = useRef<HTMLDivElement>(null);
+  const [cockpitMergedShellPx, setCockpitMergedShellPx] = useState(cockpitMergedShellFallbackPx);
+
+  useLayoutEffect(() => {
+    if (!cockpitDesktopMerged || !chromeVisible) return;
+    const el = cockpitHeaderShellRef.current;
+    if (!el) return;
+    const measure = () => {
+      const h = el.getBoundingClientRect().height;
+      setCockpitMergedShellPx(Math.max(56, Math.ceil(h)));
+    };
+    measure();
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [cockpitDesktopMerged, chromeVisible]);
+
+  const headerSpacerHeightPx =
+    !chromeVisible ? 0 : cockpitDesktopMerged ? cockpitMergedShellPx : reportChromeReservePx;
   const cockpitBarScore = cockpitDesktopMerged ? computeConfidenceScore(dashboardMetrics) : null;
-  const cockpitSubtitle = `Arrêté ${new Date().toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })}`;
   const effectiveCompanyId =
     FORCED_COMPANY_ID ??
     selectedCompanyId ??
@@ -466,6 +472,9 @@ function DashboardWithFiltersContent({
     dashboardMetrics != null &&
     !metricsLoading &&
     !metricsError;
+  /** Erreur fetch métriques : afficher quand même la grille cockpit (tuiles en état erreur, §6.8 / CDCF) au lieu du seul SyncInProgress. */
+  const cockpitMetricsFetchError =
+    appView === "pilotage" && showIconGrid && metricsError && !metricsLoading;
   const isIncomplete = !metricsLoading && !metricsError && (dashboardMetrics?.sealed_count_complete === false) && !userBypassIncomplete;
 
   // Option C : après 5 s d'incomplétude, libérer la carte Trésorerie en priorité
@@ -532,17 +541,19 @@ function DashboardWithFiltersContent({
         aria-hidden
         className="shrink-0 transition-[height,max-height] duration-300 ease-out motion-reduce:duration-0"
         style={{
-          height: chromeVisible ? 140 : 0,
-          maxHeight: chromeVisible ? 140 : 0,
+          height: headerSpacerHeightPx,
+          maxHeight: headerSpacerHeightPx,
           overflow: "hidden",
         }}
       />
       {/* Header : fixe sous la sidebar desktop ; masqué après inactivité (translate) */}
       <div
-        className={`fixed top-0 left-0 right-0 z-40 border-b border-[var(--border)] bg-[var(--bg-secondary)] transition-[transform,max-height] duration-300 ease-out motion-reduce:duration-0 md:left-64 ${chromeVisible ? "overflow-visible" : "overflow-hidden"}`}
+        ref={cockpitHeaderShellRef}
+        className={`fixed top-0 left-0 right-0 z-40 border-b border-[var(--border)] bg-[var(--bg-secondary)] transition-[transform,max-height] duration-300 ease-out motion-reduce:duration-0 md:left-72 ${chromeVisible ? "overflow-visible" : "overflow-hidden"}`}
         style={{
           transform: chromeVisible ? "translateY(0)" : "translateY(-100%)",
-          maxHeight: chromeVisible ? "140px" : "0",
+          maxHeight:
+            chromeVisible ? (cockpitDesktopMerged ? "none" : `${reportChromeReservePx}px`) : "0",
         }}
       >
         <ReportHeader
@@ -564,18 +575,12 @@ function DashboardWithFiltersContent({
           chromeCompact={chromeState === "compact"}
           onExpandChrome={() => revealChrome("tap_trigger")}
           appView={appView}
-          onNavigateToAppView={setAppView}
+          onNavigateToAppView={undefined}
           cockpitAppBar={
             cockpitDesktopMerged
               ? {
                   confidenceScore: cockpitBarScore,
-                  confidenceLabel:
-                    cockpitBarScore === 100
-                      ? "Fiable"
-                      : cockpitBarScore != null
-                        ? "Partielle"
-                        : undefined,
-                  subtitle: cockpitSubtitle,
+                  confidenceLabel: confidenceLabelFromScore(cockpitBarScore),
                 }
               : undefined
           }
@@ -583,7 +588,7 @@ function DashboardWithFiltersContent({
       </div>
 
       <main
-        className={`mx-auto flex min-h-0 flex-1 w-full flex-col pb-16 ${cockpitDesktopMerged ? "max-w-none px-6" : "max-w-4xl px-4"} ${chromeVisible ? "pt-6" : "pt-4"}`}
+        className={`mx-auto flex min-h-0 flex-1 w-full flex-col pb-16 ${cockpitDesktopMerged ? "max-w-none px-7" : "max-w-4xl px-4"} ${cockpitDesktopMerged && chromeVisible ? "pt-0" : chromeVisible ? "pt-6" : "pt-4"}`}
       >
         {/* Vue Synthèse comptable (Lot 2 — AccountingSummaryView) */}
         {appView === "synthese" ? (
@@ -592,8 +597,19 @@ function DashboardWithFiltersContent({
             companyId={effectiveCompanyId}
             period={period}
           />
-        ) : showCards ? (
+        ) : showCards || cockpitMetricsFetchError ? (
         <>
+        {cockpitMetricsFetchError ? (
+          <div
+            className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-[var(--text)]"
+            role="alert"
+          >
+            <p className="font-semibold">Indicateurs cockpit indisponibles</p>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
+              Le chargement des métriques a échoué. Actualisez depuis l’en-tête ou vérifiez la connexion. Les montants affichés ne sont pas des valeurs métier.
+            </p>
+          </div>
+        ) : null}
         {userBypassIncomplete && (
           <div className="mb-4 rounded-lg border border-[var(--warning)]/50 bg-[var(--warning)]/10 px-4 py-2 text-sm text-[var(--text)]">
             Données partiellement synchronisées — certaines métriques peuvent être incomplètes.
@@ -607,6 +623,7 @@ function DashboardWithFiltersContent({
               period={period}
               metrics={dashboardMetrics}
               metricsLoading={metricsLoading}
+              metricsError={cockpitMetricsFetchError}
               onSelectCard={(id) => setFocusedCardId(id)}
             />
           ) : (
@@ -616,6 +633,7 @@ function DashboardWithFiltersContent({
               period={period}
               metrics={dashboardMetrics}
               metricsLoading={metricsLoading}
+              metricsError={cockpitMetricsFetchError}
               onSelectCard={(id) => setFocusedCardId(id)}
               hideTopBar={cockpitDesktopMerged}
             />
@@ -772,7 +790,7 @@ function DashboardWithFiltersContent({
         )}
         </>
         ) : null}
-        {appView === "pilotage" && !showCards && showTreasuryAfterIncomplete ? (
+        {appView === "pilotage" && !showCards && !cockpitMetricsFetchError && showTreasuryAfterIncomplete ? (
           <>
             {!isPosView && (
               <div className="mb-6">
@@ -797,7 +815,7 @@ function DashboardWithFiltersContent({
               attemptCount={attemptCount}
             />
           </>
-        ) : appView === "pilotage" ? (
+        ) : appView === "pilotage" && !cockpitMetricsFetchError ? (
           <SyncInProgress
             sealedCount={dashboardMetrics?.sealed_count}
             sealedCountComplete={dashboardMetrics?.sealed_count_complete}

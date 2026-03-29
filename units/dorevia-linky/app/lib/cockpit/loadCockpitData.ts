@@ -12,6 +12,7 @@ import type {
   AlertItemData,
 } from "@/app/types/cockpit";
 import { getDefaultPeriod } from "@/app/lib/period-utils";
+import { UI_STATE_LABELS, type CockpitFluxIntegrityLevel } from "@/app/lib/cockpit/ui-state-labels";
 
 const MONTHS = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -36,7 +37,7 @@ function getMockCockpitData(
     header: {
       tenantName,
       period: periodLabel,
-      fluxStatus: "validé",
+      fluxStatus: "reliable" satisfies CockpitFluxIntegrityLevel,
       source: "Vault",
     },
     insight: {
@@ -52,10 +53,10 @@ function getMockCockpitData(
     proof: {
       percentage: 78,
       sources: [
-        { name: "Vault", status: "Validé", variant: "success" },
-        { name: "Odoo", status: "Sync", variant: "success" },
-        { name: "POS", status: "Partiel", variant: "warning" },
-        { name: "Banque", status: "Confirmé", variant: "success" },
+        { name: "Vault", status: UI_STATE_LABELS.certified, variant: "success" },
+        { name: "Odoo", status: UI_STATE_LABELS.sync_ok, variant: "success" },
+        { name: "POS", status: UI_STATE_LABELS.partial, variant: "warning" },
+        { name: "Banque", status: UI_STATE_LABELS.reliable, variant: "success" },
       ] as ProofSource[],
     },
     flux: {
@@ -163,7 +164,8 @@ export async function loadCockpitData(
       : null;
 
     const proofPct = vault?.vault_rate != null ? Math.round(vault.vault_rate * 100) : 78;
-    const fluxStatus = proofPct >= 80 ? "validé" : proofPct >= 50 ? "partiel" : "à vérifier";
+    const fluxStatus: CockpitFluxIntegrityLevel =
+      proofPct >= 80 ? "reliable" : proofPct >= 50 ? "partial" : "to_confirm";
 
     const kpis = metrics?._details
       ? [
@@ -232,10 +234,10 @@ export async function loadCockpitData(
       proof: {
         percentage: proofPct,
         sources: [
-          { name: "Vault", status: proofPct >= 90 ? "Validé" : "Partiel", variant: proofPct >= 90 ? "success" : "warning" },
-          { name: "Odoo", status: "Sync", variant: "success" },
-          { name: "POS", status: "Partiel", variant: "warning" },
-          { name: "Banque", status: "Confirmé", variant: "success" },
+          { name: "Vault", status: proofPct >= 90 ? UI_STATE_LABELS.certified : UI_STATE_LABELS.partial, variant: proofPct >= 90 ? "success" : "warning" },
+          { name: "Odoo", status: UI_STATE_LABELS.sync_ok, variant: "success" },
+          { name: "POS", status: UI_STATE_LABELS.partial, variant: "warning" },
+          { name: "Banque", status: UI_STATE_LABELS.reliable, variant: "success" },
         ],
       },
       flux: {

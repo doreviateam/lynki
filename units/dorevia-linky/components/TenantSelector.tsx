@@ -55,7 +55,7 @@ export function TenantSelector({
     return (
       <>
         <div className="mt-2 border-t border-[var(--border)] px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
-          Espace de pilotage
+          Tenant
         </div>
         {availableTenants.map((t) => (
           <button
@@ -85,11 +85,11 @@ export function TenantSelector({
         disabled={isLoading}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={`Espace de pilotage : ${currentLabel ?? resolvedTenant ?? "Choisir"}`}
+        aria-label={`Tenant : ${currentLabel ?? resolvedTenant ?? "Choisir"}`}
         className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-xs text-[var(--text)] hover:bg-[var(--accent-soft)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-70 transition-colors"
       >
         <span className="max-w-[120px] truncate font-medium">
-          {currentLabel ?? resolvedTenant ?? "Espace…"}
+          {currentLabel ?? resolvedTenant ?? "Tenant…"}
         </span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -115,7 +115,7 @@ export function TenantSelector({
           <ul
             ref={listRef}
             role="listbox"
-            aria-label="Choisir l'espace de pilotage"
+            aria-label="Choisir le tenant"
             className="absolute right-0 top-full z-50 mt-1 min-w-[160px] overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-lg"
           >
             {availableTenants.map((t) => (

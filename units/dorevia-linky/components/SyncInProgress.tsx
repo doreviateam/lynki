@@ -44,7 +44,7 @@ export function SyncInProgress({
   const canViewAnyway = !sealedCountComplete && attemptCount >= 1 && onViewAnyway;
   const hasCount = sealedCount != null && sealedCount >= 0;
   const totalStr = expectedCount != null ? String(expectedCount) : "—";
-  const progression = hasCount ? `${sealedCount} / ${totalStr} preuves scellées` : null;
+  const progression = hasCount ? `${sealedCount} / ${totalStr} preuves de la vue` : null;
 
   return (
     <div

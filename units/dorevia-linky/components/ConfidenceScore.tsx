@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@/components/Icon";
+import { normalizeUiStateLabel, UI_STATE_LABELS } from "@/app/lib/cockpit/ui-state-labels";
 
 interface ConfidenceScoreProps {
   score: number | null;
@@ -12,6 +13,8 @@ export function ConfidenceScore({ score, label, compact = false }: ConfidenceSco
   if (score == null) return null;
 
   const pct = Math.min(100, Math.max(0, score));
+  const labelResolved =
+    normalizeUiStateLabel(label ?? UI_STATE_LABELS.reliable) ?? UI_STATE_LABELS.reliable;
   const color =
     pct >= 90 ? "var(--confidence-fiable)" :
     pct >= 70 ? "var(--confidence-partielle)" :
@@ -28,7 +31,7 @@ export function ConfidenceScore({ score, label, compact = false }: ConfidenceSco
         }}
       >
         <Icon name="verified_user" size={14} filled />
-        {pct.toFixed(1)} % {label ?? "Fiable"}
+        {pct.toFixed(1)} % {labelResolved}
       </span>
     );
   }
@@ -53,9 +56,9 @@ export function ConfidenceScore({ score, label, compact = false }: ConfidenceSco
             style={{ width: `${pct}%`, backgroundColor: color }}
           />
         </div>
-        {label && (
+        {label != null && label !== "" && (
           <div className="mt-1 text-right text-[9px] font-medium" style={{ color }}>
-            {label}
+            {labelResolved}
           </div>
         )}
       </div>

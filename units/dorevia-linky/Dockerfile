@@ -10,6 +10,9 @@ WORKDIR /app
 # NEXT_PUBLIC_* inlinés à la compilation (spec Trésorerie v1.1 CTAs Odoo)
 ARG NEXT_PUBLIC_ODOO_URL
 ENV NEXT_PUBLIC_ODOO_URL=${NEXT_PUBLIC_ODOO_URL:-https://odoo.stinger.sarl-la-platine.doreviateam.com/odoo}
+# Preuve de déploiement : court hash git passé au build (voir docker-compose lab / rebuild-linky.sh)
+ARG NEXT_PUBLIC_LINKY_UI_BUILD_REF=unknown
+ENV NEXT_PUBLIC_LINKY_UI_BUILD_REF=${NEXT_PUBLIC_LINKY_UI_BUILD_REF}
 
 COPY package.json package-lock.json* ./
 # npm install tant que package-lock.json n'inclut pas recharts ; passer à "npm ci" après npm install local

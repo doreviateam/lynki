@@ -24,6 +24,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import type { CardId } from "@/app/types/linky-tiles";
+import { normalizeUiStateLabel, UI_STATE_LABELS } from "@/app/lib/cockpit/ui-state-labels";
+import { COCKPIT_T3_SECONDARY_VALUE, COCKPIT_T4_CARD_LABEL, COCKPIT_T5_STATE_BADGE } from "@/app/lib/cockpit/cockpit-typography";
 
 /** Ordre de navigation entre cards (aligné sur l’ordre d’affichage dans le cockpit). */
 export const CARD_NAV_ORDER: { id: CardId; label: string }[] = [
@@ -182,7 +184,7 @@ export interface InstrumentCardStatusBadgeProps {
 }
 
 /** Hauteur et spacing badge figés (règle UI non négociable). */
-const BADGE_SIZE = "min-h-[1.25rem] inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium leading-tight";
+const BADGE_SIZE = `min-h-[1.25rem] inline-flex items-center gap-1 rounded-md px-2 py-0.5 leading-tight ${COCKPIT_T5_STATE_BADGE}`;
 
 const BADGE_CLASS: Record<NonNullable<InstrumentCardStatusBadgeProps["severity"]>, string> = {
   info: "bg-[var(--muted)]/20 text-[var(--text-secondary)]",
@@ -203,6 +205,8 @@ export function InstrumentCardStatusBadge({
   severity = "info",
   title,
 }: InstrumentCardStatusBadgeProps) {
+  const visible = normalizeUiStateLabel(label);
+  if (visible === null) return null;
   return (
     <span
       className={`${BADGE_SIZE} ${BADGE_CLASS[severity]}`}
@@ -214,7 +218,7 @@ export function InstrumentCardStatusBadge({
       >
         {BADGE_ICON[severity]}
       </span>
-      {label}
+      {visible}
     </span>
   );
 }
@@ -224,15 +228,15 @@ export type ConfidenceLevel = "fiable" | "partielle" | "proxy" | "estimee";
 const CONFIDENCE_SEVERITY: Record<ConfidenceLevel, NonNullable<InstrumentCardStatusBadgeProps["severity"]>> = {
   fiable: "success",
   partielle: "vigilance",
-  proxy: "info",
+  proxy: "vigilance",
   estimee: "info",
 };
 
 const CONFIDENCE_LABEL: Record<ConfidenceLevel, string> = {
-  fiable: "Fiable",
-  partielle: "Partielle",
-  proxy: "Proxy",
-  estimee: "Estimée",
+  fiable: UI_STATE_LABELS.reliable,
+  partielle: UI_STATE_LABELS.partial,
+  proxy: UI_STATE_LABELS.partial,
+  estimee: UI_STATE_LABELS.estimated,
 };
 
 export function ConfidenceBadge({ level, title }: { level: ConfidenceLevel; title?: string }) {
@@ -259,29 +263,27 @@ export interface CompactTileProps {
 }
 
 const COMPACT_TILE_CLASS =
-  "group flex flex-col gap-2 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--card)] p-4 text-left shadow-sm transition-all hover:border-linky-confidence-fiable/55 hover:shadow-md active:scale-[0.98]";
+  "group flex flex-col rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--card)] px-5 py-4 text-left shadow-sm transition-all hover:border-[color-mix(in_srgb,var(--accent)_45%,var(--border))] hover:shadow-md active:scale-[0.99]";
 
-function CompactTileInner({ icon, label, value, confidence, trend, trendPositive }: Omit<CompactTileProps, "onClick" | "href">) {
+function confidenceCompactLine(level: ConfidenceLevel): string {
+  if (level === "fiable") return "mt-3 font-semibold text-[var(--accent)]";
+  if (level === "estimee") return "mt-3 font-semibold text-[var(--text-secondary)]";
+  return "mt-3 font-semibold text-[var(--confidence-partielle)]";
+}
+
+function CompactTileInner({ icon: _icon, label, value, confidence, trend, trendPositive }: Omit<CompactTileProps, "onClick" | "href">) {
   return (
     <>
-      <div className="flex items-center gap-2">
-        <span
-          className="material-symbols-outlined text-[var(--muted)]"
-          style={{ fontSize: 16, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 16" }}
-        >
-          {icon}
-        </span>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">{label}</span>
-      </div>
-      <span className="text-xl font-bold tabular-nums text-[var(--text)]">{value}</span>
-      <div className="flex items-center gap-2">
-        {confidence && <ConfidenceBadge level={confidence} />}
-        {trend && (
+      <div className={COCKPIT_T4_CARD_LABEL}>{label}</div>
+      <div className={`mt-3 ${COCKPIT_T3_SECONDARY_VALUE}`}>{value}</div>
+      {confidence ? <div className={confidenceCompactLine(confidence)}>✹ {CONFIDENCE_LABEL[confidence]}</div> : null}
+      {trend ? (
+        <div className="mt-2">
           <span className={`text-[9px] font-semibold ${trendPositive ? "text-[var(--confidence-fiable)]" : "text-[var(--negative)]"}`}>
             {trend}
           </span>
-        )}
-      </div>
+        </div>
+      ) : null}
     </>
   );
 }

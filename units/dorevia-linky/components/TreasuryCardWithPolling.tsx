@@ -17,6 +17,7 @@ import type { CardId } from "@/app/types/linky-tiles";
 import { getAvailableGranularities, getDefaultChartGranularity, type ChartGranularity } from "@/app/lib/chart-granularity";
 import type { ChartType } from "@/app/lib/chart-type";
 import type { SeriesPoint } from "@/app/types/aggregations";
+import { PAYMENTS_GOV_LABEL } from "@/app/lib/cockpit/ui-state-labels";
 
 const POLL_INTERVAL_MS = 5 * 1000; // 5 s — sync Linky / Vault / Odoo < 7 s
 const ENABLE_LIVE_POLLING = process.env.NEXT_PUBLIC_LINKY_ENABLE_LIVE_POLLING === "1";
@@ -228,7 +229,7 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, primarySo
   const governanceConfig = {
     partial: {
       border: "border-l-[var(--warning)]",
-      status: "DONNÉES PARTIELLES",
+      status: PAYMENTS_GOV_LABEL.partial,
       subtitle: (pct: number | null) =>
         pct != null && totalAmountAbs > 0
           ? `${pct.toFixed(1)} % des flux non couverts par preuve bancaire`
@@ -237,19 +238,19 @@ export function TreasuryCardWithPolling({ period, companyId, tenantId, primarySo
     },
     critical: {
       border: "border-l-[var(--warning)]",
-      status: "RAPPROCHEMENT INSUFFISANT",
+      status: PAYMENTS_GOV_LABEL.critical,
       subtitle: (pct: number) => `${pct.toFixed(1)} % des flux non couverts par preuve bancaire`,
       statusColor: "text-[var(--warning)]",
     },
     progress: {
       border: "border-l-[var(--governance-yellow)]",
-      status: "RAPPROCHEMENT EN COURS",
+      status: PAYMENTS_GOV_LABEL.progress,
       subtitle: (pct: number) => `${pct.toFixed(1)} % des flux non couverts par preuve bancaire`,
       statusColor: "text-[var(--governance-yellow)]",
     },
     ok: {
       border: "border-l-[var(--positive)]",
-      status: "COUVERTURE PROBANTE MAÎTRISÉE",
+      status: PAYMENTS_GOV_LABEL.ok,
       subtitle: totalAmountAbs === 0 ? "Aucun paiement sur la période" : ((pct: number) => `${pct.toFixed(1)} % des flux non couverts par preuve bancaire`),
       statusColor: "text-[var(--positive)]",
     },

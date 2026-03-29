@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Build & deploy : Vault (core-stinger), Linky lab laplatine2026 + Linky lab o19
 #
+# NB : l’URL publique https://lab.linky.doreviateam.com/ est routée vers **linky_generic**
+# (tenants/linky-generic), pas vers linky_lab_laplatine2026. Pour aligner le lab « visible » :
+#   ./scripts/deploy-linky-lab.sh
+#
 # Usage habituel : on livre Linky sur les deux tenants lab en même temps (même image, deux compose).
 #   - tenants/laplatine2026/apps/ui/lab/docker-compose.yml  → linky_lab_laplatine2026
 #   - tenants/o19/apps/ui/lab/docker-compose.yml            → linky_lab_o19

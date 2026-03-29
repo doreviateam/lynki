@@ -36,14 +36,3 @@ export function metricConfidenceOutlineClass(level: CockpitMetricConfidence): st
       return "border border-[var(--border)]";
   }
 }
-
-/** Pastille icône wallet Trésorerie : pas de vert dominant si l’état n’est pas `ok`. */
-export function treasuryWalletIconSurfaceClass(status: CardStatusValue | undefined): string {
-  if (status === "ok") {
-    return "bg-[color-mix(in_srgb,var(--confidence-fiable)_12%,var(--card))] text-[var(--confidence-fiable)]";
-  }
-  if (status === "watch") {
-    return "bg-[color-mix(in_srgb,var(--border)_80%,var(--card))] text-[var(--text-secondary)]";
-  }
-  return "bg-[var(--bg-secondary)] text-[var(--text-secondary)]";
-}

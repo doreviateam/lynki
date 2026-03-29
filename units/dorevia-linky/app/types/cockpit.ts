@@ -1,11 +1,14 @@
 /** Types pour le cockpit Linky — CAHIER_DES_CHARGES v1.2 */
 
+import type { CockpitFluxIntegrityLevel } from "@/app/lib/cockpit/ui-state-labels";
+
 export type BadgeVariant = "success" | "warning" | "danger" | "info";
 
 export interface CockpitHeaderData {
   tenantName: string;
   period: string;
-  fluxStatus: "validé" | "partiel" | "à vérifier";
+  /** Clé sémantique — libellé affiché via `COCKPIT_FLUX_INTEGRITY` (Web60 T-W60-002). */
+  fluxStatus: CockpitFluxIntegrityLevel;
   source: string;
 }
 

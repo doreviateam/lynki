@@ -75,8 +75,8 @@ export function normalizeUiStateLabel(input?: string | null): string | null {
   if (value === "ok" || value === "valide" || value === "healthy") return null;
   if (value === "sur" || value === "solide") return null;
 
-  // Compat chaînes héritées (« proxy data ») — affichage canon : Proxy
-  if (value === "proxy data" || value === "proxy") return UI_STATE_LABELS.proxy;
+  // Compat chaînes héritées (« proxy data ») — doctrine §9.5 : affichage Partiel (lectures Vault)
+  if (value === "proxy data" || value === "proxy") return UI_STATE_LABELS.partial;
   if (value === "fiable") return UI_STATE_LABELS.reliable;
   if (value === "partiel" || value === "partielle" || value === "donnees partielles" || value === "données partielles") {
     return UI_STATE_LABELS.partial;

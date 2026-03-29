@@ -11,6 +11,7 @@ import {
   InstrumentCardStatusBadge,
   InstrumentCardFooter,
 } from "@/components/InstrumentCardChrome";
+import { UI_STATE_LABELS } from "@/app/lib/cockpit/ui-state-labels";
 import type { CardId } from "@/app/types/linky-tiles";
 import { InstrumentCardEvolutionBlock } from "@/components/InstrumentCardEvolutionBlock";
 import { EVOLUTION_EMPTY_MESSAGE } from "@/app/lib/evolution-block-constants";
@@ -136,8 +137,13 @@ export function TresoreriePositionCard({
 
   const hasVigilance = uiState === "vigilance" || uiState === "tension";
   const statusLabel =
-    uiState === "tension" ? "Validation partielle" : uiState === "vigilance" ? "Écart à analyser" : null;
-  const footerStatusLabel = hasVigilance ? statusLabel : "Validée";
+    uiState === "tension"
+      ? UI_STATE_LABELS.partial
+      : uiState === "vigilance"
+        ? UI_STATE_LABELS.to_confirm
+        : null;
+  const footerStatusLabel =
+    hasVigilance && statusLabel != null ? statusLabel : UI_STATE_LABELS.reliable;
   const badgeSeverity = uiState === "tension" ? "vigilance" : uiState === "vigilance" ? "vigilance" : undefined;
 
   /** Tooltip pour charges structurelles — catégorie(s) (AC6) */

@@ -1,9 +1,9 @@
 # Doctrine des états UI — Linky
 
 **Fichier canonique :** `DOCTRINE_ETATS_UI_LINKY.md`
-**Version :** 1.1.2 — mars 2026
+**Version :** 1.1.3 — mars 2026
 **Lot :** Web60
-**Référence de cadrage :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.20** (cadrage publié)
+**Référence de cadrage :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.23** (cadrage publié)
 **Référence créa figée :** `ZeDocs/web59/stitch_carole_61`
 **Statut :** doctrine publiée
 
@@ -157,9 +157,9 @@ Exemples admissibles :
 * **Partiel** ;
 * **En attente** ;
 * **Indisponible** ;
-* **Proxy**.
+* **À confirmer**.
 
-Une carte ne doit pas afficher plus d’un état principal au même niveau de prominence.
+Une carte ne doit pas afficher plus d’un état principal au même niveau de prominence. *(Le libellé **Proxy** est exclu pour les lectures Vault — **§9.5**.)*
 
 ### 5.2 Niveau 2 — État secondaire
 
@@ -219,13 +219,13 @@ Les cartes principales privilégient un **encadré fin** : structure la carte, a
 |----------------|--------|
 | **Vert discret** | Lecture **fiable**, **complète**, **suffisamment rapprochée / fermée**, sans réserve principale active. |
 | **Neutre / bleu gris** | Lecture **exploitable** mais **partielle**, **en cours de rapprochement**, ou réserve **non bloquante**. |
-| **Ambre discret** | **Proxy**, **estimé**, **à confirmer**, ou fragilité **méthodologique** assumée. |
+| **Ambre discret** | **Partiel**, **estimé**, **à confirmer**, ou fragilité **méthodologique** assumée (y compris lecture `proxy` côté données — **§9.5**). |
 | **Gris** | **Indisponible**, **non alimenté**, **en attente**, hors périmètre. |
 | **Rouge** | **Erreur système**, **échec de chargement**, incident **technique** explicite — pas un signal métier négatif. |
 
 #### 5.4.5 Règle d’état principal et de sous-lectures
 
-L’état principal est porté par le **badge** (`Fiable`, `Partiel`, `Proxy`, `Indisponible`, `En attente`, etc.), la **microcopy** et, si besoin, un **indicateur chiffré** (ex. couverture %). Les sous-lectures enrichissent sans **redonder** le badge : elles **objectivent** (mesure, chantier restant, écart de référentiel).
+L’état principal est porté par le **badge** (`Fiable`, `Partiel`, `À confirmer`, `Indisponible`, `En attente`, etc.), la **microcopy** et, si besoin, un **indicateur chiffré** (ex. couverture %). Les sous-lectures enrichissent sans **redonder** le badge : elles **objectivent** (mesure, chantier restant, écart de référentiel).
 
 #### 5.4.6 Règle spécifique — Trésorerie
 
@@ -237,7 +237,7 @@ L’état principal est porté par le **badge** (`Fiable`, `Partiel`, `Proxy`, `
 |-----------|---------|-------|--------|
 | Lecture **complète / fiable / rapprochée** | Vert discret | **Fiable** (ou équivalent) | Couverture et sous-lectures **cohérentes** avec cet état. |
 | Lecture **partielle** | Neutre / bleu gris | **Partiel** | Conserver couverture, **Écart ERP − Vault**, **Volume à rapprocher** si pertinents. |
-| **Proxy / à confirmer** | Ambre discret | **Proxy** ou **À confirmer** | Microcopy ou tooltip sur la **réserve** méthodologique. |
+| **Partiel / à confirmer** (incl. clé `proxy` Vault) | Ambre discret | **Partiel** ou **À confirmer** | Microcopy ou tooltip sur la **réserve** méthodologique — pas le mot **Proxy** en UI (**§9.5**). |
 | **Indisponible / attente** | Gris | **Indisponible** ou **En attente** | — |
 
 **Doctrine sémantique.** Sur Trésorerie, distinguer sans les confondre :
@@ -317,9 +317,9 @@ L’élément renvoie explicitement à l’existence d’une preuve scellée ou 
 
 ### 6.4 Nature de calcul
 
-#### Proxy
+#### Proxy *(dimension / clé données)*
 
-La valeur repose sur une approximation structurée, un substitut, ou une reconstruction acceptable mais non native.
+La valeur repose sur une approximation structurée, un substitut, ou une reconstruction acceptable mais non native. **En interface**, pour les lectures issues du **Vault**, ce cas se traduit par **Partiel** ou **À confirmer**, pas par le libellé **Proxy** (**§9.5**).
 
 #### Estimé
 
@@ -413,13 +413,13 @@ Exemples légitimes :
 
 * **Fiable** + **Certifié** ;
 * **Fiable** + **Synchro OK** ;
-* **Proxy** + **À confirmer** ;
+* **Partiel** + **À confirmer** ;
 * **Vide utile** + valeur `0,00 €` ;
 * `—` + **Indisponible**.
 
 ### 9.2 Combinaisons à éviter
 
-* **Fiable** + **Proxy** au même niveau sans explication ;
+* **Fiable** + **Partiel** au même niveau sans explication (ambigüité de lecture) ;
 * **Certifié** + **Partiel** sans préciser la portée ;
 * `—` + **Fiable** si l’absence n’est pas explicitée ;
 * **Synchro OK** + **En retard** ;
@@ -432,7 +432,7 @@ Lorsqu’une carte combine plusieurs réalités, l’état visible principal doi
 Exemples :
 
 * si la donnée est disponible mais partielle, l’état principal devient **Partiel** ;
-* si la donnée est proxy mais exploitable, l’état principal peut devenir **Proxy** avec **Fiable** relégué ou supprimé ;
+* si la lecture est encore substitutive ou incomplète mais exploitable (clé technique `proxy` côté données), l’état principal reste **Partiel** ou **À confirmer** — voir **§9.5** ;
 * si la donnée est absente mais normale, on préfère **Vide utile** à **Indisponible**.
 
 ### 9.4 Ordre de précédence des états visibles (état principal)
@@ -440,12 +440,87 @@ Exemples :
 Quand plusieurs réalités coexistent sur une même carte, l’**état principal** affiché doit suivre l’ordre de **précédence** ci-dessous (du plus structurant au moins prioritaire pour l’interprétation). Cela complète la **règle de dominance** (§9.3) avec une règle **explicite** utilisable au codage.
 
 1. **Indisponible** / **En attente** — aucune lecture fiable ou situation transitoire bloquante ;
-2. **Partiel** / **Proxy** / **À confirmer** — donnée présente mais limitée, substitutive ou à consolider ;
+2. **Partiel** / **À confirmer** — donnée présente mais limitée ou à consolider (le terme **Proxy** n’est pas utilisé en UI pour les lectures Vault — **§9.5**) ;
 3. **Fiable** — lecture pilotable dans le périmètre affiché ;
 4. **Certifié** / **Synchro OK** — en **secondaire** (niveau 2), sauf cas produit documenté où l’un d’eux devient le message dominant ;
 5. **Arrêté à…**, **preuves**, **sources** — en **niveau global** (chrome / trust bar), pas comme substitut d’un état principal de carte.
 
-En cas de doute entre deux niveaux du même rang (ex. **Partiel** vs **Proxy**), prévaloir l’état qui décrit la **limite la plus contraignante** pour la décision.
+En cas de doute entre deux niveaux du même rang (ex. **Partiel** vs **À confirmer**), prévaloir l’état qui décrit la **limite la plus contraignante** pour la décision.
+
+### 9.5 Suppression du terme `Proxy` dans l’UI
+
+#### Principe
+
+Le vocabulaire d’état visible de Lynki ne qualifie pas la **provenance** de la donnée, mais la **maturité de la lecture** affichée.
+
+Dès lors qu’une valeur montrée dans l’interface est produite à partir du **Vault**, le terme **`Proxy`** n’est pas utilisé dans l’UI.
+
+---
+
+#### Motivation
+
+Le terme `Proxy` introduit une ambiguïté de lecture :
+
+- il peut laisser entendre que la valeur ne provient pas de la source de vérité ;
+- il confond la **source** de la donnée avec le **niveau de confiance** de la lecture ;
+- il affaiblit inutilement la promesse produit lorsque la donnée est bien issue du Vault.
+
+Dans Lynki, la question affichée à l’écran n’est donc pas :
+
+> “la donnée vient-elle d’un substitut ?”
+
+mais :
+
+> “dans quel état de maturité puis-je lire cette valeur ?”
+
+---
+
+#### Règle canonique
+
+Les états visibles autorisés portent sur la **qualité de lecture**, et non sur la provenance :
+
+- `Fiable`
+- `Partiel`
+- `À confirmer`
+- `Indisponible`
+- états techniques dédiés si erreur système
+
+Le terme **`Proxy`** est exclu du langage visible utilisateur dès lors que la valeur affichée est calculée ou servie depuis le **Vault**.
+
+---
+
+#### Conséquence d’implémentation
+
+Si une lecture issue du Vault reste méthodologiquement incomplète, transitoire ou prudente :
+
+- on n’affiche pas `Proxy` ;
+- on utilise un état de lecture adapté (`Partiel` ou `À confirmer`) ;
+- et, si nécessaire, la nuance méthodologique est portée par :
+  - une microcopy secondaire ;
+  - un tooltip ;
+  - ou la page détail.
+
+---
+
+#### Application aux cartes principales
+
+Une carte principale ne doit jamais afficher un badge qui suggère une source dégradée alors que la valeur provient du Vault.
+
+Exemple :
+
+- **Flux net** : si la valeur affichée provient du Vault mais reste une lecture encore incomplètement stabilisée, la carte utilise `Partiel` ou `À confirmer`, mais jamais `Proxy`.
+
+---
+
+#### Formulation canonique courte
+
+> Dans Lynki, les badges d’état qualifient la maturité de lecture et non la provenance de la donnée. Toute valeur affichée issue du Vault n’utilise donc pas le terme `Proxy` dans l’interface.
+
+#### Formulation ultra-courte de décision
+
+- **Vault** = source
+- **badge** = état de lecture
+- **`Proxy`** = interdit en UI si la valeur vient du Vault
 
 ---
 
@@ -460,8 +535,8 @@ Rôle : qualifier la lecture principale.
 Exemples :
 
 * **Fiable** ;
-* **Proxy** ;
 * **Partiel** ;
+* **À confirmer** ;
 * **En attente**.
 
 ### 10.2 Badge secondaire de carte
@@ -506,7 +581,6 @@ Réservé aux états positifs ou rassurants clairement définis :
 
 Réservé aux états de vigilance :
 
-* **Proxy** ;
 * **Partiel** ;
 * **À confirmer** ;
 * **En retard**.
@@ -548,8 +622,8 @@ Si le sens nécessite une nuance, elle doit aller dans :
 
 * **Fiable** ;
 * **Certifié** ;
-* **Proxy** ;
 * **Partiel** ;
+* **À confirmer** ;
 * **En attente** ;
 * **Indisponible** ;
 * **Synchro OK** ;
@@ -588,14 +662,14 @@ Doctrine recommandée :
 
 ### 13.3 Carte Flux net
 
-Lecture actuelle observée : badge **Proxy data** très visible.
+Lecture historique observée : libellés du type **Proxy data** / **Proxy** très visibles.
 
-Doctrine recommandée :
+Doctrine recommandée *(alignée **§9.5**)* :
 
-* conserver l’honnêteté sur le caractère **Proxy** ;
-* simplifier le libellé vers **Proxy** plutôt que **Proxy data** ;
-* traiter **Proxy** comme état principal de vigilance, avec une intensité visuelle maîtrisée ;
-* éviter qu’il prenne plus de place visuelle que la valeur elle-même.
+* conserver l’**honnêteté** sur une lecture encore incomplète ou substitutive via **Partiel** ou **À confirmer** ;
+* ne pas afficher le mot **Proxy** lorsque la valeur est servie depuis le **Vault** ;
+* garder une intensité visuelle de vigilance **maîtrisée** ;
+* éviter que le badge prenne plus de place que la valeur elle-même ; la nuance méthodologique peut aller en **tooltip** ou **page détail**.
 
 ### 13.4 Carte Z de caisse
 
@@ -695,7 +769,7 @@ Un état qui porte une nuance importante doit pouvoir être expliqué par un too
 
 Exemple :
 
-* **Proxy** → “Valeur calculée à partir d’un substitut métier en attendant la donnée directe.”
+* **Partiel** (cas clé `proxy` en données) → ex. « Lecture incomplète ou substitutive sur le périmètre ; voir détail ou couverture. » *(Pas le libellé **Proxy** en UI Vault — **§9.5**.)*
 
 ### 15.5 Transitions d’état attendues
 
@@ -729,7 +803,7 @@ Une recette d’état UI doit vérifier au minimum :
 
 À l’ouverture de Web60, les décisions suivantes sont retenues :
 
-1. **Proxy data** doit converger vers **Proxy** ;
+1. **Proxy data** / libellés **Proxy** en UI doivent converger vers **Partiel** ou **À confirmer** pour les lectures Vault (**§9.5**) ;
 2. `—` ne doit plus être laissé sans qualification explicite ;
 3. **Fiable** ne doit pas être utilisé comme badge réflexe universel ;
 4. **Synchro OK** relève d’abord de la fraîcheur, pas de la qualité intrinsèque ;
@@ -744,7 +818,7 @@ Une recette d’état UI doit vérifier au minimum :
 Cette doctrine a vocation à être relayée par :
 
 * [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** (spécification publiée) ;
-* [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.9** (items **W60-xxx**) ;
+* [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.10** (items **W60-xxx**) ;
 * [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16** (protocole de validation publié) ;
 * [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18** (passes, **lab public** / **UI hash**, **§13** journal / **§13.1** gabarit **T-W60-001** ; **§4.2** **W60-005** ; **§5** Passe 2 P0 **W60-101–103** **Fait** ; **§14** trame **T-W60-002** ; lab **`laplatine2026`**).
 
@@ -766,7 +840,7 @@ Table de **pont** entre clés produit, libellés UI, dimensions, niveau visuel, 
 |-------------|----------|-----------|---------------------|-------------------|---------------------|------------------|
 | `reliable` | Fiable | Qualité de lecture | Principal (1) | Vert | « Donnée exploitable pour piloter sur le périmètre affiché. » | Carte maîtresse OK |
 | `certified` | Certifié | Nature de preuve | Secondaire (2) | Vert | « Niveau probant renforcé selon les règles produit. » | Business, scellement |
-| `proxy` | Proxy | Nature de calcul | Principal (1) | Ambre | « Valeur substitutive ; approximation assumée. » | Flux net |
+| `proxy` | **Partiel** (affichage UI ; clé technique `proxy`) | Qualité de lecture | Principal (1) | Ambre | « Lecture incomplète ou substitutive sur le périmètre ; pas le libellé « Proxy » en UI Vault (§9.5). » | Flux net, tuiles cockpit |
 | `partial` | Partiel | Qualité de lecture | Principal (1) | Ambre | « Donnée incomplète sur le périmètre attendu. » | Agrégation partielle |
 | `pending_confirm` | À confirmer | Qualité de lecture | Principal (1) | Ambre | « Lecture possible ; robustesse ou rapprochement à consolider. » | Réconciliation |
 | `pending` | En attente | Disponibilité | Principal (1) | Gris / neutre | « Donnée attendue ; chargement ou synchro en cours. » | Premier chargement |
@@ -788,6 +862,7 @@ Table de **pont** entre clés produit, libellés UI, dimensions, niveau visuel, 
 | **1.1** | Ajout **§9.4** (ordre de précédence), **§15.5** (transitions), **bornes §6.1 Vide utile**, **Annexe A** (mapping canonique), renvoi **§8.7** → §6.1. |
 | **1.1.1** | **§5.4** — langage visuel des **cartes principales** : synthèse normative Web60, contour = fiabilité, règle **Trésorerie** (partiel ⇒ pas de vert), sémantique chiffre / état / mesure / chantier / écart. |
 | **1.1.2** | **Figé / exécuté** : **encadré fin** des cartes maîtresses cockpit ; **le contour exprime la fiabilité** ; **Trésorerie partielle = pas de vert** (liseré haut supprimé, mapping `cockpit-master-card-outline`) ; **§5.4.7** référence code. |
+| **1.1.3** | **§9.5** — clarification doctrine : suppression de `Proxy` du vocabulaire UI lorsque la valeur affichée provient du Vault ; les badges qualifient la maturité de lecture et non la provenance. **Annexe A** (`proxy` → libellé **Partiel** en UI). Ajustements **§9.1–9.4**, **§10.1**. |
 
 ---
 

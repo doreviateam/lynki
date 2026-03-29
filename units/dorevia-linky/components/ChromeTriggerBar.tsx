@@ -18,7 +18,7 @@ export function ChromeTriggerBar({ onReveal, enableHover = true }: ChromeTrigger
     <div
       role="button"
       tabIndex={0}
-      className="fixed left-0 right-0 top-0 z-50 h-6 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-inset md:left-64"
+      className="fixed left-0 right-0 top-0 z-50 h-6 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-inset md:left-72"
       style={{ background: "transparent" }}
       aria-label="Afficher le bandeau"
       onMouseEnter={enableHover ? onReveal : undefined}

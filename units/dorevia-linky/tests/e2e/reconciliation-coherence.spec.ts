@@ -21,7 +21,7 @@ test.describe("Sprint 15 T85 — Rapprochement bancaire : cohérence Pilotage ×
     const main = page.locator("main");
     await expect(main).toBeVisible({ timeout: 15_000 });
 
-    // Basculer en Synthèse via le segmented control ou l'URL
+    // Synthèse : route dédiée (redirection depuis `/?view=synthese` si besoin)
     await page.goto("/?view=synthese");
     await page.waitForLoadState("networkidle");
 

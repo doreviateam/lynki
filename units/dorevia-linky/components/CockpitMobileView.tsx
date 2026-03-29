@@ -9,7 +9,6 @@ import type { PeriodRange } from "@/app/lib/period-utils";
 import type { CardId } from "@/app/types/linky-tiles";
 import { computeConfidenceScore } from "@/app/lib/confidence";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { UI_STATE_LABELS } from "@/app/lib/cockpit/ui-state-labels";
 import {
   buildTreasuryCockpitTileModel,
   treasuryCockpitPrimaryBadge,
@@ -17,8 +16,18 @@ import {
 import {
   metricConfidenceOutlineClass,
   treasuryMasterCardOutlineClass,
-  treasuryWalletIconSurfaceClass,
 } from "@/app/lib/cockpit/cockpit-master-card-outline";
+import { cockpitMasterMetricBadgeMobilePill } from "@/app/lib/cockpit/cockpit-master-metric-badge";
+import { CockpitMasterKpiValue } from "@/components/cockpit/CockpitMasterKpiValue";
+import { ensureCockpitKpiShowsEuro, formatSignedAmount } from "@/app/lib/format";
+import {
+  COCKPIT_T4_CARD_LABEL,
+  COCKPIT_T4_MICRO_UPPER,
+  COCKPIT_T5_CAPTION,
+  COCKPIT_T5_DETAIL_LABEL,
+  COCKPIT_T5_DETAIL_VALUE,
+  COCKPIT_T5_STATE_BADGE,
+} from "@/app/lib/cockpit/cockpit-typography";
 
 interface CockpitMobileViewProps {
   tenantId: string;
@@ -26,16 +35,14 @@ interface CockpitMobileViewProps {
   period: PeriodRange;
   metrics: DashboardMetricsResponse | null;
   metricsLoading: boolean;
+  /** Échec du chargement des métriques cockpit (affichage dégradé + contour Trésorerie « alert »). */
+  metricsError?: boolean;
   onSelectCard?: (id: CardId) => void;
 }
 
 function formatKpi(raw: { value?: unknown; formatted?: string } | null | undefined): string {
   if (!raw) return "—";
-  if (typeof raw.formatted === "string" && raw.formatted !== "—") return raw.formatted;
-  if (raw.value != null && typeof raw.value === "number") {
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(raw.value);
-  }
-  return "—";
+  return ensureCockpitKpiShowsEuro(raw);
 }
 
 function inferConfidence(raw: { valueKind?: string } | null | undefined): ConfidenceLevel {
@@ -65,6 +72,7 @@ export function CockpitMobileView({
   period,
   metrics,
   metricsLoading,
+  metricsError = false,
   onSelectCard,
 }: CockpitMobileViewProps) {
   const treasury = metrics?.treasury;
@@ -73,10 +81,17 @@ export function CockpitMobileView({
   const treasuryTile = buildTreasuryCockpitTileModel(metrics);
   const integrityScore = computeConfidenceScore(metrics);
 
-  const treasuryPrimaryBadge = treasuryCockpitPrimaryBadge(treasuryTile.treasuryStatus);
-  const treasuryOutline = treasuryMasterCardOutlineClass(treasuryTile.treasuryStatus);
-  const businessOutline = metricConfidenceOutlineClass(inferConfidence(business));
-  const cashOutline = metricConfidenceOutlineClass(inferConfidence(cash));
+  const treasuryStatusForChrome = metricsError ? "alert" : treasuryTile.treasuryStatus;
+  const treasuryPrimaryBadge = treasuryCockpitPrimaryBadge(treasuryStatusForChrome);
+  const treasuryOutline = treasuryMasterCardOutlineClass(treasuryStatusForChrome);
+  const businessConf = inferConfidence(business);
+  const cashConf = inferConfidence(cash);
+  const businessOutline = metricConfidenceOutlineClass(businessConf);
+  const cashOutline = metricConfidenceOutlineClass(cashConf);
+  const businessMasterPill = cockpitMasterMetricBadgeMobilePill(businessConf);
+  const cashMasterPill = cockpitMasterMetricBadgeMobilePill(cashConf);
+  const businessDetail = metrics?._details?.business;
+  const cashDetail = metrics?._details?.cash;
 
   if (metricsLoading && !metrics) {
     return (
@@ -113,46 +128,38 @@ export function CockpitMobileView({
       {/* Data Integrity Score */}
       <ConfidenceScore score={integrityScore} />
 
-      {/* Master tiles — Trésorerie full width, Business + Flux 2 col */}
-      <section className="space-y-4">
-        {/* Trésorerie — full width, fond primary-container */}
+      {/* Trois cartes maîtresses — une seule ligne (3 colonnes) */}
+      <section className="grid grid-cols-3 gap-1.5 sm:gap-2">
         <button
           type="button"
           onClick={() => onSelectCard?.("treasury")}
-          className={`w-full rounded-xl bg-[var(--card)] p-5 text-left shadow-lg transition-all hover:shadow-xl active:scale-[0.99] ${treasuryOutline}`}
+          className={`min-h-0 min-w-0 rounded-xl bg-[var(--card)] p-2.5 text-left shadow-lg transition-all hover:shadow-xl active:scale-[0.99] sm:p-4 ${treasuryOutline}`}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className={`rounded-lg p-1.5 ${treasuryWalletIconSurfaceClass(treasuryTile.treasuryStatus)}`}>
-                <Icon name="account_balance_wallet" size={18} filled />
-              </span>
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Trésorerie</span>
-            </div>
+          <div className="flex items-start justify-between gap-1">
+            <span className={`${COCKPIT_T4_CARD_LABEL} !text-[9px] !tracking-[0.08em]`}>Trésorerie</span>
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${treasuryPrimaryBadge.mobileClassName}`}
+              className={`inline-flex max-w-[4.5rem] shrink-0 items-center gap-0.5 rounded-full px-1 py-0.5 text-[8px] font-semibold leading-none ${treasuryPrimaryBadge.mobileClassName}`}
               title={treasury?.status_reason ?? undefined}
             >
               <Icon
                 name={treasuryPrimaryBadge.iconName}
-                size={12}
+                size={10}
                 filled={treasuryTile.treasuryStatus === "ok"}
               />
-              {treasuryPrimaryBadge.label}
+              <span className="truncate">{treasuryPrimaryBadge.label}</span>
             </span>
           </div>
-          <div className="mt-3 text-2xl font-bold tabular-nums text-[var(--text)]">
-            {formatKpi(treasury)}
-          </div>
-          <p className="mt-1 text-[10px] font-medium text-[var(--text-secondary)]">Solde validé (Vault)</p>
-          <div className="mt-3 space-y-2 border-t border-[var(--border)] pt-3 text-left">
+          <CockpitMasterKpiValue display={formatKpi(treasury)} variant="mobile" mobileWeight="black" />
+          <p className={`mt-0.5 line-clamp-2 ${COCKPIT_T5_CAPTION} !text-[9px]`}>Solde validé (Vault)</p>
+          <div className="mt-2 space-y-1.5 border-t border-[var(--border)] pt-2 text-left">
             <div title="Part des flux couverts par preuve bancaire">
-              <div className="flex justify-between text-[9px] font-bold uppercase tracking-wide text-[var(--text-secondary)]">
-                <span>Couverture probante</span>
-                <span className="tabular-nums text-[var(--text)]">
+              <div className="flex justify-between gap-0.5">
+                <span className="text-[8px] font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Couv.</span>
+                <span className="tabular-nums text-[9px] font-semibold text-[var(--text)]">
                   {treasuryTile.coveragePct != null ? `${treasuryTile.coveragePct} %` : "—"}
                 </span>
               </div>
-              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border)]">
+              <div className="mt-0.5 h-1 w-full overflow-hidden rounded-full bg-[var(--border)]">
                 <div
                   className={`h-full rounded-full ${
                     treasuryTile.treasuryStatus === "ok"
@@ -163,65 +170,82 @@ export function CockpitMobileView({
                 />
               </div>
             </div>
-            <div className="flex justify-between gap-2 text-[11px] text-[var(--text-secondary)]">
-              <span>Écart ERP − Vault</span>
-              <span className="shrink-0 font-semibold tabular-nums text-[var(--text)]">{treasuryTile.erpDeltaFormatted ?? "—"}</span>
-            </div>
-            <div className="flex justify-between gap-2 text-[11px] text-[var(--text-secondary)]">
-              <span>Volume à rapprocher</span>
-              <span className="shrink-0 font-semibold tabular-nums text-[var(--text)]">{treasuryTile.rapproFormatted ?? "—"}</span>
+            <div className="flex flex-col gap-0.5 border-t border-[var(--border)] pt-1.5">
+              <div className="flex justify-between gap-0.5">
+                <span className="text-[8px] text-[var(--text-secondary)]">ERP−Vault</span>
+                <span className={`max-w-[55%] truncate text-right text-[8px] font-semibold ${COCKPIT_T5_DETAIL_VALUE}`}>
+                  {treasuryTile.erpDeltaFormatted ?? "—"}
+                </span>
+              </div>
+              <div className="flex justify-between gap-0.5">
+                <span className="text-[8px] text-[var(--text-secondary)]">À rappr.</span>
+                <span className={`max-w-[55%] truncate text-right text-[8px] font-semibold ${COCKPIT_T5_DETAIL_VALUE}`}>
+                  {treasuryTile.rapproFormatted ?? "—"}
+                </span>
+              </div>
             </div>
           </div>
         </button>
 
-        {/* Business + Flux Net — 2 colonnes */}
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            type="button"
-            onClick={() => onSelectCard?.("business")}
-            className={`rounded-xl bg-[var(--card)] p-4 text-left shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${businessOutline}`}
-          >
-            <div className="flex items-center gap-2">
-              <Icon name="business_center" size={16} className="text-[var(--muted)]" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">Business</span>
+        <button
+          type="button"
+          onClick={() => onSelectCard?.("business")}
+          className={`min-h-0 min-w-0 rounded-xl bg-[var(--card)] p-2.5 text-left shadow-sm transition-all hover:shadow-md active:scale-[0.98] sm:p-4 ${businessOutline}`}
+        >
+          <div className="flex items-center gap-1">
+            <Icon name="business_center" size={14} className="shrink-0 text-[var(--muted)]" />
+            <span className={`${COCKPIT_T4_CARD_LABEL} !text-[9px]`}>Business</span>
+          </div>
+          <CockpitMasterKpiValue display={formatKpi(business)} variant="mobile" mobileWeight="bold" />
+          <p className={`mt-0.5 line-clamp-2 ${COCKPIT_T5_CAPTION} !text-[9px]`}>Ventes − achats</p>
+          <div className="mt-2 space-y-1 border-t border-[var(--border)] pt-2">
+            <div className="flex justify-between gap-0.5">
+              <span className="text-[8px] text-[var(--text-secondary)]">Ventes</span>
+              <span className={`max-w-[58%] truncate text-right text-[8px] font-semibold ${COCKPIT_T5_DETAIL_VALUE}`}>
+                {businessDetail != null ? formatSignedAmount(businessDetail.ventes, businessDetail.currency) : "—"}
+              </span>
             </div>
-            <div className="mt-2 text-lg font-bold tabular-nums text-[var(--text)]">
-              {formatKpi(business)}
+            <div className="flex justify-between gap-0.5">
+              <span className="text-[8px] text-[var(--text-secondary)]">Achats</span>
+              <span className={`max-w-[58%] truncate text-right text-[8px] font-semibold ${COCKPIT_T5_DETAIL_VALUE}`}>
+                {businessDetail != null ? formatSignedAmount(-Math.abs(businessDetail.achats), businessDetail.currency) : "—"}
+              </span>
             </div>
-            {inferConfidence(business) === "fiable" ? (
-              <span className="mt-1 inline-flex items-center rounded-full bg-emerald-600/15 px-2 py-0.5 text-[9px] font-semibold text-emerald-400">{UI_STATE_LABELS.reliable}</span>
-            ) : inferConfidence(business) === "proxy" ? (
-              <span className="mt-1 inline-flex items-center rounded-full bg-blue-500/15 px-2 py-0.5 text-[9px] font-semibold text-blue-400">{UI_STATE_LABELS.proxy}</span>
-            ) : inferConfidence(business) === "estimee" ? (
-              <span className="mt-1 inline-flex items-center rounded-full bg-slate-500/15 px-2 py-0.5 text-[9px] font-semibold text-slate-400">{UI_STATE_LABELS.estimated}</span>
-            ) : (
-              <span className="mt-1 inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-semibold text-amber-400">{UI_STATE_LABELS.partial}</span>
-            )}
-          </button>
+          </div>
+          <span className={`mt-2 inline-block max-w-full truncate text-[8px] ${businessMasterPill.className}`}>
+            {businessMasterPill.label}
+          </span>
+        </button>
 
-          <button
-            type="button"
-            onClick={() => onSelectCard?.("cash")}
-            className={`rounded-xl bg-[var(--card)] p-4 text-left shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${cashOutline}`}
-          >
-            <div className="flex items-center gap-2">
-              <Icon name="swap_vert" size={16} className="text-[var(--muted)]" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">Flux Net</span>
+        <button
+          type="button"
+          onClick={() => onSelectCard?.("cash")}
+          className={`min-h-0 min-w-0 rounded-xl bg-[var(--card)] p-2.5 text-left shadow-sm transition-all hover:shadow-md active:scale-[0.98] sm:p-4 ${cashOutline}`}
+        >
+          <div className="flex items-center gap-1">
+            <Icon name="swap_vert" size={14} className="shrink-0 text-[var(--muted)]" />
+            <span className={`${COCKPIT_T4_CARD_LABEL} !text-[9px]`}>Flux Net</span>
+          </div>
+          <CockpitMasterKpiValue display={formatKpi(cash)} variant="mobile" mobileWeight="bold" />
+          <p className={`mt-0.5 line-clamp-2 ${COCKPIT_T5_CAPTION} !text-[9px]`}>Enc./Déc.</p>
+          <div className="mt-2 space-y-1 border-t border-[var(--border)] pt-2">
+            <div className="flex justify-between gap-0.5">
+              <span className="text-[8px] text-[var(--text-secondary)]">Enc.</span>
+              <span className={`max-w-[58%] truncate text-right text-[8px] font-semibold ${COCKPIT_T5_DETAIL_VALUE}`}>
+                {cashDetail != null ? formatSignedAmount(cashDetail.encaissements, cashDetail.currency) : "—"}
+              </span>
             </div>
-            <div className="mt-2 text-lg font-bold tabular-nums text-[var(--text)]">
-              {formatKpi(cash)}
+            <div className="flex justify-between gap-0.5">
+              <span className="text-[8px] text-[var(--text-secondary)]">Déc.</span>
+              <span className={`max-w-[58%] truncate text-right text-[8px] font-semibold ${COCKPIT_T5_DETAIL_VALUE}`}>
+                {cashDetail != null ? formatSignedAmount(-Math.abs(cashDetail.decaissements), cashDetail.currency) : "—"}
+              </span>
             </div>
-            {inferConfidence(cash) === "fiable" ? (
-              <span className="mt-1 inline-flex items-center rounded-full bg-emerald-600/15 px-2 py-0.5 text-[9px] font-semibold text-emerald-400">{UI_STATE_LABELS.reliable}</span>
-            ) : inferConfidence(cash) === "proxy" ? (
-              <span className="mt-1 inline-flex items-center rounded-full bg-blue-500/15 px-2 py-0.5 text-[9px] font-semibold text-blue-400">{UI_STATE_LABELS.proxy}</span>
-            ) : inferConfidence(cash) === "partielle" ? (
-              <span className="mt-1 inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-semibold text-amber-400">{UI_STATE_LABELS.partial}</span>
-            ) : (
-              <span className="mt-1 inline-flex items-center rounded-full bg-slate-500/15 px-2 py-0.5 text-[9px] font-semibold text-slate-400">{UI_STATE_LABELS.estimated}</span>
-            )}
-          </button>
-        </div>
+          </div>
+          <span className={`mt-2 inline-block max-w-full truncate text-[8px] ${cashMasterPill.className}`}>
+            {cashMasterPill.label}
+          </span>
+        </button>
       </section>
 
       {/* Secondary tiles — bento 2×N grid */}

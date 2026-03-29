@@ -3,10 +3,13 @@
 import { useMemo } from "react";
 import { IntegrityBadge } from "@/components/IntegrityBadge";
 import { TenantSelector } from "@/components/TenantSelector";
-import { CockpitAppBarRow } from "@/components/layout/CockpitAppBarRow";
+import { CockpitChromeUtilities } from "@/components/layout/CockpitAppBarRow";
 import type { ReportHeaderContentProps } from "./ReportHeaderContent.types";
 import type { PeriodStatusMap } from "@/app/lib/use-accounting-periods";
 import { companyDisplayLabel, normalizeCompanyId, safeReactText } from "@/app/lib/company-id";
+import { UI_STATE_LABELS } from "@/app/lib/cockpit/ui-state-labels";
+import { COCKPIT_HEADER_SHOW_TRUST_IN_CONTEXT_STRIP } from "@/app/lib/cockpit/cockpit-header-flags";
+import { COCKPIT_HEADER_FILTER_LABEL, COCKPIT_T0_HEADER_PAGE, COCKPIT_T1_PAGE_TITLE } from "@/app/lib/cockpit/cockpit-typography";
 
 export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
   const {
@@ -50,6 +53,14 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
   } = props;
 
   const periodStatusLabel = useMemo(() => getPeriodContextLabel(periodKey, periodYear, periodStatuses), [periodKey, periodYear, periodStatuses]);
+
+  const showCockpitContextRow =
+    !!cockpitAppBar &&
+    currentApp === "linky" &&
+    (tenantBadgeOrSelector ||
+      showCompanyFilter ||
+      showPeriodFilter ||
+      (showIntegrityBadge && COCKPIT_HEADER_SHOW_TRUST_IN_CONTEXT_STRIP));
 
   const menuIcon = (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-6 w-6 text-[var(--text)]">
@@ -169,68 +180,158 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
     </>
   );
 
-  const content = (
-    <div className={`mx-auto px-4 py-3 ${cockpitAppBar ? "max-w-none" : "max-w-4xl"}`}>
-      {cockpitAppBar && currentApp === "linky" ? (
-        <div className="pb-1">
-          <CockpitAppBarRow
-            beforeTitleSlot={tenantBadgeOrSelector}
-            confidenceScore={cockpitAppBar.confidenceScore}
-            confidenceLabel={cockpitAppBar.confidenceLabel}
-            subtitle={cockpitAppBar.subtitle}
-            showSearchField
-            trailingSlot={
-              <>
-                <div className="relative sm:hidden">
-                  <button
-                    type="button"
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
-                    aria-label="Menu"
-                    aria-expanded={menuOpen}
+  /** Pas de menu burger en bandeau cockpit : navigation = sidebar + bottom nav + filtres (évite doublons / promesses non cadrées). */
+  const cockpitChromeTrailingSlot = null;
+
+  const cockpitContextHasFilters =
+    !!tenantBadgeOrSelector || showCompanyFilter || showPeriodFilter;
+
+  /** Option B (CDCF) : badge confiance à droite du bloc contexte ; désactivé en V1 canonique (Option A). */
+  const cockpitContextTrustSignal =
+    showCockpitContextRow && COCKPIT_HEADER_SHOW_TRUST_IN_CONTEXT_STRIP ? (
+      showIntegrityBadge ? (
+        <IntegrityBadge
+          tenantId={tenantId}
+          sealedCount={sealedCount}
+          sealedCountComplete={sealedCountComplete}
+          onRefresh={onRefreshMetrics}
+          visualWeight="secondary"
+        />
+      ) : (
+        <span
+          className="inline-flex h-7 items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--border)_40%,transparent)] bg-[color-mix(in_srgb,var(--surface)_92%,transparent)] px-1.5 text-[10px] text-[var(--text-secondary)]"
+          title="Synchronisation en cours"
+        >
+          {UI_STATE_LABELS.pending}
+        </span>
+      )
+    ) : null;
+
+  /** Ligne 2 : filtres de contexte ; confiance optionnelle (flag Option B). */
+  const cockpitSelectClass =
+    "min-h-[42px] rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-4 py-2.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]";
+
+  const cockpitContextStrip =
+    showCockpitContextRow && (cockpitContextHasFilters || cockpitContextTrustSignal) ? (
+      <div className="flex w-full min-w-0 justify-center overflow-x-auto px-6 pb-4 pt-0 md:px-8 [scrollbar-width:thin]">
+        <div
+          className="flex w-max max-w-none shrink-0 flex-nowrap items-end justify-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--panel)] px-4 py-3"
+          role="group"
+          aria-label={
+            cockpitContextTrustSignal ? "Périmètre de lecture et confiance" : "Périmètre de lecture"
+          }
+        >
+          {cockpitContextHasFilters ? (
+            <>
+              {tenantBadgeOrSelector ? (
+                <label className="flex min-w-0 shrink-0 flex-col gap-1">
+                  <span className={`shrink-0 whitespace-nowrap ${COCKPIT_HEADER_FILTER_LABEL}`}>Tenant</span>
+                  <div className="flex min-h-[42px] items-stretch [&_button]:!m-0 [&_button]:min-h-[42px] [&_button]:rounded-xl [&_button]:border [&_button]:border-[var(--border)] [&_button]:bg-[var(--panel-2)] [&_button]:px-4 [&_button]:py-2.5 [&_button]:text-sm [&_button]:leading-tight">
+                    {tenantBadgeOrSelector}
+                  </div>
+                </label>
+              ) : null}
+              {showCompanyFilter && (
+                <label className="flex min-w-0 shrink-0 flex-col gap-1" htmlFor="company-select-cockpit">
+                  <span className={`shrink-0 whitespace-nowrap ${COCKPIT_HEADER_FILTER_LABEL}`}>Société</span>
+                  <select
+                    id="company-select-cockpit"
+                    disabled={companiesLoading}
+                    value={selectedCompanyId ?? ""}
+                    onChange={(e) => onCompanyChange(e.target.value || null)}
+                    className={`max-w-[11.5rem] xl:max-w-[14rem] ${cockpitSelectClass}`}
+                    aria-label="Société"
                   >
-                    {menuIcon}
-                  </button>
-                  {menuOpen && (
-                    <>
-                      <div className="fixed inset-0 z-40" aria-hidden data-chrome-lock="true" onClick={() => setMenuOpen(false)} />
-                      <nav
-                        className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg"
-                        role="menu"
-                        data-chrome-lock="true"
-                      >
-                        {overflowNav}
-                      </nav>
-                    </>
-                  )}
-                </div>
-                <div className="relative hidden sm:block">
-                  <button
-                    type="button"
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
-                    aria-label="Menu"
-                    aria-expanded={menuOpen}
-                  >
-                    {menuIcon}
-                  </button>
-                  {menuOpen && (
-                    <>
-                      <div className="fixed inset-0 z-40" aria-hidden data-chrome-lock="true" onClick={() => setMenuOpen(false)} />
-                      <nav
-                        className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg"
-                        role="menu"
-                        data-chrome-lock="true"
-                      >
-                        {overflowNav}
-                      </nav>
-                    </>
-                  )}
-                </div>
-              </>
-            }
-          />
+                    <option value="">Toutes les sociétés</option>
+                    {companies.map((c) => {
+                      const id = normalizeCompanyId(c.company_id);
+                      if (!id) return null;
+                      return (
+                        <option key={id} value={id}>
+                          {companyDisplayLabel(c.display_name, c.company_id)}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </label>
+              )}
+              {showPeriodFilter && (
+                <>
+                  <label className="flex min-w-0 shrink-0 flex-col gap-1" htmlFor="period-key-cockpit">
+                    <span className={`shrink-0 whitespace-nowrap ${COCKPIT_HEADER_FILTER_LABEL}`}>Période</span>
+                    <select
+                      id="period-key-cockpit"
+                      value={periodKey}
+                      onChange={(e) => onPeriodKeyChange(e.target.value)}
+                      className={`min-w-[170px] max-w-[12rem] ${cockpitSelectClass}`}
+                    >
+                      {periodOptionsToShow.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {enrichPeriodLabel(opt, periodYear, periodStatuses)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex min-w-0 shrink-0 flex-col gap-1" htmlFor="period-year-cockpit">
+                    <span className={`shrink-0 whitespace-nowrap ${COCKPIT_HEADER_FILTER_LABEL}`}>Année</span>
+                    <select
+                      id="period-year-cockpit"
+                      value={periodYear}
+                      onChange={(e) => onPeriodYearChange(Number(e.target.value))}
+                      className={`min-w-[5rem] ${cockpitSelectClass}`}
+                    >
+                      {yearsToShow.map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </>
+              )}
+            </>
+          ) : null}
+          {cockpitContextTrustSignal ? (
+            <div
+              className={`flex min-w-0 shrink-0 flex-col gap-1 ${
+                cockpitContextHasFilters
+                  ? "w-full border-t border-[color-mix(in_srgb,var(--border)_35%,transparent)] pt-3 sm:mt-0 sm:w-auto sm:border-t-0 sm:border-l sm:border-[color-mix(in_srgb,var(--border)_35%,transparent)] sm:pt-0 sm:pl-4 sm:ml-1"
+                  : ""
+              }`}
+            >
+              <span className={`shrink-0 whitespace-nowrap ${COCKPIT_HEADER_FILTER_LABEL}`}>Confiance</span>
+              <div className="flex min-h-[42px] items-center">{cockpitContextTrustSignal}</div>
+            </div>
+          ) : null}
         </div>
+      </div>
+    ) : null;
+
+  const content = (
+    <div
+      className={`mx-auto ${cockpitAppBar ? "max-w-none px-0 pt-0 pb-0" : "max-w-4xl px-4 py-3"}`}
+    >
+      {cockpitAppBar && currentApp === "linky" ? (
+        <>
+          {!chromeCompact ? (
+            <div className="min-w-0" role="region" aria-label="En-tête pilotage">
+              <div className="flex flex-col">
+                <div className="flex h-20 min-h-[5rem] items-center justify-between gap-4 px-6 md:px-8">
+                  <h1 className={COCKPIT_T0_HEADER_PAGE}>Pilotage</h1>
+                  <CockpitChromeUtilities variant="orientation" trailingSlot={cockpitChromeTrailingSlot} />
+                </div>
+                {cockpitContextStrip}
+              </div>
+            </div>
+          ) : (
+            <div className="mt-2 min-w-0">
+              {/* Mode compact : bandeau shell (actions uniquement), sans recherche niveau 1 */}
+              <div className="flex w-full items-center justify-end gap-2">
+                <CockpitChromeUtilities variant="orientation" trailingSlot={cockpitChromeTrailingSlot} />
+              </div>
+            </div>
+          )}
+        </>
       ) : (
       <div className="relative flex items-center justify-between gap-3">
         <div className="z-10 flex shrink-0 items-center gap-2 sm:gap-3">
@@ -283,31 +384,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
         </div>
       </div>
       )}
-      {currentApp === "linky" && !chromeCompact && onNavigateToAppView && (
-        <div className="mt-2 mb-1 hidden sm:flex sm:justify-center" role="tablist" aria-label="Vue de l'application">
-          {(["pilotage", "synthese"] as const).map((view) => {
-            const labels = { pilotage: "Pilotage", synthese: "Synthèse comptable" } as const;
-            const active = appView === view;
-            return (
-              <button
-                key={view}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => onNavigateToAppView(view)}
-                className={`px-4 py-1.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus:outline-none ${
-                  active
-                    ? "rounded-lg bg-[var(--accent)] text-white"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text)]"
-                }`}
-              >
-                {labels[view]}
-              </button>
-            );
-          })}
-        </div>
-      )}
-      {currentApp === "linky" && !chromeCompact && (showCompanyFilter || showPeriodFilter) && (
+      {currentApp === "linky" && !chromeCompact && !cockpitAppBar && (showCompanyFilter || showPeriodFilter) && (
         <div className="mt-2 hidden sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-4">
           {showCompanyFilter && (
             <div className="flex min-w-0 items-center gap-2">
@@ -342,32 +419,8 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
             </div>
           )}
           <div className="flex justify-end">
-            {showIntegrityBadge ? <IntegrityBadge tenantId={tenantId} sealedCount={sealedCount} sealedCountComplete={sealedCountComplete} onRefresh={onRefreshMetrics} /> : <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-0.5 text-xs text-[var(--text-secondary)]" title="Synchronisation en cours">—</span>}
+            {showIntegrityBadge ? <IntegrityBadge tenantId={tenantId} sealedCount={sealedCount} sealedCountComplete={sealedCountComplete} onRefresh={onRefreshMetrics} /> : <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-0.5 text-xs text-[var(--text-secondary)]" title="Synchronisation en cours">{UI_STATE_LABELS.pending}</span>}
           </div>
-        </div>
-      )}
-      {currentApp === "linky" && !chromeCompact && onNavigateToAppView && (
-        <div className="mt-2 mb-1 flex justify-center sm:hidden" role="tablist" aria-label="Vue de l'application">
-          {(["pilotage", "synthese"] as const).map((view) => {
-            const labels = { pilotage: "Pilotage", synthese: "Synthèse comptable" } as const;
-            const active = appView === view;
-            return (
-              <button
-                key={view}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => onNavigateToAppView(view)}
-                className={`px-3 py-1 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus:outline-none ${
-                  active
-                    ? "rounded-lg bg-[var(--accent)] text-white"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text)]"
-                }`}
-              >
-                {labels[view]}
-              </button>
-            );
-          })}
         </div>
       )}
       {currentApp === "linky" && !chromeCompact && (
@@ -393,7 +446,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
             {yearsToShow.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
           <div className="ml-auto">
-            {showIntegrityBadge ? <IntegrityBadge tenantId={tenantId} sealedCount={sealedCount} sealedCountComplete={sealedCountComplete} onRefresh={onRefreshMetrics} /> : <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-0.5 text-xs text-[var(--text-secondary)]" title="Synchronisation en cours">—</span>}
+            {showIntegrityBadge ? <IntegrityBadge tenantId={tenantId} sealedCount={sealedCount} sealedCountComplete={sealedCountComplete} onRefresh={onRefreshMetrics} /> : <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-0.5 text-xs text-[var(--text-secondary)]" title="Synchronisation en cours">{UI_STATE_LABELS.pending}</span>}
           </div>
         </div>
       )}
@@ -402,16 +455,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
           <span className="rounded-md bg-[var(--accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--accent)]">
             {periodKey === "all" ? "Toutes périodes" : periodKey === "ytd" ? `Exercice ${periodYear}` : `${periodOptionsToShow.find((o) => o.value === periodKey)?.label ?? periodKey} ${periodYear}`}
           </span>
-          {onNavigateToAppView && (
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onNavigateToAppView(appView === "pilotage" ? "synthese" : "pilotage"); }}
-              className="rounded-md bg-[var(--accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--accent)]"
-            >
-              {appView === "pilotage" ? "Pilotage" : "Synthèse"}
-            </button>
-          )}
-          {showIntegrityBadge ? <IntegrityBadge tenantId={tenantId} sealedCount={sealedCount} sealedCountComplete={sealedCountComplete} onRefresh={onRefreshMetrics} /> : <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-0.5 text-xs text-[var(--text-secondary)]">—</span>}
+          {showIntegrityBadge ? <IntegrityBadge tenantId={tenantId} sealedCount={sealedCount} sealedCountComplete={sealedCountComplete} onRefresh={onRefreshMetrics} /> : <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-0.5 text-xs text-[var(--text-secondary)]" title="Synchronisation en cours">{UI_STATE_LABELS.pending}</span>}
         </div>
       )}
     </div>

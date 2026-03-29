@@ -1,12 +1,21 @@
 # Linky — instance générique pour linky.doreviateam.com (choix du tenant)
 # TENANT_ID non défini : l’app affiche l’écran de choix puis ?tenant= pour la suite.
-# Même image que les instances dédiées (laplatine2026, o19).
+#
+# Build & déploiement : « UI <hash> » dans le pied de page suit le git du dépôt si vous utilisez
+#   make deploy   ou   ./rebuild-linky-generic.sh
+# (évitez docker compose build sans LINKY_UI_BUILD_REF).
+# Registry : après build, docker push dorevia/linky:web60-linky-generic
 
 name: dorevia_linky_generic
 
 services:
   linky:
-    image: dorevia/linky:lynki-v1.5-20260325-9b8bb4df
+    build:
+      context: ../../units/dorevia-linky
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_LINKY_UI_BUILD_REF: ${LINKY_UI_BUILD_REF:-unknown}
+    image: dorevia/linky:web60-linky-generic
     container_name: linky_generic
     restart: unless-stopped
     environment:

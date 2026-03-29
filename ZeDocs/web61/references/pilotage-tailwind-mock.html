@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<!--
+  Référence visuelle fournie produit — implémentée dans Lynki (tokens globals.css + composants).
+  Écarts volontaires vs HTML statique : libellé « Tenant » (CDCF §2.12.1), Thème dans Outils + Session = déconnexion uniquement.
+-->
+<html class="dark" lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Lynki — Pilotage</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            background: "#0b1326",
+            surface: "#0f1930",
+            panel: "#16233d",
+            panel2: "#1b2a45",
+            border: "#2a3959",
+            text: "#e5ecff",
+            muted: "#a8b3cf",
+            accent: "#15c78a",
+            accentSoft: "#143e35",
+            warn: "#f0b84d",
+            warnSoft: "#4a3510"
+          },
+          fontFamily: {
+            headline: ["Manrope", "sans-serif"],
+            body: ["Inter", "sans-serif"]
+          },
+          borderRadius: {
+            xl: "0.75rem",
+            "2xl": "1rem"
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-headline { font-family: 'Manrope', sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+</head>
+
+<body class="bg-background text-text min-h-screen flex overflow-hidden">
+
+  <!-- Sidebar -->
+  <aside class="w-72 shrink-0 bg-[#0d1730] border-r border-border flex flex-col">
+    <div class="px-5 py-6 flex items-start gap-4">
+      <div class="h-14 w-14 rounded-xl bg-accent text-white flex items-center justify-center font-headline font-extrabold text-2xl">
+        L
+      </div>
+      <div>
+        <div class="text-2xl font-headline font-extrabold leading-none">Lynki</div>
+        <div class="text-muted text-sm mt-1">Cockpit financier</div>
+      </div>
+    </div>
+
+    <nav class="px-3 pt-4 space-y-6 flex-1">
+      <div>
+        <div class="px-3 mb-3 text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Dashboard</div>
+        <div class="space-y-1">
+          <a href="#" class="flex items-center gap-3 rounded-xl bg-panel2 text-text px-4 py-3 border border-border">
+            <span class="material-symbols-outlined text-base">monitoring</span>
+            <span class="font-medium">Pilotage</span>
+          </a>
+          <a href="#" class="flex items-center gap-3 rounded-xl px-4 py-3 text-muted hover:bg-panel/50 transition">
+            <span class="material-symbols-outlined text-base">account_balance</span>
+            <span class="font-medium">Synthèse comptable</span>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="px-3 mb-3 text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Outils</div>
+        <div class="space-y-1">
+          <a href="#" class="flex items-center gap-3 rounded-xl px-4 py-3 text-muted hover:bg-panel/50 transition">
+            <span class="material-symbols-outlined text-base">menu_book</span>
+            <span class="font-medium">Lexique</span>
+          </a>
+          <a href="#" class="flex items-center gap-3 rounded-xl px-4 py-3 text-muted hover:bg-panel/50 transition">
+            <span class="material-symbols-outlined text-base">help</span>
+            <span class="font-medium">Aide</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="px-3 py-4 border-t border-border">
+      <div class="px-3 mb-3 text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Session</div>
+      <div class="space-y-1">
+        <button class="w-full flex items-center justify-between rounded-xl px-4 py-3 text-muted hover:bg-panel/50 transition">
+          <span class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-base">dark_mode</span>
+            <span class="font-medium">Thème</span>
+          </span>
+          <span class="material-symbols-outlined text-base">contrast</span>
+        </button>
+        <a href="#" class="flex items-center gap-3 rounded-xl px-4 py-3 text-muted hover:bg-panel/50 transition">
+          <span class="material-symbols-outlined text-base">logout</span>
+          <span class="font-medium">Déconnexion</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 overflow-y-auto">
+    <!-- Header -->
+    <header class="sticky top-0 z-20 bg-surface border-b border-border">
+      <!-- Niveau 1 -->
+      <div class="h-20 px-8 flex items-center justify-between">
+        <h1 class="font-headline text-3xl font-extrabold">Pilotage</h1>
+
+        <div class="flex items-center gap-3">
+          <div class="h-12 w-12 rounded-full bg-accent text-white flex items-center justify-center font-bold">
+            V
+          </div>
+        </div>
+      </div>
+
+      <!-- Niveau 2 -->
+      <div class="px-8 pb-4 flex justify-center">
+        <div class="bg-panel rounded-2xl border border-border px-4 py-3 flex items-end gap-3">
+          <label class="flex flex-col gap-1">
+            <span class="text-[10px] uppercase tracking-[0.14em] text-muted font-semibold">Espace</span>
+            <select class="bg-panel2 border border-border rounded-xl px-4 py-2.5 text-sm text-text">
+              <option>La Platine</option>
+            </select>
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-[10px] uppercase tracking-[0.14em] text-muted font-semibold">Société</span>
+            <select class="bg-panel2 border border-border rounded-xl px-4 py-2.5 text-sm text-text">
+              <option>SARL La Platine</option>
+            </select>
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-[10px] uppercase tracking-[0.14em] text-muted font-semibold">Période</span>
+            <select class="bg-panel2 border border-border rounded-xl px-4 py-2.5 text-sm text-text min-w-[170px]">
+              <option>Exercice à date</option>
+              <option>Mars</option>
+            </select>
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-[10px] uppercase tracking-[0.14em] text-muted font-semibold">Année</span>
+            <select class="bg-panel2 border border-border rounded-xl px-4 py-2.5 text-sm text-text">
+              <option>2026</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </header>
+
+    <div class="p-7 space-y-6">
+
+      <!-- Cockpit A -->
+      <section class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+        <!-- Trésorerie -->
+        <article class="xl:col-span-4 bg-panel2 border border-border rounded-2xl p-6">
+          <div class="flex items-start justify-between mb-4">
+            <div class="text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Trésorerie</div>
+            <span class="bg-warnSoft text-warn border border-[#7a5920] text-xs font-semibold px-3 py-1 rounded-full">
+              Partiel
+            </span>
+          </div>
+
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <div>
+              <div class="font-headline font-extrabold text-5xl leading-none">118 179,42 €</div>
+              <div class="mt-2 text-muted">Solde validé (Vault)</div>
+            </div>
+            <button class="h-14 w-14 rounded-xl bg-[#274269] flex items-center justify-center text-text/90">
+              <span class="material-symbols-outlined">account_balance_wallet</span>
+            </button>
+          </div>
+
+          <div class="mt-10">
+            <div class="flex items-center justify-between text-sm uppercase tracking-[0.14em] text-muted font-semibold">
+              <span>Couverture probante</span>
+              <span class="text-text">69 %</span>
+            </div>
+            <div class="mt-3 h-3 rounded-full bg-[#24395d] overflow-hidden">
+              <div class="h-full w-[69%] bg-[#7c95bb] rounded-full"></div>
+            </div>
+          </div>
+
+          <div class="mt-6 space-y-3 text-lg">
+            <div class="flex justify-between">
+              <span class="text-muted">Écart ERP - Vault</span>
+              <span class="font-semibold">− 21 500,00 €</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted">Volume à rapprocher</span>
+              <span class="font-semibold">43 228,60 €</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Business -->
+        <article class="xl:col-span-4 bg-[#0b1430] border border-[#0fae8d] rounded-2xl p-6">
+          <div class="flex items-start justify-between mb-4">
+            <div class="text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Business</div>
+          </div>
+
+          <div class="font-headline font-extrabold text-5xl leading-none">+ 94 881,28 €</div>
+          <div class="mt-2 text-muted">Ventes nettes après achats (période)</div>
+
+          <div class="mt-5 border-t border-border"></div>
+
+          <div class="mt-10 space-y-4 text-xl">
+            <div class="flex justify-between">
+              <span class="text-muted">Ventes</span>
+              <span class="font-semibold">+ 94 881,28 €</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted">Achats</span>
+              <span class="font-semibold">− 39 403,76 €</span>
+            </div>
+          </div>
+
+          <div class="mt-16 flex items-center justify-between">
+            <span class="text-accent font-semibold">↗ MTD</span>
+            <span class="bg-accentSoft text-accent text-xs font-semibold px-3 py-1 rounded-full">
+              Certifié
+            </span>
+          </div>
+        </article>
+
+        <!-- Flux net -->
+        <article class="xl:col-span-4 bg-panel2 border border-[#1aa78e] rounded-2xl p-6">
+          <div class="flex items-start justify-between mb-4">
+            <div class="text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Flux net</div>
+            <span class="bg-accentSoft text-accent text-xs font-semibold px-3 py-1 rounded-full">
+              Fiable
+            </span>
+          </div>
+
+          <div class="font-headline font-extrabold text-5xl leading-none">+ 8 047,78 €</div>
+          <div class="mt-2 text-muted">Encaissements et décaissements (période)</div>
+
+          <div class="mt-5 border-t border-border"></div>
+
+          <div class="mt-12 space-y-4 text-xl">
+            <div class="flex justify-between">
+              <span class="text-muted">Encaissements</span>
+              <span class="font-semibold">+ 69 767,44 €</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted">Décaissements</span>
+              <span class="font-semibold">− 61 719,66 €</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Cartes B/C -->
+      <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+        <article class="bg-panel2 border border-border rounded-2xl p-6">
+          <div class="text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">BFR</div>
+          <div class="mt-4 font-headline font-bold text-4xl">42 290,08 €</div>
+          <div class="mt-5 text-accent font-semibold">✹ Fiable</div>
+        </article>
+
+        <article class="bg-panel2 border border-border rounded-2xl p-6">
+          <div class="text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Encours</div>
+          <div class="mt-4 font-headline font-bold text-4xl">50 422,96 €</div>
+          <div class="mt-5 text-accent font-semibold">✹ Fiable</div>
+        </article>
+
+        <article class="bg-panel2 border border-border rounded-2xl p-6">
+          <div class="text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Taxes</div>
+          <div class="mt-4 font-headline font-bold text-4xl">+ 609,05 €</div>
+          <div class="mt-5 text-accent font-semibold">✹ Fiable</div>
+        </article>
+
+        <article class="bg-panel2 border border-border rounded-2xl p-6">
+          <div class="text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">EBE</div>
+          <div class="mt-4 font-headline font-bold text-4xl">+ 34 939,22 €</div>
+          <div class="mt-5 text-accent font-semibold">✹ Fiable</div>
+        </article>
+
+        <article class="bg-panel2 border border-border rounded-2xl p-6">
+          <div class="text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Notes crédit</div>
+          <div class="mt-4 font-headline font-bold text-4xl">+ 961,70 €</div>
+          <div class="mt-5 text-accent font-semibold">✹ Fiable</div>
+        </article>
+
+        <article class="bg-panel2 border border-border rounded-2xl p-6">
+          <div class="text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Rembours.</div>
+          <div class="mt-4 font-headline font-bold text-4xl">+ 0,00 €</div>
+          <div class="mt-5 text-accent font-semibold">✹ Fiable</div>
+        </article>
+
+        <article class="bg-panel2 border border-border rounded-2xl p-6">
+          <div class="text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Points de vente</div>
+          <div class="mt-4 font-headline font-bold text-4xl">0,00 €</div>
+          <div class="mt-5 text-accent font-semibold">✹ Fiable</div>
+        </article>
+
+        <article class="bg-panel2 border border-border rounded-2xl p-6">
+          <div class="text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Z de caisse</div>
+          <div class="mt-4 font-headline font-bold text-4xl">—</div>
+          <div class="mt-5 text-accent font-semibold">✹ Fiable</div>
+        </article>
+      </section>
+
+      <!-- Bas de page -->
+      <section class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+        <article class="xl:col-span-8 bg-panel2 border border-border rounded-2xl p-6 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Détail trésorerie</div>
+            <div class="mt-2 text-2xl font-headline font-bold">Rapprochement bancaire, évolution du solde et gouvernance</div>
+          </div>
+          <button class="h-12 w-12 rounded-xl bg-panel flex items-center justify-center">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </article>
+
+        <article class="xl:col-span-4 bg-panel2 border border-border rounded-2xl p-6 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] uppercase tracking-[0.16em] text-muted font-semibold">Alertes & signaux</div>
+            <div class="mt-2 text-2xl font-headline font-bold">Voir les alertes</div>
+          </div>
+          <button class="h-12 w-12 rounded-xl bg-panel flex items-center justify-center">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </article>
+      </section>
+    </div>
+
+    <!-- Footer système -->
+    <footer class="sticky bottom-0 bg-[#12203a] border-t border-border px-8 py-3 text-sm text-muted">
+      <div class="flex items-center justify-center gap-4 text-center">
+        <span>Cumul preuves : 1309</span>
+        <span>│</span>
+        <span>UX 143 ms</span>
+        <span>│</span>
+        <span>Sources : Odoo ✓ Pos ✓</span>
+        <span>│</span>
+        <span>Vault</span>
+        <span>│</span>
+        <span>1.0.0</span>
+      </div>
+    </footer>
+  </main>
+</body>
+</html>

@@ -10,7 +10,7 @@ function getMessage(error: TenantConfigError): string {
     case "forbidden":
       return "Accès refusé à cet espace de pilotage.";
     case "not_found":
-      return "Espace introuvable.";
+      return "Tenant introuvable.";
     case "network":
       return "Impossible de joindre le service. Vérifiez votre connexion et réessayez.";
     case "server":

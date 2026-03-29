@@ -1,7 +1,7 @@
 # Plan Web60 — Linky UI
 
 **Fichier canonique :** `PLAN_WEB60_LINKY_UI.md`
-**Version :** 1.1.20 — mars 2026  
+**Version :** 1.1.23 — mars 2026  
 **Référence créa figée :** `ZeDocs/web59/stitch_carole_61`
 **Espace de travail actif :** `ZeDocs/web60`
 **Périmètre prioritaire :** cockpit **Pilotage**
@@ -232,6 +232,146 @@ l’ordre de priorité retenu est le suivant :
 4. fidélité à la créa ;
 5. sophistication visuelle.
 
+### 6.7 Réorganisation du header cockpit (desktop)
+
+#### Intention
+
+Le header du cockpit ne doit pas juxtaposer sur un même plan visuel :
+
+- l’identité du cockpit ;
+- le périmètre métier ;
+- le mode de lecture ;
+- les actions système ;
+- les indicateurs de confiance.
+
+L’objectif est de rétablir une lecture plus calme, plus méthodique et plus cockpit, en séparant clairement :
+
+1. le **cadre global** ;
+2. le **périmètre de lecture** ;
+3. le **régime de lecture**.
+
+#### Décision de structure (logique) vs matérialisation (desktop)
+
+Le cadrage distingue **trois niveaux de lecture produit** (cadre global, périmètre métier, régime de lecture). **Cette distinction ne vaut pas obligation** de les matérialiser par **trois barres pleine largeur** empilées : une sur-traduction littérale casse l’élégance de la composition et s’éloigne de la **créa canon v5** (Carole).
+
+**Principe de matérialisation :**
+
+> Le cadrage Web60 distingue bien cadre global, périmètre métier et régime de lecture, mais cette distinction ne vaut pas obligation de matérialisation en trois lignes de chrome. Sur desktop, l’**esprit canon** reste : **une ligne de chrome**, puis un **sous-header de page** hiérarchisé.
+
+**Niveau A — ligne de chrome** (seule « barre système »)
+
+Porte :
+
+- la **recherche** ;
+- les **actions système** (thème, notifications, réglages, avatar, menu) ;
+- le **tenant** **uniquement en mobile** si nécessaire (sur desktop, le tenant peut aller dans le **rail de contexte**).
+
+Exemple cible (desktop) :
+
+```text
+[Recherche …]                                           [Thème] [Notif] [Réglages] [Avatar] [Menu]
+```
+
+Règle : **aucun** filtre métier, **ni** titre cockpit, **ni** badge de fiabilité global, **ni** arrêté sur cette ligne.
+
+---
+
+**Niveau B — ancre canonique du sous-header (trio figé)**
+
+> **Le header se construit autour du trio « titre + état global + arrêté », qui devient l’ancre canonique du sous-header de page.**
+
+Bloc **à conserver tel quel** (statut **figé**) :
+
+- **une seule ligne**, **groupé**, **non dissocié** ;
+- placé **haut de page**, zone **centre-gauche** (aligné au début de la colonne de contenu) ;
+- **ne pas** remonter le badge ni l’arrêté dans le chrome, **ni** les redescendre dans le rail de filtres.
+
+Exemple canonique :
+
+```text
+Lynki Desktop Cockpit   [100.0 % Fiable]   Arrêté …
+```
+
+**Hiérarchie sémantique (ordre de lecture) :**
+
+1. `Lynki Desktop Cockpit` — **ancre principale** ;
+2. `100.0 % Fiable` — **état global secondaire** ;
+3. `Arrêté …` — **horodatage tertiaire**.
+
+---
+
+**Niveau C — rail de contexte** (sous le trio, **sans** mélanger titre / fiabilité / arrêté)
+
+Une ligne : à **gauche**, tenant (si absent du shell sur desktop) + périmètre métier ; à **droite**, régime de lecture + preuve de la vue.
+
+Exemple cible :
+
+```text
+[La Platine]  [SARL La Platine]  [Tout]  [Exercice à date]  [2026]          [Pilotage | Synthèse]   [498 preuves de la vue]
+```
+
+*Sur **mobile**, le **tenant** peut rester dans la **ligne de chrome** pour la lisibilité ; sur **desktop**, il peut être porté par ce rail pour coller à la composition cible.*
+
+Règles :
+
+- les contrôles qui qualifient **ce que l’on regarde** restent groupés ;
+- le switch de vue est **lisible en premier** dans la zone « régime » ; l’indicateur de preuve reste **secondaire** ;
+- **pas** de multiplication de filets horizontaux « trois rails » si cela alourdit la lecture.
+
+#### Règle de hiérarchie
+
+Le header doit pouvoir être lu dans cet ordre :
+
+1. **où suis-je ?**
+2. **dans quel état global est le cockpit ?**
+3. **sur quel périmètre suis-je en train de lire ?**
+4. **dans quel mode de lecture suis-je ?**
+5. **quelle est la preuve attachée à la vue affichée ?**
+
+#### Règle de vocabulaire
+
+Les libellés courts retenus pour le header desktop sont :
+
+- `Pilotage`
+- `Synthèse`
+- `preuves de la vue`
+- `Arrêté ...`
+- `Fiable`
+
+Le contrôle segmenté du header utilise la forme courte :
+
+```text
+[Pilotage | Synthèse]
+```
+
+La forme longue `Synthèse comptable` reste possible dans la documentation, les titres de pages ou les zones de contexte, mais pas dans le segment principal du header.
+
+#### Effet recherché
+
+Cette réorganisation vise à produire un header :
+
+- plus respirant ;
+- plus hiérarchisé ;
+- moins « barre d’outils » ;
+- plus cohérent avec une lecture RAF / pilotage ;
+- plus compatible avec la doctrine de cockpit de gouvernance.
+
+#### Conséquences d’implémentation
+
+- **chrome** : recherche + actions (+ **tenant en mobile** si pertinent) — **jamais** le trio titre / fiabilité globale / arrêté, **jamais** les filtres métier dans ce bloc ;
+- **sous-header** : d’abord le **trio figé** (une ligne, nowrap) ; **en dessous**, le **rail de contexte** (périmètre + à droite Pilotage | Synthèse + preuves) ;
+- **ne pas** fragmenter le trio ni y injecter les filtres.
+
+#### Règle canonique courte
+
+> **Une ligne de chrome**, puis **l’ancre canonique** `Lynki Desktop Cockpit` + **fiabilité globale** + **Arrêté** sur **une seule ligne groupée** ; le reste (tenant, société, périodes, vue, preuves) se **compose autour**, sans déplacer le trio.
+
+#### Formulation ultra-courte de décision
+
+- **chrome** = shell (recherche, actions ; tenant optionnel mobile)
+- **trio** = titre + % Fiable + Arrêté (**figé**, une ligne)
+- **rail** = contexte métier + régime / preuve
+
 ---
 
 ## 7. Axes de travail
@@ -314,7 +454,7 @@ Le dossier `ZeDocs/web60` doit au minimum contenir les pièces suivantes :
 * `PLAN_WEB60_LINKY_UI.md` — cadrage général du lot ;
 * `DOCTRINE_ETATS_UI_LINKY.md` — norme d’états et de badges ;
 * `SPEC_CARTES_MAITRESSES_LINKY.md` — spécification des cartes Trésorerie / Business / Flux net ;
-* `BACKLOG_WEB60_LINKY.md` — suivi opérationnel (**v1.1.9**, items **W60-xxx**, priorités P0–P3, axes A–E) ;
+* `BACKLOG_WEB60_LINKY.md` — suivi opérationnel (**v1.1.10**, items **W60-xxx**, priorités P0–P3, axes A–E) ;
 * `RECETTE_WEB60_LINKY.md` — protocole de validation Pilotage (**v1.1.16** : chrome, doctrine visible, T/B/F, second rang, **R60-001 … R60-010**, personas, sortie « montrable », CR).  
 * `EXECUTION_TICKETS_WEB60_LINKY.md` — fermeture par **passes** et tickets **T-W60-xxx** (miroir **W60-xxx**), **R60** ([recette §10](./RECETTE_WEB60_LINKY.md)), **lab public** / **UI hash**, régimes d’usage, DoD persona/viewport, **§13** journal / **§13.1** gabarit **T-W60-001**, **§4.2** clôture **W60-005**, **§5** Passe 2 P0 **W60-101–103** **Fait**, **§14** PR trio **T-W60-001 → T-W60-003** — **v1.1.18**.
 
@@ -322,10 +462,10 @@ Le dossier `ZeDocs/web60` doit au minimum contenir les pièces suivantes :
 
 | Pièce | Fichier | Version | Statut |
 |-------|---------|---------|--------|
-| Cadre | `PLAN_WEB60_LINKY_UI.md` | v1.1.20 | Cadrage publié |
-| Norme | `DOCTRINE_ETATS_UI_LINKY.md` | v1.1.2 | Doctrine publiée (**§5.4** / **§5.4.7** cartes principales) |
+| Cadre | `PLAN_WEB60_LINKY_UI.md` | v1.1.23 | Cadrage publié (**§6.7** trio figé + rail contexte) |
+| Norme | `DOCTRINE_ETATS_UI_LINKY.md` | v1.1.3 | Doctrine publiée (**§5.4** / **§5.4.7** cartes principales, **§9.5** sans `Proxy` en UI Vault) |
 | Spec | `SPEC_CARTES_MAITRESSES_LINKY.md` | v1.1.17 | Spécification publiée |
-| Arbitrages | `BACKLOG_WEB60_LINKY.md` | v1.1.9 | Backlog ouvert |
+| Arbitrages | `BACKLOG_WEB60_LINKY.md` | v1.1.10 | Backlog ouvert |
 | Validation | `RECETTE_WEB60_LINKY.md` | v1.1.16 | Protocole de validation publié |
 | Fermeture par blocs | `EXECUTION_TICKETS_WEB60_LINKY.md` | v1.1.18 | Guide d’exécution publié (5 passes + recette ; Passe 2 P0 **W60-101–103** **Fait** ; **R60-004** ; lab public / **UI hash** ; §13 journal ; §4.2 **W60-005** ; §14 trame **T-W60-002**) |
 
@@ -482,6 +622,9 @@ La formule de cap du lot Web60 est la suivante :
 | **1.1.18** | **EXECUTION v1.1.16**, recette **v1.1.14**, backlog **v1.1.7**, spec **v1.1.15** ; **W60-103** ; tableau §8 aligné. |
 | **1.1.19** | **EXECUTION v1.1.17**, recette **v1.1.15**, backlog **v1.1.8**, spec **v1.1.16**, doctrine **v1.1.2** ; **§5.3.1** contour cockpit ; tableau §8 aligné. |
 | **1.1.20** | **EXECUTION v1.1.18**, recette **v1.1.16**, backlog **v1.1.9**, spec **v1.1.17** ; **W60-103** / **T-W60-103** **Fait** ; **R60-004** ; tableau §8 aligné. |
+| **1.1.21** | **§6.7** — réorganisation du **header cockpit desktop** : trois lignes (cadre global, périmètre de lecture, régime de lecture) ; vocabulaire court Pilotage / Synthèse ; tableau §8 aligné. |
+| **1.1.22** | **§6.7** — précision **matérialisation** : grille logique ≠ trois rails chrome ; **chrome une ligne** + **sous-header de page** (esprit canon Carole) ; conséquences d’implémentation et formulations courtes mises à jour. |
+| **1.1.23** | **§6.7** — **trio canonique figé** (titre + % Fiable + Arrêté, une ligne) ; **rail de contexte** sous le trio ; hiérarchie sémantique ; tenant shell mobile / rail desktop. |
 
 ---
 

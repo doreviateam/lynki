@@ -13,6 +13,11 @@ function getCurrencyLabel(currency = "EUR"): string {
   return code;
 }
 
+/** Détecte si la chaîne porte déjà un symbole ou code devise. */
+function stringHasCurrencySymbol(s: string): boolean {
+  return /[\u20AC€]|\$|£|\b(?:EUR|USD|GBP)\b/i.test(s);
+}
+
 function ensureSpaceThousands(formatted: string): string {
   return formatted.replace(/\u202f|\u00a0/g, SPACE);
 }
@@ -32,6 +37,65 @@ export function formatAmount(value: number, currency = "EUR"): string {
 export function formatSignedAmount(value: number, currency = "EUR"): string {
   const sign = value >= 0 ? "+" : "\u2212";
   return `${sign} ${formatWithThousands(Math.abs(value), 2)} ${getCurrencyLabel(currency)}`;
+}
+
+/**
+ * Cockpit : complète la devise, réaligne 2 décimales depuis `value` si affichage EUR
+ * (évite chaînes tronquées type « 118 179,4 € » venant du Metric Engine / cache).
+ * Laisse inchangés hits, %, devises non EUR, libellés sans chiffres.
+ */
+export function ensureCockpitKpiShowsEuro(raw: { formatted?: string | null; value?: unknown }): string {
+  const f = raw?.formatted;
+  const s = f != null ? String(f).trim() : "";
+
+  /** Même grammaire que `formatSignedAmount` (espaces milliers, 2 décimales, espace avant €). */
+  const fromNumberUnsigned = (n: number) => formatAmount(n, "EUR");
+
+  if (s === "" || s === "—") {
+    if (typeof raw.value === "number" && Number.isFinite(raw.value)) {
+      return fromNumberUnsigned(raw.value);
+    }
+    return "—";
+  }
+
+  if (stringHasCurrencySymbol(s)) {
+    const isEurDisplay = /[\u20AC€]|EUR/i.test(s) && !/\$|£|\bUSD\b|\bGBP\b/i.test(s);
+    if (isEurDisplay && typeof raw.value === "number" && Number.isFinite(raw.value)) {
+      const lead = s.trimStart();
+      if (lead.startsWith("+") || lead.startsWith("−") || lead.startsWith("-")) {
+        return formatSignedAmount(raw.value, "EUR");
+      }
+      return fromNumberUnsigned(raw.value);
+    }
+    return ensureSpaceThousands(s);
+  }
+
+  if (!/\d/.test(s)) {
+    return s;
+  }
+  if (/\b(?:hits?|hit)\b/i.test(s) || /%\s*$/.test(s) || /\bn\.?\s*d\.?\b/i.test(s)) {
+    return s;
+  }
+
+  if (typeof raw.value === "number" && Number.isFinite(raw.value)) {
+    return fromNumberUnsigned(raw.value);
+  }
+
+  return `${s.replace(/\s+$/, "")} ${getCurrencyLabel("EUR")}`;
+}
+
+/**
+ * Sépare le corps numérique et le suffixe « € » pour le layout cockpit :
+ * seul le corps défile en overflow-x ; le symbole reste toujours visible à droite.
+ */
+export function splitMasterAmountForNoWrapEuro(display: string): { body: string; euroTail: string } {
+  const t = display.trimEnd();
+  if (t === "" || t === "—") return { body: t, euroTail: "" };
+  const idx = Math.max(t.lastIndexOf("€"), t.lastIndexOf("\u20AC"));
+  if (idx < 0) return { body: t, euroTail: "" };
+  const body = t.slice(0, idx).replace(/[\s\u00a0\u202f]+$/, "");
+  const euroTail = t.slice(idx);
+  return { body, euroTail };
 }
 
 /** Formate manuellement un nombre avec séparateur de milliers (espace), indépendant de Intl. */

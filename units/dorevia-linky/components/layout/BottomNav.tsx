@@ -12,14 +12,20 @@ interface BottomNavItem {
   matchPrefix?: string;
 }
 
+const PILOTAGE_PREFIXES = ["/tresorerie", "/business", "/flux-net", "/encours", "/alerts", "/cockpit"];
+
+function isPilotagePath(pathname: string): boolean {
+  if (pathname === "/") return true;
+  return PILOTAGE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
 const ITEMS: BottomNavItem[] = [
   { label: "Pilotage", icon: "insights", href: "/", matchPrefix: "/" },
-  { label: "Alertes", icon: "notifications_active", href: "/alerts", matchPrefix: "/alerts" },
   { label: "Synthèse", icon: "insert_chart", href: "/synthese", matchPrefix: "/synthese" },
 ];
 
 function isActive(pathname: string, item: BottomNavItem): boolean {
-  if (item.matchPrefix === "/") return pathname === "/" || pathname.startsWith("/tresorerie");
+  if (item.matchPrefix === "/") return isPilotagePath(pathname);
   return !!item.matchPrefix && pathname.startsWith(item.matchPrefix);
 }
 

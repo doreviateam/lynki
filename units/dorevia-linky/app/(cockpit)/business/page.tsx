@@ -10,6 +10,7 @@ import { ConfidenceScore } from "@/components/ConfidenceScore";
 import { TopBar } from "@/components/layout/TopBar";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { computeConfidenceScore } from "@/app/lib/confidence";
+import { confidenceLabelFromScore } from "@/app/lib/cockpit/ui-state-labels";
 import { navHrefWithTenant } from "@/components/layout/navTenantHref";
 import {
   CockpitBusinessEmptyNotice,
@@ -108,7 +109,7 @@ function BusinessContent() {
     <>
       <TopBar
         confidenceScore={confidenceScore}
-        confidenceLabel={confidenceScore === 100 ? "Fiable" : confidenceScore !== null ? "Partielle" : undefined}
+        confidenceLabel={confidenceLabelFromScore(confidenceScore)}
         title="Lynki Desktop Cockpit"
       />
 

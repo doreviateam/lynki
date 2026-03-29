@@ -3,6 +3,7 @@
 }
 
 # Linky lab — une seule URL : ?tenant=laplatine2026 | ?tenant=o19 | sans param = choix du tenant
+# → conteneur linky_generic (tenants/linky-generic). Déploiement : ./scripts/deploy-linky-lab.sh
 lab.linky.doreviateam.com {
   reverse_proxy linky_generic:3000
 }

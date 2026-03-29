@@ -11,6 +11,7 @@ import { AccountingSummaryView } from "@/components/AccountingSummaryView";
 import { TenantChoiceView } from "@/components/TenantChoiceView";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { computeConfidenceScore } from "@/app/lib/confidence";
+import { confidenceLabelFromScore } from "@/app/lib/cockpit/ui-state-labels";
 
 function formatPeriodLine(from: string | undefined, to: string | undefined): string | null {
   if (!from || !to) return null;
@@ -48,13 +49,7 @@ function SyntheseContent() {
     <>
       <TopBar
         confidenceScore={confidenceScore}
-        confidenceLabel={
-          confidenceScore === 100
-            ? "Fiable"
-            : confidenceScore !== null
-              ? "Partielle"
-              : undefined
-        }
+        confidenceLabel={confidenceLabelFromScore(confidenceScore)}
         title="Lynki Desktop Cockpit"
         subtitle="Synthèse comptable · Reporting"
       />

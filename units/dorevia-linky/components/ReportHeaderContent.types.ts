@@ -11,7 +11,7 @@ export interface ReportHeaderContentProps {
   menuOpen: boolean;
   setMenuOpen: (v: boolean) => void;
   ODOO_URL: string;
-  tenantCtx: { availableTenants?: Array<{ id: string }> } | null;
+  tenantCtx: { availableTenants?: Array<{ id: string; label?: string }>; resolvedTenant?: string | null } | null;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   workspace: { sources?: Array<{ id: string; href: string; label: string }>; apps?: Array<{ id: string; href?: string; label: string }> } | undefined;
@@ -44,9 +44,9 @@ export interface ReportHeaderContentProps {
    * Mode aligné `stitch_carole_61` / `pilotage_desktop_v_r_na_canon_v5` :
    * première ligne = barre cockpit (titre Lynki, badge fiabilité, recherche) au lieu du bloc produit Dorevia.
    */
+  /** Mode bandeau pilotage fusionné : champs optionnels (score non affiché en V1 minimal). */
   cockpitAppBar?: {
-    confidenceScore: number | null;
+    confidenceScore?: number | null;
     confidenceLabel?: string;
-    subtitle?: string;
   };
 }

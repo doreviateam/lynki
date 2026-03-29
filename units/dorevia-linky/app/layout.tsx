@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Manrope } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import "./synthese-v2.css";
@@ -15,6 +15,14 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+/** Titres (mix référence Observatory HTML) — corps et UI restent Inter. */
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  display: "swap",
+  variable: "--font-manrope",
+});
+
 export const metadata: Metadata = {
   title: "Dorevia Lynki",
   description: "Cockpit financier certifié",
@@ -26,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={inter.variable} suppressHydrationWarning>
+    <html lang="fr" className={`${inter.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"

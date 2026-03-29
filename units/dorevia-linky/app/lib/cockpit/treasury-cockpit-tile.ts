@@ -69,7 +69,7 @@ export function treasuryCockpitPrimaryBadge(status: CardStatusValue | undefined)
       return {
         label: UI_STATE_LABELS.partial,
         desktopWrap:
-          "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/35 dark:bg-amber-500/15 dark:text-amber-400",
+          "border border-[color-mix(in_srgb,var(--confidence-partielle)_55%,#7a5920)] bg-[var(--warn-soft-bg)] text-[var(--confidence-partielle)]",
         mobileClassName: "bg-amber-500/15 text-amber-400",
         iconName: "pie_chart",
       };

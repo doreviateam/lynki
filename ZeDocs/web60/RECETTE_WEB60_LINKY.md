@@ -4,7 +4,7 @@
 **Version :** 1.1.16 — mars 2026  
 **Lot :** Web60  
 **Statut :** protocole de validation publié  
-**Plan :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.20** · **Doctrine :** [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.2** · **Spec maîtresses :** [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** · **Backlog :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.9** · **Exécution :** [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18**  
+**Plan :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.23** · **Doctrine :** [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.3** · **Spec maîtresses :** [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** · **Backlog :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.10** · **Exécution :** [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18**  
 **Référence créa figée :** `ZeDocs/web59/stitch_carole_61`  
 **Axe backlog :** E (plan §7.5)  
 **Environnement recette prioritaire :** [lab.linky — tenant laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026)
@@ -40,10 +40,10 @@ Le dossier compte **six pièces maîtresses** : plan, doctrine, spec, backlog, *
 
 | Document | Version | Statut |
 |----------|---------|--------|
-| [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) | **v1.1.20** | Cadrage publié |
-| [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) | **v1.1.2** | Doctrine publiée (**§5.4** / **§5.4.7** langage visuel cartes principales) |
+| [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) | **v1.1.23** | Cadrage publié (**§6.7** trio figé + rail contexte) |
+| [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) | **v1.1.3** | Doctrine publiée (**§5.4** / **§5.4.7** cartes principales ; **§9.5** sans `Proxy` en UI Vault) |
 | [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) | **v1.1.17** | Spécification publiée |
-| [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) | **v1.1.9** | Backlog ouvert (**W60-101** à **W60-103** P0 Trésorerie **Fait**) |
+| [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) | **v1.1.10** | Backlog ouvert (**W60-011** lexique / Aide **Fait**) |
 | [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) | **v1.1.18** | Guide d’exécution publié (**§5** Passe 2 P0 clos ; **§13** ; **lab public** / **UI hash** ; **§4.2** **W60-005** ; **§14** trame **T-W60-002**) |
 | [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) | **v1.1.16** | Protocole de validation publié |
 

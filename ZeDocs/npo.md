@@ -1,0 +1,1 @@
+d’abord rebuild / déployer l’image (ex. r6) sur linky_generic + tenants.

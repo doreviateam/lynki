@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { TopBar } from "@/components/layout/TopBar";
+import { CockpitMasterKpiValue } from "@/components/cockpit/CockpitMasterKpiValue";
 import { CompactTile, type ConfidenceLevel } from "@/components/InstrumentCardChrome";
 import { DivaFlashBlock } from "@/components/DivaFlashBlock";
 import type { DashboardMetricsResponse } from "@/app/api/dashboard-metrics/route";
@@ -18,8 +19,19 @@ import {
 import {
   metricConfidenceOutlineClass,
   treasuryMasterCardOutlineClass,
-  treasuryWalletIconSurfaceClass,
 } from "@/app/lib/cockpit/cockpit-master-card-outline";
+import { cockpitMasterMetricBadgeDesktop } from "@/app/lib/cockpit/cockpit-master-metric-badge";
+import { ensureCockpitKpiShowsEuro, formatSignedAmount } from "@/app/lib/format";
+import {
+  COCKPIT_T1_PAGE_META,
+  COCKPIT_T1_PAGE_TITLE,
+  COCKPIT_T4_CARD_LABEL,
+  COCKPIT_T4_MICRO_UPPER,
+  COCKPIT_T5_CAPTION,
+  COCKPIT_T5_DETAIL_LABEL,
+  COCKPIT_T5_DETAIL_VALUE,
+  COCKPIT_T5_STATE_BADGE,
+} from "@/app/lib/cockpit/cockpit-typography";
 
 interface CockpitDesktopViewProps {
   tenantId: string;
@@ -27,6 +39,8 @@ interface CockpitDesktopViewProps {
   period: PeriodRange;
   metrics: DashboardMetricsResponse | null;
   metricsLoading: boolean;
+  /** Échec du chargement des métriques cockpit (affichage dégradé + contour Trésorerie « alert »). */
+  metricsError?: boolean;
   onSelectCard?: (id: CardId) => void;
   /** Quand la barre est fusionnée dans `ReportHeader` (canon Stitch desktop). */
   hideTopBar?: boolean;
@@ -34,11 +48,7 @@ interface CockpitDesktopViewProps {
 
 function fmt(raw: { value?: unknown; formatted?: string } | null | undefined): string {
   if (!raw) return "—";
-  if (typeof raw.formatted === "string" && raw.formatted !== "—") return raw.formatted;
-  if (raw.value != null && typeof raw.value === "number") {
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(raw.value);
-  }
-  return "—";
+  return ensureCockpitKpiShowsEuro(raw);
 }
 
 function conf(raw: { valueKind?: string } | null | undefined): ConfidenceLevel {
@@ -76,6 +86,7 @@ export function CockpitDesktopView({
   period,
   metrics,
   metricsLoading,
+  metricsError = false,
   onSelectCard,
   hideTopBar = false,
 }: CockpitDesktopViewProps) {
@@ -87,10 +98,14 @@ export function CockpitDesktopView({
   const h = (p: string) => navHrefWithTenant(p, tenantId);
   const periodLine = formatCockpitPeriodRange(period);
 
-  const treasuryPrimaryBadge = treasuryCockpitPrimaryBadge(treasuryTile.treasuryStatus);
-  const treasuryOutline = treasuryMasterCardOutlineClass(treasuryTile.treasuryStatus);
+  const treasuryStatusForChrome = metricsError ? "alert" : treasuryTile.treasuryStatus;
+  const treasuryPrimaryBadge = treasuryCockpitPrimaryBadge(treasuryStatusForChrome);
+  const treasuryOutline = treasuryMasterCardOutlineClass(treasuryStatusForChrome);
   const businessOutline = metricConfidenceOutlineClass(conf(business));
   const cashOutline = metricConfidenceOutlineClass(conf(cash));
+  const cashMasterBadge = cockpitMasterMetricBadgeDesktop(conf(cash));
+  const businessDetail = metrics?._details?.business;
+  const cashDetail = metrics?._details?.cash;
 
   if (metricsLoading && !metrics) {
     return (
@@ -114,53 +129,50 @@ export function CockpitDesktopView({
         />
       ) : null}
 
-      <main className={`flex-1 overflow-y-auto ${hideTopBar ? "px-0 py-4 md:py-6" : "p-6"}`}>
-        <div className="mb-6">
-          <h2 className="text-2xl font-extrabold tracking-tight text-[var(--text)]">Pilotage Stratégique</h2>
-          {periodLine ? (
-            <p className="mt-1 text-sm text-[var(--muted)]">Période affichée : {periodLine}</p>
-          ) : null}
-        </div>
+      <main className={`flex-1 overflow-y-auto ${hideTopBar ? "space-y-6 px-0 pb-4 pt-0 md:pb-6" : "p-6"}`}>
+        {!hideTopBar ? (
+          <div className="mb-6">
+            <h2 className={COCKPIT_T1_PAGE_TITLE}>Pilotage</h2>
+            {periodLine ? (
+              <p className={`mt-1 ${COCKPIT_T1_PAGE_META}`}>Période affichée : {periodLine}</p>
+            ) : null}
+          </div>
+        ) : null}
 
-        {/* Bento — grille responsive comme `pilotage_desktop_v_r_na_canon_v5` (1 / 4 / 6 colonnes) */}
-        <div className="grid auto-rows-[160px] grid-cols-1 gap-4 md:grid-cols-4 lg:grid-cols-6">
+        {/* Trois cartes maîtresses — aligné maquette pilotage (rounded-2xl, gap-5) */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 sm:items-stretch">
           {/* Trésorerie — contour fin = fiabilité (doctrine §5.4) ; pas de liseré haut vert si Partiel */}
           <Link
             href={h("/tresorerie")}
-            className={`group relative col-span-1 row-span-2 flex h-full min-h-0 flex-col overflow-hidden rounded-xl bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md md:col-span-2 lg:col-span-2 ${treasuryOutline}`}
+            className={`group relative flex min-h-[280px] min-w-0 flex-col overflow-hidden rounded-2xl bg-[var(--card)] p-6 text-left shadow-sm transition-all hover:shadow-md ${treasuryOutline}`}
           >
-            {/* En-tête : montant + colonne droite (badge qualité dans le flux — évite chevauchement avec « Volume à rapprocher ») */}
-            <div className="flex items-start justify-between gap-3 pr-0.5">
-              <div className="min-w-0 flex-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Trésorerie</span>
-                <div className="mt-2 text-3xl font-black tabular-nums tracking-tight text-[var(--text)]">{fmt(treasury)}</div>
-                <p className="mt-0.5 text-[11px] font-medium text-[var(--text-secondary)]">Solde validé (Vault)</p>
-              </div>
-              <div className="flex shrink-0 flex-col items-end gap-2">
-                <span
-                  className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-bold ${treasuryPrimaryBadge.desktopWrap}`}
-                  title={treasury?.status_reason ?? undefined}
-                >
-                  <Icon name={treasuryPrimaryBadge.iconName} size={12} />
-                  {treasuryPrimaryBadge.label}
-                </span>
-                <span className={`rounded-lg p-2 ${treasuryWalletIconSurfaceClass(treasuryTile.treasuryStatus)}`}>
-                  <Icon name="account_balance_wallet" size={22} filled />
-                </span>
-              </div>
+            {/* En-tête : même logique que Flux net — KPI maître en pleine largeur sous le titre. */}
+            <div className="mb-1 flex items-start justify-between gap-3 pr-0.5">
+              <span className={COCKPIT_T4_CARD_LABEL}>Trésorerie</span>
+              <span
+                className={`inline-flex shrink-0 items-center gap-1 rounded border px-2 py-0.5 ${COCKPIT_T5_STATE_BADGE} ${treasuryPrimaryBadge.desktopWrap}`}
+                title={treasury?.status_reason ?? undefined}
+              >
+                <Icon name={treasuryPrimaryBadge.iconName} size={12} />
+                {treasuryPrimaryBadge.label}
+              </span>
+            </div>
+            <div className="min-w-0 w-full">
+              <CockpitMasterKpiValue display={fmt(treasury)} />
+              <p className={`mt-0.5 ${COCKPIT_T5_CAPTION}`}>Solde validé (Vault)</p>
             </div>
 
             {/* Bloc métier : rempli le bas de carte en répartissant le groupe (flex-1 + justify-center) */}
             <div className="mt-3 flex min-h-0 flex-1 flex-col justify-center gap-3 pr-0.5">
               <div title="Part des flux couverts par preuve bancaire sur la période affichée">
-                <div className="flex items-baseline justify-between gap-2 text-[10px] font-bold uppercase tracking-wide text-[var(--text-secondary)]">
-                  <span>Couverture probante</span>
-                  <span className="tabular-nums text-[var(--text)]">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className={COCKPIT_T4_MICRO_UPPER}>Couverture probante</span>
+                  <span className={`tabular-nums ${COCKPIT_T5_DETAIL_VALUE}`}>
                     {treasuryTile.coveragePct != null ? `${treasuryTile.coveragePct} %` : "—"}
                   </span>
                 </div>
                 <div
-                  className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-[var(--border)]"
+                  className="mt-3 h-3 w-full overflow-hidden rounded-full bg-[var(--coverage-track)]"
                   role="progressbar"
                   aria-valuenow={treasuryTile.coveragePct ?? undefined}
                   aria-valuemin={0}
@@ -171,79 +183,115 @@ export function CockpitDesktopView({
                     className={`h-full rounded-full transition-[width] duration-300 ${
                       treasuryTile.treasuryStatus === "ok"
                         ? "bg-[var(--confidence-fiable)]"
-                        : "bg-slate-400 dark:bg-slate-500"
+                        : "bg-[var(--coverage-fill-muted)]"
                     }`}
                     style={{ width: treasuryTile.coveragePct != null ? `${treasuryTile.coveragePct}%` : "0%" }}
                   />
                 </div>
               </div>
-              <div className="flex items-baseline justify-between gap-2 border-t border-[var(--border)] pt-3 text-xs">
-                <span className="text-[var(--text-secondary)]">Écart ERP − Vault</span>
+              <div className={`flex items-baseline justify-between gap-2 border-t border-[var(--border)] pt-3 text-lg`}>
+                <span className={COCKPIT_T5_DETAIL_LABEL}>Écart ERP − Vault</span>
                 <span
-                  className="shrink-0 font-semibold tabular-nums text-[var(--text)]"
+                  className={`shrink-0 ${COCKPIT_T5_DETAIL_VALUE}`}
                   title="Solde comptable (ERP) moins position validée (Vault)"
                 >
                   {treasuryTile.erpDeltaFormatted ?? "—"}
                 </span>
               </div>
-              <div className="flex items-baseline justify-between gap-2 text-xs">
-                <span className="text-[var(--text-secondary)]">Volume à rapprocher</span>
-                <span className="shrink-0 text-right font-semibold tabular-nums text-[var(--text)]">
+              <div className="flex items-baseline justify-between gap-2 text-lg">
+                <span className={COCKPIT_T5_DETAIL_LABEL}>Volume à rapprocher</span>
+                <span className={`shrink-0 text-right ${COCKPIT_T5_DETAIL_VALUE}`}>
                   {treasuryTile.rapproFormatted ?? "—"}
                 </span>
               </div>
             </div>
           </Link>
 
-          {/* Business — même enveloppe que les autres tuiles en clair ; accent sombre réservé au thème dark */}
+          {/* Business — fond primaire + bordure teal (maquette) */}
           <Link
             href={h("/business")}
-            className={`relative col-span-1 row-span-2 flex flex-col justify-between overflow-hidden rounded-xl bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md dark:bg-slate-900 dark:shadow-xl dark:hover:shadow-2xl md:col-span-2 lg:col-span-2 ${businessOutline}`}
+            className={`relative flex min-h-[280px] min-w-0 flex-col overflow-hidden rounded-2xl p-6 text-left shadow-sm transition-all hover:shadow-md ${
+              conf(business) === "fiable"
+                ? "border border-[var(--tile-business-border)] bg-[var(--primary-container)]"
+                : `bg-[var(--card)] ${businessOutline}`
+            }`}
           >
             <div
               className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-[color-mix(in_srgb,var(--confidence-fiable)_18%,transparent)] blur-3xl dark:bg-emerald-900/20"
               aria-hidden
             />
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] dark:text-slate-400">
-                Business
-              </span>
-              <div className="mt-3 text-3xl font-black tabular-nums tracking-tight text-[var(--text)] dark:text-white">
-                {fmt(business)}
+            <div className="relative min-w-0">
+              <span className={COCKPIT_T4_CARD_LABEL}>Business</span>
+              <CockpitMasterKpiValue display={fmt(business)} />
+              <p className={`mt-0.5 ${COCKPIT_T5_CAPTION}`}>Ventes nettes après achats (période)</p>
+            </div>
+            <div className="relative mt-3 flex min-h-0 flex-1 flex-col justify-center gap-2 border-t border-[var(--border)] pt-3 text-xl">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className={COCKPIT_T5_DETAIL_LABEL}>Ventes</span>
+                <span className={`shrink-0 ${COCKPIT_T5_DETAIL_VALUE}`}>
+                  {businessDetail != null ? formatSignedAmount(businessDetail.ventes, businessDetail.currency) : "—"}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between gap-2">
+                <span className={COCKPIT_T5_DETAIL_LABEL}>Achats</span>
+                <span className={`shrink-0 ${COCKPIT_T5_DETAIL_VALUE}`}>
+                  {businessDetail != null ? formatSignedAmount(-Math.abs(businessDetail.achats), businessDetail.currency) : "—"}
+                </span>
               </div>
             </div>
-            <div className="relative mt-auto flex items-center justify-between">
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-[var(--confidence-fiable)]">
+            <div className="relative mt-auto flex items-center justify-between pt-3">
+              <span className={`inline-flex items-center gap-1 ${COCKPIT_T5_DETAIL_LABEL} font-semibold text-[var(--confidence-fiable)]`}>
                 <Icon name="trending_up" size={14} />
                 MTD
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--confidence-fiable)_15%,transparent)] px-2 py-0.5 text-[10px] font-bold text-[var(--confidence-fiable)] dark:bg-emerald-500/15 dark:text-emerald-400">
+              <span
+                className={`inline-flex items-center gap-1 rounded-full border border-[color-mix(in_srgb,var(--accent)_35%,transparent)] bg-[color-mix(in_srgb,var(--accent)_14%,var(--card))] px-3 py-1 ${COCKPIT_T5_STATE_BADGE} text-[var(--accent)]`}
+              >
                 <Icon name="verified" size={12} filled />
                 {UI_STATE_LABELS.certified.toUpperCase()}
               </span>
             </div>
           </Link>
 
-          {/* Flux Net — badge PROXY en ambre (canon Stitch, pas bleu) */}
+          {/* Flux Net — badge = maturité de lecture (§9.5 : clé `proxy` → Partiel) */}
           <Link
             href={h("/flux-net")}
-            className={`col-span-1 row-span-2 flex flex-col justify-between rounded-xl bg-[var(--card)] p-5 text-left shadow-sm transition-all hover:shadow-md md:col-span-2 lg:col-span-2 ${cashOutline}`}
+            className={`flex min-h-[280px] min-w-0 flex-col rounded-2xl bg-[var(--card)] p-6 text-left shadow-sm transition-all hover:shadow-md ${
+              conf(cash) === "fiable" ? "border border-[var(--tile-flux-border)]" : cashOutline
+            }`}
           >
-            <div>
+            <div className="min-w-0">
               <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Flux Net</span>
-                <span className="inline-flex items-center gap-1 rounded border border-amber-100 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:border-amber-500/35 dark:bg-amber-500/15 dark:text-amber-400">
-                  <Icon name="warning" size={12} />
-                  {UI_STATE_LABELS.proxy.toUpperCase()}
+                <span className={COCKPIT_T4_CARD_LABEL}>Flux Net</span>
+                <span className={cashMasterBadge.wrapperClassName}>
+                  <Icon name={cashMasterBadge.iconName} size={12} filled={cashMasterBadge.iconFilled} />
+                  {cashMasterBadge.labelUpper}
                 </span>
               </div>
-              <div className="mt-3 text-3xl font-black tabular-nums tracking-tight text-[var(--text)]">{fmt(cash)}</div>
+              <CockpitMasterKpiValue display={fmt(cash)} />
+              <p className={`mt-0.5 ${COCKPIT_T5_CAPTION}`}>
+                Encaissements et décaissements (période)
+              </p>
+            </div>
+            <div className="mt-3 flex min-h-0 flex-1 flex-col justify-center gap-2 border-t border-[var(--border)] pt-3 text-xl">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className={COCKPIT_T5_DETAIL_LABEL}>Encaissements</span>
+                <span className={`shrink-0 ${COCKPIT_T5_DETAIL_VALUE}`}>
+                  {cashDetail != null ? formatSignedAmount(cashDetail.encaissements, cashDetail.currency) : "—"}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between gap-2">
+                <span className={COCKPIT_T5_DETAIL_LABEL}>Décaissements</span>
+                <span className={`shrink-0 ${COCKPIT_T5_DETAIL_VALUE}`}>
+                  {cashDetail != null ? formatSignedAmount(-Math.abs(cashDetail.decaissements), cashDetail.currency) : "—"}
+                </span>
+              </div>
             </div>
           </Link>
         </div>
 
         {/* Tuiles secondaires — 2 col. mobile, 4 desktop (canon) */}
-        <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="mt-2 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
           {SECONDARY.map((tile) => {
             const metric = metrics?.[tile.key as keyof DashboardMetricsResponse] as { value?: unknown; formatted?: string; valueKind?: string } | undefined;
             return (
@@ -261,29 +309,33 @@ export function CockpitDesktopView({
         </div>
 
         {/* Bottom — pleine largeur sur mobile */}
-        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="mt-2 grid grid-cols-1 gap-5 xl:grid-cols-12">
           <Link
             href={h("/tresorerie")}
-            className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-[color-mix(in_srgb,var(--confidence-fiable)_40%,var(--border))] md:col-span-2"
+            className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 transition-colors hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] xl:col-span-8"
           >
             <div>
-              <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Détail trésorerie</h3>
-              <p className="text-sm text-[var(--text-secondary)]">
+              <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Détail trésorerie</h3>
+              <p className="font-headline text-2xl font-bold leading-snug text-[var(--text)]">
                 Rapprochement bancaire, évolution du solde et gouvernance
               </p>
             </div>
-            <Icon name="chevron_right" size={20} className="text-[var(--muted)]" />
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--panel)] text-[var(--text)]">
+              <Icon name="chevron_right" size={22} className="text-[var(--muted)]" />
+            </span>
           </Link>
 
           <Link
             href={h("/alerts")}
-            className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-[color-mix(in_srgb,var(--confidence-fiable)_40%,var(--border))]"
+            className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 transition-colors hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] xl:col-span-4"
           >
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Alertes &amp; signaux</h3>
-              <p className="mt-1 text-sm text-[var(--muted)]">Voir les alertes</p>
+              <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Alertes &amp; signaux</h3>
+              <p className="font-headline mt-1 text-2xl font-bold text-[var(--text)]">Voir les alertes</p>
             </div>
-            <Icon name="chevron_right" size={20} className="text-[var(--muted)]" />
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--panel)] text-[var(--text)]">
+              <Icon name="chevron_right" size={22} className="text-[var(--muted)]" />
+            </span>
           </Link>
         </div>
 
