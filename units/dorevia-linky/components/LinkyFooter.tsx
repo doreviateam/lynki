@@ -192,11 +192,15 @@ export function LinkyFooter({
               {vaultLinkLabel}
             </a>
             {sep}
+            <span className="shrink-0 tabular-nums" title="Version plateforme (API status)">
+              {version}
+            </span>
+            {sep}
             <span
               className="shrink-0 tabular-nums"
-              title={`Révision UI Linky (build) : ${LINKY_UI_BUILD_REF}`}
+              title="Révision UI Linky (build image Docker / NEXT_PUBLIC_LINKY_UI_BUILD_REF)"
             >
-              {version}
+              UI {LINKY_UI_BUILD_REF}
             </span>
           </div>
           <div className="flex min-w-0 justify-end pl-2">
