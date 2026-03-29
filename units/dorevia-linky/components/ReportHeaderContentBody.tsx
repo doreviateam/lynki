@@ -224,11 +224,12 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
   const cockpitShellSelectClass =
     "mt-1 block w-full min-w-0 max-w-full cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold text-[var(--text)] focus:outline-none focus:ring-0 disabled:opacity-60";
 
-  const cockpitShellSelectAccentClass =
-    "mt-1 block w-full min-w-0 max-w-full cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold text-[var(--accent)] focus:outline-none focus:ring-0 disabled:opacity-60";
+  /** Select année : centré dans la coquille (alignement vertical avec les autres filtres). */
+  const cockpitShellSelectYearClass =
+    "mt-0.5 block w-full min-w-0 cursor-pointer border-0 bg-transparent p-0 text-center text-[13px] font-semibold tabular-nums text-[var(--text)] focus:outline-none focus:ring-0 disabled:opacity-60";
 
   const cockpitFilterShellClass =
-    "flex min-h-[52px] min-w-0 shrink-0 items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-4 py-2 shadow-[0_4px_14px_rgba(0,0,0,0.14)]";
+    "flex min-h-[52px] shrink-0 items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-4 py-2 shadow-[0_4px_14px_rgba(0,0,0,0.14)]";
 
   const tenantShellInnerClass =
     "mt-1 min-w-0 [&_button]:!min-h-0 [&_button]:h-auto [&_button]:min-w-0 [&_button]:w-full [&_button]:justify-start [&_button]:gap-2 [&_button]:rounded-none [&_button]:border-0 [&_button]:bg-transparent [&_button]:px-0 [&_button]:py-0 [&_button]:text-left [&_button]:text-[13px] [&_button]:font-semibold [&_button]:leading-tight [&_button]:shadow-none [&_button]:hover:bg-transparent [&_span]:text-[13px] [&_span]:font-semibold";
@@ -238,60 +239,67 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
   const cockpitCaroleFilterCenter =
     showCockpitContextRow && (cockpitContextHasFilters || cockpitContextTrustSignal) ? (
       <div
-        className="flex w-full min-w-0 flex-wrap items-center justify-center gap-3 overflow-x-auto [scrollbar-width:thin]"
+        className="mx-auto flex w-full min-w-0 max-w-full flex-wrap items-center justify-center gap-2 sm:gap-3 md:w-auto md:flex-nowrap md:gap-3.5"
         role="group"
         aria-label={cockpitContextTrustSignal ? "Périmètre de lecture et confiance" : "Périmètre de lecture"}
       >
         {cockpitContextHasFilters ? (
-          <>
-            {tenantBadgeOrSelector ? (
-              <div className={`${cockpitFilterShellClass} min-w-[124px] max-w-[16rem]`}>
-                <Icon name="filter_alt" size={16} className="shrink-0 text-[var(--accent)]" aria-hidden />
-                <div className="min-w-0 flex-1 leading-tight">
-                  <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Tenant</div>
-                  <div className={tenantShellSingleClass}>{tenantBadgeOrSelector}</div>
-                </div>
-              </div>
-            ) : null}
-            {showCompanyFilter && (
-              <div className={`${cockpitFilterShellClass} min-w-[140px] max-w-[16rem]`}>
-                <div className="min-w-0 flex-1 leading-tight">
-                  <label htmlFor="company-select-cockpit" className="block cursor-pointer">
-                    <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Société</span>
-                    <select
-                      id="company-select-cockpit"
-                      disabled={companiesLoading}
-                      value={selectedCompanyId ?? ""}
-                      onChange={(e) => onCompanyChange(e.target.value || null)}
-                      className={`max-w-full ${cockpitShellSelectClass}`}
-                      aria-label="Société"
-                    >
-                      <option value="">Toutes les sociétés</option>
-                      {companies.map((c) => {
-                        const id = normalizeCompanyId(c.company_id);
-                        if (!id) return null;
-                        return (
-                          <option key={id} value={id}>
-                            {companyDisplayLabel(c.display_name, c.company_id)}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </label>
-                </div>
-              </div>
-            )}
-            {showPeriodFilter && (
-              <>
-                <div className={`${cockpitFilterShellClass} min-w-[148px] max-w-[13rem]`}>
+          <div className="flex min-w-0 max-w-full flex-nowrap items-center justify-center gap-2.5 sm:gap-3 md:gap-3.5">
+            {/* Pas de flex-1 sur la zone scroll : sinon elle mange toute la colonne et repousse Année vers la droite. */}
+            <div
+              className="touch-pan-x flex min-w-0 shrink-0 grow-0 flex-nowrap items-center justify-start gap-2.5 overflow-x-auto overflow-y-visible py-0.5 [scrollbar-width:thin] sm:gap-3 md:gap-3.5"
+              aria-label="Filtres tenant et société"
+            >
+              {tenantBadgeOrSelector ? (
+                <div className={`${cockpitFilterShellClass} min-w-[124px] max-w-[16rem]`}>
+                  <Icon name="filter_alt" size={16} className="shrink-0 text-[var(--accent)]" aria-hidden />
                   <div className="min-w-0 flex-1 leading-tight">
+                    <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Tenant</div>
+                    <div className={tenantShellSingleClass}>{tenantBadgeOrSelector}</div>
+                  </div>
+                </div>
+              ) : null}
+              {showCompanyFilter && (
+                <div className={`${cockpitFilterShellClass} min-w-[11.5rem] max-w-[14rem] sm:min-w-[12.5rem] sm:max-w-[16rem]`}>
+                  <div className="min-w-0 flex-1 leading-tight">
+                    <label htmlFor="company-select-cockpit" className="block cursor-pointer">
+                      <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Société</span>
+                      <select
+                        id="company-select-cockpit"
+                        disabled={companiesLoading}
+                        value={selectedCompanyId ?? ""}
+                        onChange={(e) => onCompanyChange(e.target.value || null)}
+                        className={`max-w-full ${cockpitShellSelectClass}`}
+                        aria-label="Société"
+                      >
+                        <option value="">Toutes les sociétés</option>
+                        {companies.map((c) => {
+                          const id = normalizeCompanyId(c.company_id);
+                          if (!id) return null;
+                          return (
+                            <option key={id} value={id}>
+                              {companyDisplayLabel(c.display_name, c.company_id)}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
+            {showPeriodFilter ? (
+              <div className="flex shrink-0 flex-nowrap items-center gap-2.5 sm:gap-3 md:gap-3.5">
+                <div className={`${cockpitFilterShellClass} min-w-[7.5rem] max-w-[11rem] sm:max-w-[11.5rem]`}>
+                  <div className="min-w-0 flex-1 overflow-hidden leading-tight">
                     <label htmlFor="period-key-cockpit" className="block cursor-pointer">
-                      <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">Période</span>
+                      <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Période</span>
                       <select
                         id="period-key-cockpit"
                         value={periodKey}
                         onChange={(e) => onPeriodKeyChange(e.target.value)}
-                        className={`min-w-0 ${cockpitShellSelectAccentClass}`}
+                        className={`min-w-0 max-w-full truncate ${cockpitShellSelectClass}`}
+                        title={periodOptionsToShow.find((o) => o.value === periodKey)?.label}
                       >
                         {periodOptionsToShow.map((opt) => (
                           <option key={opt.value} value={opt.value}>
@@ -302,32 +310,35 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                     </label>
                   </div>
                 </div>
-                <div className={`${cockpitFilterShellClass} min-w-[98px] max-w-[7rem]`}>
-                  <div className="min-w-0 flex-1 leading-tight">
-                    <label htmlFor="period-year-cockpit" className="block cursor-pointer">
-                      <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Année</span>
-                      <select
-                        id="period-year-cockpit"
-                        value={periodYear}
-                        onChange={(e) => onPeriodYearChange(Number(e.target.value))}
-                        className={cockpitShellSelectClass}
-                      >
-                        {yearsToShow.map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
+                <div
+                  className={`flex min-h-[52px] w-[5.75rem] shrink-0 flex-col items-center justify-center gap-0 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-3 py-2 text-center shadow-[0_4px_14px_rgba(0,0,0,0.14)]`}
+                >
+                  <label htmlFor="period-year-cockpit" className="flex w-full cursor-pointer flex-col items-center gap-0 text-center">
+                    <span className="whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                      Année
+                    </span>
+                    <select
+                      id="period-year-cockpit"
+                      value={periodYear}
+                      onChange={(e) => onPeriodYearChange(Number(e.target.value))}
+                      className={cockpitShellSelectYearClass}
+                      aria-label="Année"
+                    >
+                      {yearsToShow.map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
-              </>
-            )}
-          </>
+              </div>
+            ) : null}
+          </div>
         ) : null}
         {cockpitContextTrustSignal ? (
           <div
-            className={`flex min-h-[52px] min-w-0 shrink-0 flex-col justify-center gap-1 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-4 py-2 ${
+            className={`flex min-h-[52px] shrink-0 flex-col justify-center gap-1 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-4 py-2 ${
               cockpitContextHasFilters ? "" : ""
             }`}
           >
@@ -350,15 +361,16 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
               role="region"
               aria-label="En-tête pilotage"
             >
-              <div className="px-4 pb-1 pt-2 md:px-8 md:pb-1.5 md:pt-2">
+              {/* Même échelle horizontale que le `main` cockpit fusionné (DashboardWithFilters) */}
+              <div className="mx-auto max-w-none px-5 pb-3 pt-3 sm:px-7 sm:pb-3.5 sm:pt-3.5 lg:px-10 lg:pb-4 lg:pt-4 xl:px-12 2xl:mx-auto 2xl:max-w-[1920px] 2xl:px-14">
                 <div className="rounded-[20px] border border-[var(--border)] bg-[var(--panel)] shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
-                  <div className="grid grid-cols-1 gap-4 px-4 py-3 lg:grid-cols-[minmax(0,auto)_minmax(0,1fr)_minmax(0,auto)] lg:items-center lg:gap-5 lg:px-6 lg:py-4">
-                    <div className="min-w-0 lg:pr-5">
+                  <div className="grid grid-cols-1 gap-4 px-4 py-3.5 sm:px-5 sm:py-4 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto] md:items-center md:gap-4 md:px-5 md:py-4 lg:gap-6 lg:px-6 lg:py-5">
+                    <div className="min-w-0 shrink-0 md:max-w-[11rem] md:pr-2 lg:max-w-none lg:pr-5">
                       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Vue active</div>
-                      <h1 className="font-headline mt-1 text-[1.625rem] font-extrabold tracking-tight text-[var(--text)]">Pilotage</h1>
+                      <h1 className="font-headline mt-1 text-[1.5rem] font-extrabold tracking-tight text-[var(--text)] sm:text-[1.625rem]">Pilotage</h1>
                     </div>
-                    <div className="min-w-0 lg:justify-self-stretch">{cockpitCaroleFilterCenter}</div>
-                    <div className="flex flex-wrap items-center justify-start gap-3 lg:justify-end lg:pl-3">
+                    <div className="flex min-w-0 justify-center md:justify-center">{cockpitCaroleFilterCenter}</div>
+                    <div className="flex shrink-0 flex-wrap items-center justify-start gap-2.5 sm:gap-3 md:justify-end md:pl-2 lg:pl-3">
                       <button
                         type="button"
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--panel-2)]"
@@ -383,6 +395,11 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                       </div>
                     </div>
                   </div>
+                  {periodStatusLabel ? (
+                    <div className="border-t border-[var(--border)] px-4 py-2 sm:px-5 md:px-5 lg:px-6">
+                      <p className="text-[10px] leading-snug text-[var(--muted)]">{periodStatusLabel}</p>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>

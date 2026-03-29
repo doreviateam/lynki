@@ -6,12 +6,23 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    screens: {
-      sm: "640px",
-      md: "900px",
-      lg: "1280px",
-    },
+    /**
+     * Ne pas remplacer `theme.screens` entièrement : sinon `xl` / `2xl` disparaissent
+     * et toutes les utilitaires `xl:*` (cockpit, synthèse) ne s’appliquent jamais → grilles 2 col « moches ».
+     */
     extend: {
+      /**
+       * Laptop vs bureau (largeur viewport navigateur) :
+       * - md 900 : fin de la pile 1 col ; cockpit passe en grilles « larges »
+       * - lg 1024 : laptop classique — bandeau bas 8+4, `lg:*` transverses
+       * - xl 1400 : vrais grands écrans — 4e colonne secondaires (1280–1399 laptop reste en 3 col : plus lisible)
+       * sm / 2xl : défauts Tailwind (640 / 1536).
+       */
+      screens: {
+        md: "900px",
+        lg: "1024px",
+        xl: "1400px",
+      },
       fontFamily: {
         /* Corps / UI : Inter (Stitch). Titres : Manrope (réf. ZeDocs/web61/references/observatory-mock.html). */
         sans: ["var(--font-inter)", "system-ui", "-apple-system", "sans-serif"],

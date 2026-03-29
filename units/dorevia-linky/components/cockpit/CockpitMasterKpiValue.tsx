@@ -57,7 +57,7 @@ export function CockpitMasterKpiValue({
   }
 
   return (
-    <div className={`${top} flex min-w-0 max-w-full items-baseline gap-1`}>
+    <div className={`${top} flex min-w-0 max-w-full items-baseline gap-1.5 sm:gap-2`}>
       <span className={scrollClass}>{body}</span>
       <span className={euroClass}>
         {euroTail.startsWith(" ") || euroTail.startsWith("\u00a0") || euroTail.startsWith("\u202f") ? "" : "\u202f"}

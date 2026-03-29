@@ -60,6 +60,7 @@ Valeurs suggérées pour **Statut** : `À faire` · `En cours` · `Migré` · `V
 | **§3** — 3.15 États UX | §5.8 + **§4** (synthèse transverse) | Migrer + consolider §4 | À faire |
 | **§3** — 3.16 Règles confiance | **§4** + rappel §5.9 | **Extraire** → §4 | À faire |
 | **§3** — 3.17 Principe directeur | §5.9 + **§14** (extraits UX) | Migrer + extraire §14 | À faire |
+| **§3** — 3.18 Mode desktop compact / laptop | V2 §5 **breakpoints** Pilotage + rappels §3 header / rail | Migrer (palier dédié, ≠ tablette) | À faire |
 | **§4** Synthèse — 4.1 à 4.5 | §12.1 à §12.3 | Migrer | À faire |
 | **§4** — 4.6 Blocs (structure) | §12.6 | Migrer | À faire |
 | **§4** — 4.7 Principes d’affichage | §12.5 / §12.10 | Migrer | À faire |
@@ -116,6 +117,7 @@ Valeurs suggérées pour **Statut** : `À faire` · `En cours` · `Migré` · `V
 |-------------------------------|--------|
 | §2.5.3, §2.7.3 | Règles UX header |
 | §3.17 | Principe directeur pilotage (parties « transverses ») |
+| §3.18 | Mode desktop compact / laptop (densité, rail, bandeau, grille A/B/C) |
 | §4.17 | Idem synthèse |
 | §5.12 | Règles UX tuile |
 | §6.11 | Règles UX spécifiques Trésorerie → généraliser ce qui est réutilisable |
@@ -135,10 +137,12 @@ Valeurs suggérées pour **Statut** : `À faire` · `En cours` · `Migré` · `V
 
 ### Documents dérivés (specs filles)
 
-| Fichier (`ZeDocs/web61/`) | Instrument | Statut |
-|---------------------------|------------|--------|
-| `SPEC_PILOTAGE_BUSINESS.md` | Business (Classe A) | Brouillon — aligné sur la structure §6 |
-| *à créer* `SPEC_PILOTAGE_FLUX_NET.md` | Flux net (Classe A) | — |
+| Fichier | Instrument | Statut |
+|---------|------------|--------|
+| [`SPEC_GENERALE_PILOTAGE_LINKY.md`](./SPEC_GENERALE_PILOTAGE_LINKY.md) | Vue **Pilotage** (structure, régimes d’écran, grammaire commune, renvois) | Spec générale web61 ; **dérive** du CDCF ; **amont** des specs filles maîtresses |
+| [`SPEC_CARTES_MAITRESSES_LINKY.md`](../web60/SPEC_CARTES_MAITRESSES_LINKY.md) | **Trésorerie**, **Business**, **Flux net** (Classe **A** du **§3.6**) | Spec d’exécution Web60 ; **dérive** du CDCF (primauté §3.6 en cas d’écart) |
+| `SPEC_PILOTAGE_BUSINESS.md` (`web61`) | Business (Classe A) | Brouillon — aligné sur la structure §6 ; à rapprocher de la spec Web60 ci-dessus |
+| *à créer* `SPEC_PILOTAGE_FLUX_NET.md` (`web61`) | Flux net (Classe A) | — ; couverture cockpit maîtresse prioritaire via spec Web60 |
 
 ### Notes pour l’exécution
 
@@ -389,12 +393,21 @@ Le header constitue ainsi la barre maîtresse de contexte commune à l’ensembl
 
 **Statut (mars 2026).** La composition **desktop** du bandeau **Pilotage** est **figée** comme référence produit : elle sert de **base** pour la recette, les évolutions en finition (espacements, hauteurs, contraste) et les maquettes statiques alignées.
 
-**Implémentation** : bandeau cockpit dans l’application Lynki (`ReportHeaderContentBody`, mode `cockpitAppBar`). **Maquette statique alignée** : [`ZeDocs/web61/references/carole_suggest_01.html`](references/carole_suggest_01.html). **Recette visible** (conteneur `linky_generic`) : [lab.linky — tenant laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026) ; le pied de page affiche **UI · hash git** du commit déployé.
+**Desktop compact / laptop.** Pour les largeurs d’écran intermédiaires (fenêtre desktop étroite, ordinateur portable), la **même logique fonctionnelle** (zones gauche / centre / droite, rôles des sélecteurs) s’applique sous une **composition plus dense** : exigences détaillées au **§3.18**.
+
+**Règles produit — pied de page.** L’utilisateur doit pouvoir lire la **version** plateforme et, sur un **segment distinct** (lisible en desktop), une **référence UI** assortie d’un **hash git** rattachant l’écran au déploiement consulté. Le libellé du lien vers le coffre de preuves est **Dorevia-Vault**.
+
+**Règles produit — choix de tenant dans le bandeau.** Lorsque plusieurs espaces sont proposés, le changement de tenant depuis la coquille **Tenant** reste **actionnable et lisible** : aucune liste de choix ne doit être **inaccessible** ou **illusoire** (ex. ouverte mais masquée) du fait du conteneur des coquilles lorsque celui-ci autorise le **défilement horizontal**.
+
+**Alignement technique** (traçabilité recette / implémentation — ne pas substituer aux règles ci-dessus) : bandeau `ReportHeaderContentBody` (mode `cockpitAppBar`) ; maquette [`ZeDocs/web61/references/carole_suggest_01.html`](references/carole_suggest_01.html) ; recette sur [lab.linky — tenant laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026) (conteneur `linky_generic`) ; pied `LinkyFooter`, injection build `NEXT_PUBLIC_LINKY_UI_BUILD_REF` ; libellé coffre depuis `GET /api/tenant-config` → `chrome.footer.vaultLinkLabel`. **Tenant** : `TenantSelector` (liste en portail sur `document.body`, position fixe, recalcul au scroll / resize) pour rester utilisable malgré un ruban de coquilles en `overflow-x-auto`.
 
 **Matérialisation — une carte composée** (sous une **frise** supérieure discrète : bordure basse, fond secondaire, léger flou) :
 
 * **Zone gauche** — étiquette **Vue active** (métadonnée) et titre **Pilotage** : répond à *quelle vue ?* sans surcharger la grille cockpit.
 * **Zone centre** — **Tenant**, **Société**, **Période**, **Année** regroupés en **coquilles** visuellement homogènes (contrôles intégrés, pas de double cadre interne / externe).
+  * **Desktop** — le **bloc** des quatre coquilles est **centré horizontalement** dans la colonne centrale de la carte (entre le titre **Pilotage** et la zone cloche / session).
+  * **Groupement** — **Tenant** et **Société** dans une sous-zone pouvant **défiler horizontalement** si la largeur est contrainte ; le conteneur ne doit **pas** comprimer les coquilles au point de **cacher** le nom de société. **Période** et **Année** forment une sous-zone **fixe** et **contiguë** (même espacement qu’entre les autres coquilles).
+  * **Style** — **homogénéité** : **Période** n’est **pas** le seul filtre mis en **couleur d’accent** sur libellé et valeur ; le produit figé aligne **Période** sur **Société** et **Année** (style neutre). L’accent peut rester sur des repères hors filtre (ex. icône **Tenant**).
 * **Zone droite** — **notification** (réservée produit ; placeholder tant que non câblée) et **bloc session** compact, associant repère visuel utilisateur, libellé d’espace lisible et identifiant technique secondaire si nécessaire ; calibrage type compromis lisible / crédible sans sur-articulation.
 
 **Sous le bandeau (desktop Pilotage)** — un **espace horizontal de respiration** peut rester **volontairement** entre la carte de contexte et la **grille cockpit**, afin d’accueillir ultérieurement un **fil de navigation** (fil d’Ariane ou équivalent). Tant que ce composant n’est pas branché, cet espace assure la respiration ; son introduction ne doit pas repousser la grille de façon disproportionnée par rapport à la référence §2.12.1.
@@ -460,7 +473,14 @@ La **navigation latérale** (rail gauche) ne doit pas anticiper des modules fonc
 * **Thème** — bascule clair / sombre (préférence d’affichage locale ; hors bandeau Pilotage, §2.12.1).
 * **Déconnexion** — action de fin de session.
 
-Toute autre entrée latéraire (domaines métier type ventes, achats, banque, facturation, etc.) relève d’un **périmètre ultérieur** : elle ne doit pas être exposée tant qu’elle n’est pas décrite et positionnée dans ce cahier des charges, afin d’éviter une promesse produit incompatible avec l’espace de lecture prioritaire du Dashboard.
+**Identité rail et favicon**
+
+* **Marque** — en tête du rail : pastille **DL** (Dorevia Lynki), titre **Lynki**, sous-titre **Cockpit financier**. L’ensemble forme une **zone cliquable** unique qui renvoie au **Pilotage** (route `/` avec conservation du paramètre de requête **`tenant`**). Implémentation : `Sidebar.tsx`.
+* **Favicon** — glyphe **DL** sur fond accent ; fichier **`app/icon.png`** (convention Next.js App Router, route **`/icon.png`**).
+
+**Mode desktop compact / laptop** — largeur du rail, densité interne et libellés : **§3.18.3**.
+
+Toute autre entrée latérale (domaines métier type ventes, achats, banque, facturation, etc.) relève d’un **périmètre ultérieur** : elle ne doit pas être exposée tant qu’elle n’est pas décrite et positionnée dans ce cahier des charges, afin d’éviter une promesse produit incompatible avec l’espace de lecture prioritaire du Dashboard.
 
 ---
 
@@ -516,6 +536,18 @@ Chaque tuile doit présenter :
 
 Ce référentiel est **canonique** pour la vue **Pilotage** : toute évolution de la grille cockpit (nom, ordre, regroupement par classe) doit rester alignée sur cette liste ou faire l’objet d’une **décision produit documentée** (mise à jour du présent CDCF).
 
+**Primauté CDCF / dérivation SPEC.** Le présent **§3.6** pose la **loi produit** (inventaire des 12 tuiles, classes **A / B / C**, logique de lecture). Une **spec générale** cockpit — [`SPEC_GENERALE_PILOTAGE_LINKY.md`](./SPEC_GENERALE_PILOTAGE_LINKY.md) — en facilite l’application (structure d’écran, régimes, renvois normatifs) **sans** se substituer au CDCF. Le détail d’exécution UI des **tuiles maîtresses** — **Trésorerie**, **Business**, **Flux net** — est développé dans [`SPEC_CARTES_MAITRESSES_LINKY.md`](../web60/SPEC_CARTES_MAITRESSES_LINKY.md) (lot Web60). En cas d’écart sur le fond fonctionnel entre ces specs et le CDCF, **le présent document prime** ; les specs et l’implémentation se mettent en conformité.
+
+**Synthèse — hiérarchie de lecture A / B / C :**
+
+| Classe | Tuiles (n°) | Rôle de lecture sur le cockpit |
+|--------|-------------|--------------------------------|
+| **A** — Maîtresses | 1 à 3 | **Lecture prioritaire** : situation immédiate, grands équilibres, décision |
+| **B** — Intermédiaires | 4 à 8 | **Explication**, **qualification**, **prolongement** de la lecture portée par la classe **A** |
+| **C** — Contexte | 9 à 12 | **Contextualisation** : informations périphériques **sans** prendre le dessus sur **A** ni **B** |
+
+La **traduction visuelle** de cette hiérarchie (poids, densité, ordre d’attention) est précisée en **§3.13**.
+
 #### Classe A — Tuiles maîtresses
 
 1. **Trésorerie**
@@ -536,12 +568,6 @@ Ce référentiel est **canonique** pour la vue **Pilotage** : toute évolution d
 10. **Remboursements**
 11. **Points de vente**
 12. **Z de caisse**
-
-#### Rôle de lecture par classe
-
-* Les **trois premières** tuiles (Classe A) portent la **lecture prioritaire** du cockpit.
-* Les **cinq suivantes** (Classe B) **expliquent**, **qualifient** ou **prolongent** la lecture principale.
-* Les **quatre dernières** (Classe C) **contextualisent** sans prendre le dessus sur A et B.
 
 ### 3.7 Principes d’affichage
 
@@ -722,6 +748,141 @@ La vue Pilotage doit privilégier :
 * l’honnêteté sur la qualité de l’information
 
 Elle ne doit jamais sacrifier la lisibilité ou la confiance au profit d’une densité d’information excessive.
+
+### 3.18 Mode desktop compact / laptop
+
+#### 3.18.1 Objet
+
+Le mode **desktop compact / laptop** couvre les écrans d’ordinateur portable et les fenêtres desktop **plus étroites**, lorsque la composition **grand desktop** commence à se comprimer **sans** entrer dans le **régime tablette / mobile** — lequel constitue un **palier distinct** (voir **§3.18.2**).
+
+Ce mode est un **palier produit dédié** : il ne se réduit pas à une simple mise à l’échelle du grand desktop.
+
+Il doit **préserver** :
+
+* la hiérarchie de lecture **Pilotage** (**§3.6**, **§3.13**) ;
+* la logique du cockpit à **12 tuiles** ;
+* le rôle du **header** comme maître du contexte (**§2.8**, **§2.12.1**) ;
+* l’identité Lynki : sobre, fiable, premium.
+
+Il doit **adapter** :
+
+* la densité et les espacements ;
+* la largeur du **rail latéral** (**§2.13**) ;
+* la composition du **bandeau Pilotage** ;
+* la taille et la respiration des **cartes** cockpit.
+
+#### 3.18.2 Périmètre cible (largeurs)
+
+Plage recommandée pour traiter explicitement ce palier :
+
+* environ **1180 px à 1440 px** de largeur de viewport pour le mode **desktop compact** ;
+* **en dessous** : bascule vers un **régime distinct**, plus proche de la **tablette** (hors périmètre du présent §3.18) — **sans** continuation linéaire du seul rétrécissement du compact.
+
+#### 3.18.3 Rail latéral
+
+**Largeur** — le rail doit être **plus étroit** qu’en grand desktop, pour libérer la largeur utile du cockpit. Cibles indicatives :
+
+* **grand desktop** : environ **272 px** ;
+* **desktop compact / laptop** : environ **224 px à 236 px**.
+
+**Densité interne** — réduire modérément : espacements du bloc identité / logo, paddings verticaux des entrées, espacements entre sections (**Dashboard**, **Outils**, **Session**).
+
+**Libellés** — les libellés du rail **restent visibles** ; on ne bascule **pas** en mode « icône seule » sur ce palier.
+
+**Objectif** — le rail reste **lisible** et **identifiable**, sans consommer une part disproportionnée de la grille cockpit.
+
+#### 3.18.4 Bandeau Pilotage (header cockpit)
+
+**Principe** — le bandeau reste une **composition unique** (même lecture sémantique que **§2.12.1**), avec des **zones plus denses** et des contrôles mieux calibrés en largeur.
+
+**Structure** — les rôles sont inchangés :
+
+* **gauche** : vue active / titre **Pilotage** ;
+* **centre** : **Tenant**, **Société**, **Période**, **Année** ;
+* **droite** : notification (placeholder si non câblée) et **bloc session**.
+
+**Sélecteurs de contexte** — les quatre sélecteurs ne se comportent pas comme des blocs à **largeur libre** : largeurs **minimales contrôlées**, paddings internes **resserrés**, hiérarchie **compacte** ; libellés ou valeurs affichées **raccourcis si nécessaire** pour éviter la concurrence visuelle.
+
+Calibrage recommandé des largeurs relatives :
+
+* **Tenant** — étroit ;
+* **Société** — moyen ;
+* **Période** — moyen ;
+* **Année** — étroit.
+
+**Réorganisation contrôlée** — le groupe de contexte peut **se réorganiser** lorsque l’espace l’exige, tout en restant perçu comme **une seule bande**. Dispositions admises :
+
+* **3 + 1** (une ligne de trois coquilles, une quatrième sur la ligne suivante) ;
+* ou **2 + 2**.
+
+Le **retour à la ligne** du groupe de contexte n’est admis que s’il est **explicitement composé** (grille, alignements, gouttières stables) : il **ne doit jamais** résulter d’un **manque de place non traité** (chevauchements, alignements aléatoires, coupures imposées par défaut).
+
+**Bloc session** — simplifier et compacter : padding réduit, avatar légèrement plus petit, texte plus dense, icône notification discrète.
+
+**Rythme vertical** — la **hauteur** du bandeau peut être **légèrement réduite** pour préserver la hauteur utile du cockpit sur écran portable.
+
+#### 3.18.5 Espace entre bandeau et grille cockpit
+
+En mode compact, l’**écart vertical** entre le bas du bandeau et le haut de la **grille cockpit** doit être **réduit** par rapport au grand desktop, **sans** supprimer une **respiration minimale** volontaire.
+
+Sur laptop, la contrainte de **hauteur** rend ce réglage **prioritaire** pour la lisibilité d’ensemble.
+
+#### 3.18.6 Grille cockpit
+
+**Principe** — le cockpit reste **lisible** ; il ne doit pas être **seulement compressé** (pas de montants rognés, pas de cartes écrasées).
+
+**Tuiles maîtresses (Classe A)** — elles restent **dominantes**. En compact : padding interne **diminué** ; taille des **grands montants** légèrement **réduite** ; sous-lignes et interlignes **resserrés** ; ornementation / vide décoratif **réduit**.
+
+**Structure de grille** — les **trois** tuiles **A** restent sur **une seule ligne** uniquement si la largeur permet une lecture **propre** des chiffres et des signaux de confiance. Sinon : répartition **explicitement choisie**, par exemple **deux tuiles** sur une ligne puis **une** sur la suivante, ou autre combinaison **documentée** — **sans** forcer trois colonnes étriquées.
+
+**Tuiles Classe B et C** — elles tolèrent davantage la **densification** : hauteur et padding légèrement réduits, en **préservant** la hiérarchie **titre / valeur** et la **visibilité** des signaux de confiance (**§3.16**).
+
+#### 3.18.7 Échelle typographique
+
+L’objectif n’est pas « plus petit » au détriment de la crédibilité : il s’agit d’une lecture **plus dense, plus nette, plus tenue**.
+
+* **Bandeau** — titre vue active légèrement réduit ; métadonnées et textes des sélecteurs resserrés si nécessaire.
+* **Tuiles A** — grands montants un cran au-dessous du grand desktop ; textes secondaires et espacements internes réduits.
+* **Tuiles B / C** — titres et montants **lisibles**, dans une variante **plus dense**.
+
+#### 3.18.8 Invariants et interdits
+
+**À préserver** :
+
+* lisibilité des **trois** tuiles maîtresses ;
+* hiérarchie **A / B / C** (**§3.6**, **§3.13**) ;
+* visibilité des **signaux de confiance** ;
+* clarté de la **vue active** et cohérence des **sélecteurs** de contexte.
+
+**À proscrire** :
+
+* retours à la ligne ou troncatures **accidentels** ;
+* montants **rognés** ou **illisibles** ;
+* cartes **écrasées** ou en concurrence visuelle avec le bandeau ;
+* rail **disproportionné** par rapport au cockpit ;
+* zones du bandeau en **concurrence** (même hiérarchie visuelle pour tout).
+
+#### 3.18.9 Règles de mise en œuvre par palier
+
+| Palier | Rail | Bandeau | Grille cockpit | Typographie |
+|--------|------|---------|----------------|-------------|
+| **Grand desktop** | plus large (~272 px) | espacements confortables | paddings généreux, 3×A si possible | montants les plus grands |
+| **Desktop compact / laptop** | ~224–236 px | dense, sélecteurs calibrés, wrapping **contrôlé** | paddings réduits, 3×A **ou** rupture contrôlée | montants A un cran en dessous |
+| **Tablette / mobile** | autre logique | — | — | — |
+
+Les régimes **tablette / mobile** ne sont **pas** une simple **réduction supplémentaire** du compact : ils relèvent de règles **distinctes** (hors §3.18).
+
+#### 3.18.10 Priorités d’implémentation (recommandé)
+
+1. Réduire la **largeur** du rail latéral.
+2. Mettre en place la **variante compacte** du bandeau (sélecteurs + session).
+3. Réduire l’**écart** sous le bandeau.
+4. Resserrer les **tuiles A** (padding, montants, interlignes).
+5. Trancher : **trois A sur une ligne** ou **répartition compacte contrôlée** selon la largeur réelle.
+
+#### 3.18.11 Principe directeur
+
+> **Le mode Lynki desktop compact / laptop n’est pas un desktop réduit : c’est un cockpit plus dense, rééquilibré et conçu pour les écrans professionnels plus étroits.**
 
 ---
 

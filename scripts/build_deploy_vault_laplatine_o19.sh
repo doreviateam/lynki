@@ -19,14 +19,13 @@
 #   ./scripts/build_deploy_vault_laplatine_o19.sh --build-only # build uniquement
 #   ./scripts/build_deploy_vault_laplatine_o19.sh --deploy-only # deploy uniquement (images déjà buildées)
 #
-# Tags par défaut : dorevia/vault:bfr-complet-2026-03-15, dorevia/linky:bfr-complet-2026-03-15
-# Surcharge : VAULT_TAG=... LINKY_TAG=... ./scripts/build_deploy_vault_laplatine_o19.sh
+# Vault : image construite via compose (dorevia/vault:core-stinger-from-repo) depuis sources/vault.
+# Linky : tag par défaut dorevia/linky:bfr-complet-2026-03-15 — surcharger avec LINKY_TAG=...
 
 set -e
 REPO_ROOT="${REPO_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$REPO_ROOT"
 
-VAULT_TAG="${VAULT_TAG:-dorevia/vault:bfr-complet-2026-03-15}"
 LINKY_TAG="${LINKY_TAG:-dorevia/linky:bfr-complet-2026-03-15}"
 
 BUILD_ONLY=false
@@ -45,19 +44,21 @@ ok() { echo -e "${GREEN}[OK]${NC} $*"; }
 fail() { echo -e "${RED}[FAIL]${NC} $*"; return 1; }
 
 echo "=== Build & deploy — Vault, Linky lab (laplatine2026 + o19) ==="
-echo "   VAULT_TAG=$VAULT_TAG"
+echo "   Vault    : build compose → dorevia/vault:core-stinger-from-repo"
 echo "   LINKY_TAG=$LINKY_TAG"
 echo ""
 
+COMPOSE_VAULT="tenants/core-stinger/platform/docker-compose.yml"
+COMPOSE_PROJECT="dorevia_core-stinger_platform"
+
 # --- Build ---
 if [ "$DEPLOY_ONLY" != "true" ]; then
-  echo "--- Build Vault ---"
-  docker build -t "$VAULT_TAG" ./sources/vault || { fail "Build Vault"; exit 1; }
-  ok "Image $VAULT_TAG"
-
   echo "--- Build Linky ---"
   docker build -t "$LINKY_TAG" ./units/dorevia-linky || { fail "Build Linky"; exit 1; }
   ok "Image $LINKY_TAG"
+  echo "--- Build Vault (compose, sources/vault) ---"
+  docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_VAULT" build vault || { fail "Compose build vault"; exit 1; }
+  ok "Image dorevia/vault:core-stinger-from-repo"
 fi
 
 [ "$BUILD_ONLY" = "true" ] && { echo "Build only — exit."; exit 0; }
@@ -73,9 +74,9 @@ fi
 
 # --- Deploy Vault (core-stinger) ---
 echo "--- Deploy Vault (core-stinger) ---"
-COMPOSE_VAULT="tenants/core-stinger/platform/docker-compose.yml"
-docker compose -p dorevia_core-stinger_platform -f "$COMPOSE_VAULT" up -d vault-db vault || { fail "Deploy Vault"; exit 1; }
-ok "Vault (vault-db + vault) up"
+docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_VAULT" up -d vault-db vault || { fail "Deploy Vault"; exit 1; }
+docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_VAULT" up -d --force-recreate --no-deps vault || { fail "Recreate vault"; exit 1; }
+ok "Vault (vault-db + vault) up — image alignée sur sources/vault"
 
 # --- Deploy Linky laplatine2026 ---
 echo "--- Deploy Linky laplatine2026 ---"

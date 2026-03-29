@@ -4,6 +4,8 @@
 # DB name: odoo_lab_lglz44
 # Compose project: dorevia_odoo_lab_lglz44
 
+name: dorevia_odoo_lab_lglz44
+
 services:
   db:
     image: postgres:16

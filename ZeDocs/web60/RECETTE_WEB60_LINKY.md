@@ -1,12 +1,12 @@
 # Recette Web60 — Linky (Pilotage)
 
 **Fichier canonique :** `RECETTE_WEB60_LINKY.md`  
-**Version :** 1.1.16 — mars 2026  
+**Version :** 1.1.18 — mars 2026  
 **Lot :** Web60  
 **Statut :** protocole de validation publié  
-**Plan :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.23** · **Doctrine :** [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.3** · **Spec maîtresses :** [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** · **Backlog :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.10** · **Exécution :** [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18**  
+**Plan :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.24** · **Doctrine :** [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.3** · **Spec maîtresses :** [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** · **Backlog :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.10** · **Exécution :** [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.20**  
 **Référence créa figée :** `ZeDocs/web59/stitch_carole_61`  
-**Référence bandeau Pilotage desktop (figée, mars 2026) :** [`cdcf.md` §2.12.1](../web61/cdcf.md) · maquette [`carole_suggest_01.html`](../web61/references/carole_suggest_01.html) · impl. `ReportHeaderContentBody` (`cockpitAppBar`)  
+**Référence bandeau Pilotage desktop (figée, mars 2026) :** [`cdcf.md` §2.12.1](../web61/cdcf.md) · [`SPEC_GENERALE_PILOTAGE_LINKY.md` §7.6](../web61/SPEC_GENERALE_PILOTAGE_LINKY.md) · maquette [`carole_suggest_01.html`](../web61/references/carole_suggest_01.html) · impl. `ReportHeaderContentBody` (`cockpitAppBar`)  
 **Axe backlog :** E (plan §7.5)  
 **Environnement recette prioritaire :** [lab.linky — tenant laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026)
 
@@ -41,12 +41,12 @@ Le dossier compte **six pièces maîtresses** : plan, doctrine, spec, backlog, *
 
 | Document | Version | Statut |
 |----------|---------|--------|
-| [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) | **v1.1.23** | Cadrage publié (**§6.7** trio figé + rail contexte) |
+| [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) | **v1.1.24** | Cadrage publié (**§6.7** trio figé + rail contexte) ; **§8** synthèse versions alignée (**recette v1.1.17**, **exécution v1.1.20**) |
 | [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) | **v1.1.3** | Doctrine publiée (**§5.4** / **§5.4.7** cartes principales ; **§9.5** sans `Proxy` en UI Vault) |
 | [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) | **v1.1.17** | Spécification publiée |
 | [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) | **v1.1.10** | Backlog ouvert (**W60-011** lexique / Aide **Fait**) |
-| [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) | **v1.1.18** | Guide d’exécution publié (**§5** Passe 2 P0 clos ; **§13** ; **lab public** / **UI hash** ; **§4.2** **W60-005** ; **§14** trame **T-W60-002**) |
-| [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) | **v1.1.16** | Protocole de validation publié |
+| [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) | **v1.1.20** | Guide d’exécution publié (**§5** Passe 2 P0 clos ; **§13** ; **lab public** / **UI hash** ; **§4.2** **W60-005** ; **§14** trame **T-W60-002**) |
+| [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) | **v1.1.18** | Protocole de validation publié (chrome §5 : footer **Dorevia-Vault**, **UI**+hash, rail **DL**, favicon, tenant portail, **bandeau** coquilles centrées / Période neutre) |
 
 ---
 
@@ -57,7 +57,7 @@ Le dossier compte **six pièces maîtresses** : plan, doctrine, spec, backlog, *
 * **Spec cartes maîtresses** : §3 à §11, §13, **§13.1 Recette par persona**.  
 * **Backlog** : **W60-501 … W60-506** ([§10](./BACKLOG_WEB60_LINKY.md)) ; **P0** [§11](./BACKLOG_WEB60_LINKY.md).  
 * **Contrôles R60-001 … R60-010** : mini-recette §10 (recoupement volontaire avec les P0 et le chrome).  
-* **Exécution** : [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18** — **§13** journal ; **lab public** = vérité recette + **UI hash** ; **§4.2** **W60-005** ; **§5** Passe 2 P0 **W60-101–103** ; **§14** trio + trame **T-W60-002** ; **R60** §10 ; **lab** + **`laplatine2026`**.
+* **Exécution** : [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.20** — **§13** journal ; **lab public** = vérité recette + **UI hash** ; **§4.2** **W60-005** ; **§5** Passe 2 P0 **W60-101–103** ; **§14** trio + trame **T-W60-002** ; **R60** §10 ; **lab** + **`laplatine2026`**.
 
 ---
 
@@ -79,6 +79,11 @@ Checklist dédiée à la barre haute, trust bar, signaux transverses et cohabita
 * [ ] **Répartition carte vs global** : pas de duplication confuse d’un même état en principal sur la carte et au global (W60-004).  
 * [x] **Preuves / scellés** : distinction lisible entre indicateur de confiance, volume de preuves et statut technique (**W60-005** Fait — microcopy vue / cumulées).  
 * [ ] **Cohérence visuelle** : le chrome ne compète pas les montants des cartes maîtresses.
+* [x] **Pied de page** : lien vers le coffre de preuves au libellé **Dorevia-Vault** ; en desktop, **version** (API) et segment **UI** + hash git **visibles** dans la barre (cf. CDCF §2.12.1, `LinkyFooter` / `tenant-config`).
+* [x] **Rail latéral** : marque **DL** + **Lynki** / **Cockpit financier** ; clic sur le bloc marque → retour **Pilotage** avec conservation de `?tenant=` (cf. CDCF §2.13).
+* [x] **Favicon** : glyphe **DL** (`app/icon.png` / `/icon.png`).
+* [x] **Tenant multi-espaces** : ouverture de la liste de choix **utilisable** (portail + position fixe, sans clip sous le ruban de coquilles — `TenantSelector`).
+* [x] **Bandeau Pilotage — coquilles** : en desktop, le groupe **Tenant · Société · Période · Année** est **centré** dans la colonne centrale ; **Société** reste **lisible** (pas de tronquage dû à une compression du ruban scroll) ; **Période** et **Année** **jointives** ; **Période** en **style neutre** comme Société / Année (pas d’accent réservé au seul filtre Période). Réf. **CDCF §2.12.1**, **`SPEC_GENERALE_PILOTAGE_LINKY` §7.6**.
 
 **Verdict bloc chrome :** OK / À corriger / Assumé documenté — *préciser :*
 
@@ -323,6 +328,7 @@ Décision : Montrable | Correctifs ciblés | Report
 | **1.1.14** | **EXECUTION v1.1.16**, backlog **v1.1.7** ; **W60-103** **En cours** ; renvois §2 / §3. |
 | **1.1.15** | **EXECUTION v1.1.17**, plan **v1.1.19**, backlog **v1.1.8**, spec **v1.1.16**, doctrine **v1.1.2** ; **§5.3.1** ; renvois §2 / §3. |
 | **1.1.16** | **EXECUTION v1.1.18**, plan **v1.1.20**, backlog **v1.1.9**, spec **v1.1.17** ; **R60-004** **OK** ; **W60-103** **Fait** ; renvois §2 / §3. |
+| **1.1.17** | **CDCF** §2.12.1 (pied **Dorevia-Vault**, **UI**+hash, tenant portail) · §2.13 (marque **DL**, favicon) ; **§5** chrome : cases footer / rail / favicon / tenant ; renvois **EXECUTION v1.1.20**. |
 
 ---
 

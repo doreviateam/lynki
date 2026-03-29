@@ -20,14 +20,14 @@ export const COCKPIT_T1_PAGE_META =
  * Utiliser avec `CockpitMasterKpiValue` : partie numérique scrollable + suffixe € fixe (évite de couper le symbole).
  */
 export const COCKPIT_T2_MASTER_VALUE_SCROLL =
-  "min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-headline text-5xl font-extrabold leading-none tabular-nums tracking-normal text-[var(--text)] [scrollbar-width:thin]";
+  "min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-headline text-4xl font-extrabold leading-none tabular-nums tracking-normal text-[var(--text)] [scrollbar-width:thin] xl:text-5xl";
 
 export const COCKPIT_T2_MASTER_VALUE_EURO =
-  "shrink-0 font-headline text-5xl font-extrabold leading-none tabular-nums tracking-normal text-[var(--text)]";
+  "shrink-0 font-headline text-4xl font-extrabold leading-none tabular-nums tracking-normal text-[var(--text)] xl:text-5xl";
 
 /** Cas « — » ou libellé court sans devise : pas de split. */
 export const COCKPIT_T2_MASTER_VALUE_PLAIN =
-  "font-headline text-5xl font-extrabold leading-none tabular-nums tracking-normal text-[var(--text)]";
+  "font-headline text-4xl font-extrabold leading-none tabular-nums tracking-normal text-[var(--text)] xl:text-5xl";
 
 /** N3 — Valeur tuiles secondaires (grille B/C) — même règle « une ligne », typo légèrement plus resserrée que les cartes A. */
 export const COCKPIT_T3_SECONDARY_VALUE =

@@ -3,7 +3,7 @@
 **Fichier canonique :** `SPEC_CARTES_MAITRESSES_LINKY.md`
 **Version :** 1.1.17 — mars 2026  
 **Lot :** Web60  
-**Références de cadrage :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.23**, [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.3** · **Backlog :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.10** · **Recette :** [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16** · **Exécution :** [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18** · **Lab :** [laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026)
+**Références de cadrage :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.24**, [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.3** · **Backlog :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.10** · **Recette :** [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.17** · **Exécution :** [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.20** · **Lab :** [laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026)
 **Référence créa figée :** `ZeDocs/web59/stitch_carole_61`
 **Périmètre :** régime **Pilotage** — cartes **Trésorerie**, **Business**, **Flux net**
 **Statut :** spécification publiée
@@ -706,8 +706,8 @@ La recette ne doit pas se limiter à une validation graphique générale ; elle 
 Cette spécification a vocation à être relayée par :
 
 * [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.10** (items **W60-xxx**) ;
-* [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16** (protocole de validation publié) ;
-* [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18** (passes, **lab public** / **UI hash**, **§13** journal / **§13.1** gabarit ; **§4.2** **W60-005** ; **§5** Passe 2 P0 **W60-101–103** **Fait** ; **§14** trame **T-W60-002** ; lab **`laplatine2026`**).
+* [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.17** (protocole de validation publié ; chrome §5 pied **Dorevia-Vault**, **UI**+hash, rail **DL**, favicon, tenant portail) ;
+* [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.20** (passes, **lab public** / **UI hash**, **§13** journal / **§13.1** gabarit ; **§4.2** **W60-005** ; **§5** Passe 2 P0 **W60-101–103** **Fait** ; **§14** trame **T-W60-002** ; lab **`laplatine2026`** ; **Web61 CDCF** §2.12–§2.13).
 
 Elle constitue la pièce de référence pour la fermeture produit des trois cartes maîtresses en Web60.
 

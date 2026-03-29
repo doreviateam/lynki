@@ -29,7 +29,12 @@ import { EncoursCardWithPolling } from "@/components/EncoursCardWithPolling";
 import { EbeCardWithPolling } from "@/components/EbeCardWithPolling";
 import { SyncInProgress } from "@/components/SyncInProgress";
 import { AccountingSummaryView } from "@/components/AccountingSummaryView";
-import { getDefaultPeriod, type PeriodRange } from "@/app/lib/period-utils";
+import {
+  getDefaultPeriod,
+  getKeyAndYearFromPeriod,
+  getPeriodFromKeyAndYear,
+  type PeriodRange,
+} from "@/app/lib/period-utils";
 import type { DashboardMetricsResponse } from "@/app/api/dashboard-metrics/route";
 import { recordUxSample } from "@/app/lib/ux-metrics";
 import { companyDisplayLabel, normalizeCompanyId } from "@/app/lib/company-id";
@@ -252,6 +257,8 @@ function DashboardWithFiltersContent({
   const [showTreasuryAfterIncomplete, setShowTreasuryAfterIncomplete] = useState(false);
   const [userBypassIncomplete, setUserBypassIncomplete] = useState(false);
   const prevScopeRef = useRef("");
+  /** Évite de réécraser la période après un choix manuel ; re-synchronise si le scope ou la liste d’années change. */
+  const alignYearToDataMarkerRef = useRef<{ scope: string; yearsKey: string } | null>(null);
 
   const chromeAdaptive = useChromeAdaptive();
   const chromeVisible = chromeAdaptive?.isChromeVisible ?? true;
@@ -340,6 +347,26 @@ function DashboardWithFiltersContent({
         setMonthsWithDataByYear({});
       });
   }, [scopeTenantId, selectedCompanyId]);
+
+  // Si l’année courante du filtre n’a aucune donnée agrégée (ex. 2026 par défaut alors que le Vault n’a que 2024–2025),
+  // basculer une fois sur la dernière année avec données (years-with-data est trié décroissant).
+  useEffect(() => {
+    if (!availableYears || availableYears.length === 0) return;
+    const { key, year } = getKeyAndYearFromPeriod(period.from, period.to);
+    if (key === "all") return;
+
+    const scope = `${scopeTenantId}|${selectedCompanyId ?? ""}`;
+    const yearsKey = availableYears.join(",");
+    const prev = alignYearToDataMarkerRef.current;
+    if (prev && prev.scope === scope && prev.yearsKey === yearsKey) {
+      return;
+    }
+    alignYearToDataMarkerRef.current = { scope, yearsKey };
+
+    if (!availableYears.includes(year)) {
+      setPeriod(getPeriodFromKeyAndYear(key, availableYears[0]!));
+    }
+  }, [availableYears, scopeTenantId, selectedCompanyId, period.from, period.to]);
 
   // Fetch dashboard-metrics : pour IconGrid/Diva quand vue "all", et sealed_count pour le badge (toujours)
   const showIconGrid = viewMode === "all" && !focusedCardId;
@@ -593,7 +620,7 @@ function DashboardWithFiltersContent({
         ligne de fil d’Ariane sans bande vide « décollée » ; calibrage resserré pour liaison header → grille.
       */}
       <main
-        className={`mx-auto flex min-h-0 flex-1 w-full flex-col pb-16 ${cockpitDesktopMerged ? "max-w-none px-7" : "max-w-4xl px-4"} ${cockpitDesktopMerged && chromeVisible ? "pt-0.5 md:pt-1" : chromeVisible ? "pt-6" : "pt-4"}`}
+        className={`mx-auto flex min-h-0 flex-1 w-full flex-col pb-16 ${cockpitDesktopMerged ? "max-w-none px-5 sm:px-7 lg:px-10 xl:px-12 2xl:mx-auto 2xl:max-w-[1920px] 2xl:px-14" : "max-w-4xl px-4"} ${cockpitDesktopMerged && chromeVisible ? "pt-1 md:pt-2" : chromeVisible ? "pt-6" : "pt-4"}`}
       >
         {/* Vue Synthèse comptable (Lot 2 — AccountingSummaryView) */}
         {appView === "synthese" ? (

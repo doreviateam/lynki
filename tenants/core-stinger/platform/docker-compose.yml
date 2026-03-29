@@ -79,8 +79,12 @@ services:
       retries: 5
 
   # Vault - Service partagé (ZeDocs/web52 BFR complet)
+  # Build depuis le dépôt : les tags registry « sprint11 » peuvent ne pas exposer /ui/aggregations/sales (Lynki vide).
   vault:
-    image: dorevia/vault:sprint11-2026-03-20
+    build:
+      context: ../../../sources/vault
+      dockerfile: Dockerfile
+    image: dorevia/vault:core-stinger-from-repo
     container_name: vault-core-stinger
     restart: unless-stopped
     ports:

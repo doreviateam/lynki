@@ -142,10 +142,17 @@ export function LinkyFooter({
     ) : status?.last_sync_formatted ? (
       <span>Dernier scellé : {status.last_sync_formatted}</span>
     ) : null;
+  const sourceTitle = (s: { name: string; status: string }) => {
+    if (s.name === "odoo" && s.status === "error") {
+      return "Odoo ne répond pas depuis le serveur Linky (ERP indisponible ou réseau). Les données cockpit peuvent s’appuyer sur le Vault uniquement.";
+    }
+    return undefined;
+  };
+
   const sourcesBlock = (
     <span title="Sources des données utilisées pour ce cockpit.">
       Sources : {sources.map((s, i) => (
-        <span key={s.name}>
+        <span key={s.name} title={sourceTitle(s)}>
           {i > 0 ? " " : ""}
           {s.name.charAt(0).toUpperCase() + s.name.slice(1)} <SourceIcon status={s.status} />
         </span>

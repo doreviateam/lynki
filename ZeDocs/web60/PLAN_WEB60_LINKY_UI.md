@@ -1,7 +1,7 @@
 # Plan Web60 — Linky UI
 
 **Fichier canonique :** `PLAN_WEB60_LINKY_UI.md`
-**Version :** 1.1.23 — mars 2026  
+**Version :** 1.1.24 — mars 2026  
 **Référence créa figée :** `ZeDocs/web59/stitch_carole_61`
 **Espace de travail actif :** `ZeDocs/web60`
 **Périmètre prioritaire :** cockpit **Pilotage**
@@ -457,19 +457,19 @@ Le dossier `ZeDocs/web60` doit au minimum contenir les pièces suivantes :
 * `DOCTRINE_ETATS_UI_LINKY.md` — norme d’états et de badges ;
 * `SPEC_CARTES_MAITRESSES_LINKY.md` — spécification des cartes Trésorerie / Business / Flux net ;
 * `BACKLOG_WEB60_LINKY.md` — suivi opérationnel (**v1.1.10**, items **W60-xxx**, priorités P0–P3, axes A–E) ;
-* `RECETTE_WEB60_LINKY.md` — protocole de validation Pilotage (**v1.1.16** : chrome, doctrine visible, T/B/F, second rang, **R60-001 … R60-010**, personas, sortie « montrable », CR).  
-* `EXECUTION_TICKETS_WEB60_LINKY.md` — fermeture par **passes** et tickets **T-W60-xxx** (miroir **W60-xxx**), **R60** ([recette §10](./RECETTE_WEB60_LINKY.md)), **lab public** / **UI hash**, régimes d’usage, DoD persona/viewport, **§13** journal / **§13.1** gabarit **T-W60-001**, **§4.2** clôture **W60-005**, **§5** Passe 2 P0 **W60-101–103** **Fait**, **§14** PR trio **T-W60-001 → T-W60-003** — **v1.1.18**.
+* `RECETTE_WEB60_LINKY.md` — protocole de validation Pilotage (**v1.1.17** : chrome §5 incl. footer **Dorevia-Vault**, **UI**+hash, rail **DL**, favicon, tenant portail ; doctrine visible, T/B/F, second rang, **R60-001 … R60-010**, personas, sortie « montrable », CR).  
+* `EXECUTION_TICKETS_WEB60_LINKY.md` — fermeture par **passes** et tickets **T-W60-xxx** (miroir **W60-xxx**), **R60** ([recette §10](./RECETTE_WEB60_LINKY.md)), **lab public** / **UI hash**, régimes d’usage, DoD persona/viewport, **§13** journal / **§13.1** gabarit **T-W60-001**, **§4.2** clôture **W60-005**, **§5** Passe 2 P0 **W60-101–103** **Fait**, **§14** PR trio **T-W60-001 → T-W60-003** — **v1.1.20**.
 
 **Synthèse versions / statuts** (à aligner sur la [recette §2.2](./RECETTE_WEB60_LINKY.md) lors des publications) :
 
 | Pièce | Fichier | Version | Statut |
 |-------|---------|---------|--------|
-| Cadre | `PLAN_WEB60_LINKY_UI.md` | v1.1.23 | Cadrage publié (**§6.7** trio figé + rail contexte) |
+| Cadre | `PLAN_WEB60_LINKY_UI.md` | v1.1.24 | Cadrage publié (**§6.7** trio figé + rail contexte) |
 | Norme | `DOCTRINE_ETATS_UI_LINKY.md` | v1.1.3 | Doctrine publiée (**§5.4** / **§5.4.7** cartes principales, **§9.5** sans `Proxy` en UI Vault) |
 | Spec | `SPEC_CARTES_MAITRESSES_LINKY.md` | v1.1.17 | Spécification publiée |
 | Arbitrages | `BACKLOG_WEB60_LINKY.md` | v1.1.10 | Backlog ouvert |
-| Validation | `RECETTE_WEB60_LINKY.md` | v1.1.16 | Protocole de validation publié |
-| Fermeture par blocs | `EXECUTION_TICKETS_WEB60_LINKY.md` | v1.1.18 | Guide d’exécution publié (5 passes + recette ; Passe 2 P0 **W60-101–103** **Fait** ; **R60-004** ; lab public / **UI hash** ; §13 journal ; §4.2 **W60-005** ; §14 trame **T-W60-002**) |
+| Validation | `RECETTE_WEB60_LINKY.md` | v1.1.17 | Protocole de validation publié (chrome §5 : footer **Dorevia-Vault**, **UI**+hash, rail **DL**, favicon, tenant portail) |
+| Fermeture par blocs | `EXECUTION_TICKETS_WEB60_LINKY.md` | v1.1.20 | Guide d’exécution publié (5 passes + recette ; Passe 2 P0 **W60-101–103** **Fait** ; **R60-004** ; lab public / **UI hash** ; §13 journal ; §4.2 **W60-005** ; §14 trame **T-W60-002** ; **Web61 CDCF** §2.12–§2.13 alignés) |
 
 **Build, déploiement et recette — priorité lab :** l’environnement de référence pour valider les changements Web60 est [https://lab.linky.doreviateam.com/?tenant=laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026) (détails dans [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) et [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md)).
 
@@ -627,6 +627,7 @@ La formule de cap du lot Web60 est la suivante :
 | **1.1.21** | **§6.7** — réorganisation du **header cockpit desktop** : trois lignes (cadre global, périmètre de lecture, régime de lecture) ; vocabulaire court Pilotage / Synthèse ; tableau §8 aligné. |
 | **1.1.22** | **§6.7** — précision **matérialisation** : grille logique ≠ trois rails chrome ; **chrome une ligne** + **sous-header de page** (esprit canon Carole) ; conséquences d’implémentation et formulations courtes mises à jour. |
 | **1.1.23** | **§6.7** — **trio canonique figé** (titre + % Fiable + Arrêté, une ligne) ; **rail de contexte** sous le trio ; hiérarchie sémantique ; tenant shell mobile / rail desktop. |
+| **1.1.24** | **§8** — tableau synthèse et listes livrables alignés **recette v1.1.17** / **exécution v1.1.20** (chrome pied **Dorevia-Vault**, **UI**+hash, **TenantSelector** portail, rail **DL**, favicon ; raccord **Web61** [`cdcf.md`](../web61/cdcf.md) §2.12–§2.13). |
 
 ---
 

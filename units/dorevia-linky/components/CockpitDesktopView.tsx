@@ -129,7 +129,9 @@ export function CockpitDesktopView({
         />
       ) : null}
 
-      <main className={`flex-1 overflow-y-auto ${hideTopBar ? "space-y-6 px-0 pb-4 pt-0 md:pb-6" : "p-6"}`}>
+      <main
+        className={`flex-1 overflow-y-auto ${hideTopBar ? "space-y-6 px-0 pb-4 pt-0 md:pb-6" : "p-4 sm:p-5 lg:p-6"}`}
+      >
         {!hideTopBar ? (
           <div className="mb-6">
             <h2 className={COCKPIT_T1_PAGE_TITLE}>Pilotage</h2>
@@ -139,12 +141,12 @@ export function CockpitDesktopView({
           </div>
         ) : null}
 
-        {/* Trois cartes maîtresses — aligné maquette pilotage (rounded-2xl, gap-5) */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 sm:items-stretch">
+        {/* Trois cartes maîtresses — une colonne avant md, trois colonnes dès md (laptop) ; gaps plus larges en lg+ (bureau). */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-stretch md:gap-5 lg:gap-6 lg:mt-1">
           {/* Trésorerie — contour fin = fiabilité (doctrine §5.4) ; pas de liseré haut vert si Partiel */}
           <Link
             href={h("/tresorerie")}
-            className={`group relative flex min-h-[280px] min-w-0 flex-col overflow-hidden rounded-2xl bg-[var(--card)] p-6 text-left shadow-sm transition-all hover:shadow-md ${treasuryOutline}`}
+            className={`group relative isolate flex min-h-[280px] min-w-0 flex-col rounded-2xl bg-[var(--card)] p-6 text-left shadow-sm transition-all hover:shadow-md ${treasuryOutline}`}
           >
             {/* En-tête : même logique que Flux net — KPI maître en pleine largeur sous le titre. */}
             <div className="mb-1 flex items-start justify-between gap-3 pr-0.5">
@@ -210,22 +212,24 @@ export function CockpitDesktopView({
           {/* Business — fond primaire + bordure teal (maquette) */}
           <Link
             href={h("/business")}
-            className={`relative flex min-h-[280px] min-w-0 flex-col overflow-hidden rounded-2xl p-6 text-left shadow-sm transition-all hover:shadow-md ${
+            className={`relative isolate flex min-h-[280px] min-w-0 flex-col rounded-2xl p-6 text-left shadow-sm transition-all hover:shadow-md ${
               conf(business) === "fiable"
                 ? "border border-[var(--tile-business-border)] bg-[var(--primary-container)]"
                 : `bg-[var(--card)] ${businessOutline}`
             }`}
           >
             <div
-              className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-[color-mix(in_srgb,var(--confidence-fiable)_18%,transparent)] blur-3xl dark:bg-emerald-900/20"
+              className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl"
               aria-hidden
-            />
-            <div className="relative min-w-0">
+            >
+              <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-[color-mix(in_srgb,var(--confidence-fiable)_18%,transparent)] blur-3xl dark:bg-emerald-900/20" />
+            </div>
+            <div className="relative z-[1] min-w-0">
               <span className={COCKPIT_T4_CARD_LABEL}>Business</span>
               <CockpitMasterKpiValue display={fmt(business)} />
               <p className={`mt-0.5 ${COCKPIT_T5_CAPTION}`}>Ventes nettes après achats (période)</p>
             </div>
-            <div className="relative mt-3 flex min-h-0 flex-1 flex-col justify-center gap-2 border-t border-[var(--border)] pt-3 text-xl">
+            <div className="relative z-[1] mt-3 flex min-h-0 flex-1 flex-col justify-center gap-2 border-t border-[var(--border)] pt-3 text-xl">
               <div className="flex items-baseline justify-between gap-2">
                 <span className={COCKPIT_T5_DETAIL_LABEL}>Ventes</span>
                 <span className={`shrink-0 ${COCKPIT_T5_DETAIL_VALUE}`}>
@@ -239,7 +243,7 @@ export function CockpitDesktopView({
                 </span>
               </div>
             </div>
-            <div className="relative mt-auto flex items-center justify-between pt-3">
+            <div className="relative z-[1] mt-auto flex items-center justify-between pt-3">
               <span className={`inline-flex items-center gap-1 ${COCKPIT_T5_DETAIL_LABEL} font-semibold text-[var(--confidence-fiable)]`}>
                 <Icon name="trending_up" size={14} />
                 MTD
@@ -290,8 +294,8 @@ export function CockpitDesktopView({
           </Link>
         </div>
 
-        {/* Tuiles secondaires — 2 col. mobile, 4 desktop (canon) */}
-        <div className="mt-2 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {/* Tuiles secondaires — 1 col avant md, 3 col dès md ; 4 col dès xl (≥1400px) pour éviter 4 col sur laptop 1280–1366 */}
+        <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5 xl:grid-cols-4 xl:gap-5">
           {SECONDARY.map((tile) => {
             const metric = metrics?.[tile.key as keyof DashboardMetricsResponse] as { value?: unknown; formatted?: string; valueKind?: string } | undefined;
             return (
@@ -308,11 +312,11 @@ export function CockpitDesktopView({
           })}
         </div>
 
-        {/* Bottom — pleine largeur sur mobile */}
-        <div className="mt-2 grid grid-cols-1 gap-5 xl:grid-cols-12">
+        {/* Bottom — pile sur mobile ; côte à côte dès lg (laptop), comme la maquette Carole */}
+        <div className="mt-2 grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-12">
           <Link
             href={h("/tresorerie")}
-            className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 transition-colors hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] xl:col-span-8"
+            className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] md:p-6 lg:col-span-8"
           >
             <div>
               <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Détail trésorerie</h3>
@@ -327,7 +331,7 @@ export function CockpitDesktopView({
 
           <Link
             href={h("/alerts")}
-            className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 transition-colors hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] xl:col-span-4"
+            className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 transition-colors hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] md:p-6 lg:col-span-4"
           >
             <div>
               <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Alertes &amp; signaux</h3>

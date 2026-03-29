@@ -6,6 +6,31 @@ const DVIG_INTERNAL_TOKEN = process.env.DVIG_INTERNAL_TOKEN || "";
 const DEFAULT_TENANT = process.env.TENANT_ID || "core";
 const LOCKED_TENANT = (process.env.TENANT_ID || "").trim();
 const TIMEOUT_MS = 5000; // Réactivité footer — ne pas bloquer l'affichage
+/** Ping Odoo depuis le serveur Linky (priorité : URL interne santé, sinon même base que le client). */
+const ODOO_HEALTH_BASE = (
+  process.env.ODOO_HEALTH_URL ||
+  process.env.NEXT_PUBLIC_ODOO_URL ||
+  ""
+).trim();
+const ODOO_HEALTH_TIMEOUT_MS = Math.min(3000, TIMEOUT_MS);
+
+async function fetchOdooSourceStatus(signal: AbortSignal): Promise<"ok" | "error"> {
+  if (!ODOO_HEALTH_BASE) return "ok";
+  try {
+    const base = ODOO_HEALTH_BASE.replace(/\/$/, "");
+    const url = `${base}/web/login`;
+    const res = await fetch(url, {
+      method: "GET",
+      cache: "no-store",
+      signal,
+      headers: { Accept: "text/html,application/json;q=0.9,*/*;q=0.8" },
+      redirect: "follow",
+    });
+    return res.ok ? "ok" : "error";
+  } catch {
+    return "error";
+  }
+}
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
@@ -81,9 +106,13 @@ export async function GET(request: NextRequest) {
     }
   };
 
+  const odooController = new AbortController();
+  const odooTimeoutId = setTimeout(() => odooController.abort(), ODOO_HEALTH_TIMEOUT_MS);
+  let odooSourceStatus: "ok" | "error" = ODOO_HEALTH_BASE ? "error" : "ok";
+
   try {
     let res: Response;
-    const [vaultRes, sealedTotal] = await Promise.all([
+    const [vaultRes, sealedTotal, odooPing] = await Promise.all([
       (async () => {
         try {
           const vaultUrl = `${VAULT_URL.replace(/\/$/, "")}/ui/system/vault-health?tenant=${encodeURIComponent(tenant)}`;
@@ -106,7 +135,9 @@ export async function GET(request: NextRequest) {
         }
       })(),
       fetchSealedCountTotal(),
+      fetchOdooSourceStatus(odooController.signal).finally(() => clearTimeout(odooTimeoutId)),
     ]);
+    odooSourceStatus = odooPing;
     res = vaultRes;
     sealedCountTotal = sealedTotal;
     clearTimeout(timeoutId);
@@ -134,6 +165,7 @@ export async function GET(request: NextRequest) {
     }
   } catch (err) {
     clearTimeout(timeoutId);
+    clearTimeout(odooTimeoutId);
     vaultStatus = "error";
     console.error("[platform/status] Outer catch:", err instanceof Error ? err.message : err);
   }
@@ -188,7 +220,10 @@ export async function GET(request: NextRequest) {
     pending_events: pendingEvents,
     failed_events: failedEvents,
     tooltip_cause: tooltipCause || null,
-    sources: [{ name: "odoo", status: "ok" }, { name: "pos", status: "ok" }],
+    sources: [
+      { name: "odoo", status: odooSourceStatus },
+      { name: "pos", status: "ok" },
+    ],
     last_sync: lastSyncAt,
     last_sync_formatted: lastSyncFormatted,
     last_seal_ago_seconds: lastSealAgoSeconds,
