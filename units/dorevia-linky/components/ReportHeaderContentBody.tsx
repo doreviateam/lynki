@@ -67,6 +67,12 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
     return ch.toUpperCase();
   }, [tenantDisplayLabel, tenantId]);
 
+  const selectedCompanyTitle = useMemo(() => {
+    if (!selectedCompanyId) return "Toutes les sociétés";
+    const c = companies.find((x) => normalizeCompanyId(x.company_id) === selectedCompanyId);
+    return c ? companyDisplayLabel(c.display_name, c.company_id) : "";
+  }, [companies, selectedCompanyId]);
+
   const showCockpitContextRow =
     !!cockpitAppBar &&
     currentApp === "linky" &&
@@ -239,19 +245,21 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
   const cockpitCaroleFilterCenter =
     showCockpitContextRow && (cockpitContextHasFilters || cockpitContextTrustSignal) ? (
       <div
-        className="mx-auto flex w-full min-w-0 max-w-full flex-wrap items-center justify-center gap-2 sm:gap-3 md:w-auto md:flex-nowrap md:gap-3.5"
+        className="mx-auto flex w-full min-w-0 max-w-full flex-wrap items-center justify-center gap-2 sm:gap-3 md:mx-0 md:w-full md:min-w-0 md:flex-nowrap md:justify-start md:gap-3.5 lg:mx-auto lg:w-auto lg:justify-center"
         role="group"
         aria-label={cockpitContextTrustSignal ? "Périmètre de lecture et confiance" : "Périmètre de lecture"}
       >
         {cockpitContextHasFilters ? (
-          <div className="flex min-w-0 max-w-full flex-nowrap items-center justify-center gap-2.5 sm:gap-3 md:gap-3.5">
-            {/* Pas de flex-1 sur la zone scroll : sinon elle mange toute la colonne et repousse Année vers la droite. */}
+          <div className="flex min-w-0 w-full max-w-full flex-nowrap items-center justify-center gap-2.5 sm:gap-3 md:w-full md:justify-start md:gap-3.5 lg:w-auto lg:justify-center">
+            {/* flex-1 + min-w-0 : sur laptop la zone Tenant/Société rétrécit et scroll en interne ; Période + Année restent visibles (shrink-0). */}
             <div
-              className="touch-pan-x flex min-w-0 shrink-0 grow-0 flex-nowrap items-center justify-start gap-2.5 overflow-x-auto overflow-y-visible py-0.5 [scrollbar-width:thin] sm:gap-3 md:gap-3.5"
+              className="touch-pan-x flex min-w-0 flex-1 basis-0 flex-nowrap items-center justify-start gap-2.5 overflow-x-auto overflow-y-visible py-0.5 [scrollbar-width:thin] sm:gap-3 md:gap-3.5 lg:flex-none lg:basis-auto"
               aria-label="Filtres tenant et société"
             >
               {tenantBadgeOrSelector ? (
-                <div className={`${cockpitFilterShellClass} min-w-[124px] max-w-[16rem]`}>
+                <div
+                  className={`${cockpitFilterShellClass} min-w-[124px] max-w-[16rem] md:max-w-[11.5rem] lg:max-w-[13rem] xl:max-w-[16rem]`}
+                >
                   <Icon name="filter_alt" size={16} className="shrink-0 text-[var(--accent)]" aria-hidden />
                   <div className="min-w-0 flex-1 leading-tight">
                     <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Tenant</div>
@@ -260,17 +268,20 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                 </div>
               ) : null}
               {showCompanyFilter && (
-                <div className={`${cockpitFilterShellClass} min-w-[11.5rem] max-w-[14rem] sm:min-w-[12.5rem] sm:max-w-[16rem]`}>
-                  <div className="min-w-0 flex-1 leading-tight">
-                    <label htmlFor="company-select-cockpit" className="block cursor-pointer">
+                <div
+                  className={`${cockpitFilterShellClass} min-w-[9rem] max-w-[11.25rem] shrink-0 overflow-hidden sm:max-w-[11.75rem] md:max-w-[12rem] lg:max-w-[12.5rem] xl:max-w-[13.25rem]`}
+                >
+                  <div className="min-w-0 w-full max-w-full flex-1 overflow-hidden leading-tight">
+                    <label htmlFor="company-select-cockpit" className="block min-w-0 cursor-pointer">
                       <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Société</span>
                       <select
                         id="company-select-cockpit"
                         disabled={companiesLoading}
                         value={selectedCompanyId ?? ""}
                         onChange={(e) => onCompanyChange(e.target.value || null)}
-                        className={`max-w-full ${cockpitShellSelectClass}`}
+                        className={`w-full min-w-0 max-w-full truncate ${cockpitShellSelectClass}`}
                         aria-label="Société"
+                        title={selectedCompanyTitle}
                       >
                         <option value="">Toutes les sociétés</option>
                         {companies.map((c) => {
@@ -290,8 +301,10 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
             </div>
             {showPeriodFilter ? (
               <div className="flex shrink-0 flex-nowrap items-center gap-2.5 sm:gap-3 md:gap-3.5">
-                <div className={`${cockpitFilterShellClass} min-w-[7.5rem] max-w-[11rem] sm:max-w-[11.5rem]`}>
-                  <div className="min-w-0 flex-1 overflow-hidden leading-tight">
+                <div
+                  className={`${cockpitFilterShellClass} min-w-[6.5rem] max-w-[7.75rem] shrink-0 sm:max-w-[8rem] md:w-[8rem] md:max-w-[8rem] lg:w-[8.25rem] lg:max-w-[8.25rem] xl:w-auto xl:max-w-[9.5rem] overflow-hidden`}
+                >
+                  <div className="min-w-0 w-full max-w-full flex-1 overflow-hidden leading-tight">
                     <label htmlFor="period-key-cockpit" className="block cursor-pointer">
                       <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Période</span>
                       <select
@@ -365,11 +378,13 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
               <div className="mx-auto max-w-none px-5 pb-3 pt-3 sm:px-7 sm:pb-3.5 sm:pt-3.5 lg:px-10 lg:pb-4 lg:pt-4 xl:px-12 2xl:mx-auto 2xl:max-w-[1920px] 2xl:px-14">
                 <div className="rounded-[20px] border border-[var(--border)] bg-[var(--panel)] shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
                   <div className="grid grid-cols-1 gap-4 px-4 py-3.5 sm:px-5 sm:py-4 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto] md:items-center md:gap-4 md:px-5 md:py-4 lg:gap-6 lg:px-6 lg:py-5">
-                    <div className="min-w-0 shrink-0 md:max-w-[11rem] md:pr-2 lg:max-w-none lg:pr-5">
+                    <div className="relative z-10 min-w-0 shrink-0 md:max-w-[12rem] md:pr-3 lg:max-w-none lg:pr-5">
                       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Vue active</div>
                       <h1 className="font-headline mt-1 text-[1.5rem] font-extrabold tracking-tight text-[var(--text)] sm:text-[1.625rem]">Pilotage</h1>
                     </div>
-                    <div className="flex min-w-0 justify-center md:justify-center">{cockpitCaroleFilterCenter}</div>
+                    <div className="flex min-w-0 justify-center md:justify-start lg:justify-center">
+                      {cockpitCaroleFilterCenter}
+                    </div>
                     <div className="flex shrink-0 flex-wrap items-center justify-start gap-2.5 sm:gap-3 md:justify-end md:pl-2 lg:pl-3">
                       <button
                         type="button"

@@ -1,8 +1,8 @@
 # Spécification générale — cockpit Pilotage (Lynki)
 
 **Fichier canonique :** `ZeDocs/web61/SPEC_GENERALE_PILOTAGE_LINKY.md`  
-**Version :** 0.2 — mars 2026  
-**Statut :** brouillon — structuration générale ; **§7.6 bandeau figé** alignée implémentation lab  
+**Version :** 0.3 — mars 2026  
+**Statut :** brouillon — structuration générale ; **§7.6 bandeau figé** ; **§8.4 verdict** desktop / laptop  
 **Portée :** vue **Pilotage** (cockpit)  
 **CDCF de référence :** [`cdcf.md`](./cdcf.md)  
 **Rôle :** pont **normatif exploitable** entre le CDCF et les specs filles ; ne substitue pas au CDCF (**§2.2** ci-dessous).
@@ -302,6 +302,36 @@ En résumé pour l’implémentation :
 
 Les régimes tablette et mobile relèvent d’une **logique distincte** (hors **§3.18**).
 Ils ne sont pas décrits dans la présente spécification générale.
+
+### 8.4 Verdict produit — distinction **grand desktop** vs **desktop compact / laptop** (mars 2026)
+
+Synthèse de recette : les deux régimes sont **lisiblement distincts** — ce n’est plus un seul layout qui se déforme, mais **deux paliers** qui gardent la même identité avec des **densités** différentes, **sans rompre** la hiérarchie **A / B / C**.
+
+**Ce que montre le grand desktop**
+
+* header plus aéré ;
+* les quatre sélecteurs de contexte tiennent proprement ;
+* la grille cockpit laisse davantage de tuiles visibles ;
+* les prolongements sous la grille (ex. détail Trésorerie, alertes) respirent avec l’ensemble ;
+* lecture ample, ton « bureau ».
+
+**Ce que montre le desktop compact / laptop**
+
+* rail plus contenu ;
+* header plus dense ;
+* le groupe de contexte se compresse sans perdre la **composition unique** du bandeau ;
+* les trois tuiles **A** et les cartes **B** restent crédibles ;
+* sensation d’un **vrai mode compact**, pas d’un desktop écrasé.
+
+**Formulation cible (une phrase)** : on distingue enfin une **version desktop** et une **version laptop**, au lieu d’un seul layout qui se déforme.
+
+**Prochain pas documentaire** : figer **deux captures** (ou exports figés) comme références officielles — **référence grand desktop** et **référence desktop compact / laptop** — puis en déduire les **derniers réglages normatifs** (header, grille) dans le CDCF **§3.18** et la présente spec.
+
+**Points à surveiller en itération**
+
+1. **Header laptop** — **Société** reste la plus vulnérable à la compression ; les coquilles approchent leur limite ; le bloc central peut encore se comporter très « desktop ». Pistes : formaliser un **2 + 2** (deux paires de coquilles) ou des **largeurs plus strictement calibrées** par palier.
+2. **Prolongements bas** — à partir de quel seuil la ligne **Détail Trésorerie** + **Alertes & signaux** reste sur **une** ligne ou doit **empiler** / se réorganiser (à trancher et documenter).
+3. **Tuiles C en laptop** — quand moins de tuiles sont visibles d’un coup, veiller à ce que la lecture ne se réduise pas à un « haut de grille A+B » **sans** narration de contexte pour la **classe C**.
 
 ---
 
