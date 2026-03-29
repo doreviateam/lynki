@@ -5,7 +5,7 @@
 **Lot :** Web60  
 **Statut :** guide d’exécution publié  
 
-**Références :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.10** (vérité **W60-xxx**) · [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.23** · [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.3** · [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** · [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16** · **Web61 —** [`cdcf.md`](../web61/cdcf.md) (cahier des charges fonctionnel, **norme supérieure** pour refonte Pilotage / détail) · [`ROADMAP_REFONTE_LINKY_STITCH_CAROLE_61.md`](../web61/ROADMAP_REFONTE_LINKY_STITCH_CAROLE_61.md) · [`TABLEAU_TRACE_CDCF6_TRESORERIE.md`](../web61/TABLEAU_TRACE_CDCF6_TRESORERIE.md) (registre §6 Trésorerie ↔ code)  
+**Références :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.10** (vérité **W60-xxx**) · [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.23** · [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.3** · [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** · [`RECETTE_WEB60_LINKY.md`](./RECETTE_WEB60_LINKY.md) **v1.1.16** · **Web61 —** [`cdcf.md`](../web61/cdcf.md) (dont **§2.12.1** = bandeau Pilotage **desktop figé**, mars 2026) · [`ROADMAP_REFONTE_LINKY_STITCH_CAROLE_61.md`](../web61/ROADMAP_REFONTE_LINKY_STITCH_CAROLE_61.md) · [`TABLEAU_TRACE_CDCF6_TRESORERIE.md`](../web61/TABLEAU_TRACE_CDCF6_TRESORERIE.md) (registre §6 Trésorerie ↔ code)  
 
 **Code applicatif principal :** `units/dorevia-linky/`
 

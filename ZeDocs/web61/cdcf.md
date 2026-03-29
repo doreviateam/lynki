@@ -385,38 +385,59 @@ Toute donnée affichée dans le Dashboard doit être interprétée à partir du 
 
 Le header constitue ainsi la barre maîtresse de contexte commune à l’ensemble du Dashboard.
 
-#### 2.12.1 Bandeau Pilotage — deux niveaux (référence produit)
+#### 2.12.1 Bandeau Pilotage — référence desktop (figée)
 
-Sur la vue **Pilotage**, le bandeau supérieur est structuré en **deux niveaux** :
+**Statut (mars 2026).** La composition **desktop** du bandeau **Pilotage** est **figée** comme référence produit : elle sert de **base** pour la recette, les évolutions en finition (espacements, hauteurs, contraste) et les maquettes statiques alignées.
 
-* **Niveau d’orientation** : titre de la vue courante (« Pilotage ») et **identité de session** ; il répond à *où suis-je ?* et *qui suis-je ?* sans cumuler au même rang recherche, fraîcheur, badges de preuve ni icônes système multiples.
-* **Niveau de contexte** : **tenant**, **société**, **période** et **année**, groupés de façon compacte et homogène ; un **signal secondaire** de confiance ou de couverture (ex. preuves de la vue) n’y est admis que s’il reste **visuellement subordonné** au bloc de contexte.
+**Implémentation** : bandeau cockpit dans l’application Lynki (`ReportHeaderContentBody`, mode `cockpitAppBar`). **Maquette statique alignée** : [`ZeDocs/web61/references/carole_suggest_01.html`](references/carole_suggest_01.html). **Recette visible** (conteneur `linky_generic`) : [lab.linky — tenant laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026) ; le pied de page affiche **UI · hash git** du commit déployé.
 
-Le bandeau **prépare** la lecture ; il ne doit **pas concurrencer** la grille cockpit. Les éléments secondaires (recherche globale, dernière mise à jour, métadonnées techniques) ne sont ajoutés qu’à condition de rester **subordonnés** ; le **thème d’affichage** est exposé hors bandeau, dans le rail latéral section **Outils** (réglage préférence locale clair / sombre), et non dans **Session**.
+**Matérialisation — une carte composée** (sous une **frise** supérieure discrète : bordure basse, fond secondaire, léger flou) :
 
-**Vocabulaire affiché** : le premier sélecteur de contexte porte le libellé **Tenant** (aligné §2.8), pour éviter l’écart entre langage produit, fonctionnel et technique (« Espace » n’est pas retenu comme libellé canonique du filtre).
+* **Zone gauche** — étiquette **Vue active** (métadonnée) et titre **Pilotage** : répond à *quelle vue ?* sans surcharger la grille cockpit.
+* **Zone centre** — **Tenant**, **Société**, **Période**, **Année** regroupés en **coquilles** visuellement homogènes (contrôles intégrés, pas de double cadre interne / externe).
+* **Zone droite** — **notification** (réservée produit ; placeholder tant que non câblée) et **bloc session** compact, associant repère visuel utilisateur, libellé d’espace lisible et identifiant technique secondaire si nécessaire ; calibrage type compromis lisible / crédible sans sur-articulation.
 
-#### 2.12.2 Wireframes texte — options de bandeau (référence)
+**Sous le bandeau (desktop Pilotage)** — un **espace horizontal de respiration** peut rester **volontairement** entre la carte de contexte et la **grille cockpit**, afin d’accueillir ultérieurement un **fil de navigation** (fil d’Ariane ou équivalent). Tant que ce composant n’est pas branché, cet espace assure la respiration ; son introduction ne doit pas repousser la grille de façon disproportionnée par rapport à la référence §2.12.1.
 
-**Option A — V1 canonique (base Lynki)** : ligne 1 = titre + session ; ligne 2 = tenant, société, période, année **uniquement**.
+**Principes** (inchangés sur le fond) :
+
+* Le bandeau **prépare** la lecture du cockpit ; il ne **concurrente** pas les cartes maîtresses.
+* Un **signal secondaire** de confiance ou de couverture dans le bandeau n’est admis que s’il reste **subordonné** au bloc contexte ; en **V1 canonique**, ce signal n’occupe pas le bandeau (voir implémentation : flag `COCKPIT_HEADER_SHOW_TRUST_IN_CONTEXT_STRIP`).
+* Les ajouts futurs (recherche globale, dernière mise à jour, métadonnées techniques) restent **subordonnés** au même principe.
+* Le **thème** clair / sombre reste **hors** bandeau : rail latéral, section **Session** (§2.13), avec **Déconnexion**.
+
+**Lecture sémantique** (deux niveaux de sens, **une** composition visuelle) :
+
+1. **Orientation** — vue active + ancrage session (réparties dans la grille de la carte, pas sur deux barres indépendantes).
+2. **Contexte** — tenant, société, période, année.
+
+**Vocabulaire affiché** : le premier sélecteur de contexte porte le libellé **Tenant** (aligné §2.8) ; « Espace » n’est pas retenu comme libellé canonique du filtre.
+
+#### 2.12.2 Schéma et extensions — bandeau (référence)
+
+**Schéma logique — référence desktop figée** (carte unique sous frise) :
 
 ```text
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ Pilotage                                                          [Avatar ▾] │
-├──────────────────────────────────────────────────────────────────────────────┤
-│ [Tenant ▼]   [Société ▼]   [Période ▼]   [Année ▼]                          │
-└──────────────────────────────────────────────────────────────────────────────┘
+┌── frise (bordure basse, fond secondaire) ────────────────────────────────────┐
+│ ┌── carte : panel, coins ~20px, bordure, ombre ──────────────────────────────┐ │
+│ │ Vue active          │ [ Tenant ][ Société ][ Période ][ Année ] │ 🔔 │user│ │ │
+│ │ Pilotage            │     (coquilles / filtres)              │  bloc session │ │
+│ └────────────────────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────────────────────┘
+╔════════════════════════════════════════════════════════════════════════════════╗
+║▸ Espace réservé sous le bandeau — fil de navigation (Ariane) : option future   ║
+╚════════════════════════════════════════════════════════════════════════════════╝
 ```
 
-**Option B** : même chose + badge **preuves** à droite de la ligne 2, **plus discret** que les filtres et que le titre (métadonnée de confiance, pas CTA).
+**Extensions futures** (hors socle figé ci-dessus ; à valider avant ajout) :
 
-**Option C** : recherche discrète sur la ligne 1 (centre ou avant l’avatar), sans dominer le titre ni le bloc contexte.
+* **B** — Badge **preuves** / confiance dans ou à côté du bloc contexte, **plus discret** que filtres et titre.
+* **C** — Recherche discrète, sans dominer titre ni coquilles.
+* **D** — **Dernière MAJ** comme note système très faible ; combinaison avec **B** si besoin.
 
-**Option D** : cumul recherche + **Dernière MAJ** sur la ligne 1 ; la MAJ doit rester une **note système** très faible, jamais un sous-titre de page ; badge preuves optionnel en ligne 2 comme en B.
+**Ordre d’introduction recommandé** : stabiliser la **référence §2.12.1** → **B** si besoin → **C** → **D**.
 
-**Ordre d’introduction recommandé** : valider **A** → activer **B** (badge) si besoin → **C** (recherche) si produit → **D** (MAJ) seulement si la fraîcheur doit être dans le bandeau.
-
-*Principe lecture* : ligne 1 = *je me repère* ; ligne 2 = *je cadre ma lecture* ; ensuite = *je lis le cockpit*.
+*Principe lecture* : gauche = *quelle vue ?* ; centre = *je cadre ma lecture* ; droite = *session / notification* ; dessous = *cockpit*.
 
 ### 2.13 Navigation latérale — périmètre initial
 
@@ -433,10 +454,10 @@ La **navigation latérale** (rail gauche) ne doit pas anticiper des modules fonc
 
 * **Lexique** — ressources de lecture et vocabulaire pilotage.
 * **Aide** — support utilisateur.
-* **Thème** — bascule clair / sombre (préférence d’affichage locale ; hors périmètre « session » au sens authentification).
 
 **Session**
 
+* **Thème** — bascule clair / sombre (préférence d’affichage locale ; hors bandeau Pilotage, §2.12.1).
 * **Déconnexion** — action de fin de session.
 
 Toute autre entrée latéraire (domaines métier type ventes, achats, banque, facturation, etc.) relève d’un **périmètre ultérieur** : elle ne doit pas être exposée tant qu’elle n’est pas décrite et positionnée dans ce cahier des charges, afin d’éviter une promesse produit incompatible avec l’espace de lecture prioritaire du Dashboard.

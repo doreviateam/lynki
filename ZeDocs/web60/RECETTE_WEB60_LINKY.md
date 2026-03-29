@@ -6,6 +6,7 @@
 **Statut :** protocole de validation publié  
 **Plan :** [`PLAN_WEB60_LINKY_UI.md`](./PLAN_WEB60_LINKY_UI.md) **v1.1.23** · **Doctrine :** [`DOCTRINE_ETATS_UI_LINKY.md`](./DOCTRINE_ETATS_UI_LINKY.md) **v1.1.3** · **Spec maîtresses :** [`SPEC_CARTES_MAITRESSES_LINKY.md`](./SPEC_CARTES_MAITRESSES_LINKY.md) **v1.1.17** · **Backlog :** [`BACKLOG_WEB60_LINKY.md`](./BACKLOG_WEB60_LINKY.md) **v1.1.10** · **Exécution :** [`EXECUTION_TICKETS_WEB60_LINKY.md`](./EXECUTION_TICKETS_WEB60_LINKY.md) **v1.1.18**  
 **Référence créa figée :** `ZeDocs/web59/stitch_carole_61`  
+**Référence bandeau Pilotage desktop (figée, mars 2026) :** [`cdcf.md` §2.12.1](../web61/cdcf.md) · maquette [`carole_suggest_01.html`](../web61/references/carole_suggest_01.html) · impl. `ReportHeaderContentBody` (`cockpitAppBar`)  
 **Axe backlog :** E (plan §7.5)  
 **Environnement recette prioritaire :** [lab.linky — tenant laplatine2026](https://lab.linky.doreviateam.com/?tenant=laplatine2026)
 

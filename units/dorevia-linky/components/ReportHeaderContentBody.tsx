@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { IntegrityBadge } from "@/components/IntegrityBadge";
+import { Icon } from "@/components/Icon";
 import { TenantSelector } from "@/components/TenantSelector";
 import { CockpitChromeUtilities } from "@/components/layout/CockpitAppBarRow";
 import type { ReportHeaderContentProps } from "./ReportHeaderContent.types";
@@ -9,7 +10,7 @@ import type { PeriodStatusMap } from "@/app/lib/use-accounting-periods";
 import { companyDisplayLabel, normalizeCompanyId, safeReactText } from "@/app/lib/company-id";
 import { UI_STATE_LABELS } from "@/app/lib/cockpit/ui-state-labels";
 import { COCKPIT_HEADER_SHOW_TRUST_IN_CONTEXT_STRIP } from "@/app/lib/cockpit/cockpit-header-flags";
-import { COCKPIT_HEADER_FILTER_LABEL, COCKPIT_T0_HEADER_PAGE, COCKPIT_T1_PAGE_TITLE } from "@/app/lib/cockpit/cockpit-typography";
+import { COCKPIT_HEADER_FILTER_LABEL } from "@/app/lib/cockpit/cockpit-typography";
 
 export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
   const {
@@ -53,6 +54,18 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
   } = props;
 
   const periodStatusLabel = useMemo(() => getPeriodContextLabel(periodKey, periodYear, periodStatuses), [periodKey, periodYear, periodStatuses]);
+
+  const tenantDisplayLabel = useMemo(() => {
+    if (!tenantCtx?.resolvedTenant) return tenantId;
+    const opt = tenantCtx.availableTenants?.find((t) => t.id === tenantCtx.resolvedTenant);
+    return opt?.label ?? tenantCtx.resolvedTenant ?? tenantId;
+  }, [tenantCtx?.resolvedTenant, tenantCtx?.availableTenants, tenantId]);
+
+  const sessionInitial = useMemo(() => {
+    const s = tenantDisplayLabel.trim();
+    const ch = s.length > 0 ? s.charAt(0) : tenantId.charAt(0);
+    return ch.toUpperCase();
+  }, [tenantDisplayLabel, tenantId]);
 
   const showCockpitContextRow =
     !!cockpitAppBar &&
@@ -207,103 +220,121 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
       )
     ) : null;
 
-  /** Ligne 2 : filtres de contexte ; confiance optionnelle (flag Option B). */
-  const cockpitSelectClass =
-    "min-h-[42px] rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-4 py-2.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]";
+  /** Filtres cockpit — coquilles type maquette Carole / `carole_suggest_01.html` (sélecteurs sans cadre interne). */
+  const cockpitShellSelectClass =
+    "mt-1 block w-full min-w-0 max-w-full cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold text-[var(--text)] focus:outline-none focus:ring-0 disabled:opacity-60";
 
-  const cockpitContextStrip =
+  const cockpitShellSelectAccentClass =
+    "mt-1 block w-full min-w-0 max-w-full cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold text-[var(--accent)] focus:outline-none focus:ring-0 disabled:opacity-60";
+
+  const cockpitFilterShellClass =
+    "flex min-h-[52px] min-w-0 shrink-0 items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-4 py-2 shadow-[0_4px_14px_rgba(0,0,0,0.14)]";
+
+  const tenantShellInnerClass =
+    "mt-1 min-w-0 [&_button]:!min-h-0 [&_button]:h-auto [&_button]:min-w-0 [&_button]:w-full [&_button]:justify-start [&_button]:gap-2 [&_button]:rounded-none [&_button]:border-0 [&_button]:bg-transparent [&_button]:px-0 [&_button]:py-0 [&_button]:text-left [&_button]:text-[13px] [&_button]:font-semibold [&_button]:leading-tight [&_button]:shadow-none [&_button]:hover:bg-transparent [&_span]:text-[13px] [&_span]:font-semibold";
+
+  const tenantShellSingleClass = `${tenantShellInnerClass} [&>span]:!inline [&>span]:max-w-[10rem] [&>span]:truncate [&>span]:text-[13px] [&>span]:font-semibold [&>span]:text-[var(--text)] [&>span]:leading-tight`;
+
+  const cockpitCaroleFilterCenter =
     showCockpitContextRow && (cockpitContextHasFilters || cockpitContextTrustSignal) ? (
-      <div className="flex w-full min-w-0 justify-center overflow-x-auto px-6 pb-4 pt-0 md:px-8 [scrollbar-width:thin]">
-        <div
-          className="flex w-max max-w-none shrink-0 flex-nowrap items-end justify-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--panel)] px-4 py-3"
-          role="group"
-          aria-label={
-            cockpitContextTrustSignal ? "Périmètre de lecture et confiance" : "Périmètre de lecture"
-          }
-        >
-          {cockpitContextHasFilters ? (
-            <>
-              {tenantBadgeOrSelector ? (
-                <label className="flex min-w-0 shrink-0 flex-col gap-1">
-                  <span className={`shrink-0 whitespace-nowrap ${COCKPIT_HEADER_FILTER_LABEL}`}>Tenant</span>
-                  <div className="flex min-h-[42px] items-stretch [&_button]:!m-0 [&_button]:min-h-[42px] [&_button]:rounded-xl [&_button]:border [&_button]:border-[var(--border)] [&_button]:bg-[var(--panel-2)] [&_button]:px-4 [&_button]:py-2.5 [&_button]:text-sm [&_button]:leading-tight">
-                    {tenantBadgeOrSelector}
+      <div
+        className="flex w-full min-w-0 flex-wrap items-center justify-center gap-3 overflow-x-auto [scrollbar-width:thin]"
+        role="group"
+        aria-label={cockpitContextTrustSignal ? "Périmètre de lecture et confiance" : "Périmètre de lecture"}
+      >
+        {cockpitContextHasFilters ? (
+          <>
+            {tenantBadgeOrSelector ? (
+              <div className={`${cockpitFilterShellClass} min-w-[124px] max-w-[16rem]`}>
+                <Icon name="filter_alt" size={16} className="shrink-0 text-[var(--accent)]" aria-hidden />
+                <div className="min-w-0 flex-1 leading-tight">
+                  <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Tenant</div>
+                  <div className={tenantShellSingleClass}>{tenantBadgeOrSelector}</div>
+                </div>
+              </div>
+            ) : null}
+            {showCompanyFilter && (
+              <div className={`${cockpitFilterShellClass} min-w-[140px] max-w-[16rem]`}>
+                <div className="min-w-0 flex-1 leading-tight">
+                  <label htmlFor="company-select-cockpit" className="block cursor-pointer">
+                    <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Société</span>
+                    <select
+                      id="company-select-cockpit"
+                      disabled={companiesLoading}
+                      value={selectedCompanyId ?? ""}
+                      onChange={(e) => onCompanyChange(e.target.value || null)}
+                      className={`max-w-full ${cockpitShellSelectClass}`}
+                      aria-label="Société"
+                    >
+                      <option value="">Toutes les sociétés</option>
+                      {companies.map((c) => {
+                        const id = normalizeCompanyId(c.company_id);
+                        if (!id) return null;
+                        return (
+                          <option key={id} value={id}>
+                            {companyDisplayLabel(c.display_name, c.company_id)}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </label>
+                </div>
+              </div>
+            )}
+            {showPeriodFilter && (
+              <>
+                <div className={`${cockpitFilterShellClass} min-w-[148px] max-w-[13rem]`}>
+                  <div className="min-w-0 flex-1 leading-tight">
+                    <label htmlFor="period-key-cockpit" className="block cursor-pointer">
+                      <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">Période</span>
+                      <select
+                        id="period-key-cockpit"
+                        value={periodKey}
+                        onChange={(e) => onPeriodKeyChange(e.target.value)}
+                        className={`min-w-0 ${cockpitShellSelectAccentClass}`}
+                      >
+                        {periodOptionsToShow.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {enrichPeriodLabel(opt, periodYear, periodStatuses)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
-                </label>
-              ) : null}
-              {showCompanyFilter && (
-                <label className="flex min-w-0 shrink-0 flex-col gap-1" htmlFor="company-select-cockpit">
-                  <span className={`shrink-0 whitespace-nowrap ${COCKPIT_HEADER_FILTER_LABEL}`}>Société</span>
-                  <select
-                    id="company-select-cockpit"
-                    disabled={companiesLoading}
-                    value={selectedCompanyId ?? ""}
-                    onChange={(e) => onCompanyChange(e.target.value || null)}
-                    className={`max-w-[11.5rem] xl:max-w-[14rem] ${cockpitSelectClass}`}
-                    aria-label="Société"
-                  >
-                    <option value="">Toutes les sociétés</option>
-                    {companies.map((c) => {
-                      const id = normalizeCompanyId(c.company_id);
-                      if (!id) return null;
-                      return (
-                        <option key={id} value={id}>
-                          {companyDisplayLabel(c.display_name, c.company_id)}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </label>
-              )}
-              {showPeriodFilter && (
-                <>
-                  <label className="flex min-w-0 shrink-0 flex-col gap-1" htmlFor="period-key-cockpit">
-                    <span className={`shrink-0 whitespace-nowrap ${COCKPIT_HEADER_FILTER_LABEL}`}>Période</span>
-                    <select
-                      id="period-key-cockpit"
-                      value={periodKey}
-                      onChange={(e) => onPeriodKeyChange(e.target.value)}
-                      className={`min-w-[170px] max-w-[12rem] ${cockpitSelectClass}`}
-                    >
-                      {periodOptionsToShow.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {enrichPeriodLabel(opt, periodYear, periodStatuses)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="flex min-w-0 shrink-0 flex-col gap-1" htmlFor="period-year-cockpit">
-                    <span className={`shrink-0 whitespace-nowrap ${COCKPIT_HEADER_FILTER_LABEL}`}>Année</span>
-                    <select
-                      id="period-year-cockpit"
-                      value={periodYear}
-                      onChange={(e) => onPeriodYearChange(Number(e.target.value))}
-                      className={`min-w-[5rem] ${cockpitSelectClass}`}
-                    >
-                      {yearsToShow.map((y) => (
-                        <option key={y} value={y}>
-                          {y}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </>
-              )}
-            </>
-          ) : null}
-          {cockpitContextTrustSignal ? (
-            <div
-              className={`flex min-w-0 shrink-0 flex-col gap-1 ${
-                cockpitContextHasFilters
-                  ? "w-full border-t border-[color-mix(in_srgb,var(--border)_35%,transparent)] pt-3 sm:mt-0 sm:w-auto sm:border-t-0 sm:border-l sm:border-[color-mix(in_srgb,var(--border)_35%,transparent)] sm:pt-0 sm:pl-4 sm:ml-1"
-                  : ""
-              }`}
-            >
-              <span className={`shrink-0 whitespace-nowrap ${COCKPIT_HEADER_FILTER_LABEL}`}>Confiance</span>
-              <div className="flex min-h-[42px] items-center">{cockpitContextTrustSignal}</div>
-            </div>
-          ) : null}
-        </div>
+                </div>
+                <div className={`${cockpitFilterShellClass} min-w-[98px] max-w-[7rem]`}>
+                  <div className="min-w-0 flex-1 leading-tight">
+                    <label htmlFor="period-year-cockpit" className="block cursor-pointer">
+                      <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Année</span>
+                      <select
+                        id="period-year-cockpit"
+                        value={periodYear}
+                        onChange={(e) => onPeriodYearChange(Number(e.target.value))}
+                        className={cockpitShellSelectClass}
+                      >
+                        {yearsToShow.map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        ) : null}
+        {cockpitContextTrustSignal ? (
+          <div
+            className={`flex min-h-[52px] min-w-0 shrink-0 flex-col justify-center gap-1 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-4 py-2 ${
+              cockpitContextHasFilters ? "" : ""
+            }`}
+          >
+            <span className={`shrink-0 whitespace-nowrap ${COCKPIT_HEADER_FILTER_LABEL}`}>Confiance</span>
+            <div className="flex min-h-[28px] items-center">{cockpitContextTrustSignal}</div>
+          </div>
+        ) : null}
       </div>
     ) : null;
 
@@ -314,13 +345,45 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
       {cockpitAppBar && currentApp === "linky" ? (
         <>
           {!chromeCompact ? (
-            <div className="min-w-0" role="region" aria-label="En-tête pilotage">
-              <div className="flex flex-col">
-                <div className="flex h-20 min-h-[5rem] items-center justify-between gap-4 px-6 md:px-8">
-                  <h1 className={COCKPIT_T0_HEADER_PAGE}>Pilotage</h1>
-                  <CockpitChromeUtilities variant="orientation" trailingSlot={cockpitChromeTrailingSlot} />
+            <div
+              className="min-w-0 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--bg-secondary)_94%,transparent)] backdrop-blur-md"
+              role="region"
+              aria-label="En-tête pilotage"
+            >
+              <div className="px-4 pb-1 pt-2 md:px-8 md:pb-1.5 md:pt-2">
+                <div className="rounded-[20px] border border-[var(--border)] bg-[var(--panel)] shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+                  <div className="grid grid-cols-1 gap-4 px-4 py-3 lg:grid-cols-[minmax(0,auto)_minmax(0,1fr)_minmax(0,auto)] lg:items-center lg:gap-5 lg:px-6 lg:py-4">
+                    <div className="min-w-0 lg:pr-5">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Vue active</div>
+                      <h1 className="font-headline mt-1 text-[1.625rem] font-extrabold tracking-tight text-[var(--text)]">Pilotage</h1>
+                    </div>
+                    <div className="min-w-0 lg:justify-self-stretch">{cockpitCaroleFilterCenter}</div>
+                    <div className="flex flex-wrap items-center justify-start gap-3 lg:justify-end lg:pl-3">
+                      <button
+                        type="button"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--panel-2)]"
+                        aria-label="Notifications (bientôt disponible)"
+                      >
+                        <Icon name="notifications" size={18} />
+                      </button>
+                      <div className="flex min-w-0 max-w-full items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-3 py-2 shadow-[0_4px_14px_rgba(0,0,0,0.12)]">
+                        <div
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[var(--accent)] font-headline text-base font-extrabold text-white"
+                          aria-hidden
+                        >
+                          {sessionInitial}
+                        </div>
+                        <div className="min-w-0 leading-tight">
+                          <div className="truncate text-sm font-semibold text-[var(--text)]">{tenantDisplayLabel}</div>
+                          <div className="mt-1 inline-flex max-w-full items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--panel)] px-2 py-0.5 text-[11px] font-semibold text-[var(--warning)]">
+                            <Icon name="badge" size={14} className="shrink-0" aria-hidden />
+                            <span className="truncate">{tenantId}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                {cockpitContextStrip}
               </div>
             </div>
           ) : (

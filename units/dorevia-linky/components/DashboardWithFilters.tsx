@@ -348,7 +348,8 @@ function DashboardWithFiltersContent({
   /** Réserve sous le header quand le cockpit n’est pas fusionné (bandeau classique). */
   const reportChromeReservePx = 140;
   /** Valeur initiale / secours pour la hauteur du shell cockpit (évite un flash avant mesure). */
-  const cockpitMergedShellFallbackPx = 200;
+  /** Proche du bandeau Carole mesuré (~160–190px) pour limiter le flash avant ResizeObserver. */
+  const cockpitMergedShellFallbackPx = 172;
   const cockpitHeaderShellRef = useRef<HTMLDivElement>(null);
   const [cockpitMergedShellPx, setCockpitMergedShellPx] = useState(cockpitMergedShellFallbackPx);
 
@@ -587,8 +588,12 @@ function DashboardWithFiltersContent({
         />
       </div>
 
+      {/*
+        Pilotage desktop fusionné : léger padding-top sous le bandeau fixe (CDCF §2.12.1) — assez pour une future
+        ligne de fil d’Ariane sans bande vide « décollée » ; calibrage resserré pour liaison header → grille.
+      */}
       <main
-        className={`mx-auto flex min-h-0 flex-1 w-full flex-col pb-16 ${cockpitDesktopMerged ? "max-w-none px-7" : "max-w-4xl px-4"} ${cockpitDesktopMerged && chromeVisible ? "pt-0" : chromeVisible ? "pt-6" : "pt-4"}`}
+        className={`mx-auto flex min-h-0 flex-1 w-full flex-col pb-16 ${cockpitDesktopMerged ? "max-w-none px-7" : "max-w-4xl px-4"} ${cockpitDesktopMerged && chromeVisible ? "pt-0.5 md:pt-1" : chromeVisible ? "pt-6" : "pt-4"}`}
       >
         {/* Vue Synthèse comptable (Lot 2 — AccountingSummaryView) */}
         {appView === "synthese" ? (

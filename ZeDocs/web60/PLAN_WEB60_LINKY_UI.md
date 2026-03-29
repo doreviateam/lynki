@@ -234,6 +234,8 @@ l’ordre de priorité retenu est le suivant :
 
 ### 6.7 Réorganisation du header cockpit (desktop)
 
+> **Référence desktop figée (mars 2026).** La composition **livrée** du bandeau Pilotage (frise + **carte unique** : Vue active et titre Pilotage, coquilles Tenant / Société / Période / Année, cloche + bloc session) est **normée** dans le [**CDCF** §2.12.1](../web61/cdcf.md) et illustrée par [`ZeDocs/web61/references/carole_suggest_01.html`](../web61/references/carole_suggest_01.html). Les sous-sections ci-dessous conservent la **grille de lecture** fonctionnelle (cadre / périmètre / régime) ; en cas d’écart avec le CDCF sur l’interface réelle, **le CDCF et le code déployé font foi** pour la recette lab.
+
 #### Intention
 
 Le header du cockpit ne doit pas juxtaposer sur un même plan visuel :
