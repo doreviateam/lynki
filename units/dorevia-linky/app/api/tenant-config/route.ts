@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       },
       footer: {
         showTrustDrawer: true,
-        vaultLinkLabel: "Vault",
+        vaultLinkLabel: "Dorevia-Vault",
       },
       behavior: {
         allowAutoHide: true,

@@ -10,7 +10,7 @@ const DOREVIA_VAULT_LINK =
     ? process.env.NEXT_PUBLIC_DOREVIA_VAULT_LINK
     : "https://sylius.lab.core.doreviateam.com/accueil";
 
-const DEFAULT_VAULT_LINK_LABEL = "Dorevia Vault";
+const DEFAULT_VAULT_LINK_LABEL = "Dorevia-Vault";
 
 /** W60-005 : distinguer le total cumulé (footer) du compteur « vue » (header) */
 const PROOF_CUMULATIVE_TITLE =
@@ -221,7 +221,7 @@ export function LinkyFooter({
             aria-label="Ouvrir les informations de confiance système"
             title={PROOF_CUMULATIVE_TITLE}
           >
-            <span className="text-[var(--text)]">Vault</span>
+            <span className="text-[var(--text)]">Dorevia-Vault</span>
             <span className="text-[var(--border)]" aria-hidden>·</span>
             {sealedCount != null ? (
               <span className="tabular-nums">{sealedCount.toLocaleString("fr-FR")} cumulées ✓</span>
@@ -301,7 +301,7 @@ export function LinkyFooter({
               className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-xs text-[var(--text-secondary)] py-2"
               title={PROOF_CUMULATIVE_TITLE}
             >
-              <span className="text-[var(--text)]">Vault</span>
+              <span className="text-[var(--text)]">Dorevia-Vault</span>
               <span className="text-[var(--border)]" aria-hidden>·</span>
               {sealedCount != null ? (
                 <span className="tabular-nums">{sealedCount.toLocaleString("fr-FR")} cumulées ✓</span>

@@ -62,15 +62,19 @@ export function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 z-40 hidden h-full w-72 shrink-0 flex-col overflow-y-auto border-r border-[var(--border)] bg-[var(--sidebar-bg)] md:flex">
-      <div className="flex items-center gap-4 px-5 py-6">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] font-headline text-2xl font-extrabold text-white shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
-          L
+      <Link
+        href={pilotageHref}
+        className="flex items-center gap-4 px-5 py-6 outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_45%,transparent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sidebar-bg)]"
+        aria-label="Retour au cockpit de pilotage"
+      >
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] font-headline text-lg font-extrabold leading-none tracking-tight text-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:text-xl">
+          DL
         </div>
         <div className="min-w-0">
           <div className="font-headline text-2xl font-extrabold tracking-tight text-[var(--text)]">Lynki</div>
           <div className="mt-1 text-sm text-[var(--muted)]">Cockpit financier</div>
         </div>
-      </div>
+      </Link>
 
       <nav className="flex flex-1 flex-col px-3 pb-4" aria-label="Navigation principale">
         <div>
