@@ -1,8 +1,8 @@
 # Spécification générale — cockpit Pilotage (Lynki)
 
 **Fichier canonique :** `ZeDocs/web61/SPEC_GENERALE_PILOTAGE_LINKY.md`  
-**Version :** 0.3 — mars 2026  
-**Statut :** brouillon — structuration générale ; **§7.6 bandeau figé** ; **§8.4 verdict** desktop / laptop  
+**Version :** 0.6.2 — mars 2026  
+**Statut :** brouillon — **§8.0** doctrine multi-régimes ; **§8.3** / **§17** alignés (tactile assumé, hors périmètre adouci) ; **§7.6** bandeau ; CDCF **§3.18–§3.20** ; cadrage / maquettes phone & tablette ; tickets tactiles **EXECUTION_TICKETS_TACTILE_LINKY v0.2**  
 **Portée :** vue **Pilotage** (cockpit)  
 **CDCF de référence :** [`cdcf.md`](./cdcf.md)  
 **Rôle :** pont **normatif exploitable** entre le CDCF et les specs filles ; ne substitue pas au CDCF (**§2.2** ci-dessous).
@@ -46,10 +46,12 @@ En cas d’écart entre une spec fille et la présente spécification générale
 La présente spécification s’articule notamment avec :
 
 * **[`cdcf.md`](./cdcf.md)** — loi produit ;
+* **[`CADRAGE_VERSION_MOBILE_LYNKI.md`](./CADRAGE_VERSION_MOBILE_LYNKI.md)** — cadrage d’application **phone** (complément **CDCF §3.19**, navigation, header, grammaire carte) ;
 * **[`SPEC_CARTES_MAITRESSES_LINKY.md`](../web60/SPEC_CARTES_MAITRESSES_LINKY.md)** — exécution des **trois** tuiles **Classe A** ;
 * **[`DOCTRINE_ETATS_UI_LINKY.md`](../web60/DOCTRINE_ETATS_UI_LINKY.md)** — norme d’états et badges (complément **§13–§14** ci-dessous) ;
 * les futures specs dédiées aux instruments **B / C** ou vues détail ;
-* recette / exécution Web60 ([`RECETTE_WEB60_LINKY.md`](../web60/RECETTE_WEB60_LINKY.md), [`EXECUTION_TICKETS_WEB60_LINKY.md`](../web60/EXECUTION_TICKETS_WEB60_LINKY.md)).
+* recette / exécution Web60 ([`RECETTE_WEB60_LINKY.md`](../web60/RECETTE_WEB60_LINKY.md), [`EXECUTION_TICKETS_WEB60_LINKY.md`](../web60/EXECUTION_TICKETS_WEB60_LINKY.md)) ;
+* exécution refonte **tactile** phone + tablette ([`EXECUTION_TICKETS_TACTILE_LINKY.md`](./EXECUTION_TICKETS_TACTILE_LINKY.md) **v0.2** — tickets **T-PH-xxx** / **T-TB-xxx**, journal d’implémentation §8).
 
 ### 2.4 Index des renvois vers le CDCF
 
@@ -60,7 +62,9 @@ La présente spécification s’articule notamment avec :
 | 12 tuiles, classes **A / B / C** | **§3.6**, **§3.13** |
 | Contexte Tenant → Année | **§2.8–§2.11** |
 | Bandeau cockpit (zones, principes) | **§2.12.1**, **§2.12.2** |
-| **Desktop compact / laptop** | **§3.18** |
+| **Famille bureau** — grand desktop + desktop compact / laptop | **§2.12.1**, **§3.18** (dont tableau **§3.18.9**) |
+| **Phone mobile** (persona Max) | **§3.19** |
+| **Tablette / iPad** | **§3.20** |
 | Ordre de lecture cockpit | **§3.12** |
 | Grammaire minimale d’une tuile | **§5** |
 | États UX, confiance (vue) | **§3.15**, **§3.16** |
@@ -274,7 +278,43 @@ Les règles ci-dessous **figent** le comportement livré sur le **lab** (`Report
 
 ## 8. Régimes d’écran
 
-Norme détaillée **desktop compact / laptop** : **[`cdcf.md`](./cdcf.md) §3.18**.
+### 8.0 Quatre régimes, deux familles — doctrine Lynki
+
+Lynki distingue **quatre régimes d’écran** pour la vue **Pilotage**. Ils ne forment **pas** une simple **échelle de réduction continue** : ce sont **quatre compositions** adaptées à des contextes de lecture différents.
+
+> **Lynki repose sur quatre régimes d’écran distincts : Desktop, Laptop, Tablette et Phone. Ces régimes ne constituent pas une simple échelle de réduction continue, mais quatre compositions adaptées à des contextes de lecture différents.**
+
+> **Desktop et Laptop relèvent de la famille bureau ; Tablette et Phone relèvent de la famille tactile.**
+
+**À ne surtout pas casser — famille bureau.** Les régimes **Desktop** et **Laptop** sont le **socle** du Pilotage sur poste de travail. Ils ne doivent **pas** être absorbés dans une seule courbe « responsive » ni dégradés au profit des paliers tactiles : chacun garde sa **composition explicite** (ample vs dense). Le **Laptop** n’est **pas** un desktop ratatiné : c’est un **cockpit dense tenu** (**§3.18**, **§8.2**, **§8.4**). Toute livraison touchant le bandeau, le rail ou la grille doit **vérifier** ces deux paliers avant de valider.
+
+**Lecture synthétique**
+
+| Famille | Régimes | Logique dominante |
+|---------|---------|-------------------|
+| **Bureau** | **Desktop** | Cockpit **ample**, bandeau riche, hiérarchie **A / B / C** pleinement lisible |
+| **Bureau** | **Laptop** | Cockpit **dense** : rail et bandeau resserrés, grille compacte, **sans** chevauchements ni « desktop cassé » |
+| **Tactile** | **Tablette** | **Cockpit tactile compact** : encore panoramique et structuré, recomposition pour éviter la saturation horizontale (**§3.20**) |
+| **Tactile** | **Phone** | **Cockpit priorisé** (persona **Max**) : **A** d’abord, alertes puis **B** / **C**, contexte compact, navigation mobile simple (**§3.19**) |
+
+**Formulation opérationnelle**
+
+> **Desktop / Laptop / Tablette / Phone = quatre régimes, deux familles, une même grammaire produit (A / B / C, contexte, confiance, continuité vers le détail).**
+
+**Implications de synthèse**
+
+| Sujet | Desktop | Laptop | Tablette | Phone |
+|-------|---------|--------|----------|-------|
+| **Header** | Riche, centré, stable | Plus dense, calibré | Recomposé, tactile | Simplifié, **non** miniaturisé desktop |
+| **Grille** | Ample | Serrée mais stable | Compacte tactile | Empilement **priorisé** |
+| **Navigation** | Rail | Rail | Rail compact ou schéma adapté | Navigation mobile (ex. bottom nav) |
+| **Priorité de lecture** | Cockpit complet | Cockpit complet | Cockpit complet | **A** d’abord, suite ensuite |
+
+**Normes détaillées (CDCF)**
+
+* **Bureau** — **grand desktop** et **desktop compact / laptop** : **[`cdcf.md`](./cdcf.md) §2.12.1**, **§3.18** (exigences détaillées du palier compact / laptop ; rappel **grand desktop** au **§3.18.9** et bandeau **§2.12.1**).
+* **Phone mobile** : **[`cdcf.md`](./cdcf.md) §3.19**.
+* **Tablette / iPad** : **[`cdcf.md`](./cdcf.md) §3.20**.
 
 ### 8.1 Grand desktop
 
@@ -298,10 +338,16 @@ En résumé pour l’implémentation :
 * tuiles A resserrées ;
 * éventuelle réorganisation contrôlée de la grille.
 
-### 8.3 Tablette / mobile
+### 8.3 Phone mobile et tablette / iPad
 
-Les régimes tablette et mobile relèvent d’une **logique distincte** (hors **§3.18**).
-Ils ne sont pas décrits dans la présente spécification générale.
+Les régimes **phone mobile** et **tablette / iPad** sont reconnus ici comme des **régimes à part entière** du cockpit **Pilotage** (voir **§8.0** : famille **tactile**). Leur **norme détaillée** reste portée par le **CDCF** et par les **documents de cadrage** / maquettes associés ; la présente spec en rappelle la **place dans l’architecture d’ensemble** et les renvois normatifs :
+
+* **§3.19** — Mode **phone mobile** — persona **Max**
+* **§3.20** — Mode **tablette / iPad**
+
+**Cadrage d’implémentation (phone)** — bottom nav, header à deux niveaux, séquence verticale, exclusions : **[`CADRAGE_VERSION_MOBILE_LYNKI.md`](./CADRAGE_VERSION_MOBILE_LYNKI.md)** (maquette **[`references/carole_suggest_02.html`](./references/carole_suggest_02.html)**).
+
+**Maquette statique (tablette / iPad)** — lecture cockpit plus panoramique, alignée **§3.20** : **[`references/carole_suggest_03.html`](./references/carole_suggest_03.html)**.
 
 ### 8.4 Verdict produit — distinction **grand desktop** vs **desktop compact / laptop** (mars 2026)
 
@@ -553,15 +599,17 @@ Elle doit éviter :
 
 ## 17. Hors périmètre de la présente spécification
 
+La présente spécification fixe la **structure générale**, la **doctrine des régimes d’écran** (**§8.0**) et les règles cockpit communes. Elle **ne se substitue pas** aux normes et specs plus détaillées listées ci-dessous.
+
 La présente spécification générale ne détaille pas :
 
-* le comportement tablette / mobile ;
 * les spécifications instrument par instrument hors niveau général ;
 * les vues détail spécialisées ;
 * les contrats API détaillés ;
-* les règles purement techniques d’implémentation.
+* les règles purement techniques d’implémentation ;
+* le **détail normatif complet** des régimes **phone mobile** et **tablette / iPad** — la présente spec en rappelle le **positionnement général** (**§8.0**, **§8.3**) ; le **CDCF** (**§3.19**, **§3.20**) et les documents de cadrage / maquettes en portent l’exhaustivité opérationnelle.
 
-Ces éléments relèvent de documents dérivés.
+Ces éléments relèvent de documents dérivés ou de sections normatives externes à la présente spec.
 
 ---
 

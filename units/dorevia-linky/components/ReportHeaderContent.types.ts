@@ -48,5 +48,19 @@ export interface ReportHeaderContentProps {
   cockpitAppBar?: {
     confidenceScore?: number | null;
     confidenceLabel?: string;
+    /**
+     * `tablet` : densité et cibles tactiles intermédiaires (layout cockpit 768–1023 px).
+     * `desktop` (défaut) : bandeau immersif large écran.
+     */
+    bandLayout?: "desktop" | "tablet";
   };
+  /**
+   * Cockpit pilotage grille, layout phone (T-PH-001) : bandeau 2 niveaux, périmètre replié dans `<details>`.
+   */
+  pilotagePhoneCompact?: {
+    contextSummary: string;
+  };
+  /** Panneau filtres « Périmètre » (phone pilotage) — distinct du menu app (`menuOpen`). */
+  pilotagePerimeterOpen: boolean;
+  setPilotagePerimeterOpen: (v: boolean) => void;
 }

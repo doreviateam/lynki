@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useLayoutEffect, useCallback, useRef, Suspense } from "react";
+import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { ChartExpandedProvider, useChartExpanded } from "@/app/context/ChartExpandedContext";
 import { ChromeAdaptiveProvider, useChromeAdaptive } from "@/app/context/ChromeAdaptiveContext";
@@ -23,7 +23,9 @@ import { TenantChoiceView } from "@/components/TenantChoiceView";
 import { ChromeTriggerBar } from "@/components/ChromeTriggerBar";
 import type { CardId } from "@/app/types/linky-tiles";
 import { CockpitMobileView } from "@/components/CockpitMobileView";
+import { CockpitTabletView } from "@/components/CockpitTabletView";
 import { CockpitDesktopView } from "@/components/CockpitDesktopView";
+import { useCockpitLayoutMode } from "@/app/lib/cockpit/cockpit-layout";
 import { WorkingCapitalCardWithPolling } from "@/components/WorkingCapitalCardWithPolling";
 import { EncoursCardWithPolling } from "@/components/EncoursCardWithPolling";
 import { EbeCardWithPolling } from "@/components/EbeCardWithPolling";
@@ -264,6 +266,7 @@ function DashboardWithFiltersContent({
   const chromeVisible = chromeAdaptive?.isChromeVisible ?? true;
   const chromeState = chromeAdaptive?.chromeState ?? "expanded";
   const interactionMode = chromeAdaptive?.interactionMode ?? "tablet";
+  const cockpitLayoutMode = useCockpitLayoutMode();
   const revealChrome = chromeAdaptive?.revealChrome ?? (() => {});
 
   const onResolvedTenantChange = useCallback(
@@ -370,8 +373,20 @@ function DashboardWithFiltersContent({
 
   // Fetch dashboard-metrics : pour IconGrid/Diva quand vue "all", et sealed_count pour le badge (toujours)
   const showIconGrid = viewMode === "all" && !focusedCardId;
-  const cockpitDesktopMerged =
-    showIconGrid && interactionMode === "desktop" && appView === "pilotage";
+  /**
+   * Bandeau Carole fusionné (ReportHeader + réserve scroll) :
+   * - tablette (layout 768–1023) : toujours en grille pilotage « tout » ;
+   * - desktop (layout ≥1024) : comme avant, seulement si mode interaction immersif (≥1280 + hover + pointer fin).
+   */
+  const cockpitMergedHeader =
+    showIconGrid &&
+    appView === "pilotage" &&
+    (cockpitLayoutMode === "tablet" ||
+      (cockpitLayoutMode === "desktop" && interactionMode === "desktop"));
+  /** Pilotage grille, layout phone (T-PH-001) : bandeau compact dans ReportHeader, pas de barre locale. */
+  const cockpitPhonePilotage =
+    showIconGrid && cockpitLayoutMode === "phone" && appView === "pilotage";
+  const cockpitHeaderMeasuresShell = cockpitMergedHeader || cockpitPhonePilotage;
   /** Réserve sous le header quand le cockpit n’est pas fusionné (bandeau classique). */
   const reportChromeReservePx = 140;
   /** Valeur initiale / secours pour la hauteur du shell cockpit (évite un flash avant mesure). */
@@ -381,26 +396,44 @@ function DashboardWithFiltersContent({
   const [cockpitMergedShellPx, setCockpitMergedShellPx] = useState(cockpitMergedShellFallbackPx);
 
   useLayoutEffect(() => {
-    if (!cockpitDesktopMerged || !chromeVisible) return;
+    if (!cockpitHeaderMeasuresShell || !chromeVisible) return;
     const el = cockpitHeaderShellRef.current;
     if (!el) return;
+    /** T-TB-001 bis : léger surcroît sous le bandeau fusionné tablette pour éviter la « couture » serrée avec la carte A. */
+    const tabletRibbonGapPx =
+      cockpitMergedHeader && cockpitLayoutMode === "tablet" ? 14 : 0;
     const measure = () => {
       const h = el.getBoundingClientRect().height;
-      setCockpitMergedShellPx(Math.max(56, Math.ceil(h)));
+      setCockpitMergedShellPx(Math.max(56, Math.ceil(h) + tabletRibbonGapPx));
     };
     measure();
     const ro = new ResizeObserver(() => measure());
     ro.observe(el);
     return () => ro.disconnect();
-  }, [cockpitDesktopMerged, chromeVisible]);
+  }, [cockpitHeaderMeasuresShell, chromeVisible, cockpitMergedHeader, cockpitLayoutMode]);
 
   const headerSpacerHeightPx =
-    !chromeVisible ? 0 : cockpitDesktopMerged ? cockpitMergedShellPx : reportChromeReservePx;
-  const cockpitBarScore = cockpitDesktopMerged ? computeConfidenceScore(dashboardMetrics) : null;
+    !chromeVisible ? 0 : cockpitHeaderMeasuresShell ? cockpitMergedShellPx : reportChromeReservePx;
+  const cockpitBarScore = cockpitMergedHeader ? computeConfidenceScore(dashboardMetrics) : null;
   const effectiveCompanyId =
     FORCED_COMPANY_ID ??
     selectedCompanyId ??
     (companies.length > 0 && companies.some((c) => c.documents_count > 0) ? companies[0].company_id : null);
+  const cockpitContextLine = useMemo(() => {
+    const parts: string[] = [];
+    const co = companies.find((c) => c.company_id === effectiveCompanyId);
+    if (co) {
+      parts.push(companyDisplayLabel(co.display_name, co.company_id) ?? co.company_id);
+    } else {
+      parts.push("Vue consolidée");
+    }
+    const from = new Date(`${period.from}T12:00:00`);
+    const to = new Date(`${period.to}T12:00:00`);
+    if (!Number.isNaN(from.getTime()) && !Number.isNaN(to.getTime())) {
+      parts.push(`${from.toLocaleDateString("fr-FR")} – ${to.toLocaleDateString("fr-FR")}`);
+    }
+    return parts.join(" · ");
+  }, [companies, effectiveCompanyId, period.from, period.to]);
   const scopeKey = `${scopeTenantId}|${effectiveCompanyId ?? ""}|${period.from}|${period.to}`;
   const fetchMetricsRef = useRef<() => void>(() => {});
   useEffect(() => {
@@ -581,7 +614,11 @@ function DashboardWithFiltersContent({
         style={{
           transform: chromeVisible ? "translateY(0)" : "translateY(-100%)",
           maxHeight:
-            chromeVisible ? (cockpitDesktopMerged ? "none" : `${reportChromeReservePx}px`) : "0",
+            chromeVisible
+              ? cockpitHeaderMeasuresShell
+                ? "none"
+                : `${reportChromeReservePx}px`
+              : "0",
         }}
       >
         <ReportHeader
@@ -605,22 +642,36 @@ function DashboardWithFiltersContent({
           appView={appView}
           onNavigateToAppView={undefined}
           cockpitAppBar={
-            cockpitDesktopMerged
+            cockpitMergedHeader
               ? {
                   confidenceScore: cockpitBarScore,
                   confidenceLabel: confidenceLabelFromScore(cockpitBarScore),
+                  bandLayout: cockpitLayoutMode === "tablet" ? "tablet" : "desktop",
                 }
               : undefined
+          }
+          pilotagePhoneCompact={
+            cockpitPhonePilotage ? { contextSummary: cockpitContextLine } : undefined
           }
         />
       </div>
 
       {/*
-        Pilotage desktop fusionné : léger padding-top sous le bandeau fixe (CDCF §2.12.1) — assez pour une future
-        ligne de fil d’Ariane sans bande vide « décollée » ; calibrage resserré pour liaison header → grille.
+        Pilotage bandeau fusionné (tablette + desktop immersif) : léger padding-top sous le bandeau fixe
+        (CDCF §2.12.1) — liaison header Carole → grille cockpit.
       */}
       <main
-        className={`mx-auto flex min-h-0 flex-1 w-full flex-col pb-16 ${cockpitDesktopMerged ? "max-w-none px-5 sm:px-7 lg:px-10 xl:px-12 2xl:mx-auto 2xl:max-w-[1920px] 2xl:px-14" : "max-w-4xl px-4"} ${cockpitDesktopMerged && chromeVisible ? "pt-1 md:pt-2" : chromeVisible ? "pt-6" : "pt-4"}`}
+        className={`mx-auto flex min-h-0 flex-1 w-full flex-col pb-16 ${cockpitMergedHeader ? "max-w-none px-5 sm:px-7 lg:px-10 xl:px-12 2xl:mx-auto 2xl:max-w-[1920px] 2xl:px-14" : "max-w-4xl px-4"} ${
+          cockpitMergedHeader && chromeVisible
+            ? cockpitLayoutMode === "tablet"
+              ? "pt-3 md:pt-4"
+              : "pt-1 md:pt-2"
+            : cockpitPhonePilotage && chromeVisible
+              ? "pt-0.5"
+              : chromeVisible
+                ? "pt-6"
+                : "pt-4"
+        }`}
       >
         {/* Vue Synthèse comptable (Lot 2 — AccountingSummaryView) */}
         {appView === "synthese" ? (
@@ -648,8 +699,18 @@ function DashboardWithFiltersContent({
           </div>
         )}
         {showIconGrid ? (
-          interactionMode === "mobile" ? (
+          cockpitLayoutMode === "phone" ? (
             <CockpitMobileView
+              tenantId={scopeTenantId}
+              companyId={effectiveCompanyId}
+              period={period}
+              metrics={dashboardMetrics}
+              metricsLoading={metricsLoading}
+              metricsError={cockpitMetricsFetchError}
+              onSelectCard={(id) => setFocusedCardId(id)}
+            />
+          ) : cockpitLayoutMode === "tablet" ? (
+            <CockpitTabletView
               tenantId={scopeTenantId}
               companyId={effectiveCompanyId}
               period={period}
@@ -667,7 +728,7 @@ function DashboardWithFiltersContent({
               metricsLoading={metricsLoading}
               metricsError={cockpitMetricsFetchError}
               onSelectCard={(id) => setFocusedCardId(id)}
-              hideTopBar={cockpitDesktopMerged}
+              hideTopBar={cockpitMergedHeader}
             />
           )
         ) : (

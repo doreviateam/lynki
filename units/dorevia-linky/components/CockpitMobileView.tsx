@@ -8,7 +8,7 @@ import type { DashboardMetricsResponse } from "@/app/api/dashboard-metrics/route
 import type { PeriodRange } from "@/app/lib/period-utils";
 import type { CardId } from "@/app/types/linky-tiles";
 import { computeConfidenceScore } from "@/app/lib/confidence";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { navHrefWithTenant } from "@/components/layout/navTenantHref";
 import {
   buildTreasuryCockpitTileModel,
   treasuryCockpitPrimaryBadge,
@@ -55,11 +55,14 @@ function inferConfidence(raw: { valueKind?: string } | null | undefined): Confid
   }
 }
 
-const SECONDARY_TILES: { id: CardId; icon: string; label: string; metricKey: string }[] = [
+const SECONDARY_B: { id: CardId; icon: string; label: string; metricKey: string; href?: string }[] = [
   { id: "working_capital", icon: "account_balance_wallet", label: "BFR", metricKey: "working_capital" },
-  { id: "encours", icon: "pending_actions", label: "Encours", metricKey: "encours" },
+  { id: "encours", icon: "pending_actions", label: "Encours", metricKey: "encours", href: "/encours" },
   { id: "taxes", icon: "receipt_long", label: "Taxes", metricKey: "taxes" },
   { id: "ebitda", icon: "trending_up", label: "EBE", metricKey: "ebitda" },
+];
+
+const SECONDARY_C: { id: CardId; icon: string; label: string; metricKey: string }[] = [
   { id: "credit_notes", icon: "note_alt", label: "Notes crédit", metricKey: "credit_notes" },
   { id: "refunds", icon: "currency_exchange", label: "Rembours.", metricKey: "refunds" },
   { id: "pos_shops", icon: "storefront", label: "POS", metricKey: "pos_shops" },
@@ -80,6 +83,7 @@ export function CockpitMobileView({
   const cash = metrics?.cash;
   const treasuryTile = buildTreasuryCockpitTileModel(metrics);
   const integrityScore = computeConfidenceScore(metrics);
+  const h = (p: string) => navHrefWithTenant(p, tenantId);
 
   const treasuryStatusForChrome = metricsError ? "alert" : treasuryTile.treasuryStatus;
   const treasuryPrimaryBadge = treasuryCockpitPrimaryBadge(treasuryStatusForChrome);
@@ -105,81 +109,59 @@ export function CockpitMobileView({
   }
 
   return (
-    <main className="flex flex-1 flex-col gap-6 px-4 pb-24 pt-6">
-      {/* Header mobile — avatar + titre + sync */}
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-700 text-sm font-bold text-white">
-            M
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-[var(--text)]">Lynki Cockpit</h1>
-            <p className="text-xs text-[var(--muted)]">Pilotage dirigeant</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-0.5">
-          <ThemeToggle />
-          <button type="button" className="rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--hover)]" aria-label="Synchroniser">
-            <Icon name="sync_saved_locally" size={20} />
-          </button>
-        </div>
-      </header>
-
-      {/* Data Integrity Score */}
-      <ConfidenceScore score={integrityScore} />
-
-      {/* Trois cartes maîtresses — une seule ligne (3 colonnes) */}
-      <section className="grid grid-cols-3 gap-1.5 sm:gap-2">
+    <main className="flex flex-1 flex-col gap-3 px-4 pb-24 pt-0">
+      {/* Cartes maîtresses — lecture métier d’abord ; score de confiance après le bloc A (T-PH-001 bis) */}
+      <section className="flex flex-col gap-3">
         <button
           type="button"
           onClick={() => onSelectCard?.("treasury")}
-          className={`min-h-0 min-w-0 rounded-xl bg-[var(--card)] p-2.5 text-left shadow-lg transition-all hover:shadow-xl active:scale-[0.99] sm:p-4 ${treasuryOutline}`}
+          className={`w-full rounded-2xl bg-[var(--card)] p-4 text-left shadow-sm transition-all active:scale-[0.99] ${treasuryOutline}`}
         >
-          <div className="flex items-start justify-between gap-1">
-            <span className={`${COCKPIT_T4_CARD_LABEL} !text-[9px] !tracking-[0.08em]`}>Trésorerie</span>
+          <div className="flex items-start justify-between gap-2">
+            <span className={COCKPIT_T4_CARD_LABEL}>Trésorerie</span>
             <span
-              className={`inline-flex max-w-[4.5rem] shrink-0 items-center gap-0.5 rounded-full px-1 py-0.5 text-[8px] font-semibold leading-none ${treasuryPrimaryBadge.mobileClassName}`}
+              className={`inline-flex max-w-[10rem] shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold leading-tight ${treasuryPrimaryBadge.mobileClassName}`}
               title={treasury?.status_reason ?? undefined}
             >
               <Icon
                 name={treasuryPrimaryBadge.iconName}
-                size={10}
+                size={12}
                 filled={treasuryTile.treasuryStatus === "ok"}
               />
               <span className="truncate">{treasuryPrimaryBadge.label}</span>
             </span>
           </div>
           <CockpitMasterKpiValue display={formatKpi(treasury)} variant="mobile" mobileWeight="black" />
-          <p className={`mt-0.5 line-clamp-2 ${COCKPIT_T5_CAPTION} !text-[9px]`}>Solde validé (Vault)</p>
-          <div className="mt-2 space-y-1.5 border-t border-[var(--border)] pt-2 text-left">
+          <p className={`mt-0.5 ${COCKPIT_T5_CAPTION}`}>Solde validé (Vault)</p>
+          <div className="mt-3 space-y-2 border-t border-[var(--border)] pt-3 text-left">
             <div title="Part des flux couverts par preuve bancaire">
-              <div className="flex justify-between gap-0.5">
-                <span className="text-[8px] font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Couv.</span>
-                <span className="tabular-nums text-[9px] font-semibold text-[var(--text)]">
+              <div className="flex justify-between gap-2">
+                <span className={COCKPIT_T4_MICRO_UPPER}>Couverture probante</span>
+                <span className={`tabular-nums ${COCKPIT_T5_DETAIL_VALUE}`}>
                   {treasuryTile.coveragePct != null ? `${treasuryTile.coveragePct} %` : "—"}
                 </span>
               </div>
-              <div className="mt-0.5 h-1 w-full overflow-hidden rounded-full bg-[var(--border)]">
+              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[var(--coverage-track)]">
                 <div
                   className={`h-full rounded-full ${
                     treasuryTile.treasuryStatus === "ok"
                       ? "bg-[var(--confidence-fiable)]"
-                      : "bg-slate-400 dark:bg-slate-500"
+                      : "bg-[var(--coverage-fill-muted)]"
                   }`}
                   style={{ width: treasuryTile.coveragePct != null ? `${treasuryTile.coveragePct}%` : "0%" }}
                 />
               </div>
             </div>
-            <div className="flex flex-col gap-0.5 border-t border-[var(--border)] pt-1.5">
-              <div className="flex justify-between gap-0.5">
-                <span className="text-[8px] text-[var(--text-secondary)]">ERP−Vault</span>
-                <span className={`max-w-[55%] truncate text-right text-[8px] font-semibold ${COCKPIT_T5_DETAIL_VALUE}`}>
+            <div className="flex flex-col gap-1 border-t border-[var(--border)] pt-2">
+              <div className="flex justify-between gap-2">
+                <span className={COCKPIT_T5_DETAIL_LABEL}>Écart ERP − Vault</span>
+                <span className={`max-w-[55%] truncate text-right ${COCKPIT_T5_DETAIL_VALUE}`}>
                   {treasuryTile.erpDeltaFormatted ?? "—"}
                 </span>
               </div>
-              <div className="flex justify-between gap-0.5">
-                <span className="text-[8px] text-[var(--text-secondary)]">À rappr.</span>
-                <span className={`max-w-[55%] truncate text-right text-[8px] font-semibold ${COCKPIT_T5_DETAIL_VALUE}`}>
+              <div className="flex justify-between gap-2">
+                <span className={COCKPIT_T5_DETAIL_LABEL}>À rapprocher</span>
+                <span className={`max-w-[55%] truncate text-right ${COCKPIT_T5_DETAIL_VALUE}`}>
                   {treasuryTile.rapproFormatted ?? "—"}
                 </span>
               </div>
@@ -190,29 +172,29 @@ export function CockpitMobileView({
         <button
           type="button"
           onClick={() => onSelectCard?.("business")}
-          className={`min-h-0 min-w-0 rounded-xl bg-[var(--card)] p-2.5 text-left shadow-sm transition-all hover:shadow-md active:scale-[0.98] sm:p-4 ${businessOutline}`}
+          className={`w-full rounded-2xl bg-[var(--card)] p-4 text-left shadow-sm transition-all active:scale-[0.99] ${businessOutline}`}
         >
-          <div className="flex items-center gap-1">
-            <Icon name="business_center" size={14} className="shrink-0 text-[var(--muted)]" />
-            <span className={`${COCKPIT_T4_CARD_LABEL} !text-[9px]`}>Business</span>
+          <div className="flex items-center gap-2">
+            <Icon name="business_center" size={18} className="shrink-0 text-[var(--muted)]" />
+            <span className={COCKPIT_T4_CARD_LABEL}>Business</span>
           </div>
           <CockpitMasterKpiValue display={formatKpi(business)} variant="mobile" mobileWeight="bold" />
-          <p className={`mt-0.5 line-clamp-2 ${COCKPIT_T5_CAPTION} !text-[9px]`}>Ventes − achats</p>
-          <div className="mt-2 space-y-1 border-t border-[var(--border)] pt-2">
-            <div className="flex justify-between gap-0.5">
-              <span className="text-[8px] text-[var(--text-secondary)]">Ventes</span>
-              <span className={`max-w-[58%] truncate text-right text-[8px] font-semibold ${COCKPIT_T5_DETAIL_VALUE}`}>
+          <p className={`mt-0.5 ${COCKPIT_T5_CAPTION}`}>Ventes nettes après achats (période)</p>
+          <div className="mt-3 space-y-2 border-t border-[var(--border)] pt-3">
+            <div className="flex justify-between gap-2">
+              <span className={COCKPIT_T5_DETAIL_LABEL}>Ventes</span>
+              <span className={`shrink-0 ${COCKPIT_T5_DETAIL_VALUE}`}>
                 {businessDetail != null ? formatSignedAmount(businessDetail.ventes, businessDetail.currency) : "—"}
               </span>
             </div>
-            <div className="flex justify-between gap-0.5">
-              <span className="text-[8px] text-[var(--text-secondary)]">Achats</span>
-              <span className={`max-w-[58%] truncate text-right text-[8px] font-semibold ${COCKPIT_T5_DETAIL_VALUE}`}>
+            <div className="flex justify-between gap-2">
+              <span className={COCKPIT_T5_DETAIL_LABEL}>Achats</span>
+              <span className={`shrink-0 ${COCKPIT_T5_DETAIL_VALUE}`}>
                 {businessDetail != null ? formatSignedAmount(-Math.abs(businessDetail.achats), businessDetail.currency) : "—"}
               </span>
             </div>
           </div>
-          <span className={`mt-2 inline-block max-w-full truncate text-[8px] ${businessMasterPill.className}`}>
+          <span className={`mt-3 inline-flex max-w-full items-center truncate text-xs ${businessMasterPill.className}`}>
             {businessMasterPill.label}
           </span>
         </button>
@@ -220,50 +202,87 @@ export function CockpitMobileView({
         <button
           type="button"
           onClick={() => onSelectCard?.("cash")}
-          className={`min-h-0 min-w-0 rounded-xl bg-[var(--card)] p-2.5 text-left shadow-sm transition-all hover:shadow-md active:scale-[0.98] sm:p-4 ${cashOutline}`}
+          className={`w-full rounded-2xl bg-[var(--card)] p-4 text-left shadow-sm transition-all active:scale-[0.99] ${cashOutline}`}
         >
-          <div className="flex items-center gap-1">
-            <Icon name="swap_vert" size={14} className="shrink-0 text-[var(--muted)]" />
-            <span className={`${COCKPIT_T4_CARD_LABEL} !text-[9px]`}>Flux Net</span>
+          <div className="flex items-center gap-2">
+            <Icon name="swap_vert" size={18} className="shrink-0 text-[var(--muted)]" />
+            <span className={COCKPIT_T4_CARD_LABEL}>Flux Net</span>
           </div>
           <CockpitMasterKpiValue display={formatKpi(cash)} variant="mobile" mobileWeight="bold" />
-          <p className={`mt-0.5 line-clamp-2 ${COCKPIT_T5_CAPTION} !text-[9px]`}>Enc./Déc.</p>
-          <div className="mt-2 space-y-1 border-t border-[var(--border)] pt-2">
-            <div className="flex justify-between gap-0.5">
-              <span className="text-[8px] text-[var(--text-secondary)]">Enc.</span>
-              <span className={`max-w-[58%] truncate text-right text-[8px] font-semibold ${COCKPIT_T5_DETAIL_VALUE}`}>
+          <p className={`mt-0.5 ${COCKPIT_T5_CAPTION}`}>Encaissements et décaissements (période)</p>
+          <div className="mt-3 space-y-2 border-t border-[var(--border)] pt-3">
+            <div className="flex justify-between gap-2">
+              <span className={COCKPIT_T5_DETAIL_LABEL}>Encaissements</span>
+              <span className={`shrink-0 ${COCKPIT_T5_DETAIL_VALUE}`}>
                 {cashDetail != null ? formatSignedAmount(cashDetail.encaissements, cashDetail.currency) : "—"}
               </span>
             </div>
-            <div className="flex justify-between gap-0.5">
-              <span className="text-[8px] text-[var(--text-secondary)]">Déc.</span>
-              <span className={`max-w-[58%] truncate text-right text-[8px] font-semibold ${COCKPIT_T5_DETAIL_VALUE}`}>
+            <div className="flex justify-between gap-2">
+              <span className={COCKPIT_T5_DETAIL_LABEL}>Décaissements</span>
+              <span className={`shrink-0 ${COCKPIT_T5_DETAIL_VALUE}`}>
                 {cashDetail != null ? formatSignedAmount(-Math.abs(cashDetail.decaissements), cashDetail.currency) : "—"}
               </span>
             </div>
           </div>
-          <span className={`mt-2 inline-block max-w-full truncate text-[8px] ${cashMasterPill.className}`}>
+          <span className={`mt-3 inline-flex max-w-full items-center truncate text-xs ${cashMasterPill.className}`}>
             {cashMasterPill.label}
           </span>
         </button>
       </section>
 
-      {/* Secondary tiles — bento 2×N grid */}
-      <section className="grid grid-cols-2 gap-3">
-        {SECONDARY_TILES.map((tile) => {
-          const metric = metrics?.[tile.metricKey as keyof DashboardMetricsResponse] as { value?: unknown; formatted?: string; valueKind?: string } | undefined;
-          return (
-            <CompactTile
-              key={tile.id}
-              icon={tile.icon}
-              label={tile.label}
-              value={formatKpi(metric)}
-              confidence={inferConfidence(metric)}
-              onClick={() => onSelectCard?.(tile.id)}
-            />
-          );
-        })}
+      {integrityScore != null ? (
+        <div className="flex flex-wrap items-center gap-2 px-0.5" aria-label="Confiance des données scellées">
+          <ConfidenceScore score={integrityScore} compact />
+        </div>
+      ) : null}
+
+      <section>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">Indicateurs clés</p>
+        <div className="grid grid-cols-2 gap-3">
+          {SECONDARY_B.map((tile) => {
+            const metric = metrics?.[tile.metricKey as keyof DashboardMetricsResponse] as
+              | { value?: unknown; formatted?: string; valueKind?: string }
+              | undefined;
+            return (
+              <CompactTile
+                key={tile.id}
+                icon={tile.icon}
+                label={tile.label}
+                value={formatKpi(metric)}
+                confidence={inferConfidence(metric)}
+                href={tile.href ? h(tile.href) : undefined}
+                onClick={tile.href ? undefined : () => onSelectCard?.(tile.id)}
+              />
+            );
+          })}
+        </div>
       </section>
+
+      <details className="group rounded-2xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 shadow-sm open:pb-3">
+        <summary className="cursor-pointer list-none py-2 text-sm font-semibold text-[var(--text)] marker:content-none [&::-webkit-details-marker]:hidden">
+          <span className="flex items-center justify-between gap-2">
+            Capteurs complémentaires
+            <Icon name="expand_more" size={20} className="text-[var(--muted)] transition-transform group-open:rotate-180" />
+          </span>
+        </summary>
+        <div className="grid grid-cols-2 gap-3 border-t border-[var(--border)] pt-3">
+          {SECONDARY_C.map((tile) => {
+            const metric = metrics?.[tile.metricKey as keyof DashboardMetricsResponse] as
+              | { value?: unknown; formatted?: string; valueKind?: string }
+              | undefined;
+            return (
+              <CompactTile
+                key={tile.id}
+                icon={tile.icon}
+                label={tile.label}
+                value={formatKpi(metric)}
+                confidence={inferConfidence(metric)}
+                onClick={() => onSelectCard?.(tile.id)}
+              />
+            );
+          })}
+        </div>
+      </details>
 
       {/* Insight banner */}
       <DivaFlashBlock

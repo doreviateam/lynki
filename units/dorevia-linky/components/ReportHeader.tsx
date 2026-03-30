@@ -68,6 +68,10 @@ interface ReportHeaderProps {
   cockpitAppBar?: {
     confidenceScore?: number | null;
     confidenceLabel?: string;
+    bandLayout?: "desktop" | "tablet";
+  };
+  pilotagePhoneCompact?: {
+    contextSummary: string;
   };
 }
 
@@ -94,15 +98,19 @@ export function ReportHeader({
   appView = "pilotage",
   onNavigateToAppView,
   cockpitAppBar,
+  pilotagePhoneCompact,
 }: ReportHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  /** Phone pilotage : panneau « Périmètre » (filtres) séparé du menu app (`menuOpen`). */
+  const [pilotagePerimeterOpen, setPilotagePerimeterOpen] = useState(false);
   const [selectFocused, setSelectFocused] = useState(false);
   const chromeAdaptive = useChromeAdaptive();
-  useChromeLock(menuOpen || selectFocused);
+  useChromeLock(menuOpen || pilotagePerimeterOpen || selectFocused);
   const tenantCtx = useTenantContextOptional();
   // Rules of switch (§5.3) : fermer le menu au changement de tenant
   useEffect(() => {
     setMenuOpen(false);
+    setPilotagePerimeterOpen(false);
   }, [tenantCtx?.resolvedTenant]);
   const branding = tenantCtx?.tenantConfig?.chrome?.branding;
   const headerOpts = tenantCtx?.tenantConfig?.chrome?.header;
@@ -275,12 +283,19 @@ export function ReportHeader({
       onNavigateToAppView={onNavigateToAppView}
       periodStatuses={periodStatuses}
       cockpitAppBar={cockpitAppBar}
+      pilotagePhoneCompact={pilotagePhoneCompact}
+      pilotagePerimeterOpen={pilotagePerimeterOpen}
+      setPilotagePerimeterOpen={setPilotagePerimeterOpen}
     />
   );
 
+  /** `overflow-hidden` coupe les panneaux `absolute`/`fixed` sous le résumé (ex. Périmètre fusionné phone). */
+  const headerOverflowClass =
+    chromeCompact ? "overflow-hidden" : cockpitAppBar || pilotagePhoneCompact ? "overflow-visible" : "overflow-hidden";
+
   return (
     <header
-      className={`relative w-full overflow-hidden ${cockpitAppBar ? "shadow-none" : "shadow-sm"} ${chromeCompact ? "max-h-[72px]" : cockpitAppBar ? "max-h-none" : "max-h-[140px]"}`}
+      className={`relative w-full ${headerOverflowClass} ${cockpitAppBar ? "shadow-none" : "shadow-sm"} ${chromeCompact ? "max-h-[72px]" : cockpitAppBar || pilotagePhoneCompact ? "max-h-none" : "max-h-[140px]"}`}
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       {headerContent}

@@ -57,6 +57,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // ── 3bis. Périodes comptables (cockpit) — auth dans la route, pas 401 si pas de session
+  // Le pilotage charge sans gate serveur sur `/` ; éviter un 401 console alors que les autres
+  // APIs cockpit (ex. dashboard-metrics) ne passent pas par ce middleware.
+  if (path === "/api/accounting/periods") {
+    return NextResponse.next();
+  }
+
   // ── 4. Routes /accounting/* + /api/accounting/* — Sprint 07 T41 ─────────
   if (ACCOUNTING_PREFIXES.some((p) => path.startsWith(p))) {
     const session = decodeSession(request.cookies.get(SESSION_COOKIE)?.value);

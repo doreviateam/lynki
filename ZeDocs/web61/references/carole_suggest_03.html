@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<!--
+  Maquette statique — vue Pilotage tablette / iPad (Lynki). Non exécutable en prod.
+  Références : CDCF §3.20 ; continuité visuelle avec carole_suggest_02.html (phone).
+  Intention : cockpit plus panoramique que le phone — header type bandeau (4 contextes + session),
+  grille A (Trésorerie pleine largeur, Business + Flux net en 7/5), alertes, B en grille, C en colonne ;
+  bottom nav tactile centrée (max-w-3xl), CTA bolt.
+  Mars 2026.
+-->
+<html class="dark" lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lynki — Pilotage tablette</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet"
+  />
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            background: "#0b1326",
+            surface: "#0b1326",
+            "surface-container-lowest": "#060e20",
+            "surface-container-low": "#131b2e",
+            "surface-container": "#171f33",
+            "surface-container-high": "#222a3d",
+            "surface-container-highest": "#2d3449",
+            "surface-variant": "#2d3449",
+            "surface-bright": "#31394d",
+            outline: "#85958a",
+            "outline-variant": "#3b4a41",
+            primary: "#45f6ae",
+            "primary-container": "#00d994",
+            "primary-fixed": "#51ffb6",
+            secondary: "#ffb877",
+            tertiary: "#cddcf4",
+            "on-surface": "#dae2fd",
+            "on-surface-variant": "#bacbbf",
+            "on-background": "#dae2fd",
+            "on-primary": "#003823",
+          },
+          fontFamily: {
+            headline: ["Manrope", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            label: ["Inter", "sans-serif"],
+          },
+          borderRadius: {
+            DEFAULT: "0.125rem",
+            lg: "0.25rem",
+            xl: "0.5rem",
+            "2xl": "1rem",
+            full: "9999px",
+          },
+          boxShadow: {
+            ambient: "0 18px 44px rgba(0,0,0,0.28)",
+            soft: "0 10px 28px rgba(0,0,0,0.18)",
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+      line-height: 1;
+    }
+
+    body {
+      min-height: max(1024px, 100dvh);
+      background: #0b1326;
+      color: #dae2fd;
+      font-family: Inter, sans-serif;
+    }
+
+    .glass-card {
+      background: rgba(45, 52, 73, 0.34);
+      backdrop-filter: blur(16px);
+    }
+
+    .tile {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tile::after {
+      content: "";
+      position: absolute;
+      top: 22px;
+      bottom: 22px;
+      right: 0;
+      width: 4px;
+      border-radius: 999px;
+      background: rgba(81, 255, 182, 0.2);
+    }
+
+    .tile-neutral::after {
+      background: rgba(186, 203, 191, 0.18);
+    }
+
+    .tile-warn::after {
+      background: rgba(255, 184, 119, 0.28);
+    }
+  </style>
+</head>
+
+<body class="bg-surface text-on-surface font-body">
+  <!-- Header tablette -->
+  <header class="fixed inset-x-0 top-0 z-50 border-b border-outline-variant/20 bg-surface/88 backdrop-blur-xl">
+    <div class="px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-4">
+      <div class="rounded-2xl border border-outline-variant/16 bg-surface-container-low shadow-soft">
+        <div class="grid grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-4">
+          <!-- Zone gauche -->
+          <div class="min-w-0 pr-2">
+            <div class="flex items-center gap-3">
+              <button
+                type="button"
+                class="flex h-11 w-11 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant transition active:scale-95"
+                aria-label="Ouvrir le menu"
+              >
+                <span class="material-symbols-outlined text-[20px]">menu</span>
+              </button>
+
+              <div>
+                <p class="font-label text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">
+                  Vue active
+                </p>
+                <h1 class="mt-1 font-headline text-[24px] font-extrabold tracking-tight text-on-surface">
+                  Pilotage
+                </h1>
+              </div>
+            </div>
+          </div>
+
+          <!-- Zone centre -->
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <button
+              type="button"
+              class="flex min-w-[120px] items-center gap-3 rounded-xl bg-surface-container-high px-4 py-3 text-left transition active:scale-[0.99]"
+            >
+              <span class="material-symbols-outlined text-[18px] text-primary-fixed">apartment</span>
+              <div>
+                <p class="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Tenant</p>
+                <p class="mt-1 text-[13px] font-semibold text-on-surface">La Platine</p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              class="flex min-w-[170px] items-center rounded-xl bg-surface-container-high px-4 py-3 text-left transition active:scale-[0.99]"
+            >
+              <div>
+                <p class="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Société</p>
+                <p class="mt-1 text-[13px] font-semibold text-on-surface">SARL La Platine</p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              class="flex min-w-[150px] items-center rounded-xl bg-surface-container-high px-4 py-3 text-left transition active:scale-[0.99]"
+            >
+              <div>
+                <p class="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Période</p>
+                <p class="mt-1 text-[13px] font-semibold text-on-surface">Exercice à date</p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              class="flex min-w-[92px] items-center justify-center rounded-xl bg-surface-container-high px-4 py-3 text-center transition active:scale-[0.99]"
+            >
+              <div>
+                <p class="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Année</p>
+                <p class="mt-1 text-[13px] font-semibold text-on-surface">2026</p>
+              </div>
+            </button>
+          </div>
+
+          <!-- Zone droite -->
+          <div class="flex items-center gap-3 pl-2">
+            <button
+              type="button"
+              class="flex h-11 w-11 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant transition active:scale-95"
+              aria-label="Notifications"
+            >
+              <span class="material-symbols-outlined text-[20px]">notifications</span>
+            </button>
+
+            <button
+              type="button"
+              class="flex items-center gap-3 rounded-xl bg-surface-container-high px-3 py-2.5 transition active:scale-[0.99]"
+              aria-label="Session"
+            >
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/14 font-headline text-[15px] font-extrabold text-primary-fixed">
+                V
+              </div>
+              <div class="text-left leading-tight">
+                <p class="text-[13px] font-semibold text-on-surface">Véréna</p>
+                <p class="mt-1 text-[11px] text-on-surface-variant">laplatine2026</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenu -->
+  <main class="px-6 pt-36 pb-28">
+    <section class="mb-6 flex items-end justify-between gap-4">
+      <div>
+        <p class="font-label text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">
+          Cockpit financier
+        </p>
+        <h2 class="mt-1 font-headline text-[34px] font-extrabold tracking-tight text-on-surface">
+          Lecture immédiate
+        </h2>
+      </div>
+
+      <div class="rounded-xl bg-surface-container-low px-4 py-3 text-right">
+        <p class="text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Confiance</p>
+        <p class="mt-1 text-[13px] font-semibold text-primary-fixed">Lecture globalement fiable</p>
+      </div>
+    </section>
+
+    <!-- Classe A -->
+    <section class="grid grid-cols-12 gap-4">
+      <!-- Trésorerie -->
+      <article class="tile glass-card col-span-12 rounded-2xl border border-outline-variant/18 p-6 shadow-ambient">
+        <div class="flex items-start justify-between gap-6">
+          <div>
+            <p class="font-label text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">
+              Trésorerie
+            </p>
+            <div class="mt-2 flex items-end gap-2">
+              <span class="font-headline text-[44px] font-extrabold tracking-tight text-on-surface">
+                118 179,42
+              </span>
+              <span class="font-headline text-[22px] font-bold text-primary-fixed">€</span>
+            </div>
+            <p class="mt-2 text-[14px] text-on-surface-variant">
+              Solde validé à date · lecture prioritaire
+            </p>
+          </div>
+
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-primary-fixed">
+            <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1;">
+              verified
+            </span>
+            Certifié
+          </span>
+        </div>
+
+        <div class="mt-6 grid grid-cols-3 gap-4">
+          <div>
+            <div class="mb-2 flex items-center justify-between">
+              <span class="text-[11px] uppercase tracking-[0.14em] text-on-surface-variant">Couverture</span>
+              <span class="text-[12px] font-semibold text-on-surface">78 %</span>
+            </div>
+            <div class="h-2 overflow-hidden rounded-full bg-surface-container-high">
+              <div class="h-full w-[78%] rounded-full bg-primary-container"></div>
+            </div>
+          </div>
+
+          <div class="rounded-xl bg-surface-container-low p-3">
+            <p class="text-[10px] uppercase tracking-[0.14em] text-on-surface-variant">Écart ERP / Vault</p>
+            <p class="mt-1 text-[14px] font-semibold text-on-surface">- 1 240,00 €</p>
+          </div>
+
+          <div class="rounded-xl bg-surface-container-low p-3">
+            <p class="text-[10px] uppercase tracking-[0.14em] text-on-surface-variant">À rapprocher</p>
+            <p class="mt-1 text-[14px] font-semibold text-on-surface">14 flux</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Business -->
+      <article class="tile tile-neutral col-span-7 rounded-2xl border border-outline-variant/16 bg-surface-container-highest p-5 shadow-soft">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="font-label text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">
+              Business
+            </p>
+            <p class="mt-2 font-headline text-[30px] font-extrabold tracking-tight text-on-surface">
+              + 94 881,28 €
+            </p>
+            <p class="mt-2 text-[13px] text-on-surface-variant">
+              Ventes nettes après achats sur la période
+            </p>
+          </div>
+
+          <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary-fixed">
+            <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1;">
+              check_circle
+            </span>
+            Fiable
+          </span>
+        </div>
+      </article>
+
+      <!-- Flux net -->
+      <article class="tile tile-neutral col-span-5 rounded-2xl border border-outline-variant/14 bg-surface-container-high p-5 shadow-soft">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="font-label text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">
+              Flux net
+            </p>
+            <p class="mt-2 font-headline text-[26px] font-extrabold tracking-tight text-on-surface">
+              + 8 047,78 €
+            </p>
+            <p class="mt-2 text-[13px] text-on-surface-variant">
+              Encaissements et décaissements sur la période
+            </p>
+          </div>
+
+          <span class="inline-flex items-center gap-1 rounded-full bg-surface-container-low px-2.5 py-1 text-[10px] font-bold text-tertiary">
+            <span class="material-symbols-outlined text-[12px]">account_balance_wallet</span>
+            Stable
+          </span>
+        </div>
+      </article>
+    </section>
+
+    <!-- Alertes -->
+    <section class="mt-5">
+      <div class="rounded-2xl border border-outline-variant/16 bg-surface-container-low p-4">
+        <div class="flex items-start gap-3">
+          <div class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/12 text-secondary">
+            <span class="material-symbols-outlined text-[18px]">priority_high</span>
+          </div>
+          <div>
+            <p class="font-label text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">
+              Alertes & signaux
+            </p>
+            <p class="mt-1 text-[15px] font-semibold text-on-surface">
+              3 sujets demandent une attention aujourd’hui
+            </p>
+            <p class="mt-1 text-[13px] leading-5 text-on-surface-variant">
+              Encours en retard, niveau de couverture partiel, et variations à confirmer.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Classes B et C -->
+    <section class="mt-6 grid grid-cols-12 gap-4">
+      <!-- B -->
+      <div class="col-span-8">
+        <div class="mb-3 flex items-center justify-between">
+          <h3 class="font-headline text-[22px] font-extrabold tracking-tight text-on-surface">
+            Compléments de pilotage
+          </h3>
+          <button type="button" class="text-[12px] font-semibold text-primary-fixed">
+            Voir tout
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <article class="rounded-2xl bg-surface-container-highest p-4">
+            <p class="text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">BFR</p>
+            <p class="mt-2 font-headline text-[22px] font-extrabold text-on-surface">42 290,08 €</p>
+          </article>
+
+          <article class="rounded-2xl bg-surface-container-highest p-4">
+            <p class="text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Encours</p>
+            <p class="mt-2 font-headline text-[22px] font-extrabold text-on-surface">50 422,96 €</p>
+          </article>
+
+          <article class="rounded-2xl bg-surface-container-highest p-4">
+            <p class="text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Taxes</p>
+            <p class="mt-2 font-headline text-[22px] font-extrabold text-primary-fixed">+ 609,05 €</p>
+          </article>
+
+          <article class="rounded-2xl bg-surface-container-highest p-4">
+            <p class="text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">EBE</p>
+            <p class="mt-2 font-headline text-[22px] font-extrabold text-on-surface">34 939,22 €</p>
+          </article>
+        </div>
+      </div>
+
+      <!-- C -->
+      <div class="col-span-4">
+        <div class="rounded-2xl bg-surface-container-low p-4">
+          <div class="mb-3">
+            <p class="font-headline text-[20px] font-extrabold tracking-tight text-on-surface">
+              Contexte
+            </p>
+            <p class="mt-1 text-[13px] text-on-surface-variant">
+              Indicateurs secondaires du cockpit
+            </p>
+          </div>
+
+          <div class="space-y-3">
+            <article class="rounded-xl bg-surface-container-high p-3.5">
+              <p class="text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Notes de crédit</p>
+              <p class="mt-2 font-headline text-[18px] font-extrabold text-on-surface">961,70 €</p>
+            </article>
+
+            <article class="rounded-xl bg-surface-container-high p-3.5">
+              <p class="text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Remboursements</p>
+              <p class="mt-2 font-headline text-[18px] font-extrabold text-on-surface">0,00 €</p>
+            </article>
+
+            <article class="rounded-xl bg-surface-container-high p-3.5">
+              <p class="text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Points de vente</p>
+              <p class="mt-2 font-headline text-[18px] font-extrabold text-on-surface">4 actifs</p>
+            </article>
+
+            <article class="rounded-xl bg-surface-container-high p-3.5">
+              <p class="text-[10px] uppercase tracking-[0.16em] text-on-surface-variant">Z de caisse</p>
+              <p class="mt-2 font-headline text-[18px] font-extrabold text-on-surface">2 à valider</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Navigation basse tablette -->
+  <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-outline-variant/20 bg-surface/84 px-4 pb-[max(0.6rem,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur-xl">
+    <div class="mx-auto grid max-w-3xl grid-cols-4 gap-2">
+      <button type="button" class="flex flex-col items-center justify-center rounded-xl bg-primary/10 px-3 py-2.5 text-primary-fixed">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">dashboard</span>
+        <span class="mt-1 text-[10px] font-bold uppercase tracking-[0.14em]">Pilotage</span>
+      </button>
+
+      <button type="button" class="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 text-on-surface-variant">
+        <span class="material-symbols-outlined">analytics</span>
+        <span class="mt-1 text-[10px] font-bold uppercase tracking-[0.14em]">Synthèse</span>
+      </button>
+
+      <button type="button" class="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 text-on-surface-variant">
+        <span class="material-symbols-outlined">menu_book</span>
+        <span class="mt-1 text-[10px] font-bold uppercase tracking-[0.14em]">Lexique</span>
+      </button>
+
+      <button type="button" class="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 text-on-surface-variant">
+        <span class="material-symbols-outlined">help_outline</span>
+        <span class="mt-1 text-[10px] font-bold uppercase tracking-[0.14em]">Aide</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Action flottante -->
+  <div class="fixed bottom-24 right-6 z-40">
+    <button
+      type="button"
+      class="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-container text-on-primary shadow-ambient transition active:scale-95"
+      aria-label="Ouvrir les actions"
+    >
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">bolt</span>
+    </button>
+  </div>
+</body>
+</html>

@@ -60,7 +60,9 @@ Valeurs suggérées pour **Statut** : `À faire` · `En cours` · `Migré` · `V
 | **§3** — 3.15 États UX | §5.8 + **§4** (synthèse transverse) | Migrer + consolider §4 | À faire |
 | **§3** — 3.16 Règles confiance | **§4** + rappel §5.9 | **Extraire** → §4 | À faire |
 | **§3** — 3.17 Principe directeur | §5.9 + **§14** (extraits UX) | Migrer + extraire §14 | À faire |
-| **§3** — 3.18 Mode desktop compact / laptop | V2 §5 **breakpoints** Pilotage + rappels §3 header / rail | Migrer (palier dédié, ≠ tablette) | À faire |
+| **§3** — 3.18 (+ **3.18.0** cadre 4 régimes) Mode desktop compact / laptop | V2 §5 **paliers d’écran** Pilotage + rappels §3 header / rail | Migrer (famille bureau : grand desktop + compact) | À faire |
+| **§3** — 3.19 Mode phone mobile — persona Max | V2 §5 **paliers d’écran** Pilotage + §14 UX mobile + §13 nav | Migrer (régime autonome, ≠ laptop rétréci) | À faire |
+| **§3** — 3.20 Mode tablette / iPad | V2 §5 **paliers d’écran** Pilotage + §14 UX tactile + §13 nav | Migrer (palier autonome, entre laptop et phone) | À faire |
 | **§4** Synthèse — 4.1 à 4.5 | §12.1 à §12.3 | Migrer | À faire |
 | **§4** — 4.6 Blocs (structure) | §12.6 | Migrer | À faire |
 | **§4** — 4.7 Principes d’affichage | §12.5 / §12.10 | Migrer | À faire |
@@ -117,7 +119,10 @@ Valeurs suggérées pour **Statut** : `À faire` · `En cours` · `Migré` · `V
 |-------------------------------|--------|
 | §2.5.3, §2.7.3 | Règles UX header |
 | §3.17 | Principe directeur pilotage (parties « transverses ») |
+| §3.18.0 | Cadre **quatre régimes** / **deux familles** (bureau vs tactile) |
 | §3.18 | Mode desktop compact / laptop (densité, rail, bandeau, grille A/B/C) |
+| §3.19 | Mode phone mobile — persona Max (priorisation, header, contexte, navigation) |
+| §3.20 | Mode tablette / iPad (cockpit tactile compact, grille A/B/C, navigation) |
 | §4.17 | Idem synthèse |
 | §5.12 | Règles UX tuile |
 | §6.11 | Règles UX spécifiques Trésorerie → généraliser ce qui est réutilisable |
@@ -140,6 +145,7 @@ Valeurs suggérées pour **Statut** : `À faire` · `En cours` · `Migré` · `V
 | Fichier | Instrument | Statut |
 |---------|------------|--------|
 | [`SPEC_GENERALE_PILOTAGE_LINKY.md`](./SPEC_GENERALE_PILOTAGE_LINKY.md) | Vue **Pilotage** (structure, régimes d’écran, grammaire commune, renvois) | Spec générale web61 ; **dérive** du CDCF ; **amont** des specs filles maîtresses |
+| [`CADRAGE_VERSION_MOBILE_LYNKI.md`](./CADRAGE_VERSION_MOBILE_LYNKI.md) | **Phone** — cadrage cockpit compact (nav, header, cartes, prolongements) | **Complément** au **§3.19** ; **non normatif** si écart avec le CDCF |
 | [`SPEC_CARTES_MAITRESSES_LINKY.md`](../web60/SPEC_CARTES_MAITRESSES_LINKY.md) | **Trésorerie**, **Business**, **Flux net** (Classe **A** du **§3.6**) | Spec d’exécution Web60 ; **dérive** du CDCF (primauté §3.6 en cas d’écart) |
 | `SPEC_PILOTAGE_BUSINESS.md` (`web61`) | Business (Classe A) | Brouillon — aligné sur la structure §6 ; à rapprocher de la spec Web60 ci-dessus |
 | *à créer* `SPEC_PILOTAGE_FLUX_NET.md` (`web61`) | Flux net (Classe A) | — ; couverture cockpit maîtresse prioritaire via spec Web60 |
@@ -394,6 +400,10 @@ Le header constitue ainsi la barre maîtresse de contexte commune à l’ensembl
 **Statut (mars 2026).** La composition **desktop** du bandeau **Pilotage** est **figée** comme référence produit : elle sert de **base** pour la recette, les évolutions en finition (espacements, hauteurs, contraste) et les maquettes statiques alignées.
 
 **Desktop compact / laptop.** Pour les largeurs d’écran intermédiaires (fenêtre desktop étroite, ordinateur portable), la **même logique fonctionnelle** (zones gauche / centre / droite, rôles des sélecteurs) s’applique sous une **composition plus dense** : exigences détaillées au **§3.18**.
+
+**Phone mobile.** Sur téléphone, le bandeau **ne** reprend **pas** la composition desktop miniaturisée : régime autonome, priorisation de lecture et contexte adaptés — **§3.19**.
+
+**Tablette / iPad.** Palier tactile intermédiaire : cockpit encore panoramique, recomposition du header et de la grille sans équivaloir au laptop rétréci ni au phone agrandi — **§3.20**.
 
 **Règles produit — pied de page.** L’utilisateur doit pouvoir lire la **version** plateforme et, sur un **segment distinct** (lisible en desktop), une **référence UI** assortie d’un **hash git** rattachant l’écran au déploiement consulté. Le libellé du lien vers le coffre de preuves est **Dorevia-Vault**.
 
@@ -751,9 +761,28 @@ Elle ne doit jamais sacrifier la lisibilité ou la confiance au profit d’une d
 
 ### 3.18 Mode desktop compact / laptop
 
+#### 3.18.0 Quatre régimes d’écran et deux familles (Pilotage)
+
+La vue **Pilotage** se lit selon **quatre régimes d’écran** distincts : **Desktop**, **Laptop**, **Tablette** et **Phone**. Ces régimes ne constituent **pas** une simple **échelle de réduction continue** du même gabarit : ce sont **quatre compositions** adaptées à des contextes de lecture différents.
+
+* **Famille bureau** — **Desktop** (ample) et **Laptop** (dense) : navigation principale par **rail** ; cockpit **panoramique** ; hiérarchie **A / B / C** tenue sur toute la surface utile. Le **grand desktop** est décrit au **§2.12.1** (bandeau) et comparé au compact au **§3.18.9** ; le corps **§3.18.1 à §3.18.11** détaille surtout le palier **desktop compact / laptop**.
+* **Famille tactile** — **Tablette** : **cockpit tactile compact**, encore structuré et panoramique — **§3.20**.
+* **Famille tactile** — **Phone** : **cockpit priorisé** (persona **Max**) — **§3.19**.
+
+> **Desktop / Laptop / Tablette / Phone = quatre régimes, deux familles, une même grammaire produit.**
+
+| Régime | Famille | Logique dominante |
+|--------|---------|-------------------|
+| **Desktop** | Bureau | Cockpit **ample**, bandeau riche |
+| **Laptop** | Bureau | Cockpit **dense**, sans « desktop cassé » |
+| **Tablette** | Tactile | Cockpit **compact tactile**, recomposition maîtrisée |
+| **Phone** | Tactile | Lecture **priorisée** (**A** d’abord) |
+
+**À ne surtout pas casser — Desktop et Laptop.** La **famille bureau** (Desktop ample, Laptop dense) constitue la **référence de crédibilité** du cockpit sur écran large. Les régimes **Tablette** et **Phone** sont **distincts** : ils ne doivent **ni** se substituer **ni** imposer des choix qui fragilisent le **grand desktop** ou le **desktop compact / laptop** (bandeau, rail, grille **A / B / C**, lisibilité des montants). Le Laptop reste un **cockpit tenu**, pas une dégradation non maîtrisée du Desktop — voir **§3.18.8** (invariants et interdits).
+
 #### 3.18.1 Objet
 
-Le mode **desktop compact / laptop** couvre les écrans d’ordinateur portable et les fenêtres desktop **plus étroites**, lorsque la composition **grand desktop** commence à se comprimer **sans** entrer dans le **régime tablette / mobile** — lequel constitue un **palier distinct** (voir **§3.18.2**).
+Le mode **desktop compact / laptop** couvre les écrans d’ordinateur portable et les fenêtres desktop **plus étroites**, lorsque la composition **grand desktop** commence à se comprimer **sans** entrer dans les **régimes tablette / phone** — lesquels constituent des **paliers distincts** (voir **§3.18.2** ; **phone** au **§3.19**, **tablette / iPad** au **§3.20**).
 
 Ce mode est un **palier produit dédié** : il ne se réduit pas à une simple mise à l’échelle du grand desktop.
 
@@ -776,7 +805,7 @@ Il doit **adapter** :
 Plage recommandée pour traiter explicitement ce palier :
 
 * environ **1180 px à 1440 px** de largeur de viewport pour le mode **desktop compact** ;
-* **en dessous** : bascule vers un **régime distinct**, plus proche de la **tablette** (hors périmètre du présent §3.18) — **sans** continuation linéaire du seul rétrécissement du compact.
+* **en dessous** : bascule vers des **régimes distincts** (dont le **phone mobile**, **§3.19**, et la **tablette / iPad**, **§3.20**) — **hors** périmètre du présent §3.18 — **sans** continuation linéaire du seul rétrécissement du compact.
 
 #### 3.18.3 Rail latéral
 
@@ -868,9 +897,10 @@ L’objectif n’est pas « plus petit » au détriment de la crédibilité : il
 |--------|------|---------|----------------|-------------|
 | **Grand desktop** | plus large (~272 px) | espacements confortables | paddings généreux, 3×A si possible | montants les plus grands |
 | **Desktop compact / laptop** | ~224–236 px | dense, sélecteurs calibrés, wrapping **contrôlé** | paddings réduits, 3×A **ou** rupture contrôlée | montants A un cran en dessous |
-| **Tablette / mobile** | autre logique | — | — | — |
+| **Phone mobile** | **§3.19** | simplifié, pas de bandeau desktop miniaturisé | tuiles **A** prioritaires, empilées | priorisation lecture (persona Max) |
+| **Tablette / iPad** | **§3.20** | recomposé, plus riche que phone ; pas ruban saturé | grille cockpit compacte tactile | entre laptop et phone |
 
-Les régimes **tablette / mobile** ne sont **pas** une simple **réduction supplémentaire** du compact : ils relèvent de règles **distinctes** (hors §3.18).
+Les régimes **tablette / phone** ne sont **pas** une simple **réduction supplémentaire** du compact : ils relèvent de règles **distinctes** (hors §3.18). Le **phone mobile** est normé au **§3.19** ; la **tablette / iPad** au **§3.20**.
 
 #### 3.18.10 Priorités d’implémentation (recommandé)
 
@@ -883,6 +913,442 @@ Les régimes **tablette / mobile** ne sont **pas** une simple **réduction suppl
 #### 3.18.11 Principe directeur
 
 > **Le mode Lynki desktop compact / laptop n’est pas un desktop réduit : c’est un cockpit plus dense, rééquilibré et conçu pour les écrans professionnels plus étroits.**
+
+### 3.19 Mode phone mobile — persona Max
+
+#### 3.19.1 Objet
+
+Le mode **phone mobile** couvre la lecture de la vue **Pilotage** sur téléphone intelligent, dans un usage de consultation rapide, décisionnelle et en mobilité.
+
+Ce régime vise en priorité la persona **Max** :
+
+* consultation rapide ;
+* temps d’attention limité ;
+* besoin de voir l’essentiel immédiatement ;
+* possibilité d’approfondir ponctuellement via une vue détail.
+
+Le mode phone mobile constitue un **régime produit autonome** : il ne doit pas être traité comme un simple **desktop** ou **laptop** rétréci.
+
+#### 3.19.2 Principe directeur
+
+Sur téléphone, la vue Pilotage doit privilégier une logique de **priorisation**.
+
+Elle doit permettre à l’utilisateur :
+
+* de lire rapidement la situation ;
+* de qualifier la fiabilité de ce qu’il voit ;
+* de décider s’il faut agir ou approfondir ;
+* d’accéder ensuite au détail si nécessaire.
+
+> **Phone mobile = lire, qualifier, décider, puis approfondir éventuellement.**
+
+#### 3.19.3 Périmètre de lecture prioritaire
+
+Sur téléphone, la lecture doit d’abord se concentrer sur les **tuiles maîtresses** de classe **A** :
+
+1. **Trésorerie**
+2. **Business**
+3. **Flux net**
+
+Ces trois tuiles constituent la **colonne vertébrale** de la lecture mobile.
+
+Les tuiles de classes **B** et **C** viennent ensuite, dans un ordre secondaire, sans concurrencer la lecture prioritaire.
+
+#### 3.19.4 Header mobile
+
+Le header mobile doit être **significativement simplifié** par rapport aux régimes desktop et laptop.
+
+Il doit permettre :
+
+* d’identifier la vue active (**Pilotage**) ;
+* de conserver un rappel compact du contexte ;
+* d’accéder au menu, à la session et aux actions globales.
+
+Il ne doit pas :
+
+* reproduire le bandeau desktop sous forme miniaturisée ;
+* afficher quatre grosses coquilles de contexte côte à côte ;
+* concurrencer visuellement les tuiles maîtresses.
+
+#### 3.19.5 Contexte global en mobile
+
+Le contexte global reste composé des quatre paramètres canoniques :
+
+* **Tenant**
+* **Société**
+* **Période**
+* **Année**
+
+En mode phone mobile, ces paramètres ne doivent pas nécessairement être exposés simultanément sous forme de quatre sélecteurs complets visibles à l’écran.
+
+Le mode mobile peut privilégier :
+
+* un **résumé compact** du contexte actif ;
+* ou un **point d’entrée unique** vers un panneau de contexte.
+
+Le contexte doit rester :
+
+* lisible ;
+* accessible ;
+* cohérent avec la logique du header global ;
+* modifiable sans ambiguïté.
+
+#### 3.19.6 Modification du contexte
+
+Sur téléphone, la modification du contexte peut être opérée via :
+
+* un **drawer** ;
+* une **sheet** ;
+* un panneau contextuel dédié ;
+* ou un composant équivalent explicitement choisi.
+
+Le produit doit éviter une exposition simultanée trop dense des quatre sélecteurs à l’écran principal.
+
+La logique fonctionnelle reste inchangée :
+
+* tout changement de contexte doit recalculer la lecture cockpit ;
+* le Dashboard doit conserver un état cohérent et complet.
+
+#### 3.19.7 Ordre de lecture mobile
+
+L’ordre de lecture attendu sur téléphone est le suivant :
+
+1. **header mobile**
+2. **Trésorerie**
+3. **Business**
+4. **Flux net**
+5. **alertes et signaux**
+6. **tuiles de classe B**
+7. **tuiles de classe C**
+8. **accès au détail**
+
+Cet ordre vise à limiter la charge cognitive et à mettre en avant les informations les plus décisionnelles pour Max.
+
+#### 3.19.8 Tuiles maîtresses (classe A)
+
+Les tuiles **Trésorerie**, **Business** et **Flux net** doivent être empilées verticalement, en pleine largeur, dans un ordre stable et lisible.
+
+Elles doivent conserver :
+
+* une forte dominance visuelle ;
+* un montant principal immédiatement lisible ;
+* un contexte court ;
+* un signal de confiance clair ;
+* un accès simple vers la vue détaillée.
+
+La densité des cartes peut être ajustée pour mobile, mais sans affaiblir leur rôle prioritaire.
+
+#### 3.19.9 Tuiles intermédiaires (classe B)
+
+Les tuiles de classe **B** doivent rester accessibles sur mobile, mais avec une présence secondaire par rapport aux tuiles maîtresses.
+
+Leur exposition peut suivre une logique :
+
+* de cartes empilées plus compactes ;
+* ou de regroupement sous une section dédiée ;
+* ou d’un affichage partiellement repliable si le produit le justifie.
+
+En toute hypothèse, elles doivent :
+
+* rester lisibles ;
+* conserver leur hiérarchie métier ;
+* ne pas remonter au niveau de priorité des tuiles A.
+
+#### 3.19.10 Tuiles de contexte (classe C)
+
+Les tuiles de classe **C** ne doivent pas perturber la lecture initiale sur téléphone.
+
+Elles peuvent être :
+
+* regroupées sous une section **Contexte** ;
+* présentées dans un bloc **Autres indicateurs** ;
+* ou partiellement repliées par défaut.
+
+Elles restent présentes dans le régime mobile, mais dans une logique de contextualisation secondaire.
+
+#### 3.19.11 Alertes et signaux
+
+Le bloc **Alertes & signaux** peut occuper une place plus centrale sur téléphone que sur desktop, car il permet une transition directe entre lecture et action.
+
+Sur mobile, ce bloc peut être positionné :
+
+* juste après les trois tuiles maîtresses ;
+* ou à un emplacement proche du haut de la page, tant qu’il ne concurrence pas la lecture initiale de la Trésorerie.
+
+L’objectif est d’aider Max à identifier rapidement s’il existe un sujet nécessitant une attention immédiate.
+
+#### 3.19.12 Navigation mobile
+
+Le rail latéral desktop ne doit pas être repris tel quel sur téléphone.
+
+La navigation mobile doit être assurée par un mécanisme adapté, par exemple :
+
+* menu mobile ;
+* drawer latéral ;
+* navigation basse ;
+* ou autre schéma explicitement retenu.
+
+L’utilisateur doit au minimum pouvoir accéder à :
+
+* **Pilotage**
+* **Synthèse comptable**
+* **Lexique**
+* **Aide**
+* **Thème**
+* **Déconnexion**
+
+#### 3.19.13 Footer mobile
+
+Le footer technique doit être significativement allégé sur téléphone.
+
+Les informations techniques non essentielles à la lecture immédiate ne doivent pas concurrencer le contenu principal.
+
+Le produit peut choisir :
+
+* d’alléger le footer visible ;
+* ou de déplacer certaines informations dans une zone secondaire ou un panneau système.
+
+#### 3.19.14 Invariants du régime phone mobile
+
+Le régime phone mobile doit préserver :
+
+* la hiérarchie **A / B / C** ;
+* la sincérité sur la confiance et la disponibilité ;
+* la continuité cockpit → détail ;
+* la lisibilité des montants ;
+* la cohérence du contexte global.
+
+#### 3.19.15 Interdits
+
+Le régime phone mobile ne doit pas produire :
+
+* un desktop miniaturisé ;
+* un header desktop compressé sans recomposition ;
+* une exposition simultanée trop dense des sélecteurs ;
+* une surcharge de cartes au-dessus de la ligne de lecture initiale ;
+* une concurrence visuelle entre header, cartes A, alertes et blocs secondaires.
+
+#### 3.19.16 Principe directeur
+
+> **Le mode phone mobile de Lynki doit offrir à Max une lecture courte, priorisée et fiable, centrée d’abord sur Trésorerie, Business et Flux net, avec un accès simple au contexte et au détail.**
+
+### 3.20 Mode tablette / iPad
+
+#### 3.20.1 Objet
+
+Le mode **tablette / iPad** couvre la lecture de la vue **Pilotage** sur terminal tactile intermédiaire, dans un usage de consultation mobile ou semi-mobile, avec une surface d’affichage supérieure au téléphone mais inférieure au laptop.
+
+Ce régime constitue un **palier produit autonome** : il ne doit être traité ni comme un **desktop compact** simplement réduit, ni comme un **phone mobile** agrandi.
+
+Il vise un usage où l’utilisateur conserve un vrai confort de lecture visuelle, tout en étant soumis à :
+
+* une largeur plus contrainte que sur laptop ;
+* une interaction tactile ;
+* une navigation plus compacte ;
+* une densité d’écran à arbitrer plus finement.
+
+#### 3.20.2 Principe directeur
+
+Le mode tablette / iPad doit conserver une véritable logique de **cockpit**, tout en réduisant la concurrence horizontale et en adaptant les interactions au tactile.
+
+Il doit permettre :
+
+* une lecture structurée et crédible ;
+* une hiérarchie cockpit encore pleinement visible ;
+* une continuité simple vers le détail ;
+* un usage plus souple que sur laptop, sans basculer dans la logique très priorisée du phone.
+
+> **Tablette / iPad = cockpit compact tactile, hiérarchisé, lisible et encore panoramique.**
+
+#### 3.20.3 Positionnement entre laptop et phone
+
+Le mode tablette / iPad se situe entre :
+
+* le **desktop compact / laptop**, qui conserve une logique relativement large et plus horizontale ;
+* le **phone mobile**, qui impose une priorisation forte des contenus et un empilement plus radical.
+
+Le régime tablette doit donc :
+
+* conserver davantage de simultanéité que le phone ;
+* mais accepter une recomposition plus forte que le laptop.
+
+#### 3.20.4 Périmètre cible
+
+Ce régime couvre les tablettes et terminaux assimilés, en orientation portrait ou paysage, dans une plage de largeur intermédiaire à définir dans l’implémentation.
+
+La logique fonctionnelle reste celle de **Pilotage** :
+
+* lecture cockpit ;
+* hiérarchie **A / B / C** ;
+* contexte global commun ;
+* accès au détail.
+
+#### 3.20.5 Header tablette / iPad
+
+Le header tablette doit être recomposé par rapport au desktop, mais rester plus riche que le header phone.
+
+Il doit permettre :
+
+* d’identifier la vue active (**Pilotage**) ;
+* d’afficher un contexte lisible ;
+* d’accéder à la session et aux actions globales ;
+* de rester compatible avec une interaction tactile.
+
+Il ne doit pas :
+
+* répliquer le bandeau desktop sans adaptation ;
+* produire un ruban horizontal saturé ;
+* concurrencer la grille cockpit.
+
+#### 3.20.6 Contexte global sur tablette
+
+Le contexte global reste défini par :
+
+* **Tenant**
+* **Société**
+* **Période**
+* **Année**
+
+Sur tablette, ces paramètres peuvent rester visibles de manière plus explicite que sur phone, mais dans une composition adaptée.
+
+Configurations admises :
+
+* quatre sélecteurs visibles dans une composition plus compacte ;
+* répartition sur plusieurs lignes maîtrisées ;
+* combinaison d’un résumé visible et d’un accès à un panneau de contexte.
+
+Le retour à la ligne éventuel doit être **composé**, non subi.
+
+#### 3.20.7 Modification du contexte
+
+La modification du contexte peut être gérée :
+
+* directement dans le header si l’espace le permet ;
+* ou via un drawer / panneau contextuel si la densité devient excessive.
+
+Le produit doit privilégier une modification du contexte :
+
+* claire ;
+* tactile ;
+* stable ;
+* sans surcharge du bandeau principal.
+
+#### 3.20.8 Navigation tablette
+
+Le rail latéral desktop peut être conservé sous une forme plus compacte, ou remplacé par un autre dispositif adapté à la tablette, selon l’arbitrage produit.
+
+L’objectif est de préserver :
+
+* l’accès à **Pilotage** ;
+* l’accès à **Synthèse comptable** ;
+* l’accès aux outils ;
+* l’accès à la session ;
+
+sans gaspiller excessivement la largeur utile.
+
+Le régime tablette peut donc admettre :
+
+* un rail plus fin ;
+* un rail partiellement condensé ;
+* ou une autre logique de navigation clairement définie.
+
+#### 3.20.9 Grille cockpit tablette
+
+La vue tablette doit conserver une vraie **grille cockpit**, mais avec une composition plus compacte que sur laptop.
+
+La grille doit :
+
+* conserver la hiérarchie **A / B / C** ;
+* rester lisible au toucher ;
+* éviter l’écrasement des tuiles ;
+* réduire la concurrence horizontale.
+
+#### 3.20.10 Tuiles maîtresses (classe A)
+
+Les tuiles **Trésorerie**, **Business** et **Flux net** doivent rester les points d’entrée prioritaires.
+
+Sur tablette, plusieurs organisations peuvent être admises, à condition que la hiérarchie reste claire :
+
+* trois tuiles si la largeur le permet proprement ;
+* deux puis une ;
+* ou toute autre répartition explicitement choisie.
+
+Le produit ne doit pas forcer une composition qui rendrait les montants ou les signaux de confiance difficilement lisibles.
+
+#### 3.20.11 Tuiles intermédiaires (classe B)
+
+Les tuiles de classe **B** doivent rester visibles et immédiatement accessibles dans le régime tablette.
+
+Elles peuvent apparaître :
+
+* dans une grille plus compacte ;
+* sur deux colonnes ;
+* ou dans une composition tactile stable.
+
+Elles doivent continuer à jouer leur rôle de :
+
+* qualification ;
+* explication ;
+* prolongement de la lecture des tuiles A.
+
+#### 3.20.12 Tuiles de contexte (classe C)
+
+Les tuiles de classe **C** restent présentes sur tablette, avec une visibilité plus forte que sur phone, mais toujours inférieure aux classes **A** et **B**.
+
+Elles peuvent être :
+
+* intégrées dans la continuité de la grille ;
+* légèrement repoussées plus bas dans la lecture ;
+* ou regroupées dans une section dédiée, si cela améliore la lisibilité générale.
+
+#### 3.20.13 Alertes et signaux
+
+Le bloc **Alertes & signaux** peut conserver une présence visible sur tablette, sans nécessairement remonter aussi haut que sur phone.
+
+Il doit jouer un rôle de prolongement de la lecture cockpit, sans concurrencer les tuiles maîtresses.
+
+#### 3.20.14 Continuité cockpit → détail
+
+Le passage du cockpit au détail doit rester simple et naturel sur tablette.
+
+Le régime tablette doit préserver :
+
+* le contexte global ;
+* la compréhension de la vue active ;
+* le retour vers le cockpit ;
+* la stabilité tactile des points d’entrée vers le détail.
+
+#### 3.20.15 Footer tablette
+
+Le footer technique peut rester plus riche que sur phone, mais doit rester secondaire par rapport au cockpit.
+
+Il ne doit pas prendre une place disproportionnée dans la surface utile.
+
+#### 3.20.16 Invariants
+
+Le mode tablette / iPad doit préserver :
+
+* la hiérarchie **A / B / C** ;
+* la lisibilité des montants ;
+* la visibilité des signaux de confiance ;
+* la stabilité du contexte ;
+* la continuité cockpit → détail ;
+* la cohérence avec la logique générale de la vue Pilotage.
+
+#### 3.20.17 Interdits
+
+Le mode tablette / iPad ne doit pas produire :
+
+* un desktop simplement rétréci ;
+* un laptop tassé ;
+* un phone artificiellement élargi ;
+* une grille tactile trop dense ;
+* un header saturé ;
+* une navigation qui consomme excessivement la largeur utile.
+
+#### 3.20.18 Principe directeur
+
+> **Le mode tablette / iPad de Lynki doit conserver une vraie lecture cockpit, plus compacte que le laptop mais plus panoramique que le phone, avec une hiérarchie claire, une interaction tactile stable et une continuité forte vers le détail.**
 
 ---
 
@@ -1718,3 +2184,6 @@ La maquette `ZeDocs/web59/stitch_carole_61/stitch/d_tail_tr_sorerie_v_r_na_canon
 
 * [`ROADMAP_REFONTE_LINKY_STITCH_CAROLE_61.md`](./ROADMAP_REFONTE_LINKY_STITCH_CAROLE_61.md) — jalons, recette lab, critères Stitch **sous contrainte CDCF**.
 * [`TABLEAU_TRACE_CDCF6_TRESORERIE.md`](./TABLEAU_TRACE_CDCF6_TRESORERIE.md) — registre vivant §6 et **§7** Trésorerie ↔ composants UI ↔ données.
+* [`EXECUTION_TICKETS_TACTILE_LINKY.md`](./EXECUTION_TICKETS_TACTILE_LINKY.md) — tickets **T-PH-xxx** / **T-TB-xxx** (phone + tablette pilotage), journal d’implémentation et recette lab.
+
+**Note implémentation (mars 2026, non normative).** L’endpoint Next **`GET /api/accounting/periods`** (pastilles / statuts de période dans le bandeau cockpit) est traité de façon à éviter un **401** middleware lorsque la page pilotage est servie sans la même contrainte de session que les autres routes **`/api/accounting/*`** : exemption ciblée dans le middleware Lynki et contrôle dans le handler (proxy Vault uniquement si session valide avec droit compta équivalent synthèse ; sinon réponse vide). Détail dans le journal du fichier d’exécution tactile ci-dessus.
