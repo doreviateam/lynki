@@ -375,14 +375,13 @@ function DashboardWithFiltersContent({
   const showIconGrid = viewMode === "all" && !focusedCardId;
   /**
    * Bandeau Carole fusionné (ReportHeader + réserve scroll) :
-   * - tablette (layout 768–1023) : toujours en grille pilotage « tout » ;
-   * - desktop (layout ≥1024) : comme avant, seulement si mode interaction immersif (≥1280 + hover + pointer fin).
+   * - phone : bandeau compact dédié (T-PH-001) ;
+   * - tablette + desktop : pilotage « tout » — y compris iPad paysage (≥1024 px sans pointer fin) où
+   *   l’ancienne règle « desktop + interaction desktop » masquait tout le bandeau et retombait sur l’en-tête
+   *   texte « Dorevia Lynki » au lieu du lockup sidebar (DL + Lynki + Cockpit financier).
    */
   const cockpitMergedHeader =
-    showIconGrid &&
-    appView === "pilotage" &&
-    (cockpitLayoutMode === "tablet" ||
-      (cockpitLayoutMode === "desktop" && interactionMode === "desktop"));
+    showIconGrid && appView === "pilotage" && cockpitLayoutMode !== "phone";
   /** Pilotage grille, layout phone (T-PH-001) : bandeau compact dans ReportHeader, pas de barre locale. */
   const cockpitPhonePilotage =
     showIconGrid && cockpitLayoutMode === "phone" && appView === "pilotage";
@@ -646,7 +645,9 @@ function DashboardWithFiltersContent({
               ? {
                   confidenceScore: cockpitBarScore,
                   confidenceLabel: confidenceLabelFromScore(cockpitBarScore),
-                  bandLayout: cockpitLayoutMode === "tablet" ? "tablet" : "desktop",
+                  /** Tactile / tablette : même rangée marque que la spec iPad ; souris desktop immersif : grille sans doublon avec la sidebar. */
+                  bandLayout:
+                    cockpitLayoutMode === "tablet" || interactionMode !== "desktop" ? "tablet" : "desktop",
                 }
               : undefined
           }

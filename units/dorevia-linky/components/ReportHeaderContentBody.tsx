@@ -812,21 +812,43 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
         </div>
       ) : (
       <div className="relative flex items-center justify-between gap-3">
-        <div className="z-10 flex shrink-0 items-center gap-2 sm:gap-3">
-          <a href="/" className="group transition-[filter] duration-[160ms] ease-out hover:brightness-[1.04]" aria-label="Retour à l'accueil">
-            <h1 className="flex items-baseline gap-1.5 sm:gap-2">
-              {productName.includes(" ") ? (
-                <>
-                  <span className="text-lg font-bold tracking-[-0.02em] text-[var(--logo-dorevia)] sm:text-xl">{productName.split(" ")[0]}</span>
-                  <span className="text-lg font-bold tracking-[-0.02em] text-[var(--logo-lynki)] sm:text-xl">{productName.slice(productName.indexOf(" ") + 1)}</span>
-                </>
-              ) : (
-                <span className="text-lg font-bold tracking-[-0.02em] text-[var(--text)] sm:text-xl">{productName}</span>
-              )}
-            </h1>
-          </a>
+        <div className="z-10 flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
+          {currentApp === "linky" ? (
+            <Link
+              href={pilotageHomeHref}
+              className="group flex max-w-full items-center gap-2.5 rounded-xl outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--panel-2)_55%,transparent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              aria-label="Retour au cockpit de pilotage"
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] font-headline text-sm font-extrabold leading-none tracking-tight text-white shadow-[0_4px_12px_rgba(0,0,0,0.14)] sm:h-10 sm:w-10 sm:text-base">
+                DL
+              </div>
+              <div className="min-w-0 leading-tight">
+                <div className="font-headline text-[1.05rem] font-extrabold leading-none tracking-tight text-[var(--text)] sm:text-[1.125rem]">
+                  {tabletBrandName}
+                </div>
+                <div className="mt-1 text-[11px] leading-snug text-[var(--muted)] sm:text-xs" title={tagline}>
+                  Cockpit financier
+                </div>
+              </div>
+            </Link>
+          ) : (
+            <a href="/" className="group transition-[filter] duration-[160ms] ease-out hover:brightness-[1.04]" aria-label="Retour à l'accueil">
+              <h1 className="flex items-baseline gap-1.5 sm:gap-2">
+                {productName.includes(" ") ? (
+                  <>
+                    <span className="text-lg font-bold tracking-[-0.02em] text-[var(--logo-dorevia)] sm:text-xl">{productName.split(" ")[0]}</span>
+                    <span className="text-lg font-bold tracking-[-0.02em] text-[var(--logo-lynki)] sm:text-xl">{productName.slice(productName.indexOf(" ") + 1)}</span>
+                  </>
+                ) : (
+                  <span className="text-lg font-bold tracking-[-0.02em] text-[var(--text)] sm:text-xl">{productName}</span>
+                )}
+              </h1>
+            </a>
+          )}
         </div>
-        <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-[10px] text-[var(--text-secondary)] sm:text-xs">{tagline}</p>
+        {currentApp !== "linky" ? (
+          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-[10px] text-[var(--text-secondary)] sm:text-xs">{tagline}</p>
+        ) : null}
         <div className="z-10 flex items-center gap-2">
           {currentApp === "linky" && tenantBadgeOrSelector}
           {currentApp === "linky" && (
