@@ -691,13 +691,13 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                           />
                           <aside
                             id="linky-tablet-nav-drawer"
-                            className="fixed left-0 top-0 z-[61] flex h-full w-[min(20rem,92vw)] max-w-[20rem] flex-col border-r border-[var(--border)] bg-[var(--sidebar-bg)] shadow-[8px_0_32px_rgba(0,0,0,0.2)]"
+                            className="fixed left-0 top-0 z-[61] flex h-full max-h-[100dvh] w-[min(20rem,92vw)] max-w-[20rem] flex-col overflow-hidden border-r border-[var(--border)] bg-[var(--sidebar-bg)] shadow-[8px_0_32px_rgba(0,0,0,0.2)]"
                             role="dialog"
                             aria-modal="true"
                             aria-label="Navigation"
                             data-chrome-lock="true"
                           >
-                            <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-4">
+                            <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--sidebar-bg)] px-4 py-4">
                               <span className="font-headline text-lg font-extrabold text-[var(--text)]">Navigation</span>
                               <button
                                 type="button"
@@ -708,7 +708,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                                 <Icon name="close" size={22} />
                               </button>
                             </div>
-                            <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pb-4 pt-2" aria-label="Navigation principale">
+                            <nav className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden px-3 pb-4 pt-2" aria-label="Navigation principale">
                               <div className={tabletNavSectionTitle}>Dashboard</div>
                               <Link
                                 href={pilotageHomeHref}
@@ -747,21 +747,23 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                                 <span>Aide</span>
                               </Link>
                             </nav>
-                            <div className="border-t border-[var(--border)] px-3 py-4">
+                            <div className="shrink-0 border-t border-[var(--border)] bg-[var(--sidebar-bg)] px-3 py-4">
                               <div className={tabletNavSectionTitle}>Session</div>
-                              <ThemeToggle variant="sidebarRow" />
-                              <button
-                                type="button"
-                                className="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-[15px] text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_50%,transparent)] hover:text-[var(--text)]"
+                              <div className="flex flex-col gap-1">
+                                <ThemeToggle variant="sidebarRow" />
+                                <button
+                                  type="button"
+                                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-[15px] text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_50%,transparent)] hover:text-[var(--text)]"
                                 onClick={async () => {
                                   await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
                                   setMenuOpen(false);
                                   window.location.href = "/login";
                                 }}
                               >
-                                <Icon name="logout" size={20} className="text-[var(--muted)]" />
-                                <span>Déconnexion</span>
-                              </button>
+                                  <Icon name="logout" size={20} className="text-[var(--muted)]" />
+                                  <span>Déconnexion</span>
+                                </button>
+                              </div>
                             </div>
                           </aside>
                         </>
