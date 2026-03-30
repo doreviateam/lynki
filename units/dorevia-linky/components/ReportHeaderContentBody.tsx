@@ -375,36 +375,21 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
               )}
             </div>
             {showPeriodFilter ? (
-              <div
-                className={
-                  cockpitBandTablet
-                    ? "flex shrink-0 flex-nowrap items-center gap-2 md:gap-2.5"
-                    : "flex shrink-0 flex-nowrap items-center gap-2.5 sm:gap-3 md:gap-3.5"
-                }
-              >
+              cockpitBandTablet ? (
+                /** iPad : une seule coquille Période + Année (sinon l’année restait hors écran dans le scroll horizontal). */
                 <div
-                  className={
-                    cockpitBandTablet
-                      ? `${cockpitFilterShellClass} min-w-[140px] max-w-[10rem] shrink-0 overflow-hidden min-[900px]:min-w-[152px]`
-                      : `${cockpitFilterShellClass} min-w-[6.5rem] max-w-[7.75rem] shrink-0 sm:max-w-[8rem] md:w-[8rem] md:max-w-[8rem] lg:w-[8.25rem] lg:max-w-[8.25rem] xl:w-auto xl:max-w-[9.5rem] overflow-hidden`
-                  }
+                  className="flex min-h-0 min-w-[132px] max-w-[12rem] shrink-0 flex-col items-stretch gap-0 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-3 py-2 shadow-[0_3px_11px_rgba(0,0,0,0.11)] min-[900px]:min-w-[144px]"
                 >
-                  <div className="min-w-0 w-full max-w-full flex-1 overflow-hidden leading-tight">
-                    <label htmlFor="period-key-cockpit" className="block cursor-pointer">
-                      <span
-                        className={
-                          cockpitBandTablet
-                            ? "text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]"
-                            : "text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]"
-                        }
-                      >
+                  <div className="flex min-w-0 flex-col gap-2 leading-tight">
+                    <label htmlFor="period-key-cockpit" className="block min-w-0 cursor-pointer">
+                      <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
                         Période
                       </span>
                       <select
                         id="period-key-cockpit"
                         value={periodKey}
                         onChange={(e) => onPeriodKeyChange(e.target.value)}
-                        className={`min-w-0 max-w-full truncate ${cockpitShellSelectClass}`}
+                        className={`w-full min-w-0 max-w-full truncate ${cockpitShellSelectClass}`}
                         title={periodOptionsToShow.find((o) => o.value === periodKey)?.label}
                       >
                         {periodOptionsToShow.map((opt) => (
@@ -414,41 +399,74 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                         ))}
                       </select>
                     </label>
+                    <label htmlFor="period-year-cockpit" className="block min-w-0 cursor-pointer">
+                      <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+                        Année
+                      </span>
+                      <select
+                        id="period-year-cockpit"
+                        value={periodYear}
+                        onChange={(e) => onPeriodYearChange(Number(e.target.value))}
+                        className={`w-full min-w-0 max-w-full tabular-nums ${cockpitShellSelectClass}`}
+                        aria-label="Année"
+                      >
+                        {yearsToShow.map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
                 </div>
-                <div
-                  className={
-                    cockpitBandTablet
-                      ? "flex min-h-[46px] w-[84px] min-w-[84px] shrink-0 flex-col items-center justify-center gap-0 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-2 py-1.5 text-center shadow-[0_3px_11px_rgba(0,0,0,0.11)] min-[900px]:w-[88px] min-[900px]:min-w-[88px]"
-                      : "flex min-h-[52px] w-[5.75rem] shrink-0 flex-col items-center justify-center gap-0 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-3 py-2 text-center shadow-[0_4px_14px_rgba(0,0,0,0.14)]"
-                  }
-                >
-                  <label htmlFor="period-year-cockpit" className="flex w-full cursor-pointer flex-col items-center gap-0 text-center">
-                    <span
-                      className={
-                        cockpitBandTablet
-                          ? "whitespace-nowrap text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]"
-                          : "whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]"
-                      }
-                    >
-                      Année
-                    </span>
-                    <select
-                      id="period-year-cockpit"
-                      value={periodYear}
-                      onChange={(e) => onPeriodYearChange(Number(e.target.value))}
-                      className={cockpitShellSelectYearClass}
-                      aria-label="Année"
-                    >
-                      {yearsToShow.map((y) => (
-                        <option key={y} value={y}>
-                          {y}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+              ) : (
+                <div className="flex shrink-0 flex-nowrap items-center gap-2.5 sm:gap-3 md:gap-3.5">
+                  <div
+                    className={`${cockpitFilterShellClass} min-w-[6.5rem] max-w-[7.75rem] shrink-0 sm:max-w-[8rem] md:w-[8rem] md:max-w-[8rem] lg:w-[8.25rem] lg:max-w-[8.25rem] xl:w-auto xl:max-w-[9.5rem] overflow-hidden`}
+                  >
+                    <div className="min-w-0 w-full max-w-full flex-1 overflow-hidden leading-tight">
+                      <label htmlFor="period-key-cockpit" className="block cursor-pointer">
+                        <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                          Période
+                        </span>
+                        <select
+                          id="period-key-cockpit"
+                          value={periodKey}
+                          onChange={(e) => onPeriodKeyChange(e.target.value)}
+                          className={`min-w-0 max-w-full truncate ${cockpitShellSelectClass}`}
+                          title={periodOptionsToShow.find((o) => o.value === periodKey)?.label}
+                        >
+                          {periodOptionsToShow.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {enrichPeriodLabel(opt, periodYear, periodStatuses)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  </div>
+                  <div className="flex min-h-[52px] w-[5.75rem] shrink-0 flex-col items-center justify-center gap-0 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-3 py-2 text-center shadow-[0_4px_14px_rgba(0,0,0,0.14)]">
+                    <label htmlFor="period-year-cockpit" className="flex w-full cursor-pointer flex-col items-center gap-0 text-center">
+                      <span className="whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                        Année
+                      </span>
+                      <select
+                        id="period-year-cockpit"
+                        value={periodYear}
+                        onChange={(e) => onPeriodYearChange(Number(e.target.value))}
+                        className={cockpitShellSelectYearClass}
+                        aria-label="Année"
+                      >
+                        {yearsToShow.map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
                 </div>
-              </div>
+              )
             ) : null}
           </div>
         ) : null}
