@@ -609,7 +609,7 @@ function DashboardWithFiltersContent({
       {/* Header : fixe sous la sidebar desktop ; masqué après inactivité (translate) */}
       <div
         ref={cockpitHeaderShellRef}
-        className={`fixed top-0 left-0 right-0 z-40 border-b border-[var(--border)] bg-[var(--bg-secondary)] transition-[transform,max-height] duration-300 ease-out motion-reduce:duration-0 md:left-72 ${chromeVisible ? "overflow-visible" : "overflow-hidden"}`}
+        className={`fixed top-0 left-0 right-0 z-40 border-b border-[var(--border)] bg-[var(--bg-secondary)] transition-[transform,max-height] duration-300 ease-out motion-reduce:duration-0 lg:left-72 ${chromeVisible ? "overflow-visible" : "overflow-hidden"}`}
         style={{
           transform: chromeVisible ? "translateY(0)" : "translateY(-100%)",
           maxHeight:

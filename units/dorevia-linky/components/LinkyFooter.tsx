@@ -164,7 +164,7 @@ export function LinkyFooter({
 
   return (
     <footer
-      className="fixed bottom-0 left-0 right-0 z-20 shrink-0 border-t border-[var(--border)] bg-[var(--footer-bar)] px-3 py-1.5 md:left-72"
+      className="fixed bottom-0 left-0 right-0 z-20 shrink-0 border-t border-[var(--border)] bg-[var(--footer-bar)] px-3 py-1.5 lg:left-72"
       style={{ paddingBottom: "max(0.35rem, env(safe-area-inset-bottom))" }}
     >
       <div className="mx-auto w-full min-w-0 max-w-none overflow-x-auto">

@@ -61,7 +61,7 @@ export function Sidebar() {
   const aideActive = onAide && !lexiqueActive;
 
   return (
-    <aside className="fixed left-0 top-0 z-40 hidden h-full w-72 shrink-0 flex-col overflow-y-auto border-r border-[var(--border)] bg-[var(--sidebar-bg)] md:flex">
+    <aside className="fixed left-0 top-0 z-40 hidden h-full w-72 shrink-0 flex-col overflow-y-auto border-r border-[var(--border)] bg-[var(--sidebar-bg)] lg:flex">
       <Link
         href={pilotageHref}
         className="flex items-center gap-4 px-5 py-6 outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_45%,transparent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sidebar-bg)]"

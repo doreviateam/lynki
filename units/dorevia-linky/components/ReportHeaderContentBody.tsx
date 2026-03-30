@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { IntegrityBadge } from "@/components/IntegrityBadge";
 import { Icon } from "@/components/Icon";
 import { TenantSelector } from "@/components/TenantSelector";
@@ -18,8 +18,20 @@ import { navHrefWithTenant } from "@/components/layout/navTenantHref";
 
 export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const tenantQs = searchParams.get("tenant");
   const pilotageHomeHref = navHrefWithTenant("/", tenantQs);
+  const syntheseHrefTablet = navHrefWithTenant("/synthese", tenantQs);
+  const aideHrefTablet = navHrefWithTenant("/aide", tenantQs);
+  const aideLexiqueHrefTablet = `${aideHrefTablet}#lexique`;
+
+  const pilotageActiveTablet =
+    pathname === "/" ||
+    ["/tresorerie", "/business", "/flux-net", "/encours", "/alerts", "/cockpit"].some(
+      (p) => pathname === p || pathname.startsWith(`${p}/`)
+    );
+  const syntheseActiveTablet = pathname === "/synthese" || pathname.startsWith("/synthese/");
+  const aideActiveTablet = pathname === "/aide" || pathname.startsWith("/aide/");
 
   const {
     productName,
@@ -229,7 +241,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
     </>
   );
 
-  /** Pas de menu burger en bandeau cockpit : navigation = sidebar + bottom nav + filtres (évite doublons / promesses non cadrées). */
+  /** Bandeau desktop immersif : slot utilitaires (V1 vide). Tablette iPad : burger + tiroir dans le JSX dédié. */
   const cockpitChromeTrailingSlot = null;
 
   const cockpitContextHasFilters =
@@ -280,7 +292,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
     : `${tenantShellInnerClass} [&>span]:!inline [&>span]:max-w-[10rem] [&>span]:truncate [&>span]:text-[13px] [&>span]:font-semibold [&>span]:text-[var(--text)] [&>span]:leading-tight`;
 
   const cockpitCaroleFilterCenter =
-    showCockpitContextRow && (cockpitContextHasFilters || cockpitContextTrustSignal) ? (
+    showCockpitContextRow && !cockpitBandTablet && (cockpitContextHasFilters || cockpitContextTrustSignal) ? (
       <div
         className={
           cockpitBandTablet
@@ -375,51 +387,6 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
               )}
             </div>
             {showPeriodFilter ? (
-              cockpitBandTablet ? (
-                /** iPad : une seule coquille Période + Année (sinon l’année restait hors écran dans le scroll horizontal). */
-                <div
-                  className="flex min-h-0 min-w-[132px] max-w-[12rem] shrink-0 flex-col items-stretch gap-0 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-3 py-2 shadow-[0_3px_11px_rgba(0,0,0,0.11)] min-[900px]:min-w-[144px]"
-                >
-                  <div className="flex min-w-0 flex-col gap-2 leading-tight">
-                    <label htmlFor="period-key-cockpit" className="block min-w-0 cursor-pointer">
-                      <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-                        Période
-                      </span>
-                      <select
-                        id="period-key-cockpit"
-                        value={periodKey}
-                        onChange={(e) => onPeriodKeyChange(e.target.value)}
-                        className={`w-full min-w-0 max-w-full truncate ${cockpitShellSelectClass}`}
-                        title={periodOptionsToShow.find((o) => o.value === periodKey)?.label}
-                      >
-                        {periodOptionsToShow.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {enrichPeriodLabel(opt, periodYear, periodStatuses)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label htmlFor="period-year-cockpit" className="block min-w-0 cursor-pointer">
-                      <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-                        Année
-                      </span>
-                      <select
-                        id="period-year-cockpit"
-                        value={periodYear}
-                        onChange={(e) => onPeriodYearChange(Number(e.target.value))}
-                        className={`w-full min-w-0 max-w-full tabular-nums ${cockpitShellSelectClass}`}
-                        aria-label="Année"
-                      >
-                        {yearsToShow.map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                </div>
-              ) : (
                 <div className="flex shrink-0 flex-nowrap items-center gap-2.5 sm:gap-3 md:gap-3.5">
                   <div
                     className={`${cockpitFilterShellClass} min-w-[6.5rem] max-w-[7.75rem] shrink-0 sm:max-w-[8rem] md:w-[8rem] md:max-w-[8rem] lg:w-[8.25rem] lg:max-w-[8.25rem] xl:w-auto xl:max-w-[9.5rem] overflow-hidden`}
@@ -466,7 +433,6 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                     </label>
                   </div>
                 </div>
-              )
             ) : null}
           </div>
         ) : null}
@@ -490,6 +456,130 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
         ) : null}
       </div>
     ) : null;
+
+  /** Ligne 2 iPad : filtres métier uniquement (spec § tablette dédiée) — coquilles homogènes, scroll horizontal. */
+  const cockpitTabletBusinessFiltersRow =
+    showCockpitContextRow && cockpitBandTablet && (cockpitContextHasFilters || cockpitContextTrustSignal) ? (
+      <div
+        className="flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain border-t border-[var(--border)] px-3 py-2.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin] min-[900px]:gap-2.5 sm:px-3.5"
+        role="group"
+        aria-label="Filtres métier"
+      >
+        {cockpitContextHasFilters ? (
+          <>
+            {tenantBadgeOrSelector ? (
+              <div
+                className={`${cockpitFilterShellClass} min-w-[108px] max-w-[8.25rem] shrink overflow-hidden sm:min-w-[120px] min-[900px]:min-w-[126px] min-[900px]:max-w-[8.75rem]`}
+              >
+                <Icon name="filter_alt" size={15} className="shrink-0 text-[var(--accent)]" aria-hidden />
+                <div className="min-w-0 flex-1 leading-tight">
+                  <div className="text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Tenant</div>
+                  <div className={tenantShellSingleClass}>{tenantBadgeOrSelector}</div>
+                </div>
+              </div>
+            ) : null}
+            {showCompanyFilter ? (
+              <div
+                className={`${cockpitFilterShellClass} min-w-[180px] max-w-[200px] shrink-0 overflow-hidden`}
+              >
+                <div className="min-w-0 w-full max-w-full flex-1 overflow-hidden leading-tight">
+                  <label htmlFor="company-select-cockpit-tb" className="block min-w-0 cursor-pointer">
+                    <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Société</span>
+                    <select
+                      id="company-select-cockpit-tb"
+                      disabled={companiesLoading}
+                      value={selectedCompanyId ?? ""}
+                      onChange={(e) => onCompanyChange(e.target.value || null)}
+                      className={`w-full min-w-0 max-w-full truncate ${cockpitShellSelectClass}`}
+                      aria-label="Société"
+                      title={selectedCompanyTitle}
+                    >
+                      <option value="">Toutes les sociétés</option>
+                      {companies.map((c) => {
+                        const id = normalizeCompanyId(c.company_id);
+                        if (!id) return null;
+                        return (
+                          <option key={id} value={id}>
+                            {companyDisplayLabel(c.display_name, c.company_id)}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </label>
+                </div>
+              </div>
+            ) : null}
+            {showPeriodFilter ? (
+              <>
+                <div className={`${cockpitFilterShellClass} min-w-[132px] max-w-[152px] shrink-0 overflow-hidden`}>
+                  <div className="min-w-0 w-full max-w-full flex-1 overflow-hidden leading-tight">
+                    <label htmlFor="period-key-cockpit-tb" className="block min-w-0 cursor-pointer">
+                      <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Période</span>
+                      <select
+                        id="period-key-cockpit-tb"
+                        value={periodKey}
+                        onChange={(e) => onPeriodKeyChange(e.target.value)}
+                        className={`w-full min-w-0 max-w-full truncate ${cockpitShellSelectClass}`}
+                        title={periodOptionsToShow.find((o) => o.value === periodKey)?.label}
+                      >
+                        {periodOptionsToShow.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {enrichPeriodLabel(opt, periodYear, periodStatuses)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </div>
+                <div
+                  className={`${cockpitFilterShellClass} flex min-h-[46px] w-[88px] min-w-[84px] shrink-0 flex-col items-center justify-center gap-0 px-2 py-1.5 text-center`}
+                >
+                  <label htmlFor="period-year-cockpit-tb" className="flex w-full cursor-pointer flex-col items-center gap-0 text-center">
+                    <span className="whitespace-nowrap text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+                      Année
+                    </span>
+                    <select
+                      id="period-year-cockpit-tb"
+                      value={periodYear}
+                      onChange={(e) => onPeriodYearChange(Number(e.target.value))}
+                      className={cockpitShellSelectYearClass}
+                      aria-label="Année"
+                    >
+                      {yearsToShow.map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              </>
+            ) : null}
+          </>
+        ) : null}
+        {cockpitContextTrustSignal ? (
+          <div
+            className={`flex min-h-[46px] shrink-0 flex-col justify-center gap-0.5 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-3 py-1.5`}
+          >
+            <span className={`shrink-0 whitespace-nowrap ${COCKPIT_HEADER_FILTER_LABEL}`}>Confiance</span>
+            <div className="flex min-h-[26px] items-center">{cockpitContextTrustSignal}</div>
+          </div>
+        ) : null}
+        <span
+          className="ml-auto inline-flex max-w-[120px] shrink-0 items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--border)_45%,transparent)] bg-[color-mix(in_srgb,var(--panel)_88%,transparent)] px-2 py-0.5 text-[10px] font-medium leading-tight tabular-nums text-[var(--text-secondary)]"
+          title={tenantId}
+        >
+          <Icon name="badge" size={11} className="shrink-0 opacity-80" aria-hidden />
+          <span className="min-w-0 truncate">{tenantId}</span>
+        </span>
+      </div>
+    ) : null;
+
+  const tabletNavSectionTitle = "px-3 pb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]";
+  const tabletNavLinkBase =
+    "mb-1 flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_50%,transparent)] hover:text-[var(--text)]";
+  const tabletNavLinkInactive = `${tabletNavLinkBase} text-[var(--muted)]`;
+  const tabletNavLinkActive = `${tabletNavLinkBase} border border-[var(--border)] bg-[var(--panel-2)] font-medium text-[var(--text)] shadow-[0_10px_30px_rgba(0,0,0,0.18)]`;
 
   const content = (
     <div
@@ -519,71 +609,158 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                   }
                 >
                   {cockpitBandTablet ? (
-                    <div className="flex min-w-0 flex-col">
-                      {/* Tablette / iPad — deux rangées fixes (CDCF / spec header dédié) : marque + vue + filtres + actions, puis périmètre actif. */}
-                      <div className="flex min-w-0 flex-nowrap items-center gap-2.5 px-3 py-2.5 min-[900px]:gap-3.5 md:px-3.5 md:py-3">
-                        <Link
-                          href={pilotageHomeHref}
-                          className="group flex shrink-0 items-center gap-2.5 rounded-xl outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--panel-2)_55%,transparent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                          aria-label="Retour au cockpit de pilotage"
-                        >
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] font-headline text-sm font-extrabold leading-none tracking-tight text-white shadow-[0_4px_12px_rgba(0,0,0,0.14)] sm:h-10 sm:w-10 sm:text-base">
-                            DL
-                          </div>
-                          <div className="min-w-0 leading-tight">
-                            <div className="font-headline text-[1.05rem] font-extrabold leading-none tracking-tight text-[var(--text)] sm:text-[1.125rem]">
-                              {tabletBrandName}
+                    <>
+                      <div className="flex min-w-0 flex-col">
+                        {/* Ligne 1 — chrome cockpit (iPad) : marque · vue · actions · burger · entité active */}
+                        <div className="flex min-w-0 flex-nowrap items-center gap-2 px-3 py-2.5 min-[900px]:gap-3 md:px-3.5 md:py-3">
+                          <Link
+                            href={pilotageHomeHref}
+                            className="group flex min-w-0 shrink-0 items-center gap-2.5 rounded-xl outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--panel-2)_55%,transparent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                            aria-label="Retour au cockpit de pilotage"
+                          >
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] font-headline text-sm font-extrabold leading-none tracking-tight text-white shadow-[0_4px_12px_rgba(0,0,0,0.14)] sm:h-10 sm:w-10 sm:text-base">
+                              DL
                             </div>
-                            <div className="mt-1 text-[11px] leading-snug text-[var(--muted)] sm:text-xs" title={tagline}>
-                              Cockpit financier
+                            <div className="min-w-0 leading-tight">
+                              <div className="font-headline text-[1.05rem] font-extrabold leading-none tracking-tight text-[var(--text)] sm:text-[1.125rem]">
+                                {tabletBrandName}
+                              </div>
+                              <div
+                                className="mt-1 hidden min-[920px]:block text-[11px] leading-snug text-[var(--muted)] sm:text-xs"
+                                title={tagline}
+                              >
+                                Cockpit financier
+                              </div>
                             </div>
-                          </div>
-                        </Link>
-                        <div
-                          className="hidden h-9 w-px shrink-0 self-center bg-[color-mix(in_srgb,var(--border)_65%,transparent)] min-[480px]:block sm:h-10"
-                          aria-hidden
-                        />
-                        <h1 className="shrink-0 whitespace-nowrap pl-0.5 font-headline text-[1.3rem] font-extrabold leading-none tracking-[-0.02em] text-[var(--text)] min-[900px]:text-[1.45rem]">
-                          Pilotage
-                        </h1>
-                        <div className="min-w-0 flex-1 self-center overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 pt-0.5 [scrollbar-width:thin] [-webkit-overflow-scrolling:touch]">
-                          {cockpitCaroleFilterCenter}
-                        </div>
-                        <button
-                          type="button"
-                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--panel-2)] active:bg-[var(--panel-2)]"
-                          aria-label="Notifications (bientôt disponible)"
-                        >
-                          <Icon name="notifications" size={17} />
-                        </button>
-                      </div>
-                      <div
-                        className="flex min-w-0 flex-nowrap items-center gap-3 border-t border-[var(--border)] px-3 py-2.5 sm:px-3.5"
-                        aria-label="Périmètre actif"
-                      >
-                        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                          </Link>
                           <div
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--accent)] font-headline text-sm font-extrabold text-white"
+                            className="hidden h-9 w-px shrink-0 self-center bg-[color-mix(in_srgb,var(--border)_65%,transparent)] min-[480px]:block sm:h-10"
                             aria-hidden
+                          />
+                          <h1 className="shrink-0 whitespace-nowrap pl-0.5 font-headline text-[1.3rem] font-extrabold leading-none tracking-[-0.02em] text-[var(--text)] min-[900px]:text-[1.45rem]">
+                            Pilotage
+                          </h1>
+                          <div className="min-h-0 min-w-0 flex-1 shrink" aria-hidden />
+                          <button
+                            type="button"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--panel-2)] active:bg-[var(--panel-2)]"
+                            aria-label="Notifications (bientôt disponible)"
                           >
-                            {sessionInitial}
+                            <Icon name="notifications" size={17} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setMenuOpen(true)}
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] transition-colors hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] active:bg-[var(--panel-2)]"
+                            aria-label="Menu navigation"
+                            aria-expanded={menuOpen}
+                            aria-controls="linky-tablet-nav-drawer"
+                          >
+                            {menuIcon}
+                          </button>
+                          <div className="flex min-w-0 max-w-[min(10rem,28vw)] shrink-0 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-2 py-1.5 shadow-[0_3px_11px_rgba(0,0,0,0.11)]">
+                            <div
+                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--accent)] font-headline text-sm font-extrabold text-white"
+                              aria-hidden
+                            >
+                              {sessionInitial}
+                            </div>
+                            <span
+                              className="min-w-0 truncate text-[13px] font-semibold leading-snug text-[var(--text)]"
+                              title={tenantDisplayLabel}
+                            >
+                              {tenantDisplayLabel}
+                            </span>
                           </div>
-                          <span
-                            className="min-w-0 truncate text-[13px] font-semibold leading-snug text-[var(--text)]"
-                            title={tenantDisplayLabel}
-                          >
-                            {tenantDisplayLabel}
-                          </span>
                         </div>
-                        <span
-                          className="ml-auto inline-flex max-w-[120px] shrink-0 items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--border)_45%,transparent)] bg-[color-mix(in_srgb,var(--panel)_88%,transparent)] px-2 py-0.5 text-[10px] font-medium leading-tight tabular-nums text-[var(--text-secondary)]"
-                          title={tenantId}
-                        >
-                          <Icon name="badge" size={11} className="shrink-0 opacity-80" aria-hidden />
-                          <span className="min-w-0 truncate">{tenantId}</span>
-                        </span>
+                        {cockpitTabletBusinessFiltersRow}
                       </div>
-                    </div>
+                      {menuOpen ? (
+                        <>
+                          <div
+                            className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-[1px]"
+                            aria-hidden
+                            data-chrome-lock="true"
+                            onClick={() => setMenuOpen(false)}
+                          />
+                          <aside
+                            id="linky-tablet-nav-drawer"
+                            className="fixed left-0 top-0 z-[61] flex h-full w-[min(20rem,92vw)] max-w-[20rem] flex-col border-r border-[var(--border)] bg-[var(--sidebar-bg)] shadow-[8px_0_32px_rgba(0,0,0,0.2)]"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-label="Navigation"
+                            data-chrome-lock="true"
+                          >
+                            <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-4">
+                              <span className="font-headline text-lg font-extrabold text-[var(--text)]">Navigation</span>
+                              <button
+                                type="button"
+                                onClick={() => setMenuOpen(false)}
+                                className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_50%,transparent)]"
+                                aria-label="Fermer le menu"
+                              >
+                                <Icon name="close" size={22} />
+                              </button>
+                            </div>
+                            <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pb-4 pt-2" aria-label="Navigation principale">
+                              <div className={tabletNavSectionTitle}>Dashboard</div>
+                              <Link
+                                href={pilotageHomeHref}
+                                className={pilotageActiveTablet ? tabletNavLinkActive : tabletNavLinkInactive}
+                                aria-current={pilotageActiveTablet ? "page" : undefined}
+                                onClick={() => setMenuOpen(false)}
+                              >
+                                <Icon name="bar_chart" size={20} className={pilotageActiveTablet ? "text-[var(--text)]" : "text-[var(--muted)]"} />
+                                <span>Pilotage</span>
+                              </Link>
+                              <Link
+                                href={syntheseHrefTablet}
+                                className={syntheseActiveTablet ? tabletNavLinkActive : tabletNavLinkInactive}
+                                aria-current={syntheseActiveTablet ? "page" : undefined}
+                                onClick={() => setMenuOpen(false)}
+                              >
+                                <Icon name="account_balance" size={20} className={syntheseActiveTablet ? "text-[var(--text)]" : "text-[var(--muted)]"} />
+                                <span>Synthèse comptable</span>
+                              </Link>
+                              <div className={`${tabletNavSectionTitle} mt-6`}>Outils</div>
+                              <Link
+                                href={aideLexiqueHrefTablet}
+                                className={tabletNavLinkInactive}
+                                onClick={() => setMenuOpen(false)}
+                              >
+                                <Icon name="menu_book" size={20} className="text-[var(--muted)]" />
+                                <span>Lexique</span>
+                              </Link>
+                              <Link
+                                href={aideHrefTablet}
+                                className={aideActiveTablet ? tabletNavLinkActive : tabletNavLinkInactive}
+                                aria-current={aideActiveTablet ? "page" : undefined}
+                                onClick={() => setMenuOpen(false)}
+                              >
+                                <Icon name="help" size={20} className={aideActiveTablet ? "text-[var(--text)]" : "text-[var(--muted)]"} />
+                                <span>Aide</span>
+                              </Link>
+                            </nav>
+                            <div className="border-t border-[var(--border)] px-3 py-4">
+                              <div className={tabletNavSectionTitle}>Session</div>
+                              <ThemeToggle variant="sidebarRow" />
+                              <button
+                                type="button"
+                                className="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-[15px] text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_50%,transparent)] hover:text-[var(--text)]"
+                                onClick={async () => {
+                                  await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+                                  setMenuOpen(false);
+                                  window.location.href = "/login";
+                                }}
+                              >
+                                <Icon name="logout" size={20} className="text-[var(--muted)]" />
+                                <span>Déconnexion</span>
+                              </button>
+                            </div>
+                          </aside>
+                        </>
+                      ) : null}
+                    </>
                   ) : (
                   <div className="grid grid-cols-1 gap-4 px-4 py-3.5 sm:px-5 sm:py-4 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto] md:items-center md:gap-4 md:px-5 md:py-4 lg:gap-6 lg:px-6 lg:py-5">
                     <div className="relative z-10 min-w-0 shrink-0 md:max-w-[12rem] md:pr-3 lg:max-w-none lg:pr-5">

@@ -18,7 +18,7 @@ export function TopBar({
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-40 box-border flex min-h-16 items-center border-b border-[var(--border)] bg-[var(--bg-secondary)] px-6 md:left-72"
+        className="fixed top-0 left-0 right-0 z-40 box-border flex min-h-16 items-center border-b border-[var(--border)] bg-[var(--bg-secondary)] px-6 lg:left-72"
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         <CockpitAppBarRow
