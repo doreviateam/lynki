@@ -92,11 +92,23 @@ export async function GET(request: NextRequest) {
       amount: typeof p.unreconciled === "number" ? p.unreconciled : 0,
     }));
 
+    /** Couverture probante (0–100) si Vault expose `secondary.coverage_ratio` (souvent 0–1). */
+    const coverage_series: { period: string; pct: number | null }[] = points.map((p) => {
+      const raw = p.secondary?.coverage_ratio;
+      if (raw == null || !Number.isFinite(Number(raw))) return { period: p.date, pct: null };
+      const n = Number(raw);
+      const pct = n <= 1 && n >= 0 ? n * 100 : Math.max(0, Math.min(100, n));
+      return { period: p.date, pct };
+    });
+
     return NextResponse.json({
       series,
       series_reconciled: seriesReconciled,
       series_unreconciled: seriesUnreconciled,
+      coverage_series,
       currency: data.currency ?? "EUR",
+      granularity: data.granularity ?? null,
+      partial_reason: data.partial_reason ?? null,
     });
   } catch {
     clearTimeout(timeoutId);

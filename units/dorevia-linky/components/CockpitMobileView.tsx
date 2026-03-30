@@ -1,5 +1,6 @@
 "use client";
 
+import { IconTreasury } from "@/components/CardIcons";
 import { Icon } from "@/components/Icon";
 import { ConfidenceScore } from "@/components/ConfidenceScore";
 import { CompactTile, type ConfidenceLevel } from "@/components/InstrumentCardChrome";
@@ -11,6 +12,7 @@ import { computeConfidenceScore } from "@/app/lib/confidence";
 import { navHrefWithTenant } from "@/components/layout/navTenantHref";
 import {
   buildTreasuryCockpitTileModel,
+  treasuryCockpitCoverageBarFillClass,
   treasuryCockpitPrimaryBadge,
 } from "@/app/lib/cockpit/treasury-cockpit-tile";
 import {
@@ -88,6 +90,7 @@ export function CockpitMobileView({
   const treasuryStatusForChrome = metricsError ? "alert" : treasuryTile.treasuryStatus;
   const treasuryPrimaryBadge = treasuryCockpitPrimaryBadge(treasuryStatusForChrome);
   const treasuryOutline = treasuryMasterCardOutlineClass(treasuryStatusForChrome);
+  const treasuryCoverageFill = treasuryCockpitCoverageBarFillClass(treasuryStatusForChrome);
   const businessConf = inferConfidence(business);
   const cashConf = inferConfidence(cash);
   const businessOutline = metricConfidenceOutlineClass(businessConf);
@@ -118,7 +121,10 @@ export function CockpitMobileView({
           className={`w-full rounded-2xl bg-[var(--card)] p-4 text-left shadow-sm transition-all active:scale-[0.99] ${treasuryOutline}`}
         >
           <div className="flex items-start justify-between gap-2">
-            <span className={COCKPIT_T4_CARD_LABEL}>Trésorerie</span>
+            <span className={`inline-flex min-w-0 items-center gap-2 ${COCKPIT_T4_CARD_LABEL}`}>
+              <IconTreasury className="h-5 w-5 shrink-0 text-[var(--accent)] opacity-90" />
+              Trésorerie
+            </span>
             <span
               className={`inline-flex max-w-[10rem] shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold leading-tight ${treasuryPrimaryBadge.mobileClassName}`}
               title={treasury?.status_reason ?? undefined}
@@ -132,7 +138,7 @@ export function CockpitMobileView({
             </span>
           </div>
           <CockpitMasterKpiValue display={formatKpi(treasury)} variant="mobile" mobileWeight="black" />
-          <p className={`mt-0.5 ${COCKPIT_T5_CAPTION}`}>Solde validé (Vault)</p>
+          <p className={`mt-0.5 ${COCKPIT_T5_CAPTION}`}>Solde validé</p>
           <div className="mt-3 space-y-2 border-t border-[var(--border)] pt-3 text-left">
             <div title="Part des flux couverts par preuve bancaire">
               <div className="flex justify-between gap-2">
@@ -143,26 +149,28 @@ export function CockpitMobileView({
               </div>
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[var(--coverage-track)]">
                 <div
-                  className={`h-full rounded-full ${
-                    treasuryTile.treasuryStatus === "ok"
-                      ? "bg-[var(--confidence-fiable)]"
-                      : "bg-[var(--coverage-fill-muted)]"
-                  }`}
+                  className={`h-full rounded-full ${treasuryCoverageFill}`}
                   style={{ width: treasuryTile.coveragePct != null ? `${treasuryTile.coveragePct}%` : "0%" }}
                 />
               </div>
             </div>
             <div className="flex flex-col gap-1 border-t border-[var(--border)] pt-2">
               <div className="flex justify-between gap-2">
-                <span className={COCKPIT_T5_DETAIL_LABEL}>Écart ERP − Vault</span>
-                <span className={`max-w-[55%] truncate text-right ${COCKPIT_T5_DETAIL_VALUE}`}>
-                  {treasuryTile.erpDeltaFormatted ?? "—"}
+                <span className={COCKPIT_T5_DETAIL_LABEL}>Montant à rapprocher</span>
+                <span
+                  className={`max-w-[55%] truncate text-right ${COCKPIT_T5_DETAIL_VALUE}`}
+                  title={treasuryTile.rapproTooltip}
+                >
+                  {treasuryTile.rapproFormatted ?? "—"}
                 </span>
               </div>
               <div className="flex justify-between gap-2">
-                <span className={COCKPIT_T5_DETAIL_LABEL}>À rapprocher</span>
-                <span className={`max-w-[55%] truncate text-right ${COCKPIT_T5_DETAIL_VALUE}`}>
-                  {treasuryTile.rapproFormatted ?? "—"}
+                <span className={COCKPIT_T5_DETAIL_LABEL}>Écart à confirmer</span>
+                <span
+                  className={`max-w-[55%] truncate text-right ${COCKPIT_T5_DETAIL_VALUE}`}
+                  title={treasuryTile.erpDeltaTooltip}
+                >
+                  {treasuryTile.erpDeltaAbsFormatted ?? "—"}
                 </span>
               </div>
             </div>

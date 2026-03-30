@@ -73,6 +73,8 @@ interface ReportHeaderProps {
   pilotagePhoneCompact?: {
     contextSummary: string;
   };
+  /** Détail carte (ex. Trésorerie) : en-tête cockpit réduit, périmètre discret. */
+  depthDetailContext?: boolean;
 }
 
 export function ReportHeader({
@@ -99,6 +101,7 @@ export function ReportHeader({
   onNavigateToAppView,
   cockpitAppBar,
   pilotagePhoneCompact,
+  depthDetailContext = false,
 }: ReportHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   /** Phone pilotage : panneau « Périmètre » (filtres) séparé du menu app (`menuOpen`). */
@@ -244,7 +247,7 @@ export function ReportHeader({
         : React.createElement(
             "span",
             {
-              className: cockpitAppBar
+              className: cockpitAppBar && !depthDetailContext
                 ? "hidden max-w-[9rem] truncate text-left text-[11px] font-medium leading-tight text-[var(--text-secondary)] sm:inline"
                 : "hidden shrink-0 whitespace-nowrap rounded-md bg-[var(--accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--accent)] sm:inline",
             },
@@ -293,16 +296,21 @@ export function ReportHeader({
       pilotagePhoneCompact={pilotagePhoneCompact}
       pilotagePerimeterOpen={pilotagePerimeterOpen}
       setPilotagePerimeterOpen={setPilotagePerimeterOpen}
+      depthDetailContext={depthDetailContext}
     />
   );
 
   /** `overflow-hidden` coupe les panneaux `absolute`/`fixed` sous le résumé (ex. Périmètre fusionné phone). */
   const headerOverflowClass =
-    chromeCompact ? "overflow-hidden" : cockpitAppBar || pilotagePhoneCompact ? "overflow-visible" : "overflow-hidden";
+    chromeCompact && !depthDetailContext
+      ? "overflow-hidden"
+      : cockpitAppBar || pilotagePhoneCompact || depthDetailContext
+        ? "overflow-visible"
+        : "overflow-hidden";
 
   return (
     <header
-      className={`relative w-full ${headerOverflowClass} ${cockpitAppBar ? "shadow-none" : "shadow-sm"} ${chromeCompact ? "max-h-[72px]" : cockpitAppBar || pilotagePhoneCompact ? "max-h-none" : "max-h-[140px]"}`}
+      className={`relative w-full ${headerOverflowClass} ${cockpitAppBar ? "shadow-none" : "shadow-sm"} ${chromeCompact && !depthDetailContext ? "max-h-[72px]" : cockpitAppBar || pilotagePhoneCompact || depthDetailContext ? "max-h-none" : "max-h-[140px]"}`}
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       {headerContent}

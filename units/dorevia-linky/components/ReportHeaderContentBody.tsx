@@ -92,6 +92,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
     pilotagePhoneCompact,
     pilotagePerimeterOpen,
     setPilotagePerimeterOpen,
+    depthDetailContext = false,
   } = props;
 
   /** Bandeau Carole fusionné en régime tablette : cockpit tactile compact, pas desktop rétréci. */
@@ -735,7 +736,13 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
 
   const content = (
     <div
-      className={`mx-auto ${cockpitAppBar ? "max-w-none px-0 pt-0 pb-0" : "max-w-4xl px-4 py-3"}`}
+      className={`mx-auto ${
+        cockpitAppBar
+          ? "max-w-none px-0 pt-0 pb-0"
+          : depthDetailContext
+            ? "max-w-none px-3 py-1.5 sm:px-5 sm:py-1.5 lg:px-8 lg:py-2"
+            : "max-w-4xl px-4 py-3"
+      }`}
     >
       {cockpitAppBar && currentApp === "linky" ? (
         <>
@@ -1091,6 +1098,81 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
             ) : null}
           </div>
         </div>
+      ) : depthDetailContext && currentApp === "linky" ? (
+        <div
+          className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-[color-mix(in_srgb,var(--border)_85%,transparent)] pb-1.5"
+          role="region"
+          aria-label="Périmètre de lecture"
+        >
+          <Link
+            href={pilotageHomeHref}
+            className="inline-flex min-w-0 items-center gap-1.5 rounded-lg py-1 pr-2 text-sm font-semibold text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--panel-2)_55%,transparent)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            aria-label="Retour au cockpit de pilotage"
+          >
+            <Icon name="arrow_back" size={18} aria-hidden className="shrink-0" />
+            <span className="truncate">Pilotage</span>
+          </Link>
+          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2 sm:flex-initial">
+            {onRefreshMetrics ? (
+              <button
+                type="button"
+                onClick={() => onRefreshMetrics()}
+                className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 text-xs font-medium text-[var(--text)] transition-colors hover:bg-[var(--hover)]"
+                aria-label="Actualiser les indicateurs"
+              >
+                <Icon name="sync_saved_locally" size={17} className="text-[var(--muted)]" aria-hidden />
+                <span className="hidden sm:inline">Actualiser</span>
+              </button>
+            ) : null}
+            {tenantBadgeOrSelector}
+            <div className="relative sm:hidden">
+              <button
+                type="button"
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+                aria-label="Menu"
+                aria-expanded={menuOpen}
+              >
+                {menuIcon}
+              </button>
+              {menuOpen ? (
+                <>
+                  <div className="fixed inset-0 z-40" aria-hidden data-chrome-lock="true" onClick={() => setMenuOpen(false)} />
+                  <nav
+                    className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg"
+                    role="menu"
+                    data-chrome-lock="true"
+                  >
+                    {overflowNav}
+                  </nav>
+                </>
+              ) : null}
+            </div>
+            <div className="relative hidden sm:block">
+              <button
+                type="button"
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+                aria-label="Menu"
+                aria-expanded={menuOpen}
+              >
+                {menuIcon}
+              </button>
+              {menuOpen ? (
+                <>
+                  <div className="fixed inset-0 z-40" aria-hidden data-chrome-lock="true" onClick={() => setMenuOpen(false)} />
+                  <nav
+                    className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg"
+                    role="menu"
+                    data-chrome-lock="true"
+                  >
+                    {overflowNav}
+                  </nav>
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
       ) : (
       <div className="relative flex items-center justify-between gap-3">
         <div className="z-10 flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
@@ -1165,7 +1247,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
         </div>
       </div>
       )}
-      {currentApp === "linky" && !chromeCompact && !cockpitAppBar && !pilotagePhoneCompact && (showCompanyFilter || showPeriodFilter) && (
+      {currentApp === "linky" && (!chromeCompact || depthDetailContext) && !cockpitAppBar && !pilotagePhoneCompact && (showCompanyFilter || showPeriodFilter) && (
         <div className="mt-2 hidden sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-4">
           {showCompanyFilter && (
             <div className="flex min-w-0 items-center gap-2">
@@ -1182,7 +1264,9 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                   );
                 })}
               </select>
-              {appView !== "synthese" && <span className="truncate text-sm text-[var(--muted)]">· {moduleActif}</span>}
+              {appView !== "synthese" && !depthDetailContext ? (
+                <span className="truncate text-sm text-[var(--muted)]">· {moduleActif}</span>
+              ) : null}
             </div>
           )}
           {showPeriodFilter && (
@@ -1204,7 +1288,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
           </div>
         </div>
       )}
-      {currentApp === "linky" && !chromeCompact && !pilotagePhoneCompact && (
+      {currentApp === "linky" && (!chromeCompact || depthDetailContext) && !pilotagePhoneCompact && (
         <div className="mt-3 flex flex-wrap items-center gap-2 sm:hidden">
           <label htmlFor="company-select-mobile" className="sr-only">Société</label>
           <select id="company-select-mobile" disabled={companiesLoading} value={selectedCompanyId ?? ""} onChange={(e) => onCompanyChange(e.target.value || null)} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]" aria-label="Société">
@@ -1231,7 +1315,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
           </div>
         </div>
       )}
-      {currentApp === "linky" && chromeCompact && onExpandChrome && (
+      {currentApp === "linky" && chromeCompact && onExpandChrome && !depthDetailContext && (
         <div className="mt-1 flex cursor-pointer items-center justify-center gap-2 py-1" role="button" tabIndex={0} aria-label="Afficher le bandeau complet" onClick={onExpandChrome} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onExpandChrome(); } }}>
           <span className="rounded-md bg-[var(--accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--accent)]">
             {periodKey === "all" ? "Toutes périodes" : periodKey === "ytd" ? `Exercice ${periodYear}` : `${periodOptionsToShow.find((o) => o.value === periodKey)?.label ?? periodKey} ${periodYear}`}

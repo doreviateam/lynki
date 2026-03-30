@@ -29,7 +29,8 @@ export const dynamic = "force-dynamic";
 
 export type ValueKind = "positive" | "negative" | "zero" | "accent" | "accent_soft" | "neutral" | "placeholder";
 
-export type CardStatusValue = "neutral" | "ok" | "watch" | "alert";
+/** `critical` = vigilance forte (ex. tuile Trésorerie « À confirmer » — SPEC_TUILE_TRESO §6, T-TR-001). */
+export type CardStatusValue = "neutral" | "ok" | "watch" | "alert" | "critical";
 
 export interface KpiMetric {
   value: number | null;
@@ -104,6 +105,13 @@ export interface ArByPartnerDetail {
 
 export type DataCompletenessBankHealth = "absent" | "partial" | "complete";
 
+/** Ventilation par compte bancaire (Vault `account_volume_breakdown`) — T-TR-DETAIL-002. */
+export interface TreasuryAccountVolumeRow {
+  account_id: number | null;
+  reconciled_volume: number;
+  unreconciled_volume: number;
+}
+
 export interface TreasuryDetail {
   reconciled: number;
   unreconciled: number;
@@ -120,6 +128,8 @@ export interface TreasuryDetail {
   last_statement_import_date?: string | null;
   journals_count?: number | null;
   oldest_unreconciled_date?: string | null;
+  /** Volumes ABS rapproché / à rapprocher par `account_id` Odoo quand la projection l’expose. */
+  account_volume_breakdown?: TreasuryAccountVolumeRow[];
 }
 
 export interface CardDetails {
@@ -201,6 +211,28 @@ export interface DashboardMetricsResponse {
 
 const SPACE = "\u0020";
 
+function normalizeTreasuryAccountVolumeBreakdown(raw: unknown): TreasuryAccountVolumeRow[] | undefined {
+  if (!Array.isArray(raw) || raw.length === 0) return undefined;
+  const rows: TreasuryAccountVolumeRow[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as {
+      account_id?: unknown;
+      reconciled_volume?: unknown;
+      unreconciled_volume?: unknown;
+    };
+    const rv =
+      typeof o.reconciled_volume === "number" && Number.isFinite(o.reconciled_volume) ? o.reconciled_volume : 0;
+    const uv =
+      typeof o.unreconciled_volume === "number" && Number.isFinite(o.unreconciled_volume) ? o.unreconciled_volume : 0;
+    if (rv <= 0 && uv <= 0) continue;
+    let accountId: number | null = null;
+    if (typeof o.account_id === "number" && Number.isFinite(o.account_id)) accountId = o.account_id;
+    rows.push({ account_id: accountId, reconciled_volume: rv, unreconciled_volume: uv });
+  }
+  return rows.length > 0 ? rows : undefined;
+}
+
 function getCurrencyLabel(currency = "EUR"): string {
   const code = (currency || "EUR").toUpperCase();
   if (code === "EUR") return "€";
@@ -239,6 +271,7 @@ function toValueKind(value: number, useSigned: boolean): ValueKind {
 function computeCardStatuses(resp: DashboardMetricsResponse): void {
   // treasury.value = solde validé (position) depuis la refonte — lire la couverture depuis _details
   const tPct = resp._details?.treasury?.treasury_validated_pct ?? null;
+  /** Part des flux non couverts par preuve bancaire (100 − couverture), pour wording historique / alerts */
   const remainingPct = tPct != null ? 100 - tPct : null;
   const cashVal = resp.cash.value;
   const bizVal = resp.business.value;
@@ -252,19 +285,45 @@ function computeCardStatuses(resp: DashboardMetricsResponse): void {
     m.status_reason = r;
   };
 
-  // §4.1 Trésorerie (tuile) — statut basé sur la couverture probante (reste à rapprocher %)
-  // Vert < 5 %, orange 5–30 % (rapprochement en cours), orange > 30 % (insuffisant)
-  if (remainingPct == null) set(resp.treasury, "neutral", "Couverture non disponible");
-  else if (remainingPct < 5) set(resp.treasury, "ok", `${remainingPct.toFixed(1)} % des flux non couverts par preuve bancaire`);
-  else if (remainingPct <= 30) set(resp.treasury, "watch", `${remainingPct.toFixed(1)} % des flux non couverts — rapprochement en cours`);
-  else set(resp.treasury, "watch", `${remainingPct.toFixed(1)} % des flux non couverts — rapprochement insuffisant`);
+  // §4.1 Trésorerie (tuile) — T-TR-001 / SPEC_TUILE_TRESO §6 : assiette = couverture probante tPct (0–100 %)
+  // À confirmer ≤10 %, Partiel >10–80 %, Fiable >80 % ; neutral = donnée absente
+  if (tPct == null || !Number.isFinite(tPct)) {
+    set(resp.treasury, "neutral", "Couverture non disponible — lecture en attente.");
+  } else if (tPct <= 10) {
+    set(
+      resp.treasury,
+      "critical",
+      `Couverture probante ${tPct.toFixed(0)} % — rapprochement encore trop incomplet pour une lecture stabilisée.`
+    );
+  } else if (tPct <= 80) {
+    set(
+      resp.treasury,
+      "watch",
+      `Couverture probante ${tPct.toFixed(0)} % — lecture exploitable, rapprochement encore partiel.`
+    );
+  } else {
+    set(resp.treasury, "ok", `Couverture probante ${tPct.toFixed(0)} % — lecture fiable sur le périmètre affiché.`);
+  }
 
-  // §4.1bis Paiements (tuile treasury_position) — même logique que la carte Paiements (encadrement orange si vigilance)
+  // §4.1bis Paiements (KPI treasury_position) — même grille de confiance que la tuile Trésorerie (T-TR-001)
   if (resp.treasury_position) {
-    if (remainingPct == null) set(resp.treasury_position, "neutral", "Rapprochement non disponible");
-    else if (remainingPct < 5) set(resp.treasury_position, "ok", `${remainingPct.toFixed(1)} % à rapprocher`);
-    else if (remainingPct <= 30) set(resp.treasury_position, "watch", `${remainingPct.toFixed(1)} % à rapprocher — en cours`);
-    else set(resp.treasury_position, "watch", `${remainingPct.toFixed(1)} % à rapprocher — insuffisant`);
+    if (tPct == null || !Number.isFinite(tPct)) {
+      set(resp.treasury_position, "neutral", "Rapprochement non disponible.");
+    } else if (tPct <= 10) {
+      set(
+        resp.treasury_position,
+        "critical",
+        `Couverture ${tPct.toFixed(0)} % — volume encore largement à rapprocher.`
+      );
+    } else if (tPct <= 80) {
+      set(
+        resp.treasury_position,
+        "watch",
+        `Couverture ${tPct.toFixed(0)} % — rapprochement partiel sur le périmètre.`
+      );
+    } else {
+      set(resp.treasury_position, "ok", `Couverture ${tPct.toFixed(0)} % — rapprochement suffisant.`);
+    }
   }
 
   // §4.2 Cash (dépend de la validation trésorerie)
@@ -958,6 +1017,10 @@ export async function GET(request: NextRequest) {
       businessCurrency;
     const posCurrency = (posRes as PosRes)?.currency ?? treasuryCurrency;
 
+    const accountVolumeBreakdown = normalizeTreasuryAccountVolumeBreakdown(
+      (treasuryRes as { account_volume_breakdown?: unknown } | null)?.account_volume_breakdown
+    );
+
     const response: DashboardMetricsResponse = {
       data_completeness: { bank_health_metrics: bankHealthMetrics },
       sealed_count: sealedCount,
@@ -981,6 +1044,7 @@ export async function GET(request: NextRequest) {
           last_statement_import_date: lastStatementImportDate,
           journals_count: journalsCount,
           oldest_unreconciled_date: oldestUnreconciledDate,
+          ...(accountVolumeBreakdown ? { account_volume_breakdown: accountVolumeBreakdown } : {}),
         },
         cash: { encaissements: inTotal, decaissements: outTotal, net: cashNet, currency: cashCurrency },
         business: {

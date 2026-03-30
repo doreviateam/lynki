@@ -1,5 +1,5 @@
 import type { CardStatusValue, DashboardMetricsResponse } from "@/app/api/dashboard-metrics/route";
-import { formatSignedAmount } from "@/app/lib/format";
+import { formatAmount, formatSignedAmount } from "@/app/lib/format";
 import { UI_STATE_LABELS } from "@/app/lib/cockpit/ui-state-labels";
 
 /** Données cockpit (tuile Trésorerie A) dérivées de `dashboard-metrics` — W60-101, sans nouveau backend. */
@@ -9,9 +9,16 @@ export interface TreasuryCockpitTileModel {
   coveragePct: number | null;
   /** ERP − validé Vault ; `null` si un des deux manque */
   erpDelta: number | null;
+  /** Valeur signée (+/−) — tooltip / détail */
   erpDeltaFormatted: string | null;
-  /** KPI secondaire « reste / volume à rapprocher » (déjà formaté par l’agrégat) */
+  /** Valeur absolue — ligne « Écart à confirmer » (SPEC §4.4 B) */
+  erpDeltaAbsFormatted: string | null;
+  /** Infobulle §10.5 + montant signé si disponible */
+  erpDeltaTooltip: string;
+  /** KPI « Montant à rapprocher » (déjà formaté par l’agrégat) */
   rapproFormatted: string | null;
+  /** Tooltip §10.4 */
+  rapproTooltip: string;
   treasuryStatus: CardStatusValue | undefined;
 }
 
@@ -30,6 +37,16 @@ export function buildTreasuryCockpitTileModel(metrics: DashboardMetricsResponse 
     erpDelta = erp - validated;
   }
 
+  const erpDeltaFormatted = erpDelta != null ? formatSignedAmount(erpDelta, currency) : null;
+  const erpDeltaAbsFormatted = erpDelta != null ? formatAmount(Math.abs(erpDelta), currency) : null;
+  const rapproTooltip = "Montant restant à traiter dans le rapprochement sur le périmètre affiché.";
+  const ecartTooltipBase =
+    "Décalage restant à confirmer entre la lecture ERP et la position validée retenue pour le périmètre affiché.";
+  const erpDeltaTooltip =
+    erpDelta != null && erpDeltaFormatted != null
+      ? `${ecartTooltipBase} Cet indicateur reflète l'écart entre le solde ERP et la position validée retenue pour la vue ; il est affiché en valeur absolue dans la tuile. Montant signé (ERP − solde validé) : ${erpDeltaFormatted}.`
+      : ecartTooltipBase;
+
   const tp = metrics?.treasury_position;
   const rapproFormatted =
     tp && typeof tp.formatted === "string" && tp.formatted.trim() !== "" && tp.formatted !== "—"
@@ -40,15 +57,36 @@ export function buildTreasuryCockpitTileModel(metrics: DashboardMetricsResponse 
     currency,
     coveragePct,
     erpDelta,
-    erpDeltaFormatted: erpDelta != null ? formatSignedAmount(erpDelta, currency) : null,
+    erpDeltaFormatted,
+    erpDeltaAbsFormatted,
+    erpDeltaTooltip,
     rapproFormatted,
+    rapproTooltip,
     treasuryStatus: metrics?.treasury.status,
   };
 }
 
+/** Remplissage de la barre « Couverture probante » : même famille de couleurs que le badge / contour. */
+export function treasuryCockpitCoverageBarFillClass(status: CardStatusValue | undefined): string {
+  switch (status) {
+    case "ok":
+      return "bg-[var(--confidence-fiable)]";
+    case "watch":
+      return "bg-[var(--confidence-partielle)]";
+    case "critical":
+      return "bg-[var(--negative)]";
+    case "neutral":
+      return "bg-sky-500 dark:bg-sky-400";
+    case "alert":
+      return "bg-red-500 dark:bg-red-400";
+    default:
+      return "bg-[var(--text-secondary)]";
+  }
+}
+
 /**
- * Badge unique carte Trésorerie — aligné spec §5.4 (doctrine d’état) — W60-102 / W60-103.
- * `dashboard-metrics` : `ok` → Fiable ; `watch` → Partiel ; `neutral` → En attente ; `alert` / défaut → Indisponible.
+ * Badge unique carte Trésorerie — SPEC_TUILE_TRESO §6 / T-TR-001.
+ * `dashboard-metrics` : `critical` → À confirmer ; `watch` → Partiel ; `ok` → Fiable ; `neutral` → En attente ; `alert` / défaut → Indisponible.
  */
 export function treasuryCockpitPrimaryBadge(status: CardStatusValue | undefined): {
   label: string;
@@ -57,6 +95,14 @@ export function treasuryCockpitPrimaryBadge(status: CardStatusValue | undefined)
   iconName: string;
 } {
   switch (status) {
+    case "critical":
+      return {
+        label: UI_STATE_LABELS.to_confirm,
+        desktopWrap:
+          "border border-[color-mix(in_srgb,var(--negative)_45%,var(--border))] bg-[color-mix(in_srgb,var(--negative)_12%,var(--card))] text-[var(--negative)]",
+        mobileClassName: "bg-red-500/15 text-red-400",
+        iconName: "error",
+      };
     case "ok":
       return {
         label: UI_STATE_LABELS.reliable,

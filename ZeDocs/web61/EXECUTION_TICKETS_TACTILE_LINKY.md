@@ -1,6 +1,6 @@
 # EXECUTION_TICKETS_TACTILE_LINKY.md
 
-**Version :** 0.9.4 — mars 2026  
+**Version :** 0.9.5 — mars 2026  
 **Statut :** brouillon de pilotage  
 **Portée :** refonte tactile **Phone** + **Tablette / iPad** pour la vue **Pilotage**  
 **Références :** [`cdcf.md`](./cdcf.md) §3.19–§3.20 · [`SPEC_GENERALE_PILOTAGE_LINKY.md`](./SPEC_GENERALE_PILOTAGE_LINKY.md) · [`CADRAGE_VERSION_MOBILE_LYNKI.md`](./CADRAGE_VERSION_MOBILE_LYNKI.md) · [`EXECUTION_TICKETS_WEB60_LINKY.md`](../web60/EXECUTION_TICKETS_WEB60_LINKY.md) (lab, Max / Véréna)
@@ -37,6 +37,7 @@
 | T-TB-006 | Repositionner la classe C tablette | P2 | À faire |
 | T-TB-007 | Recette tactile tablette | P1 | À faire |
 | T-TB-008 | Stabiliser le bloc session tablette | P1 | À faire |
+| **T-TR-001** | **Tuile Trésorerie — alignement états sur doctrine §6** ([`EXECUTION_TICKET_T-TR-001.md`](../web62/EXECUTION_TICKET_T-TR-001.md)) | **P0** | **En cours** (code — recette §6 ticket) |
 
 *Correspondance indicative avec l’ancien gréement numérique : T-PH-00x ≈ T-W61-TAC-10x, T-TB-00x ≈ T-W61-TAC-20x (voir fichier renvoi `EXECUTION_TICKETS_REFONTE_TACTILE_LINKY.md` si besoin).*
 
@@ -1275,6 +1276,8 @@ Le chantier tablette est considéré comme satisfaisant si :
 | 2026-03-30 | T-PH-002 · impl | **Burger phone** : fin du menu dropdown ; **même drawer** que l’iPad (`tactileNavigationDrawer`, `z-[120]`) ; `aria-controls` **`linky-tactile-nav-drawer`** ; paliers **`min-[480px]`** sur le bloc phone (cohé. Annexe B) | `ReportHeaderContentBody.tsx` |
 | 2026-03-30 | **T-PH-002 ter** | **Phone** : tiroir **sans** Pilotage/Synthèse (bottom nav = nav primaire) ; titre **Plus** ; résumé **`Société · Année`** | `ReportHeaderContentBody.tsx`, `DashboardWithFilters.tsx`, SPEC **§7.7** / **Annexe B** |
 | 2026-03-30 | **T-PH-006** | **Footer phone** : `LinkyFooter` masqué `< sm` ; badge header **« N preuves »** (`IntegrityBadge` compact) ; `DashboardWithFilters` padding bas phone ; SPEC **Annexe B.11** · cadrage **§11** | `LinkyFooter.tsx`, `ReportHeaderContentBody.tsx`, `IntegrityBadge.tsx`, `DashboardWithFilters.tsx` ; déploiement `./scripts/deploy-linky-lab.sh` |
+| 2026-03-30 | **T-TR-001** | **Tuile Trésorerie** : ticket d’alignement code — états **§6** [`SPEC_TUILE_TRESO.md`](../web62/SPEC_TUILE_TRESO.md) (seuils 10 % / 80 %, triptyque À confirmer / Partiel / Fiable, couleurs) vs `computeCardStatuses` actuel ; fichier [`EXECUTION_TICKET_T-TR-001.md`](../web62/EXECUTION_TICKET_T-TR-001.md) | ZeDocs **web62** ; entrée tableau §0 |
+| 2026-03-30 | **T-TR-001 · impl** | `CardStatusValue` **`critical`** ; `computeCardStatuses` : trésorerie / `treasury_position` sur **tPct** ≤10 / ≤80 / >80 ; badges & contours & IconGrid & alerts | `dashboard-metrics/route.ts`, `treasury-cockpit-tile.ts`, `cockpit-master-card-outline.ts`, `IconGrid.tsx`, · `alerts-adapter.ts` |
 
 ---
 
@@ -1282,6 +1285,7 @@ Le chantier tablette est considéré comme satisfaisant si :
 
 | Version | Date | Changement |
 |---------|------|------------|
+| 0.9.5 | mars 2026 | **T-TR-001** créé (web62) ; entrée tableau synthèse — alignement états tuile Trésorerie sur doctrine §6 |
 | 0.9.4 | mars 2026 | **T-PH-006** : footer métadonnées absent phone ; badge **N preuves** header ; SPEC / cadrage alignés |
 | 0.9.3 | mars 2026 | **T-PH-002 ter** : nav primaire phone = bottom nav ; burger = outils + session uniquement |
 | 0.9.2 | mars 2026 | **T-PH-002 · impl** : drawer tactile unifié phone / tablette (`linky-tactile-nav-drawer`) |

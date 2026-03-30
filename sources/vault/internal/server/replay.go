@@ -63,6 +63,7 @@ func RegisterUiAggregations(app *fiber.App, db *storage.DB, cfg *config.Config, 
 		return
 	}
 	app.Get("/ui/aggregations/treasury-series", handlers.TreasurySeriesHandler(db))
+	app.Get("/ui/aggregations/treasury-unreconciled-lines", handlers.TreasuryUnreconciledProjectionHandler(db))
 	app.Post("/ui/jobs/treasury-snapshot", handlers.TreasurySnapshotJobHandler(db, cfg.OdooBankReconciliationURL, cfg, log))
 	app.Get("/ui/aggregations/ar-series", handlers.ArSeriesHandler(db))
 	app.Post("/ui/jobs/ar-snapshot", handlers.ArSnapshotJobHandler(db, log))

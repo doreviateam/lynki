@@ -6,17 +6,19 @@ import type { CardStatusValue } from "@/app/api/dashboard-metrics/route";
  */
 export type CockpitMetricConfidence = "fiable" | "partielle" | "proxy" | "estimee";
 
-/** Trésorerie : `ok` → vert discret ; `watch` → neutre (Partiel) ; `neutral` → gris (attente) ; `alert` → rouge technique. */
+/** Trésorerie : mêmes couleurs de bordure que `treasuryCockpitPrimaryBadge().desktopWrap` (cohérence carte ↔ badge). */
 export function treasuryMasterCardOutlineClass(status: CardStatusValue | undefined): string {
   switch (status) {
     case "ok":
-      return "border border-[color-mix(in_srgb,var(--confidence-fiable)_55%,var(--border))]";
+      return "border border-[color-mix(in_srgb,var(--confidence-fiable)_35%,var(--border))]";
     case "watch":
-      return "border border-slate-300 dark:border-slate-500/55";
+      return "border border-[color-mix(in_srgb,var(--confidence-partielle)_55%,#7a5920)]";
+    case "critical":
+      return "border border-[color-mix(in_srgb,var(--negative)_45%,var(--border))]";
     case "neutral":
-      return "border border-[var(--border)]";
+      return "border border-sky-200 dark:border-sky-500/35";
     case "alert":
-      return "border border-red-400/80 dark:border-red-500/50";
+      return "border border-red-200 dark:border-red-500/35";
     default:
       return "border border-[var(--border)]";
   }

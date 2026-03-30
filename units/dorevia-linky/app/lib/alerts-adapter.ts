@@ -73,7 +73,8 @@ export function adaptMetricsToAlerts(
   for (const [key, card] of cardEntries) {
     if (!card || !card.status || card.status === "neutral" || card.status === "ok") continue;
     const label = CARD_LABELS[key] ?? key;
-    const severity: AlertSeverity = card.status === "alert" ? "urgent" : "vigilance";
+    const severity: AlertSeverity =
+      card.status === "alert" || card.status === "critical" ? "urgent" : "vigilance";
     alerts.push({
       id: `card-${key}`,
       severity,

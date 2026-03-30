@@ -21,10 +21,16 @@ export function CockpitMasterKpiValue({
   variant = "desktop",
   /** Business / Flux net mobile : `bold` pour coller au style existant */
   mobileWeight = "black",
+  /**
+   * Montant + devise sur une seule ligne (évite un symbole € « isolé » en mise en page multi-colonnes,
+   * ex. bandeau détail Trésorerie).
+   */
+  unified = false,
 }: {
   display: string;
   variant?: "desktop" | "mobile";
   mobileWeight?: "black" | "bold";
+  unified?: boolean;
 }) {
   const top = variant === "desktop" ? "mt-2" : "mt-1.5";
   const t = display.trim();
@@ -41,6 +47,20 @@ export function CockpitMasterKpiValue({
   }
 
   const { body, euroTail } = splitMasterAmountForNoWrapEuro(display);
+  if (unified) {
+    const scrollClass =
+      variant === "desktop"
+        ? COCKPIT_T2_MASTER_VALUE_SCROLL
+        : mobileWeight === "bold"
+          ? MOBILE_BOLD_SCROLL
+          : MOBILE_SCROLL;
+    const unifiedText = euroTail ? `${body}${euroTail.startsWith(" ") || euroTail.startsWith("\u00a0") || euroTail.startsWith("\u202f") ? "" : "\u202f"}${euroTail.trimStart()}` : body;
+    return (
+      <div className={`${top} min-w-0 max-w-full`}>
+        <span className={`${scrollClass} inline-block max-w-full`}>{unifiedText}</span>
+      </div>
+    );
+  }
   const scrollClass =
     variant === "desktop"
       ? COCKPIT_T2_MASTER_VALUE_SCROLL

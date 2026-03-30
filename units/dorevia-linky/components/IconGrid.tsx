@@ -79,6 +79,7 @@ const STATUS_COLORS: Record<string, string> = {
   ok: "#22c55e",
   watch: "#f97316",
   alert: "#ef4444",
+  critical: "#ef4444",
 };
 
 const STATUS_BG: Record<string, string> = {
@@ -86,6 +87,7 @@ const STATUS_BG: Record<string, string> = {
   ok: "rgba(34,197,94,0.12)",
   watch: "rgba(249,115,22,0.12)",
   alert: "rgba(239,68,68,0.12)",
+  critical: "rgba(239,68,68,0.12)",
 };
 
 interface IconGridProps {
@@ -178,7 +180,7 @@ export function IconGrid({ tenantId, companyId, period, metrics: metricsProp, me
         const amountColor =
           isMasterTile
             ? iconBorderColor
-            : metric?.status === "alert"
+            : metric?.status === "alert" || metric?.status === "critical"
               ? STATUS_COLORS.alert
               : "var(--text)";
 

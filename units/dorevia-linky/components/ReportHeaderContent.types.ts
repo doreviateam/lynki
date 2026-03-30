@@ -63,4 +63,9 @@ export interface ReportHeaderContentProps {
   /** Panneau filtres « Périmètre » (phone pilotage) — distinct du menu app (`menuOpen`). */
   pilotagePerimeterOpen: boolean;
   setPilotagePerimeterOpen: (v: boolean) => void;
+  /**
+   * Pages « profondeur » (ex. détail Trésorerie) : premier rang réduit (retour pilotage, actions),
+   * sans bloc « Pilotage » dominant — le périmètre reste sur la ligne filtres dessous.
+   */
+  depthDetailContext?: boolean;
 }

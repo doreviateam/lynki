@@ -140,7 +140,24 @@ func treasuryFromProjectionAndOdoo(ctx context.Context, db *storage.DB, odooURL 
 			RemainingRatio:      data.Unreconciled / totalAbs,
 		}
 	}
-	return buildTreasuryResponse(data.ValidatedBalance, data.Reconciled, data.Unreconciled, data.ErpBalance, lastReconcilAt, companyID, data.BankAccountsCount, data.LastStatementDate, data.OldestUnreconciled, confirmation, reconMetrics, log)
+	res := buildTreasuryResponse(data.ValidatedBalance, data.Reconciled, data.Unreconciled, data.ErpBalance, lastReconcilAt, companyID, data.BankAccountsCount, data.LastStatementDate, data.OldestUnreconciled, confirmation, reconMetrics, log)
+	if breakdown, err := db.GetBankReconciliationProjectionByAccount(ctx, tenant, companyID); err == nil && len(breakdown) > 0 {
+		arr := make([]fiber.Map, 0, len(breakdown))
+		for _, r := range breakdown {
+			entry := fiber.Map{
+				"reconciled_volume":   utils.RoundMoney2(r.ReconciledVolume),
+				"unreconciled_volume": utils.RoundMoney2(r.UnreconciledVolume),
+			}
+			if r.AccountID != nil {
+				entry["account_id"] = *r.AccountID
+			} else {
+				entry["account_id"] = nil
+			}
+			arr = append(arr, entry)
+		}
+		res["account_volume_breakdown"] = arr
+	}
+	return res
 }
 
 func fetchOdooTreasuryData(ctx context.Context, baseURL, tenant, companyID, dateFrom, dateTo string, cfg *config.Config) (*float64, *int, *string, *string, float64, float64) {
