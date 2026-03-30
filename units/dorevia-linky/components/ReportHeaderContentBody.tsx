@@ -457,19 +457,21 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
       </div>
     ) : null;
 
-  /** Ligne 2 iPad : filtres métier uniquement (spec § tablette dédiée) — coquilles homogènes, scroll horizontal. */
+  /** Ligne 2 iPad : filtres en zone scrollable à gauche, badge technique fixe à droite (maquette mars 2026). */
   const cockpitTabletBusinessFiltersRow =
     showCockpitContextRow && cockpitBandTablet && (cockpitContextHasFilters || cockpitContextTrustSignal) ? (
       <div
-        className="flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain border-t border-[var(--border)] px-3 py-2.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin] min-[900px]:gap-2.5 sm:px-3.5"
+        className="flex min-w-0 flex-nowrap items-center gap-2 border-t border-[var(--border)] px-3 py-2.5 min-[900px]:gap-2.5 sm:px-3.5"
         role="group"
         aria-label="Filtres métier"
       >
+        <div className="min-w-0 flex-1 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
+          <div className="flex w-max min-w-max items-center gap-2 min-[900px]:gap-2.5">
         {cockpitContextHasFilters ? (
           <>
             {tenantBadgeOrSelector ? (
               <div
-                className={`${cockpitFilterShellClass} min-w-[108px] max-w-[8.25rem] shrink overflow-hidden sm:min-w-[120px] min-[900px]:min-w-[126px] min-[900px]:max-w-[8.75rem]`}
+                className={`${cockpitFilterShellClass} min-w-[120px] max-w-[13rem] shrink-0 overflow-hidden min-[900px]:min-w-[132px]`}
               >
                 <Icon name="filter_alt" size={15} className="shrink-0 text-[var(--accent)]" aria-hidden />
                 <div className="min-w-0 flex-1 leading-tight">
@@ -480,7 +482,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
             ) : null}
             {showCompanyFilter ? (
               <div
-                className={`${cockpitFilterShellClass} min-w-[180px] max-w-[200px] shrink-0 overflow-hidden`}
+                className={`${cockpitFilterShellClass} min-w-[180px] max-w-[200px] shrink-0 overflow-hidden min-[900px]:min-w-[200px]`}
               >
                 <div className="min-w-0 w-full max-w-full flex-1 overflow-hidden leading-tight">
                   <label htmlFor="company-select-cockpit-tb" className="block min-w-0 cursor-pointer">
@@ -511,7 +513,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
             ) : null}
             {showPeriodFilter ? (
               <>
-                <div className={`${cockpitFilterShellClass} min-w-[132px] max-w-[152px] shrink-0 overflow-hidden`}>
+                <div className={`${cockpitFilterShellClass} min-w-[140px] max-w-[160px] shrink-0 overflow-hidden min-[900px]:min-w-[152px]`}>
                   <div className="min-w-0 w-full max-w-full flex-1 overflow-hidden leading-tight">
                     <label htmlFor="period-key-cockpit-tb" className="block min-w-0 cursor-pointer">
                       <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Période</span>
@@ -532,7 +534,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                   </div>
                 </div>
                 <div
-                  className={`${cockpitFilterShellClass} flex min-h-[46px] w-[88px] min-w-[84px] shrink-0 flex-col items-center justify-center gap-0 px-2 py-1.5 text-center`}
+                  className={`${cockpitFilterShellClass} flex min-h-[46px] w-[84px] min-w-[84px] shrink-0 flex-col items-center justify-center gap-0 px-2 py-1.5 text-center min-[900px]:w-[88px]`}
                 >
                   <label htmlFor="period-year-cockpit-tb" className="flex w-full cursor-pointer flex-col items-center gap-0 text-center">
                     <span className="whitespace-nowrap text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
@@ -565,8 +567,10 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
             <div className="flex min-h-[26px] items-center">{cockpitContextTrustSignal}</div>
           </div>
         ) : null}
+          </div>
+        </div>
         <span
-          className="ml-auto inline-flex max-w-[120px] shrink-0 items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--border)_45%,transparent)] bg-[color-mix(in_srgb,var(--panel)_88%,transparent)] px-2 py-0.5 text-[10px] font-medium leading-tight tabular-nums text-[var(--text-secondary)]"
+          className="inline-flex max-w-[120px] shrink-0 items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--border)_45%,transparent)] bg-[color-mix(in_srgb,var(--panel)_88%,transparent)] px-2 py-0.5 text-[10px] font-medium leading-tight tabular-nums text-[var(--text-secondary)]"
           title={tenantId}
         >
           <Icon name="badge" size={11} className="shrink-0 opacity-80" aria-hidden />
@@ -611,22 +615,22 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                   {cockpitBandTablet ? (
                     <>
                       <div className="flex min-w-0 flex-col">
-                        {/* Ligne 1 — chrome cockpit (iPad) : marque · vue · actions · burger · entité active */}
-                        <div className="flex min-w-0 flex-nowrap items-center gap-2 px-3 py-2.5 min-[900px]:gap-3 md:px-3.5 md:py-3">
+                        {/* Ligne 1 — chrome cockpit (maquette iPad) : Pilotage dominant · Lynki secondaire · zone droite utilitaires */}
+                        <div className="flex min-w-0 flex-nowrap items-center gap-3 px-3 py-2.5 md:px-3.5 md:py-3">
                           <Link
                             href={pilotageHomeHref}
-                            className="group flex min-w-0 shrink-0 items-center gap-2.5 rounded-xl outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--panel-2)_55%,transparent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                            className="group flex min-w-0 shrink-0 items-center gap-2 rounded-xl outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--panel-2)_55%,transparent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                             aria-label="Retour au cockpit de pilotage"
                           >
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] font-headline text-sm font-extrabold leading-none tracking-tight text-white shadow-[0_4px_12px_rgba(0,0,0,0.14)] sm:h-10 sm:w-10 sm:text-base">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] font-headline text-base font-extrabold leading-none tracking-tight text-white shadow-[0_4px_12px_rgba(0,0,0,0.14)]">
                               DL
                             </div>
                             <div className="min-w-0 leading-tight">
-                              <div className="font-headline text-[1.05rem] font-extrabold leading-none tracking-tight text-[var(--text)] sm:text-[1.125rem]">
+                              <div className="whitespace-nowrap font-headline text-[1.05rem] font-bold leading-none tracking-tight text-[var(--text-secondary)] sm:text-[1.125rem]">
                                 {tabletBrandName}
                               </div>
                               <div
-                                className="mt-1 hidden min-[920px]:block text-[11px] leading-snug text-[var(--muted)] sm:text-xs"
+                                className="mt-0.5 hidden min-[860px]:block whitespace-nowrap text-xs leading-snug text-[color-mix(in_srgb,var(--text-secondary)_80%,transparent)]"
                                 title={tagline}
                               >
                                 Cockpit financier
@@ -634,43 +638,45 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                             </div>
                           </Link>
                           <div
-                            className="hidden h-9 w-px shrink-0 self-center bg-[color-mix(in_srgb,var(--border)_65%,transparent)] min-[480px]:block sm:h-10"
+                            className="hidden h-8 w-px shrink-0 self-center bg-[color-mix(in_srgb,var(--text)_10%,transparent)] min-[480px]:block"
                             aria-hidden
                           />
                           <h1 className="shrink-0 whitespace-nowrap pl-0.5 font-headline text-[1.3rem] font-extrabold leading-none tracking-[-0.02em] text-[var(--text)] min-[900px]:text-[1.45rem]">
                             Pilotage
                           </h1>
-                          <div className="min-h-0 min-w-0 flex-1 shrink" aria-hidden />
-                          <button
-                            type="button"
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--panel-2)] active:bg-[var(--panel-2)]"
-                            aria-label="Notifications (bientôt disponible)"
-                          >
-                            <Icon name="notifications" size={17} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setMenuOpen(true)}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] transition-colors hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] active:bg-[var(--panel-2)]"
-                            aria-label="Menu navigation"
-                            aria-expanded={menuOpen}
-                            aria-controls="linky-tablet-nav-drawer"
-                          >
-                            {menuIcon}
-                          </button>
-                          <div className="flex min-w-0 max-w-[min(10rem,28vw)] shrink-0 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-2 py-1.5 shadow-[0_3px_11px_rgba(0,0,0,0.11)]">
-                            <div
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--accent)] font-headline text-sm font-extrabold text-white"
-                              aria-hidden
+                          <div className="min-h-0 min-w-0 flex-1" aria-hidden />
+                          <div className="flex shrink-0 items-center gap-2">
+                            <button
+                              type="button"
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--panel-2)] active:bg-[var(--panel-2)]"
+                              aria-label="Notifications (bientôt disponible)"
                             >
-                              {sessionInitial}
+                              <Icon name="notifications" size={17} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setMenuOpen(true)}
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] transition-colors hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] active:bg-[var(--panel-2)]"
+                              aria-label="Menu navigation"
+                              aria-expanded={menuOpen}
+                              aria-controls="linky-tablet-nav-drawer"
+                            >
+                              {menuIcon}
+                            </button>
+                            <div className="flex min-w-0 max-w-[220px] shrink-0 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-2 py-1.5 shadow-[0_3px_11px_rgba(0,0,0,0.11)]">
+                              <div
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] font-headline text-sm font-extrabold text-white"
+                                aria-hidden
+                              >
+                                {sessionInitial}
+                              </div>
+                              <span
+                                className="min-w-0 truncate text-[13px] font-semibold leading-snug text-[var(--text)]"
+                                title={tenantDisplayLabel}
+                              >
+                                {tenantDisplayLabel}
+                              </span>
                             </div>
-                            <span
-                              className="min-w-0 truncate text-[13px] font-semibold leading-snug text-[var(--text)]"
-                              title={tenantDisplayLabel}
-                            >
-                              {tenantDisplayLabel}
-                            </span>
                           </div>
                         </div>
                         {cockpitTabletBusinessFiltersRow}
