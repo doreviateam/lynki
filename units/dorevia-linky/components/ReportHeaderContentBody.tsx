@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { IntegrityBadge } from "@/components/IntegrityBadge";
 import { Icon } from "@/components/Icon";
 import { TenantSelector } from "@/components/TenantSelector";
@@ -12,8 +14,13 @@ import { companyDisplayLabel, normalizeCompanyId, safeReactText } from "@/app/li
 import { UI_STATE_LABELS } from "@/app/lib/cockpit/ui-state-labels";
 import { COCKPIT_HEADER_SHOW_TRUST_IN_CONTEXT_STRIP } from "@/app/lib/cockpit/cockpit-header-flags";
 import { COCKPIT_HEADER_FILTER_LABEL } from "@/app/lib/cockpit/cockpit-typography";
+import { navHrefWithTenant } from "@/components/layout/navTenantHref";
 
 export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
+  const searchParams = useSearchParams();
+  const tenantQs = searchParams.get("tenant");
+  const pilotageHomeHref = navHrefWithTenant("/", tenantQs);
+
   const {
     productName,
     tagline,
@@ -270,7 +277,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
       <div
         className={
           cockpitBandTablet
-            ? "mx-auto flex w-full min-w-0 max-w-full flex-wrap items-center justify-center gap-2 md:mx-0 md:w-full md:min-w-0 md:flex-nowrap md:justify-start md:gap-2.5 lg:mx-auto lg:w-auto lg:justify-center"
+            ? "flex w-max min-w-full max-w-none flex-nowrap items-center gap-2 py-0.5 min-[900px]:gap-2.5"
             : "mx-auto flex w-full min-w-0 max-w-full flex-wrap items-center justify-center gap-2 sm:gap-3 md:mx-0 md:w-full md:min-w-0 md:flex-nowrap md:justify-start md:gap-3.5 lg:mx-auto lg:w-auto lg:justify-center"
         }
         role="group"
@@ -280,7 +287,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
           <div
             className={
               cockpitBandTablet
-                ? "flex min-w-0 w-full max-w-full flex-nowrap items-center justify-center gap-2 md:w-full md:justify-start md:gap-2.5 lg:w-auto lg:justify-center"
+                ? "flex w-max max-w-none flex-nowrap items-center gap-2 min-[900px]:gap-2.5"
                 : "flex min-w-0 w-full max-w-full flex-nowrap items-center justify-center gap-2.5 sm:gap-3 md:w-full md:justify-start md:gap-3.5 lg:w-auto lg:justify-center"
             }
           >
@@ -288,7 +295,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
             <div
               className={
                 cockpitBandTablet
-                  ? "touch-pan-x flex min-w-0 flex-1 basis-0 flex-nowrap items-center justify-start gap-2 overflow-x-auto overflow-y-visible py-0.5 [scrollbar-width:thin] md:gap-2.5 lg:flex-none lg:basis-auto"
+                  ? "flex shrink-0 flex-nowrap items-center gap-2 min-[900px]:gap-2.5"
                   : "touch-pan-x flex min-w-0 flex-1 basis-0 flex-nowrap items-center justify-start gap-2.5 overflow-x-auto overflow-y-visible py-0.5 [scrollbar-width:thin] sm:gap-3 md:gap-3.5 lg:flex-none lg:basis-auto"
               }
               aria-label="Filtres tenant et société"
@@ -297,7 +304,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                 <div
                   className={
                     cockpitBandTablet
-                      ? `${cockpitFilterShellClass} min-w-[7.25rem] max-w-[13rem] md:max-w-[10rem] lg:max-w-[11rem]`
+                      ? `${cockpitFilterShellClass} min-w-[120px] max-w-[13rem] shrink-0 overflow-hidden min-[900px]:min-w-[132px]`
                       : `${cockpitFilterShellClass} min-w-[124px] max-w-[16rem] md:max-w-[11.5rem] lg:max-w-[13rem] xl:max-w-[16rem]`
                   }
                 >
@@ -320,7 +327,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                 <div
                   className={
                     cockpitBandTablet
-                      ? `${cockpitFilterShellClass} min-w-[8rem] max-w-[9.5rem] shrink-0 overflow-hidden sm:max-w-[10rem] md:max-w-[10.5rem]`
+                      ? `${cockpitFilterShellClass} min-w-[180px] max-w-[14rem] shrink-0 overflow-hidden min-[900px]:min-w-[200px]`
                       : `${cockpitFilterShellClass} min-w-[9rem] max-w-[11.25rem] shrink-0 overflow-hidden sm:max-w-[11.75rem] md:max-w-[12rem] lg:max-w-[12.5rem] xl:max-w-[13.25rem]`
                   }
                 >
@@ -371,7 +378,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                 <div
                   className={
                     cockpitBandTablet
-                      ? `${cockpitFilterShellClass} min-w-[6rem] max-w-[7rem] shrink-0 overflow-hidden sm:max-w-[7.25rem] md:w-[7.25rem] md:max-w-[7.25rem]`
+                      ? `${cockpitFilterShellClass} min-w-[140px] max-w-[10rem] shrink-0 overflow-hidden min-[900px]:min-w-[152px]`
                       : `${cockpitFilterShellClass} min-w-[6.5rem] max-w-[7.75rem] shrink-0 sm:max-w-[8rem] md:w-[8rem] md:max-w-[8rem] lg:w-[8.25rem] lg:max-w-[8.25rem] xl:w-auto xl:max-w-[9.5rem] overflow-hidden`
                   }
                 >
@@ -405,7 +412,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                 <div
                   className={
                     cockpitBandTablet
-                      ? "flex min-h-[46px] w-[5.25rem] shrink-0 flex-col items-center justify-center gap-0 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-2 py-1.5 text-center shadow-[0_3px_11px_rgba(0,0,0,0.11)]"
+                      ? "flex min-h-[46px] w-[84px] min-w-[84px] shrink-0 flex-col items-center justify-center gap-0 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-2 py-1.5 text-center shadow-[0_3px_11px_rgba(0,0,0,0.11)] min-[900px]:w-[88px] min-[900px]:min-w-[88px]"
                       : "flex min-h-[52px] w-[5.75rem] shrink-0 flex-col items-center justify-center gap-0 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-3 py-2 text-center shadow-[0_4px_14px_rgba(0,0,0,0.14)]"
                   }
                 >
@@ -486,101 +493,116 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                       : "rounded-[20px] border border-[var(--border)] bg-[var(--panel)] shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
                   }
                 >
-                  <div
-                    className={
-                      cockpitBandTablet
-                        ? "grid grid-cols-1 gap-3 px-3 py-3 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto] md:items-center md:gap-3 md:px-3.5 md:py-3.5"
-                        : "grid grid-cols-1 gap-4 px-4 py-3.5 sm:px-5 sm:py-4 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto] md:items-center md:gap-4 md:px-5 md:py-4 lg:gap-6 lg:px-6 lg:py-5"
-                    }
-                  >
-                    <div
-                      className={
-                        cockpitBandTablet
-                          ? "relative z-10 min-w-0 shrink-0 md:max-w-[10.5rem] md:pr-2"
-                          : "relative z-10 min-w-0 shrink-0 md:max-w-[12rem] md:pr-3 lg:max-w-none lg:pr-5"
-                      }
-                    >
-                      <div
-                        className={
-                          cockpitBandTablet
-                            ? "text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]"
-                            : "text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]"
-                        }
-                      >
-                        Vue active
+                  {cockpitBandTablet ? (
+                    <div className="flex min-w-0 flex-col">
+                      {/* Tablette / iPad — deux rangées fixes (CDCF / spec header dédié) : marque + vue + filtres + actions, puis périmètre actif. */}
+                      <div className="flex min-w-0 flex-nowrap items-center gap-2.5 px-3 py-2.5 min-[900px]:gap-3.5 md:px-3.5 md:py-3">
+                        <Link
+                          href={pilotageHomeHref}
+                          className="group flex shrink-0 items-center gap-2 rounded-xl outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--panel-2)_55%,transparent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                          aria-label="Retour au cockpit de pilotage"
+                        >
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] font-headline text-sm font-extrabold leading-none tracking-tight text-white shadow-[0_4px_12px_rgba(0,0,0,0.14)] sm:h-10 sm:w-10 sm:text-base">
+                            DL
+                          </div>
+                          <div className="min-w-0 max-w-[6rem] leading-tight sm:max-w-[8rem]">
+                            <div className="font-headline whitespace-nowrap text-[14px] font-bold tracking-tight text-[var(--text-secondary)] sm:text-[15px]">
+                              {productName.includes(" ") ? (
+                                <>
+                                  <span className="text-[var(--logo-dorevia)]">{productName.split(" ")[0]}</span>{" "}
+                                  <span className="text-[var(--logo-lynki)]">{productName.slice(productName.indexOf(" ") + 1)}</span>
+                                </>
+                              ) : (
+                                <span className="text-[var(--text-secondary)]">{productName}</span>
+                              )}
+                            </div>
+                            <div className="mt-0.5 hidden text-[10px] leading-tight text-[var(--muted)] min-[860px]:block" title={tagline}>
+                              Cockpit financier
+                            </div>
+                          </div>
+                        </Link>
+                        <div
+                          className="hidden h-9 w-px shrink-0 self-center bg-[color-mix(in_srgb,var(--border)_65%,transparent)] min-[480px]:block sm:h-10"
+                          aria-hidden
+                        />
+                        <h1 className="shrink-0 whitespace-nowrap pl-0.5 font-headline text-[1.3rem] font-extrabold leading-none tracking-[-0.02em] text-[var(--text)] min-[900px]:text-[1.45rem]">
+                          Pilotage
+                        </h1>
+                        <div className="min-w-0 flex-1 self-center overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 pt-0.5 [scrollbar-width:thin] [-webkit-overflow-scrolling:touch]">
+                          {cockpitCaroleFilterCenter}
+                        </div>
+                        <button
+                          type="button"
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--panel-2)] active:bg-[var(--panel-2)]"
+                          aria-label="Notifications (bientôt disponible)"
+                        >
+                          <Icon name="notifications" size={17} />
+                        </button>
                       </div>
-                      <h1
-                        className={
-                          cockpitBandTablet
-                            ? "font-headline mt-0.5 text-[1.35rem] font-extrabold tracking-tight text-[var(--text)] sm:text-[1.4rem]"
-                            : "font-headline mt-1 text-[1.5rem] font-extrabold tracking-tight text-[var(--text)] sm:text-[1.625rem]"
-                        }
+                      <div
+                        className="flex min-w-0 flex-nowrap items-center gap-3 border-t border-[var(--border)] px-3 py-2.5 sm:px-3.5"
+                        aria-label="Périmètre actif"
                       >
+                        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                          <div
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--accent)] font-headline text-sm font-extrabold text-white"
+                            aria-hidden
+                          >
+                            {sessionInitial}
+                          </div>
+                          <span
+                            className="min-w-0 truncate text-[13px] font-semibold leading-snug text-[var(--text)]"
+                            title={tenantDisplayLabel}
+                          >
+                            {tenantDisplayLabel}
+                          </span>
+                        </div>
+                        <span
+                          className="ml-auto inline-flex max-w-[120px] shrink-0 items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--border)_45%,transparent)] bg-[color-mix(in_srgb,var(--panel)_88%,transparent)] px-2 py-0.5 text-[10px] font-medium leading-tight tabular-nums text-[var(--text-secondary)]"
+                          title={tenantId}
+                        >
+                          <Icon name="badge" size={11} className="shrink-0 opacity-80" aria-hidden />
+                          <span className="min-w-0 truncate">{tenantId}</span>
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                  <div className="grid grid-cols-1 gap-4 px-4 py-3.5 sm:px-5 sm:py-4 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto] md:items-center md:gap-4 md:px-5 md:py-4 lg:gap-6 lg:px-6 lg:py-5">
+                    <div className="relative z-10 min-w-0 shrink-0 md:max-w-[12rem] md:pr-3 lg:max-w-none lg:pr-5">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Vue active</div>
+                      <h1 className="font-headline mt-1 text-[1.5rem] font-extrabold tracking-tight text-[var(--text)] sm:text-[1.625rem]">
                         Pilotage
                       </h1>
                     </div>
                     <div className="flex min-w-0 justify-center md:justify-start lg:justify-center">
                       {cockpitCaroleFilterCenter}
                     </div>
-                    <div
-                      className={
-                        cockpitBandTablet
-                          ? "flex shrink-0 flex-wrap items-center justify-start gap-2 md:justify-end md:pl-1.5"
-                          : "flex shrink-0 flex-wrap items-center justify-start gap-2.5 sm:gap-3 md:justify-end md:pl-2 lg:pl-3"
-                      }
-                    >
+                    <div className="flex shrink-0 flex-wrap items-center justify-start gap-2.5 sm:gap-3 md:justify-end md:pl-2 lg:pl-3">
                       <button
                         type="button"
-                        className={
-                          cockpitBandTablet
-                            ? "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--panel-2)] active:bg-[var(--panel-2)]"
-                            : "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--panel-2)]"
-                        }
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--panel-2)]"
                         aria-label="Notifications (bientôt disponible)"
                       >
-                        <Icon name="notifications" size={cockpitBandTablet ? 17 : 18} />
+                        <Icon name="notifications" size={18} />
                       </button>
-                      <div
-                        className={
-                          cockpitBandTablet
-                            ? "flex min-w-0 max-w-full items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-2.5 py-1.5 shadow-[0_3px_11px_rgba(0,0,0,0.1)]"
-                            : "flex min-w-0 max-w-full items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-3 py-2 shadow-[0_4px_14px_rgba(0,0,0,0.12)]"
-                        }
-                      >
+                      <div className="flex min-w-0 max-w-full items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-3 py-2 shadow-[0_4px_14px_rgba(0,0,0,0.12)]">
                         <div
-                          className={
-                            cockpitBandTablet
-                              ? "flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[var(--accent)] font-headline text-sm font-extrabold text-white"
-                              : "flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[var(--accent)] font-headline text-base font-extrabold text-white"
-                          }
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[var(--accent)] font-headline text-base font-extrabold text-white"
                           aria-hidden
                         >
                           {sessionInitial}
                         </div>
                         <div className="min-w-0 leading-tight">
-                          <div
-                            className={
-                              cockpitBandTablet
-                                ? "truncate text-[13px] font-semibold leading-snug text-[var(--text)]"
-                                : "truncate text-sm font-semibold text-[var(--text)]"
-                            }
-                          >
-                            {tenantDisplayLabel}
-                          </div>
-                          <div
-                            className={
-                              cockpitBandTablet
-                                ? "mt-0.5 inline-flex max-w-full items-center gap-0.5 rounded-md border border-[var(--border)] bg-[var(--panel)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--warning)]"
-                                : "mt-1 inline-flex max-w-full items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--panel)] px-2 py-0.5 text-[11px] font-semibold text-[var(--warning)]"
-                            }
-                          >
-                            <Icon name="badge" size={cockpitBandTablet ? 12 : 14} className="shrink-0" aria-hidden />
+                          <div className="truncate text-sm font-semibold text-[var(--text)]">{tenantDisplayLabel}</div>
+                          <div className="mt-1 inline-flex max-w-full items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--panel)] px-2 py-0.5 text-[11px] font-semibold text-[var(--warning)]">
+                            <Icon name="badge" size={14} className="shrink-0" aria-hidden />
                             <span className="truncate">{tenantId}</span>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
+                  )}
                   {periodStatusLabel ? (
                     <div
                       className={

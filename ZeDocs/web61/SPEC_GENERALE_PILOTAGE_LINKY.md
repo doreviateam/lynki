@@ -1,8 +1,8 @@
 # Spécification générale — cockpit Pilotage (Lynki)
 
 **Fichier canonique :** `ZeDocs/web61/SPEC_GENERALE_PILOTAGE_LINKY.md`  
-**Version :** 0.6.2 — mars 2026  
-**Statut :** brouillon — **§8.0** doctrine multi-régimes ; **§8.3** / **§17** alignés (tactile assumé, hors périmètre adouci) ; **§7.6** bandeau ; CDCF **§3.18–§3.20** ; cadrage / maquettes phone & tablette ; tickets tactiles **EXECUTION_TICKETS_TACTILE_LINKY v0.2**  
+**Version :** 0.6.7 — mars 2026  
+**Statut :** brouillon — **§8.0** doctrine multi-régimes ; **§8.3** / **§17** alignés (tactile assumé, hors périmètre adouci) ; **§7.6** bandeau ; CDCF **§3.18–§3.20** ; cadrage / maquettes phone & tablette ; tickets tactiles **EXECUTION_TICKETS_TACTILE_LINKY v0.7**  
 **Portée :** vue **Pilotage** (cockpit)  
 **CDCF de référence :** [`cdcf.md`](./cdcf.md)  
 **Rôle :** pont **normatif exploitable** entre le CDCF et les specs filles ; ne substitue pas au CDCF (**§2.2** ci-dessous).
@@ -51,7 +51,7 @@ La présente spécification s’articule notamment avec :
 * **[`DOCTRINE_ETATS_UI_LINKY.md`](../web60/DOCTRINE_ETATS_UI_LINKY.md)** — norme d’états et badges (complément **§13–§14** ci-dessous) ;
 * les futures specs dédiées aux instruments **B / C** ou vues détail ;
 * recette / exécution Web60 ([`RECETTE_WEB60_LINKY.md`](../web60/RECETTE_WEB60_LINKY.md), [`EXECUTION_TICKETS_WEB60_LINKY.md`](../web60/EXECUTION_TICKETS_WEB60_LINKY.md)) ;
-* exécution refonte **tactile** phone + tablette ([`EXECUTION_TICKETS_TACTILE_LINKY.md`](./EXECUTION_TICKETS_TACTILE_LINKY.md) **v0.2** — tickets **T-PH-xxx** / **T-TB-xxx**, journal d’implémentation §8).
+* exécution refonte **tactile** phone + tablette ([`EXECUTION_TICKETS_TACTILE_LINKY.md`](./EXECUTION_TICKETS_TACTILE_LINKY.md) **v0.7** — **T-TB-002** réussi côté code, grille recette header iPad, **Annexe A**).
 
 ### 2.4 Index des renvois vers le CDCF
 
