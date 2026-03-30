@@ -67,6 +67,13 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
   /** Bandeau Carole fusionné en régime tablette : cockpit tactile compact, pas desktop rétréci. */
   const cockpitBandTablet = cockpitAppBar?.bandLayout === "tablet";
 
+  /** iPad / tablette : lockup aligné sidebar — « Lynki » + sous-texte (sans préfixe type « Dorevia »). */
+  const tabletBrandName = useMemo(() => {
+    const parts = productName.trim().split(/\s+/);
+    if (parts.length >= 2) return parts[parts.length - 1] ?? productName;
+    return productName;
+  }, [productName]);
+
   const periodStatusLabel = useMemo(() => getPeriodContextLabel(periodKey, periodYear, periodStatuses), [periodKey, periodYear, periodStatuses]);
 
   const tenantDisplayLabel = useMemo(() => {
@@ -499,24 +506,17 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                       <div className="flex min-w-0 flex-nowrap items-center gap-2.5 px-3 py-2.5 min-[900px]:gap-3.5 md:px-3.5 md:py-3">
                         <Link
                           href={pilotageHomeHref}
-                          className="group flex shrink-0 items-center gap-2 rounded-xl outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--panel-2)_55%,transparent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                          className="group flex shrink-0 items-center gap-2.5 rounded-xl outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--panel-2)_55%,transparent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                           aria-label="Retour au cockpit de pilotage"
                         >
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] font-headline text-sm font-extrabold leading-none tracking-tight text-white shadow-[0_4px_12px_rgba(0,0,0,0.14)] sm:h-10 sm:w-10 sm:text-base">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] font-headline text-sm font-extrabold leading-none tracking-tight text-white shadow-[0_4px_12px_rgba(0,0,0,0.14)] sm:h-10 sm:w-10 sm:text-base">
                             DL
                           </div>
-                          <div className="min-w-0 max-w-[6rem] leading-tight sm:max-w-[8rem]">
-                            <div className="font-headline whitespace-nowrap text-[14px] font-bold tracking-tight text-[var(--text-secondary)] sm:text-[15px]">
-                              {productName.includes(" ") ? (
-                                <>
-                                  <span className="text-[var(--logo-dorevia)]">{productName.split(" ")[0]}</span>{" "}
-                                  <span className="text-[var(--logo-lynki)]">{productName.slice(productName.indexOf(" ") + 1)}</span>
-                                </>
-                              ) : (
-                                <span className="text-[var(--text-secondary)]">{productName}</span>
-                              )}
+                          <div className="min-w-0 leading-tight">
+                            <div className="font-headline text-[1.05rem] font-extrabold leading-none tracking-tight text-[var(--text)] sm:text-[1.125rem]">
+                              {tabletBrandName}
                             </div>
-                            <div className="mt-0.5 hidden text-[10px] leading-tight text-[var(--muted)] min-[860px]:block" title={tagline}>
+                            <div className="mt-1 text-[11px] leading-snug text-[var(--muted)] sm:text-xs" title={tagline}>
                               Cockpit financier
                             </div>
                           </div>
