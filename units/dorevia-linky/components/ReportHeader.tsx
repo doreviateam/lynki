@@ -112,6 +112,13 @@ export function ReportHeader({
     setMenuOpen(false);
     setPilotagePerimeterOpen(false);
   }, [tenantCtx?.resolvedTenant]);
+
+  /** T-TB-003 : passage bandeau tablette → desktop (ex. redimensionnement ≥ 1024) — éviter menu / drawer résiduels. */
+  useEffect(() => {
+    if (cockpitAppBar?.bandLayout === "desktop") {
+      setMenuOpen(false);
+    }
+  }, [cockpitAppBar?.bandLayout]);
   const branding = tenantCtx?.tenantConfig?.chrome?.branding;
   const headerOpts = tenantCtx?.tenantConfig?.chrome?.header;
   const workspace = tenantCtx?.tenantConfig?.workspace;

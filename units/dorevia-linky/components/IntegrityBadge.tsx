@@ -38,6 +38,12 @@ interface IntegrityBadgeProps {
    * `secondary` : signal de confiance — même information, rendu plus discret (ne rivalise pas avec les filtres).
    */
   visualWeight?: "default" | "secondary";
+  /**
+   * `compact` : libellé court (`N preuves`) — détail périmètre / cumul dans le `title` uniquement (ex. chrome iPad).
+   * `numberOnly` : chiffre seul (ex. phone T-PH-002) — détail dans le `title` / tooltip.
+   * `full` (défaut) : `N preuves de la vue` / `N preuves cumulées` comme aujourd’hui.
+   */
+  countLabelMode?: "full" | "compact" | "numberOnly";
 }
 
 export function IntegrityBadge({
@@ -47,6 +53,7 @@ export function IntegrityBadge({
   onRefresh,
   className = "",
   visualWeight = "default",
+  countLabelMode = "full",
 }: IntegrityBadgeProps) {
   const [status, setStatus] = useState<PlatformStatus | null>(null);
 
@@ -95,11 +102,20 @@ export function IntegrityBadge({
   const pct = status.sealed_pct;
   const complete = sealedCountComplete !== false;
   const viewLabelSuffix = isViewScopedCount ? "preuves de la vue" : "preuves cumulées";
+  const compactCountSuffix = "preuves";
   const label =
     hasCount && displayCount != null
-      ? complete
-        ? `${displayCount} ${viewLabelSuffix}`
-        : `${displayCount} ${viewLabelSuffix} (partiel)`
+      ? countLabelMode === "numberOnly"
+        ? complete
+          ? `${displayCount}`
+          : `${displayCount}*`
+        : countLabelMode === "compact"
+          ? complete
+            ? `${displayCount} ${compactCountSuffix}`
+            : `${displayCount} ${compactCountSuffix} (partiel)`
+          : complete
+            ? `${displayCount} ${viewLabelSuffix}`
+            : `${displayCount} ${viewLabelSuffix} (partiel)`
       : pct != null && (state === "STATE_OK" || state === "STATE_PARTIAL")
         ? `${pct} % couverts`
         : baseLabel;
@@ -136,19 +152,36 @@ export function IntegrityBadge({
         : "border-l-red-500/50";
 
   const shellClass =
-    visualWeight === "secondary"
-      ? `border border-[color-mix(in_srgb,var(--border)_30%,transparent)] border-l-2 ${leftAccentClass} bg-[color-mix(in_srgb,var(--surface)_96%,transparent)] text-[color-mix(in_srgb,var(--text-secondary)_88%,var(--muted)_12%)] !font-normal text-[10px] sm:text-[10px]`
-      : colorClass;
+    countLabelMode === "numberOnly"
+      ? `!border-0 !bg-transparent !px-0 !py-0 !shadow-none tabular-nums ${
+          !complete || state === "STATE_PARTIAL"
+            ? "text-[var(--warning)]"
+            : state === "STATE_OK"
+              ? "text-[var(--positive)]"
+              : "text-[var(--negative)]"
+        }`
+      : visualWeight === "secondary"
+        ? `border border-[color-mix(in_srgb,var(--border)_30%,transparent)] border-l-2 ${leftAccentClass} bg-[color-mix(in_srgb,var(--surface)_96%,transparent)] text-[color-mix(in_srgb,var(--text-secondary)_88%,var(--muted)_12%)] !font-normal text-[10px] sm:text-[10px]`
+        : colorClass;
 
   return (
     <span
-      className={`inline-flex w-max max-w-full shrink-0 flex-nowrap items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium ${visualWeight === "secondary" ? "!gap-1 !px-1.5 !py-px" : ""} ${shellClass} ${className}`.trim()}
+      className={`inline-flex w-max max-w-full shrink-0 flex-nowrap items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium ${countLabelMode === "numberOnly" ? "!gap-0.5 !border-0" : visualWeight === "secondary" ? "!gap-1 !px-1.5 !py-px" : ""} ${shellClass} ${className}`.trim()}
       title={title}
       data-testid="integrity-badge"
     >
-      <span className="inline-flex shrink-0 items-center gap-1">
-        <span aria-hidden>{icon}</span>
-        <span className="hidden sm:inline" data-testid="integrity-badge-label">
+      <span className={`inline-flex shrink-0 items-center ${countLabelMode === "numberOnly" ? "gap-0" : "gap-1"}`}>
+        {countLabelMode !== "numberOnly" ? <span aria-hidden>{icon}</span> : null}
+        <span
+          className={
+            countLabelMode === "numberOnly"
+              ? "inline min-w-[1.5rem] text-center text-[11px] tabular-nums font-semibold leading-none"
+              : countLabelMode === "compact"
+                ? "inline max-w-[10rem] truncate text-[10px] tabular-nums leading-tight sm:max-w-none"
+                : "hidden sm:inline"
+          }
+          data-testid="integrity-badge-label"
+        >
           {label}
         </span>
       </span>
@@ -159,11 +192,11 @@ export function IntegrityBadge({
             e.stopPropagation();
             onRefresh();
           }}
-          className="shrink-0 rounded p-0.5 hover:bg-black/10 hover:bg-white/10"
+          className={`shrink-0 rounded hover:bg-black/10 hover:bg-white/10 ${countLabelMode === "numberOnly" ? "p-px" : "p-0.5"}`}
           title="Rafraîchir le nombre de preuves"
           aria-label="Rafraîchir"
         >
-          <span aria-hidden>↻</span>
+          <span aria-hidden className={countLabelMode === "numberOnly" ? "text-[11px]" : ""}>↻</span>
         </button>
       ) : null}
     </span>

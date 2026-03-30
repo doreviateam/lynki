@@ -35,7 +35,10 @@ export function BottomNav() {
   const tenantQs = searchParams.get("tenant");
 
   return (
-    <nav className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around border-t border-slate-200 bg-white/80 pb-6 pt-2 shadow-[0_-1px_3px_0_rgba(0,0,0,0.05)] backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80 md:hidden">
+    <nav
+      className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around border-t border-slate-200 bg-white/80 pb-6 pt-2 shadow-[0_-1px_3px_0_rgba(0,0,0,0.05)] backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80 lg:hidden"
+      aria-label="Navigation principale Lynki"
+    >
       {ITEMS.map((item) => {
         const active = isActive(pathname, item);
         return (

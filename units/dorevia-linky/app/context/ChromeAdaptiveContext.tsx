@@ -16,6 +16,7 @@ import {
 } from "@/app/lib/chrome-constants";
 import { getScrollTop, shouldRevealChrome, type ScrollRevealState } from "@/app/lib/chrome-scroll";
 import { useInteractionMode, type InteractionMode } from "@/app/lib/chrome-device";
+import { useResponsiveRegime, type ResponsiveRegime } from "@/app/lib/cockpit/responsive-regime";
 import {
   recordChromeReveal,
   recordChromePinnedToggle,
@@ -45,6 +46,8 @@ interface ChromeAdaptiveContextValue {
   isChromeCollapsed: boolean;
   /** Mode d'interaction (desktop / tablet / mobile) — Phase 2 */
   interactionMode: InteractionMode;
+  /** Régime viewport T-TB-003 : mobile / tablette / desktop (seuils 768 / 1024), indépendant du seul `interactionMode`. */
+  responsiveRegime: ResponsiveRegime;
   /** Suspendre tous les timers (overlay ouvert, etc.) */
   setFrozen: (frozen: boolean) => void;
   /** Préférence "garder le bandeau visible" (session) */
@@ -58,6 +61,7 @@ const ChromeAdaptiveContext = createContext<ChromeAdaptiveContextValue | null>(n
 
 export function ChromeAdaptiveProvider({ children }: { children: React.ReactNode }) {
   const interactionMode = useInteractionMode();
+  const responsiveRegime = useResponsiveRegime();
   // État initial toujours expanded (spec v1.1.1 § 7decies) ; pas de transition avant montage client
   const [chromeState, setChromeState] = useState<ChromeState>("expanded");
   /** Par défaut épinglé : pas de masquage auto (lab / usage produit) ; l’utilisateur peut désactiver via le menu. */
@@ -241,12 +245,13 @@ export function ChromeAdaptiveProvider({ children }: { children: React.ReactNode
       isChromeVisible: isChromeVisible(chromeState),
       isChromeCollapsed: isChromeCollapsed(chromeState),
       interactionMode,
+      responsiveRegime,
       setFrozen,
       chromePinned,
       setChromePinned,
       revealChrome,
     }),
-    [chromeState, interactionMode, chromePinned, setFrozen, setChromePinned, revealChrome]
+    [chromeState, interactionMode, responsiveRegime, chromePinned, setFrozen, setChromePinned, revealChrome]
   );
 
   return (

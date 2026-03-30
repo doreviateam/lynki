@@ -1,11 +1,12 @@
 # Cadrage — version mobile Lynki
 
 **Fichier :** `ZeDocs/web61/CADRAGE_VERSION_MOBILE_LYNKI.md`  
-**Version :** 1.0 — mars 2026  
+**Version :** 1.1 — mars 2026  
 **Statut :** cadrage d’application — **complément** au CDCF, **sans** le substituer  
+**Dernière mise à jour :** footer métadonnées **non affiché** sur phone (SPEC **Annexe B.11**) ; preuves **vue** en badge header **« N preuves »**.  
 **Primauté :** en cas d’écart sur le fond fonctionnel, **[`cdcf.md`](./cdcf.md) prime** — notamment **§3.19** (mode phone mobile — persona Max).  
 **Articulation :** ce document **opérationnalise** l’intention produit mobile pour l’équipe conception / implémentation ; la norme détaillée phone reste au **CDCF §3.19**.  
-**Spec générale :** [`SPEC_GENERALE_PILOTAGE_LINKY.md`](./SPEC_GENERALE_PILOTAGE_LINKY.md) (**§8.0** à **§8.3**, **§17**).  
+**Spec générale :** [`SPEC_GENERALE_PILOTAGE_LINKY.md`](./SPEC_GENERALE_PILOTAGE_LINKY.md) (**§7.7**, **§8.0** à **§8.3**, **Annexe B** header phone, **§17**).  
 **Rappel :** Lynki distingue **quatre** régimes d’écran (Desktop, Laptop, Tablette, Phone) — **§8.0** de la spec générale et **§3.18.0** du CDCF ; le présent fichier ne couvre que le **phone** au-delà du CDCF.
 
 ---
@@ -138,12 +139,16 @@ Sur mobile, ce deuxième niveau peut être présenté :
 Le header mobile ne doit pas accumuler :
 
 * recherche ;
-* badge preuves ;
+* **plusieurs** signaux de confiance redondants (un **seul** badge compact **« N preuves »** pour la vue courante reste prévu — SPEC **Annexe B**) ;
 * date de mise à jour ;
 * icônes système multiples ;
 * actions secondaires.
 
 Ces éléments peuvent exister ailleurs, mais pas au cœur du header mobile.
+
+### 5.4 Navigation primaire et burger (mars 2026)
+
+La **navigation principale** entre **Pilotage** et **Synthèse** est portée par la **barre fixe en bas** (bottom navigation). Le **menu latéral** (burger) sur phone **ne duplique pas** ces entrées : il sert **outils** (Lexique, Aide) et **session** (thème, déconnexion). Voir **SPEC_GENERALE** **§7.7** / **Annexe B** et **T-PH-002 ter** dans [`EXECUTION_TICKETS_TACTILE_LINKY.md`](./EXECUTION_TICKETS_TACTILE_LINKY.md).
 
 ---
 
@@ -269,13 +274,12 @@ Sur mobile, les métadonnées système doivent être fortement réduites.
 
 Le footer système complet desktop ne doit pas être repris tel quel.
 
-On peut envisager :
+**Implémentation (mars 2026)** : la barre **`LinkyFooter`** (preuves cumulées, UX, sources, version) est **masquée** sur les viewports **&lt; sm** ; elle reste visible **tablette et desktop**. La priorité mobile est la lecture métier ; le **nombre de preuves de la vue** est porté par le **badge** dans la **ligne 1** du header (libellé compact **« N preuves »**), distinct du total cumulé.
 
-* soit rien ;
-* soit une métadonnée discrète dans un écran secondaire ;
-* soit un panneau « info technique » séparé.
+On peut encore envisager à terme :
 
-La priorité mobile est la lecture métier, pas l’exposition système.
+* une métadonnée discrète dans un écran secondaire ;
+* un panneau « info technique » séparé.
 
 ---
 

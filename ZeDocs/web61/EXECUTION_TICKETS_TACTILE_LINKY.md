@@ -1,6 +1,6 @@
 # EXECUTION_TICKETS_TACTILE_LINKY.md
 
-**Version :** 0.7 — mars 2026  
+**Version :** 0.9.4 — mars 2026  
 **Statut :** brouillon de pilotage  
 **Portée :** refonte tactile **Phone** + **Tablette / iPad** pour la vue **Pilotage**  
 **Références :** [`cdcf.md`](./cdcf.md) §3.19–§3.20 · [`SPEC_GENERALE_PILOTAGE_LINKY.md`](./SPEC_GENERALE_PILOTAGE_LINKY.md) · [`CADRAGE_VERSION_MOBILE_LYNKI.md`](./CADRAGE_VERSION_MOBILE_LYNKI.md) · [`EXECUTION_TICKETS_WEB60_LINKY.md`](../web60/EXECUTION_TICKETS_WEB60_LINKY.md) (lab, Max / Véréna)
@@ -17,22 +17,30 @@
 |----|--------|----------|--------|
 | T-PH-001 | Simplifier le header mobile | P0 | En cours (voir bis) |
 | T-PH-001 bis | Raccourcir et hiérarchiser le bandeau phone (lecture d’abord) | P0 | Fait (code — recette à confirmer) |
-| T-PH-002 | Reprioriser l’ordre de lecture mobile | P0 | À faire |
+| T-PH-002 | Header phone aligné sur la grammaire iPad | P0 | En cours (recette §6) |
+| T-PH-002 ter | Phone : **nav primaire = bottom nav** — burger **sans** Pilotage / Synthèse | P0 | Fait (code — recette) |
 | T-PH-003 | Renforcer la carte Trésorerie sur phone | P0 | À faire |
 | T-PH-004 | Recomposer la classe B sur phone | P1 | À faire |
 | T-PH-005 | Reléguer proprement la classe C | P1 | À faire |
-| T-PH-006 | Alléger navigation et footer mobile | P1 | À faire |
+| T-PH-006 | Alléger navigation et footer mobile | P1 | Fait (code — recette à confirmer) |
+| T-PH-007 | Reprioriser l’ordre de lecture mobile | P0 | À faire |
 | T-TB-001 | Recomposer le bandeau tablette | P0 | En cours (architecture portée par bis / ter + Annexe A) |
 | T-TB-001 bis | Raccord propre bandeau fusionné → première carte (tablette) | P0 | Fait (code — recette à confirmer) |
 | T-TB-001 ter | Bandeau tablette deux rangées (marque · vue · filtres ; périmètre actif) | P0 | Réussi structurellement (code + Annexe A) — recette visuelle §5 cas |
 | T-TB-002 | Micro-ajustement des coquilles filtres (largeurs mini / max) | P0 | Réussi côté code — **recette visuelle** (grille § T-TB-002) avant verdict final |
-| T-TB-003 | Stabiliser le bloc session tablette | P1 | À faire |
+| T-TB-003 | Doctrine responsive Lynki (mobile / tablette / desktop) — chrome exclusifs | P0 | **Doctrine gelée** (recette produit) — ne pas rouvrir sans arbitrage |
+| R-POL-Desktop | Polish visuel desktop (référence) — respirations, équilibre header / cartes / footer | P2 | À faire |
+| R-POL-Laptop | Polish densité « desktop compact » — cartes, montants, confort header | P1 | À faire |
+| R-POL-iPad | Polish présence tablette — occupation espace, moins « boîte centrée timide » | P1 | À faire |
 | T-TB-004 | Ajuster la grille A tablette | P1 | À faire |
 | T-TB-005 | Stabiliser la grille B tablette | P1 | À faire |
 | T-TB-006 | Repositionner la classe C tablette | P2 | À faire |
 | T-TB-007 | Recette tactile tablette | P1 | À faire |
+| T-TB-008 | Stabiliser le bloc session tablette | P1 | À faire |
 
 *Correspondance indicative avec l’ancien gréement numérique : T-PH-00x ≈ T-W61-TAC-10x, T-TB-00x ≈ T-W61-TAC-20x (voir fichier renvoi `EXECUTION_TICKETS_REFONTE_TACTILE_LINKY.md` si besoin).*
+
+*Note numérotation : **T-PH-002** couvre désormais le **header phone** (grammaire iPad compactée) ; l’ancien contenu « ordre de lecture scroll » est **T-PH-007**.*
 
 ---
 
@@ -79,6 +87,16 @@ Ils ne doivent pas être corrigés via une même série de micro-ajustements res
 ### 2.4 Desktop
 
 **Gel** du bandeau et de la grille **desktop** (≥ 1024, `bandLayout === "desktop"`) sauf régression bloquante.
+
+### 2.5 Régimes exclusifs (T-TB-003)
+
+Le découpage **mobile / tablette / desktop**, la matrice de visibilité (sidebar, burger, drawer, bottom nav, footers) et le **DoD** associé sont détaillés au ticket **§4 — T-TB-003** (doctrine responsive). T-TB-003 **complète** la règle §2.3 (Phone vs Tablette séparés) en imposant l’**exclusivité** des chromes par breakpoint.
+
+### 2.6 Gel de la doctrine responsive (mars 2026)
+
+**Constat recette produit :** les trois régimes sont **lisibles et distincts** (desktop = poste complet ; laptop = même logique desktop, plus tendu ; iPad = cockpit tablette sans sidebar, header dédié, footer compact).
+
+**Règle :** ne **pas** rouvrir le débat architecture (breakpoints, sidebar, burger, bottom nav, matrice chrome) sans **décision produit explicite**. Les suites de travail sont des **tickets de polish séparés par régime** — voir **Annexe B — R-POL-***.
 
 ---
 
@@ -155,7 +173,158 @@ Fait (code — mars 2026) · à **valider** en recette lab.
 
 ---
 
-### T-PH-002 — Reprioriser l’ordre de lecture mobile
+### T-PH-002 — Header phone aligné sur la grammaire iPad
+
+**Fichier canonique — norme détaillée** : [`SPEC_GENERALE_PILOTAGE_LINKY.md`](./SPEC_GENERALE_PILOTAGE_LINKY.md) **§7.7** · **Annexe B** (header phone).  
+**Ticket** `T-PH-002` · **Priorité** P0 · **Statut** En cours (**recette §6** avant clôture) · **Références** présent document, T-TB-001 ter, T-TB-002, **T-TB-003** (doctrine responsive) · **Complément** **`T-PH-002 ter`** (burger phone **≠** nav primaire) · **Code** : `ReportHeaderContentBody.tsx` — `pilotagePhoneCompact` + tiroir **`linky-tactile-nav-drawer`**, panneau Filtres ; **`DashboardWithFilters`** — résumé ligne 2 court.
+
+#### 1. Objectif
+
+Revoir le header phone pour l’aligner sur la **même famille visuelle et fonctionnelle** que le header iPad.
+
+**Principe directeur**
+
+> le header phone doit être une **version compactée** du header iPad,  
+> et **non** un système distinct.
+
+Le header phone doit continuer à exprimer : la **marque Lynki**, la **vue active**, le **niveau minimal de confiance**, le **contexte actif**, l’accès à la **navigation**, l’accès au **contexte métier**.
+
+#### 2. Périmètre
+
+**Inclus**
+
+* définition du header phone cible ;
+* alignement de la grammaire visuelle avec le header iPad ;
+* compaction du chrome pour **`W < 768px`** ;
+* conservation de **`Pilotage`** comme repère principal ;
+* conservation du **burger** comme accès aux **outils et session** (phone : **pas** la navigation primaire — voir **T-PH-002 ter**) ;
+* conservation d’un **badge compact** de preuves de la vue ;
+* conservation d’un **repère d’entité active** ;
+* **deuxième ligne** compacte de contexte métier ;
+* ouverture des **filtres détaillés** via panneau / sheet si nécessaire ;
+* recette sur les **largeurs phone** de référence.
+
+**Exclus**
+
+* refonte du **drawer** phone complet hors ajustements nécessaires au header ;
+* refonte **large** du **footer** hors **T-PH-006** (bandeau métadonnées masqué phone, voir ticket) ;
+* refonte de la **bottom navigation** ;
+* évolution **backend** ;
+* changement de **wording métier** des cartes.
+
+#### 3. Règles
+
+##### 3.1 Doctrine générale
+
+Le header phone appartient à la **même famille** que le header tablette : marque, vue active, preuves, entité active, navigation, contexte métier — avec **compaction** et **priorisation** plus strictes.
+
+##### 3.2 Structure générale — deux lignes maximum
+
+**Ligne 1 — chrome principal** — ordre : `Marque compacte | Vue active | Spacer | Preuves | Entité active | Burger`.
+
+**Ligne 2 — contexte métier** — admis : **résumé compact** du contexte **ou** rangée de chips / filtres scrollables. **Par défaut produit :** résumé + **édition détaillée via panneau / sheet**.
+
+##### 3.3 Priorité d’information (si manque de place)
+
+1. `Pilotage`  
+2. burger  
+3. preuves de la vue  
+4. entité active minimale  
+5. marque Lynki  
+6. filtres détaillés visibles en permanence (à éviter)
+
+**Conséquences** : `Pilotage` et burger **jamais** masqués ; preuves **si possible** ; marque **compactable** ; contexte détaillé **résumé**.
+
+##### 3.4 Ligne 1 — détail
+
+* **Marque** : pastille `DL` toujours ; `Lynki` si largeur ; **pas** de « Cockpit financier » sur phone ; bloc cliquable (accueil cockpit).  
+* **Vue active** : `Pilotage` — toujours visible, **nowrap**, plus forte que la marque.  
+* **Preuves** : badge compact (nombre ± mot court) ; pas de phrase type « preuves de la vue » ; détail en **tooltip / panneau**.  
+* **Entité** : avatar ; libellé court si place ; **min** = avatar seul.  
+* **Burger** : toujours visible, à droite, entrée drawer.  
+* **Cloche** : **masquée par défaut** sur phone ; uniquement si largeur confortable **sans** sacrifier Pilotage / burger / preuves.
+
+##### 3.5 Ligne 2 — contexte métier
+
+**Variante recommandée** : une ligne, texte secondaire, **truncate** autorisé, tap → filtres (Tenant, Société, Période, Année).
+
+**Variante secondaire** : chips scrollables — seulement si lisible ; sinon éviter.
+
+##### 3.6 Filtres détaillés phone
+
+Pas d’obligation d’exposition permanente dans le header ; accès via **ligne 2**, **drawer** ou **sheet** ; tactile, espacements suffisants, fermeture simple, cohérence avec sélecteurs tablette.
+
+##### 3.7 Drawer tactile — tablette vs phone
+
+* **Tablette** : tiroir **complet** — Pilotage, Synthèse comptable, Lexique, Aide, Thème, Déconnexion (overlay, pleine hauteur, scroll, fermeture accessible).
+* **Phone — `T-PH-002 ter`** : la **navigation primaire** est la **bottom nav** (Pilotage, Synthèse). Le tiroir **ne duplique pas** ces entrées : il ne porte que **Outils** (Lexique, Aide) et **Session** (thème, déconnexion) ; en-tête du panneau **« Plus »** ; `aria-label` **« Outils et session »**.
+
+#### 4. Implémentation
+
+**Plage** : `W < 768px`.
+
+**Structure cible (noms indicatifs)** : `MobileHeader` (ligne 1 + ligne 2) articulé avec **`MobileFilterSheet`** ; aujourd’hui porté par la branche **`pilotagePhoneCompact`** dans `ReportHeaderContentBody` (pas de refactor forcé en fichiers séparés tant que la norme **Annexe B** est respectée).
+
+**CSS / structure — ligne 1** : `flex`, `items-center`, `gap` contrôlé, `min-w-0`, **`flex-nowrap`**. **Ligne 2** : `min-w-0`, `truncate`, hauteur compacte, texte secondaire. **Blocs** : marque / vue / preuves / burger **`shrink-0`** ; vue **`whitespace-nowrap`** ; entité **`min-w-0`** + truncate sur libellé. **Variante chips** : `overflow-x-auto`, `scrollbar-width: thin`, `-webkit-overflow-scrolling: touch`, `overscroll-x-contain`.
+
+**Breakpoints internes** (alignés **SPEC Annexe B**) :
+
+| Palier | Largeur | Indications |
+|--------|---------|--------------|
+| Phone serré | `< 390px` | `DL` seul ; preuves ultra compactes ; avatar seul ; ligne 2 courte |
+| Phone standard | `390px ≤ W < 480px` | `DL` + Lynki si possible ; résumé synthétique |
+| Phone confortable | `480px ≤ W < 768px` | `DL` + Lynki ; preuves plus lisibles ; avatar + libellé ; ligne 2 plus descriptive |
+
+#### 5. DoD
+
+**Fonctionnel** : même **famille** que header iPad ; `Pilotage` et burger **toujours** visibles ; preuves **compactes** ; entité **identifiable** ; ligne 2 **lisible** ; accès filtres ; drawer accessible.
+
+**Visuel** : pas de **3e ligne** accidentelle ; badge preuves **sobre** ; entité **non dominante** ; pas de cloche **au prix d’une surcharge** ; pas d’apparence « header générique ».
+
+**Technique** : branche phone **distincte** de la tablette ; compaction **explicite** ; pas de wrap implicite ; paliers **serré / standard / confortable** stables.
+
+#### 6. Recette
+
+**Breakpoints** : 360×800, 375×812, 390×844, 430×932, 480×932.
+
+**Cas obligatoires** : ligne 1 (Pilotage, burger, preuves, marque, entité) ; ligne 2 (résumé **court** société · année, ouverture filtres) ; drawer **phone** sans liens Pilotage / Synthèse ; drawer **tablette** inchangé ; compaction ; **non-régression** : bascule Synthèse via **bottom nav**, session complète dans le tiroir phone.
+
+#### 7. Résultat attendu
+
+À l’issue de **T-PH-002** : header phone = **version compactée** du header iPad ; famille chrome **cohérente** phone ↔ tablette ; contexte métier **visible sans surcharge**.
+
+#### 8. Journal — formulation courte
+
+> T-PH-002 aligne le header phone sur la grammaire du header iPad en conservant marque, vue active, preuves, entité active et burger, avec une compaction plus forte et une seconde ligne de contexte métier synthétique, afin d’éviter un header mobile divergent du régime tablette.
+
+---
+
+### T-PH-002 ter — Phone : navigation primaire = bottom nav (burger sans Pilotage / Synthèse)
+
+**Priorité** P0 · **Statut** Fait (code — recette à confirmer) · **Références** [`SPEC_GENERALE_PILOTAGE_LINKY.md`](./SPEC_GENERALE_PILOTAGE_LINKY.md) **§7.7**, **Annexe B.11** · **Code** `ReportHeaderContentBody.tsx`, `DashboardWithFilters.tsx`
+
+#### 1. Régle produit
+
+Sur **phone**, **Pilotage** et **Synthèse** sont assurés **uniquement** par la **barre de navigation basse**. Le **burger** ouvre un tiroir **« Plus »** limité à **outils** (Lexique, Aide) et **session** (thème, déconnexion) — **pas** de duplication des entrées de la bottom nav.
+
+#### 2. Périmètre
+
+* **Inclus** : adaptation du tiroir tactile quand `pilotagePhoneCompact` ; `aria-label` cohérents ; ligne 2 header : résumé **société · année** (détail période dans le panneau Filtres).
+* **Exclus** : modification du tiroir **tablette** (section Dashboard inchangée).
+
+#### 3. DoD
+
+* Aucun lien **Pilotage** / **Synthèse** dans le tiroir **phone**.
+* Bottom nav inchangée pour la navigation entre vues.
+* Session (thème, déconnexion) toujours accessible depuis le tiroir phone.
+
+#### 4. Journal — formulation courte
+
+> T-PH-002 ter évite la double navigation phone en réservant Pilotage et Synthèse à la bottom nav et en réduisant le burger à outils et session.
+
+---
+
+### T-PH-007 — Reprioriser l’ordre de lecture mobile
 
 **Objet**  
 Faire entrer immédiatement l’utilisateur dans la lecture métier.
@@ -190,6 +359,8 @@ P0
 
 **Statut**  
 À faire
+
+*Ancien **T-PH-002** — renuméroté lors de l’introduction du ticket header phone (**T-PH-002**).*
 
 ---
 
@@ -306,12 +477,16 @@ Maintenir les éléments système sans concurrencer le contenu principal.
 **Constat**  
 Le phone doit rester centré sur la lecture et non sur le système.
 
-**À faire**
+**Réalisé (mars 2026)**
 
-* conserver une bottom nav simple ;
-* limiter les entrées visibles au strict utile ;
-* alléger fortement le footer technique ;
-* repousser les informations système secondaires hors de la zone de lecture principale.
+* **`LinkyFooter`** : masqué sur **phone** (`< sm` / `hidden sm:block`) — plus de bandeau « Dorevia-Vault · … cumulées · Toucher pour détails » au-dessus de la bottom nav ; drawer **Confiance système** mobile supprimé avec ce bandeau.
+* **`main`** : padding bas réduit sur phone (`max-sm:pb-[calc(5rem+env(safe-area-inset-bottom))]`) car l’empilement footer + bottom nav n’existe plus sur mobile.
+* **Header phone** : badge `IntegrityBadge` en **`countLabelMode="compact"`** — libellé **« N preuves »** (vue) + rafraîchissement ; **§** SPEC Annexe B.6.3.
+
+**À suivre (hors périmètre immédiat)**
+
+* limiter les entrées visibles au strict utile si la bottom nav s’enrichit ;
+* métadonnées système sur un écran secondaire si besoin produit.
 
 **Résultat attendu**  
 Le bas d’écran reste utile mais discret.
@@ -326,7 +501,7 @@ Le bas d’écran reste utile mais discret.
 P1
 
 **Statut**  
-À faire
+Fait (code — mars 2026) · **recette** à confirmer sur lab.
 
 ---
 
@@ -527,7 +702,286 @@ P0
 
 ---
 
-### T-TB-003 — Stabiliser le bloc session tablette
+### T-TB-003 — Doctrine responsive Lynki (mobile / tablette / desktop)
+
+**Fichier canonique** — présent document · **Ticket** `T-TB-003` · **Priorité** P0 · **Statut** À faire · **Dépendances** T-TB-001 ter, T-TB-002 · **Références** [`SPEC_GENERALE_PILOTAGE_LINKY.md`](./SPEC_GENERALE_PILOTAGE_LINKY.md), Annexe A (§4 de ce fichier), doctrine UI Lynki · recoupement [`TICKET_RESPONSIVE_REGIMES_LYNKI.md`](./TICKET_RESPONSIVE_REGIMES_LYNKI.md)
+
+#### 1. Objectif
+
+Stabiliser définitivement le responsive Lynki en supprimant les **régimes hybrides** de chrome et de navigation.
+
+Le ticket vise à figer **trois régimes exclusifs** :
+
+* mobile  
+* tablette  
+* desktop  
+
+afin d’éviter les cohabitations ambiguës entre sidebar desktop, burger, drawer, bottom navigation, header tablette, header desktop, footer compact et footer desktop.
+
+**Principe directeur**
+
+> un breakpoint = un régime principal de navigation et de chrome  
+> un seul système de navigation primaire actif à la fois
+
+#### 2. Périmètre
+
+**Inclus**
+
+* définition des breakpoints de régime ;
+* activation **exclusive** des chromes mobile / tablette / desktop ;
+* **suppression** de la sidebar visible sous **1024 px** ;
+* **suppression** du burger et de la bottom navigation à partir de **1024 px** ;
+* stabilisation du header tablette ;
+* stabilisation du drawer tablette **complet** ;
+* stabilisation de la bottom navigation tablette ;
+* maintien / ajout d’un **footer compact** tablette ;
+* maintien du **footer desktop** en régime desktop ;
+* recette portrait / paysage et seuil de bascule desktop.
+
+**Exclus**
+
+* refonte visuelle desktop ;
+* refonte fonctionnelle des cards cockpit ;
+* évolution backend ;
+* changement de wording métier des KPI ;
+* ajout de nouvelles vues métier hors Pilotage / Synthèse.
+
+#### 3. Règles
+
+##### 3.1 Régimes responsive
+
+**Mobile — `W < 768px`**
+
+* pas de sidebar visible ;
+* header mobile dédié ;
+* burger autorisé ;
+* bottom navigation autorisée ;
+* footer compact ou réduit ;
+* layout mobile.
+
+**Tablette — `768px <= W < 1024px`**
+
+* pas de sidebar visible ;
+* header tablette dédié ;
+* burger **obligatoire** ;
+* drawer complet reprenant la sidebar desktop ;
+* bottom navigation autorisée ;
+* footer compact tablette ;
+* aucun chrome desktop visible en permanence.
+
+**Desktop — `W >= 1024px`**
+
+* sidebar visible ;
+* header desktop ;
+* footer desktop ;
+* pas de burger ;
+* pas de bottom navigation ;
+* pas de drawer tablette.
+
+##### 3.2 Règle d’or
+
+Les éléments suivants ne doivent **jamais** coexister dans un même régime :
+
+* sidebar visible + burger ;
+* sidebar visible + bottom navigation ;
+* header tablette + sidebar desktop ;
+* footer desktop + bottom navigation tablette ;
+* burger + drawer incomplet.
+
+**Formulation normative**
+
+> à un instant donné, un seul système de navigation primaire est actif pour un viewport donné
+
+##### 3.3 Header tablette
+
+Le header tablette reste organisé en **deux lignes fixes**.
+
+**Ligne 1 — chrome cockpit**
+
+Ordre : `Marque | Séparateur | Vue active | Spacer | Cloche | Preuves de la vue | Entité active | Burger`
+
+* marque Lynki ; vue active (`Pilotage` ou autre vue courante) ; cloche ; badge **compact** de preuves de la vue ; avatar + entité active ; burger.  
+* ligne 1 en **nowrap** strict ; aucun wrap implicite ; pas de phrase longue dans le badge preuves ; burger visible **uniquement** sous 1024 px.
+
+**Ligne 2 — filtres métier**
+
+Ordre : `Tenant | Société | Période | Année | Spacer | Badge technique`
+
+* ligne 2 homogène ; scroll horizontal autorisé si nécessaire ; filtres séparés des actions globales ; badge technique secondaire.
+
+**Largeurs minimales**
+
+* Tenant : 120 px, puis 132 px à partir de 900 px ;
+* Société : 180 px, puis 200 px à partir de 900 px ;
+* Période : 140 px, puis 152 px à partir de 900 px ;
+* Année : 84 px, puis 88 px à partir de 900 px.
+
+**Priorité métier** : `Société > Période > Tenant > Année` (aligné **Annexe A** / **T-TB-002**).
+
+##### 3.4 Drawer tablette
+
+Le drawer ouvert par le burger doit reprendre **l’intégralité** de la sidebar desktop.
+
+**Contenu obligatoire**
+
+* **Dashboard** — Pilotage ; Synthèse comptable ;
+* **Outils** — Lexique ; Aide ;
+* **Session** — Thème ; Déconnexion.
+
+**Contraintes d’implémentation**
+
+* panneau rendu au niveau viewport ;
+* overlay plein écran ;
+* panneau en `fixed` ;
+* hauteur utile complète (`100dvh` ou équivalent robuste) ;
+* body scrollable si nécessaire ;
+* Déconnexion toujours accessible ;
+* aucune ligne du cockpit ne doit concurrencer le drawer quand il est ouvert.
+
+##### 3.5 Bottom navigation tablette
+
+* navigation **primaire de vues**, distincte du footer ;
+* contenu recommandé : Pilotage ; Synthèse ;
+* visible **uniquement** sous 1024 px ; invisible à partir de 1024 px ;
+* ne remplace ni le drawer ni le footer ;
+* ne doit pas coexister avec une sidebar visible.
+
+##### 3.6 Footer compact tablette
+
+* métadonnées globales du cockpit : preuves cumulées, sources, version, UX ms si possible ;
+* exemple : `1 309 preuves cumulées · UX 114 ms · Sources : Odoo / POS / Vault · v1.0` ;
+* compact, discret, une ligne si possible ; visible sous 1024 px ; distinct de la bottom navigation.
+
+##### 3.7 Desktop
+
+À partir de 1024 px : sidebar desktop visible ; header desktop ; footer desktop ; burger masqué ; drawer tablette désactivé ; bottom navigation masquée. Aucun chrome tablette ne doit subsister à ce seuil.
+
+#### 4. Implémentation
+
+##### 4.1 Breakpoints de référence
+
+```ts
+export const MOBILE_MAX_PX = 767;
+export const TABLET_MIN_PX = 768;
+export const DESKTOP_MIN_PX = 1024;
+export const TABLET_COMFORT_MIN_PX = 900;
+```
+
+```ts
+const isMobile = width < 768;
+const isTablet = width >= 768 && width < 1024;
+const isDesktop = width >= 1024;
+```
+
+##### 4.2 Choix du régime au niveau layout
+
+Le choix du régime doit être fait **une seule fois** au niveau du layout / chrome principal.
+
+```tsx
+const regime =
+  isDesktop ? "desktop" :
+  isTablet ? "tablet" :
+  "mobile";
+```
+
+```tsx
+return (
+  <>
+    {regime === "mobile" && <MobileChrome />}
+    {regime === "tablet" && <TabletChrome />}
+    {regime === "desktop" && <DesktopChrome />}
+  </>
+);
+```
+
+##### 4.3 Structure cible
+
+**TabletChrome** — `TabletHeader` ; `main` ; `TabletFooterCompact` ; `TabletBottomNav` ; `TabletDrawer`.
+
+**DesktopChrome** — `DesktopSidebar` ; `DesktopHeader` ; `main` ; `DesktopFooter`.
+
+##### 4.4 Règles CSS / structure attendues
+
+**Header tablette ligne 1** — `flex`, `items-center`, `gap-*`, `min-w-0`, `flex-nowrap`.
+
+**Header tablette ligne 2** — `flex`, `items-center`, `gap-*`, `min-w-0`, `flex-nowrap`, `overflow-x-auto`, `overflow-y-hidden`, `scrollbar-width: thin`, `-webkit-overflow-scrolling: touch`, `overscroll-x-contain`.
+
+**Drawer** — overlay `fixed inset-0` ; panel `fixed left-0 top-0 h-dvh` ; z-index supérieur au header, au contenu et aux cards.
+
+**Bottom nav** — `fixed bottom-0 inset-x-0` ; visible uniquement sous 1024 px.
+
+**Footer compact tablette** — dans le flux de contenu **ou** bandeau fixe calé au-dessus de la bottom nav ; **marge / offset / padding** suffisant pour ne pas être masqué par la navigation basse (voir implémentation courante `LinkyFooter` + `BottomNav`).
+
+#### 5. DoD
+
+Le ticket est considéré **terminé** si :
+
+**DoD fonctionnelle**
+
+* trois régimes exclusifs : mobile / tablette / desktop ;
+* sous 1024 px, pas de sidebar visible ;
+* à partir de 1024 px, burger et bottom navigation supprimés ;
+* header tablette stable et lisible ;
+* drawer tablette = toute la sidebar desktop ;
+* Déconnexion accessible dans le drawer ;
+* bottom navigation jamais avec sidebar visible ;
+* footer compact tablette visible sous 1024 px ;
+* footer desktop visible à partir de 1024 px.
+
+**DoD visuelle**
+
+* aucun écran hybride sidebar + burger / sidebar + bottom nav / header tablette + sidebar desktop / footer desktop + bottom nav tablette ;
+* le drawer passe visuellement devant l’app ;
+* preuves de la vue visibles dans le header tablette ;
+* preuves cumulées visibles dans le footer compact tablette.
+
+**DoD technique**
+
+* logique de breakpoint centralisée ;
+* composants de chrome distincts par régime (ou branches nettes) ;
+* aucun hack local ne maintient une sidebar sous 1024 px ;
+* aucun burger rendu à partir de 1024 px ;
+* aucune bottom nav rendue à partir de 1024 px.
+
+#### 6. Recette
+
+##### 6.1 Breakpoints à tester
+
+* **Mobile** — 390 × 844 ; 430 × 932 ;
+* **Tablette portrait** — 768 × 1024 ; 820 × 1180 ; 834 × 1210 ; 900 × 1200 ;
+* **Tablette paysage** — 1023 × 768 ;
+* **Desktop** — 1024 × 768 ; 1280 × 800 ; 1440 × 900.
+
+##### 6.2 Cas de recette obligatoires
+
+* **A. Mobile** — pas de sidebar ; burger ; header mobile ; bottom nav si activée.  
+* **B. Tablette portrait** — pas de sidebar ; burger ; header 2 lignes ; preuves de la vue ; drawer complet ; footer compact ; bottom nav si activée.  
+* **C. Tablette paysage** — pas de sidebar tant que largeur &lt; 1024 ; burger ; bottom nav ; footer compact ; aucun élément desktop persistant.  
+* **D. Seuil 1024** — disparition burger / bottom nav ; apparition sidebar + footer desktop ; plus de chrome tablette.  
+* **E. Drawer** — overlay plein écran ; panel pleine hauteur ; Session complète ; Déconnexion ; fermeture correcte.  
+* **F. Footer compact tablette** — visible ; non confondu avec bottom nav ; lisible ; pas masqué par la nav basse.
+
+##### 6.3 Critères de non-régression
+
+* badge preuves header tablette ; badge technique ; accès Synthèse tablette ; Déconnexion ; pas de duplication de la navigation primaire.
+
+#### 7. Résultat attendu
+
+À l’issue de T-TB-003 : plus de responsive hybride ; tablette assumée sous 1024 px ; desktop à partir de 1024 px ; navigation primaire univoque ; hiérarchie chrome lisible ; iPad cohérent portrait / paysage.
+
+#### 8. Journal — formulation courte
+
+> T-TB-003 fixe la doctrine responsive Lynki en trois régimes exclusifs (mobile, tablette, desktop), supprime les états hybrides de chrome/navigation, impose la disparition de la sidebar sous 1024 px et la disparition du burger/bottom nav à partir de 1024 px, tout en stabilisant header tablette, drawer complet, footer compact tablette et bascule desktop propre.
+
+**Priorité**  
+P0
+
+**Statut**  
+**Doctrine gelée** (recette produit mars 2026) — le périmètre **architecture / chrome exclusif** est considéré **clos** ; les finitions visuelles relèvent des tickets **R-POL-Desktop**, **R-POL-Laptop**, **R-POL-iPad** (Annexe B).
+
+---
+
+### T-TB-008 — Stabiliser le bloc session tablette
 
 **Objet**  
 Faire du bloc session une vraie terminaison de bandeau.
@@ -556,6 +1010,8 @@ P1
 
 **Statut**  
 À faire
+
+*Ancien ticket T-TB-003 — renuméroté pour libérer T-TB-003 (doctrine responsive).*
 
 ---
 
@@ -698,7 +1154,8 @@ P1
 ### Phase 1 — Phone prioritaire
 
 * T-PH-001  
-* T-PH-002  
+* **T-PH-002** (header phone — grammaire iPad)  
+* T-PH-007 (ordre de lecture vertical / grille A)  
 * T-PH-003  
 
 ### Phase 2 — Phone secondaire
@@ -711,7 +1168,8 @@ P1
 
 * T-TB-001  
 * T-TB-002  
-* T-TB-003  
+* **T-TB-003** (doctrine responsive — chrome exclusifs ; après T-TB-001 ter / T-TB-002)  
+* **T-TB-008** (bloc session tablette — ancien T-TB-003)
 
 ### Phase 4 — Tablette, cockpit ensuite
 
@@ -758,6 +1216,45 @@ Le chantier tablette est considéré comme satisfaisant si :
 
 ---
 
+## Annexe B — Backlog polish par régime (R-POL-*)
+
+**Principe :** un ticket **par régime**, pas un ticket « responsive global ». Chaque item est un **micro-backlog produit** après gel de la doctrine (§2.6).
+
+### R-POL-Desktop — référence, finitions légères
+
+| Sujet | Action |
+|--------|--------|
+| Respiration verticale | Ajuster si besoin `padding` / `gap` entre header fusionné, grille A et footer |
+| Équilibre chrome | Vérifier que footer desktop et header ne mangent pas disproportionnellement la zone cartes |
+| Urgence | **Faible** — desktop est la **référence** ; ne toucher que sur constat mesuré |
+
+### R-POL-Laptop — desktop compact (même régime, largeur tendue)
+
+| Sujet | Action |
+|--------|--------|
+| Largeur utile | Vérifier **cartes maîtresses** et breakpoints internes quand la zone résiduelle (*viewport* − sidebar) se resserre |
+| Gros montants | **Lisibilité** typo / line-height sur Trésorerie / Business en ~1280–1440 |
+| Header | **Confort** du bandeau fusionné desktop quand la ligne filtres est tendue |
+| Sidebar | Poids visuel **encore dominant** — polish **densité / contrastes** plutôt que changer le régime |
+| Urgence | **Moyenne** — confort, pas architecture |
+
+### R-POL-iPad — présence tablette (architecture OK, « habitabilité » écran)
+
+| Sujet | Action |
+|--------|--------|
+| Occupation de l’espace | Réduire la sensation **« page dans une boîte »** : `max-w`, marges latérales `main`, breathing du contenu sur 768–1023 |
+| Colonne maîtresse | Carte Trésorerie / stack A : un peu plus **assumer la largeur** disponible sans retrouver du desktop |
+| Cohérence | Rester aligné **cockpit tactile** (T-TB-004 / T-TB-007 peuvent recouper) |
+| Urgence | **Moyenne** — lecture produit : régime **juste**, rendu encore **un peu timide** |
+
+**Synthèse une phrase par régime**
+
+* **Desktop :** référence solide ; polish optionnel.  
+* **Laptop :** même logique ; serrage général → polish **densité**.  
+* **iPad :** régime **enfin distinct** ; polish **présence / respiration**.
+
+---
+
 ## 8. Journal (implémentation / recette)
 
 | Date | ID | Synthèse | Lab / hash |
@@ -769,6 +1266,15 @@ Le chantier tablette est considéré comme satisfaisant si :
 | 2026-03-29 | T-TB-001 ter · verdict | Structurellement réussi ; **5 cas** recette prioritaire ; **T-TB-002** = micro-ajustement | `EXECUTION_TICKETS_TACTILE_LINKY.md` v0.5 |
 | 2026-03-29 | T-TB-002 | Min-width filtres, `w-max` + `shrink-0`, tagline `min-[860px]`, scroll `overflow-y-hidden`, badge tenant `max-w-[120px]` | `ReportHeaderContentBody.tsx` |
 | 2026-03-29 | T-TB-002 · verdict | **Réussi côté code** ; grille **recette visuelle** 6 cas ; ajustements futurs seulement si recette ; verdict final après captures 768 / 900 / 1023 | `EXECUTION_TICKETS_TACTILE_LINKY.md` v0.7 |
+| 2026-03-30 | T-TB-003 | Intégration au document : **doctrine responsive** (mobile / tablette / desktop), chrome exclusifs, DoD / recette ; ancien « bloc session tablette » renuméroté **T-TB-008** | `EXECUTION_TICKETS_TACTILE_LINKY.md` v0.8 |
+| 2026-03-30 | T-TB-003 | **Réédition détaillée** du ticket (§ 1–8, règles 3.x, implémentation 4.x, DoD, recette 6.x) alignée format exécution Lynki ; note footer compact : flux ou fixe au-dessus bottom nav | v0.8.1 |
+| 2026-03-30 | T-TB-003 · impl | **bandLayout** piloté uniquement par `cockpitLayoutMode` (≥1024 → `desktop`, pas via `interactionMode`) — supprime hybrid sidebar + burger ; module `app/lib/cockpit/responsive-regime.ts` (constantes + `getResponsiveRegime` / `useResponsiveRegime`) | code |
+| 2026-03-30 | T-TB-003 · impl | **`responsiveRegime`** dans `ChromeAdaptiveContext` ; `DashboardWithFilters` déduit `cockpitLayoutMode` depuis ce régime (un seul listener resize) ; `ReportHeader` ferme le menu au passage `bandLayout → desktop` | code |
+| 2026-03-30 | T-TB-003 · recette | **Verdict produit :** 3 régimes lisibles (desktop / laptop même logique / iPad distinct) ; **gel doctrine** §2.6 ; backlog polish **R-POL-*** (Annexe B) | captures |
+| 2026-03-30 | T-PH-002 | Ticket **header phone = grammaire iPad compactée** (§1–8) ; norme [`SPEC_GENERALE_PILOTAGE_LINKY.md`](./SPEC_GENERALE_PILOTAGE_LINKY.md) **Annexe B** ; ancien « ordre de lecture » renuméroté **T-PH-007** ; impl. existante `pilotagePhoneCompact` + périmètre (thème / sync) | `EXECUTION_TICKETS_TACTILE_LINKY.md` v0.9.1 ; `ReportHeaderContentBody.tsx` |
+| 2026-03-30 | T-PH-002 · impl | **Burger phone** : fin du menu dropdown ; **même drawer** que l’iPad (`tactileNavigationDrawer`, `z-[120]`) ; `aria-controls` **`linky-tactile-nav-drawer`** ; paliers **`min-[480px]`** sur le bloc phone (cohé. Annexe B) | `ReportHeaderContentBody.tsx` |
+| 2026-03-30 | **T-PH-002 ter** | **Phone** : tiroir **sans** Pilotage/Synthèse (bottom nav = nav primaire) ; titre **Plus** ; résumé **`Société · Année`** | `ReportHeaderContentBody.tsx`, `DashboardWithFilters.tsx`, SPEC **§7.7** / **Annexe B** |
+| 2026-03-30 | **T-PH-006** | **Footer phone** : `LinkyFooter` masqué `< sm` ; badge header **« N preuves »** (`IntegrityBadge` compact) ; `DashboardWithFilters` padding bas phone ; SPEC **Annexe B.11** · cadrage **§11** | `LinkyFooter.tsx`, `ReportHeaderContentBody.tsx`, `IntegrityBadge.tsx`, `DashboardWithFilters.tsx` ; déploiement `./scripts/deploy-linky-lab.sh` |
 
 ---
 
@@ -776,6 +1282,13 @@ Le chantier tablette est considéré comme satisfaisant si :
 
 | Version | Date | Changement |
 |---------|------|------------|
+| 0.9.4 | mars 2026 | **T-PH-006** : footer métadonnées absent phone ; badge **N preuves** header ; SPEC / cadrage alignés |
+| 0.9.3 | mars 2026 | **T-PH-002 ter** : nav primaire phone = bottom nav ; burger = outils + session uniquement |
+| 0.9.2 | mars 2026 | **T-PH-002 · impl** : drawer tactile unifié phone / tablette (`linky-tactile-nav-drawer`) |
+| 0.9.1 | mars 2026 | **T-PH-002** = header phone aligné iPad (ticket complet §3) ; **T-PH-007** = ordre de lecture vertical (ex-T-PH-002) ; Phase 1 ordre d’exécution ; journal |
+| 0.9 | mars 2026 | **Gel doctrine** T-TB-003 §2.6 ; Annexe **R-POL-Desktop / Laptop / iPad** ; tableau synthèse ; statut T-TB-003 |
+| 0.8.1 | mars 2026 | **T-TB-003** : corps du ticket réécrit en sections numérotées 1–8 (spec exploitable) |
+| 0.8 | mars 2026 | **T-TB-003** = doctrine responsive Lynki (P0) ; **T-TB-008** = stabiliser bloc session (ex-T-TB-003) ; tableau synthèse + Phase 3 + journal |
 | 0.7 | mars 2026 | **T-TB-002** verdict réussi côté code ; grille recette 6 cas ; verdict final header iPad après captures |
 | 0.6 | mars 2026 | **T-TB-002** : min-width coquilles, palier 900px, marque &lt;860px, scroll + rangée 2 |
 | 0.5 | mars 2026 | Verdict **T-TB-001 ter** structurellement réussi ; **5 cas** recette prioritaire ; **T-TB-002** repositionné micro-ajustement |

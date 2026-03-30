@@ -1,8 +1,8 @@
 # Spécification générale — cockpit Pilotage (Lynki)
 
 **Fichier canonique :** `ZeDocs/web61/SPEC_GENERALE_PILOTAGE_LINKY.md`  
-**Version :** 0.6.7 — mars 2026  
-**Statut :** brouillon — **§8.0** doctrine multi-régimes ; **§8.3** / **§17** alignés (tactile assumé, hors périmètre adouci) ; **§7.6** bandeau ; CDCF **§3.18–§3.20** ; cadrage / maquettes phone & tablette ; tickets tactiles **EXECUTION_TICKETS_TACTILE_LINKY v0.7**  
+**Version :** 0.6.11 — mars 2026  
+**Statut :** brouillon — **§8.0** doctrine multi-régimes ; **§8.3** / **§17** alignés (tactile assumé, hors périmètre adouci) ; **§7.6** bandeau ; **Annexe B** header phone + **nav primaire** phone (bottom nav) ; **Annexe B.11** footer métadonnées **absent sur phone** ; CDCF **§3.18–§3.20** ; cadrage / maquettes phone & tablette ; tickets tactiles **EXECUTION_TICKETS_TACTILE_LINKY**  
 **Portée :** vue **Pilotage** (cockpit)  
 **CDCF de référence :** [`cdcf.md`](./cdcf.md)  
 **Rôle :** pont **normatif exploitable** entre le CDCF et les specs filles ; ne substitue pas au CDCF (**§2.2** ci-dessous).
@@ -51,7 +51,8 @@ La présente spécification s’articule notamment avec :
 * **[`DOCTRINE_ETATS_UI_LINKY.md`](../web60/DOCTRINE_ETATS_UI_LINKY.md)** — norme d’états et badges (complément **§13–§14** ci-dessous) ;
 * les futures specs dédiées aux instruments **B / C** ou vues détail ;
 * recette / exécution Web60 ([`RECETTE_WEB60_LINKY.md`](../web60/RECETTE_WEB60_LINKY.md), [`EXECUTION_TICKETS_WEB60_LINKY.md`](../web60/EXECUTION_TICKETS_WEB60_LINKY.md)) ;
-* exécution refonte **tactile** phone + tablette ([`EXECUTION_TICKETS_TACTILE_LINKY.md`](./EXECUTION_TICKETS_TACTILE_LINKY.md) **v0.7** — **T-TB-002** réussi côté code, grille recette header iPad, **Annexe A**).
+* exécution refonte **tactile** phone + tablette ([`EXECUTION_TICKETS_TACTILE_LINKY.md`](./EXECUTION_TICKETS_TACTILE_LINKY.md) **v0.7** — **T-TB-002** réussi côté code, grille recette header iPad, **Annexe A**) ;
+* **header phone** — norme détaillée alignée sur l’iPad : **Annexe B** (cette spec).
 
 ### 2.4 Index des renvois vers le CDCF
 
@@ -274,6 +275,16 @@ Les règles ci-dessous **figent** le comportement livré sur le **lab** (`Report
 
 **Fichiers de code** : `components/ReportHeaderContentBody.tsx`, `components/DashboardWithFilters.tsx`, `components/CockpitDesktopView.tsx`, `tailwind.config.js` (breakpoint `xl` étendu pour la grille secondaires cockpit), `app/lib/cockpit/cockpit-typography.ts`, `components/cockpit/CockpitMasterKpiValue.tsx`.
 
+### 7.7 Header phone — même famille que l’iPad (norme)
+
+En **régime phone** (`W < 768px` dans la doctrine cible ; seuil d’implémentation calé sur les tickets tactiles), le bandeau **ne réinvente pas** une autre grammaire : il applique **la même séquence sémantique** que le header tablette (marque, vue active, preuves, entité active), avec **compaction** et **priorisation** plus strictes.
+
+**Navigation primaire phone** : **Pilotage** et **Synthèse** sont portés **uniquement** par la **barre de navigation basse** (bottom nav). Le **tiroir** accessible depuis le burger ne **duplique** pas ces entrées : il sert **outils** (Lexique, Aide) et **session** (thème, déconnexion), éventuellement d’autres réglages — voir **Annexe B**.
+
+La **spécification normative complète** (structure, priorités, breakpoints internes, drawer, panneau filtres, DoD, recette) est portée par **l’Annexe B** ci-dessous. Elle complète le cadrage **[`CADRAGE_VERSION_MOBILE_LYNKI.md`](./CADRAGE_VERSION_MOBILE_LYNKI.md)** sans s’y substituer pour tout le périmètre phone.
+
+**Formulation produit** : *En mode phone, le header reste le lieu du contexte et de la confiance (marque, vue active, preuves, entité), allégé ; la navigation principale vit dans le footer bas ; le burger ouvre uniquement outils et session. Le contexte métier est résumé sur une ligne courte ; le détail des filtres reste dans un panneau dédié.*
+
 ---
 
 ## 8. Régimes d’écran
@@ -348,6 +359,8 @@ Les régimes **phone mobile** et **tablette / iPad** sont reconnus ici comme des
 **Cadrage d’implémentation (phone)** — bottom nav, header à deux niveaux, séquence verticale, exclusions : **[`CADRAGE_VERSION_MOBILE_LYNKI.md`](./CADRAGE_VERSION_MOBILE_LYNKI.md)** (maquette **[`references/carole_suggest_02.html`](./references/carole_suggest_02.html)**).
 
 **Maquette statique (tablette / iPad)** — lecture cockpit plus panoramique, alignée **§3.20** : **[`references/carole_suggest_03.html`](./references/carole_suggest_03.html)**.
+
+**Header phone (norme détaillée)** — **Annexe B** : même famille que l’iPad, compaction phone ; ligne 2 résumé + panneau filtres.
 
 ### 8.4 Verdict produit — distinction **grand desktop** vs **desktop compact / laptop** (mars 2026)
 
@@ -597,6 +610,128 @@ Elle doit éviter :
 
 ---
 
+## Annexe B — Spécification complète du header phone Lynki
+
+*Alignée sur la logique iPad ; compactée pour iPhone. **Ticket d’exécution :** [**T-PH-002**](./EXECUTION_TICKETS_TACTILE_LINKY.md) (`EXECUTION_TICKETS_TACTILE_LINKY.md`). Réf. implémentation : `ReportHeaderContentBody.tsx` (mode `pilotagePhoneCompact`).*
+
+### B.1 Objectif
+
+Définir un header phone **cohérent** avec le header iPad, afin que Lynki conserve une **même famille visuelle et fonctionnelle** entre **phone** et **tablette**.
+
+Principe :
+
+> **header phone = header iPad compacté** — et non **header phone = système distinct**.
+
+Le header phone doit continuer à exprimer : la **marque produit**, la **vue active**, l’**état de confiance minimal**, le **contexte actif**, l’accès à la **navigation**, l’accès au **contexte métier**.
+
+### B.2 Positionnement dans la doctrine responsive
+
+* **Plage concernée** : `W < 768px` (seuils fin d’implémentation : régime **mobile** du contexte cockpit, cf. tickets tactiles).
+* **Rôle** : chrome principal du mode mobile ; remplace toute logique desktop / sidebar visible ; doit rester lisible, compact, stable, tactile, cohérent avec la tablette.
+
+### B.3 Principes directeurs
+
+* **B.3.1** Même famille que l’iPad : marque, vue active, preuves, entité active, burger, contexte métier.
+* **B.3.2** Priorisation plus stricte : toute l’information ne tient pas au même détail qu’en tablette.
+* **B.3.3** **Deux niveaux maximum** : ligne 1 = chrome principal ; ligne 2 = contexte métier compact.
+* **B.3.4** Pas de wrap accidentel : composition **volontaire** (`flex-nowrap` sur la ligne 1).
+
+### B.4 Hiérarchie d’information
+
+**Priorité** (si la largeur manque, trancher dans cet ordre) :
+
+1. Vue active (**`Pilotage`**)
+2. **Burger**
+3. **Contexte actif minimal** (résumé ligne 2)
+4. **Preuves de la vue** (badge compact)
+5. **Marque Lynki**
+6. **Filtres détaillés** visibles en permanence (éviter ; préférer panneau)
+
+**Conséquences** : `Pilotage` et burger toujours visibles ; preuves conservées si possible ; marque compactée ; filtres résumés.
+
+### B.5 Structure cible
+
+**Ligne 1 — chrome principal** — ordre : `Marque compacte | Vue active | Spacer | Preuves | Entité active | Burger`
+
+* **Marque** : pastille `DL` + éventuellement `Lynki`.
+* **Vue active** : `Pilotage` (ancrage principal ; pas de wrap).
+* **Preuves** : badge compact (icône + nombre ou libellé court ; pas de phrase longue — détail en infobulle / panneau).
+* **Entité active** : avatar + libellé court si place, sinon avatar seul.
+* **Burger** : obligatoire, cible tactile confortable.
+* **Cloche** : secondaire sur phone ; de préférence masquée du header principal si elle surcharge (disponible ailleurs si besoin).
+
+**Ligne 2 — contexte métier**
+
+* **Variante A (recommandée, défaut)** : une ligne de **résumé** (ex. société · période · année), tronquée si besoin, ouvrant un **panneau filtres** au tap.
+* **Variante B (optionnelle)** : chips / filtres très compacts en **scroll horizontal** — risque de surcharge ; réservé aux cas explicitement choisis.
+
+### B.6 Blocs détaillés
+
+* **B.6.1 Marque** : `DL` toujours ; `Lynki` si largeur confortable ; sous-titre type « Cockpit financier » **jamais** sur phone ; lien vers accueil cockpit.
+* **B.6.2 Vue active** : toujours visible ; typo plus forte que la marque ; extension future : `Synthèse`, etc.
+* **B.6.3 Preuves** : badge **compact** avec libellé court **« N preuves »** (compteur **vue** / période — distinct du cumul tenant) ; pas de phrase longue type « N preuves de la vue » en entier ; détail en **tooltip** / **panneau Filtres** ; rafraîchissement possible sur le badge.
+* **B.6.4 Entité** : bloc compact ; concurrence visuelle limitée avec `Pilotage`.
+* **B.6.5 Burger** : **tablette** — tiroir avec Dashboard (Pilotage, Synthèse), Outils, Session. **Phone** — tiroir **sans** Pilotage / Synthèse (déjà en bottom nav) : **Outils + Session** seulement ; intitulé d’en-tête type « Plus » ; **tiroir / overlay** utilisable, scroll interne, fermeture accessible.
+* **B.6.6 Cloche** : ne pas sacrifier Pilotage, burger ou preuves pour la conserver sur la ligne 1.
+
+### B.7 Architecture contexte métier (phone)
+
+* Ligne 2 = **résumé** ; un tap ouvre le **panneau de filtres** (Tenant, Société, Période, Année) — tactile, espacements corrects, fermeture simple.
+* Les **actions globales** (ex. thème, rafraîchissement des indicateurs) peuvent être regroupées dans ce panneau ou le drawer **sans** mélanger filtre métier et navigation primaire dans une seule « bouillie ».
+
+### B.8 Composition cible (exemples)
+
+* **Référence compacte** : L1 `[DL] Pilotage … [498 preuves ↻] [L] [☰]` — L2 **`Société · Année`** (ex. `La Platine · 2026`), détail période dans le panneau Filtres.
+* **Serré** : même L1 ; L2 inchangée en principe (déjà courte).
+* **Confortable** : variations mineures de typo / densité ; **pas** de duplication Pilotage / Synthèse dans le burger.
+
+### B.9 Règles visuelles
+
+* Ligne 1 : `nowrap`, `items-center`, espacement compact stable, `Pilotage` dominant, burger lisible.
+* Ligne 2 : plus discrète, hauteur maîtrisée, `truncate` ou scroll horizontal **uniquement** si variante chips.
+* Pas de troisième ligne ; pas de badge trop bavard ; pas de carte header trop haute.
+
+### B.10 Breakpoints internes recommandés
+
+| Palier | Largeur | Comportement indicatif |
+|--------|---------|-------------------------|
+| **Phone serré** | `< 390px` | `DL` seul ; preuves très compactes ; avatar seul ; ligne 2 ultra courte |
+| **Phone standard** | `390px – 479px` | `DL` + Lynki si possible ; preuves compactes ; résumé ligne 2 synthétique |
+| **Phone confortable** | `≥ 480px` et `< 768px` | `DL` + Lynki ; libellé preuves plus lisible ; avatar + libellé ; ligne 2 plus descriptive |
+
+### B.11 Drawer, panneau filtres, footer, bottom nav
+
+* **Drawer tablette** : Pilotage, Synthèse, Lexique, Aide, Thème, Déconnexion (cf. T-TB-001 ter).
+* **Drawer phone** : **sans** Pilotage ni Synthèse — **Lexique, Aide, Thème, Déconnexion** (et extensions produit) ; **pas** de duplication de la bottom nav.
+* **Panneau filtres** : édition Tenant / Société / Période / Année — pas obligé d’être dans le header permanent.
+* **Footer métadonnées** (`LinkyFooter`) : **affiché** à partir du breakpoint **sm** (tablette / desktop) — bandeau fixe au-dessus de la bottom nav quand celle-ci est visible ; preuves **cumulées**, UX, sources, version — **ne porte pas** la navigation Pilotage / Synthèse. **Sur phone** (`< sm`) : **pas** de barre footer — les métadonnées système ne concurrencent pas la lecture cockpit ; le **compteur preuves de la vue** reste porté par le **header** (badge compact).
+* **Bottom nav** : **navigation primaire** phone — **Pilotage** et **Synthèse** ; coexiste avec le burger (secondaire). **Phone** : pas de bandeau métadonnées sous les cartes.
+
+### B.12 Anti-patterns
+
+* Header phone totalement différent de l’iPad ; disparition de `Pilotage` ou du burger ; badge preuves trop verbeux ; entité trop dominante ; cloche imposée au détriment du reste ; ligne 2 = mur de filtres ; wrap non maîtrisé sur 3 lignes ; mélange actions globales / filtres / métadonnées ; **sur phone**, **dupliquer** Pilotage / Synthèse dans le burger alors qu’ils sont déjà en bottom nav.
+
+### B.13 Implémentation (repères)
+
+* Régime **mobile** : composant dédié ou branche `pilotagePhoneCompact` avec sous-structure **ligne 1 / ligne 2** + **feuille filtres** + **drawer** + **bottom nav** ; **`LinkyFooter`** masqué sur **phone** (`hidden` / `< sm`).
+* **CSS / Tailwind** : ligne 1 en `flex`, `flex-nowrap`, `min-w-0`, `items-center`, `gap` contrôlé ; marque et vue en `shrink-0` (vue : `whitespace-nowrap`) ; entité `min-w-0` + `truncate` sur le libellé ; preuves et burger `shrink-0`.
+
+### B.14 Définition of Done (header phone)
+
+Le header phone est validé si : même **famille** claire qu’avec l’iPad ; `Pilotage` et burger **toujours** visibles sur toute la plage phone ; preuves en forme **compacte** ; entité **identifiable** ; ligne 2 **lisible** ; pas de wrap **3 lignes** ; accès filtres détaillés conservé ; tiroir **phone** **sans** duplication Pilotage / Synthèse ; bottom nav **nav primaire** fonctionnelle.
+
+### B.15 Recette (extraits)
+
+**Largeurs** : 360×800, 375×812, 390×844, 430×932, 480×932.
+
+**Cas** : lisibilité `Pilotage` ; badge preuves ; avatar ; burger = outils/session ; **pas** de Pilotage/Synthèse dans le tiroir phone ; filtres ; résumé ligne 2 (société · année) ; pas de collision avec bottom nav.
+
+### B.16 Formulation produit finale
+
+> En mode phone, le header porte marque, vue active, état et entité, avec compaction forte ; la navigation principale (Pilotage / Synthèse) vit dans la barre basse ; le burger ne fait pas doublon et ouvre outils et session. Le contexte métier est résumé sur une ligne courte ; le détail des filtres reste dans un panneau dédié. La grammaire reste alignée sur l’iPad pour la lecture contextuelle, sans répliquer la même densité de navigation dans le chrome haut.
+
+---
+
 ## 17. Hors périmètre de la présente spécification
 
 La présente spécification fixe la **structure générale**, la **doctrine des régimes d’écran** (**§8.0**) et les règles cockpit communes. Elle **ne se substitue pas** aux normes et specs plus détaillées listées ci-dessous.
@@ -607,7 +742,7 @@ La présente spécification générale ne détaille pas :
 * les vues détail spécialisées ;
 * les contrats API détaillés ;
 * les règles purement techniques d’implémentation ;
-* le **détail normatif complet** des régimes **phone mobile** et **tablette / iPad** — la présente spec en rappelle le **positionnement général** (**§8.0**, **§8.3**) ; le **CDCF** (**§3.19**, **§3.20**) et les documents de cadrage / maquettes en portent l’exhaustivité opérationnelle.
+* le **détail normatif complet** des régimes **phone mobile** et **tablette / iPad** — la présente spec en rappelle le **positionnement général** (**§8.0**, **§8.3**) ; le **bandeau phone** détaillé est en **Annexe B** ; le **CDCF** (**§3.19**, **§3.20**), le **cadrage mobile** et les maquettes en portent le reste de l’exhaustivité opérationnelle.
 
 Ces éléments relèvent de documents dérivés ou de sections normatives externes à la présente spec.
 

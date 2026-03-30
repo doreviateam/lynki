@@ -25,7 +25,7 @@ import type { CardId } from "@/app/types/linky-tiles";
 import { CockpitMobileView } from "@/components/CockpitMobileView";
 import { CockpitTabletView } from "@/components/CockpitTabletView";
 import { CockpitDesktopView } from "@/components/CockpitDesktopView";
-import { useCockpitLayoutMode } from "@/app/lib/cockpit/cockpit-layout";
+import type { CockpitLayoutMode } from "@/app/lib/cockpit/cockpit-layout";
 import { WorkingCapitalCardWithPolling } from "@/components/WorkingCapitalCardWithPolling";
 import { EncoursCardWithPolling } from "@/components/EncoursCardWithPolling";
 import { EbeCardWithPolling } from "@/components/EbeCardWithPolling";
@@ -266,7 +266,10 @@ function DashboardWithFiltersContent({
   const chromeVisible = chromeAdaptive?.isChromeVisible ?? true;
   const chromeState = chromeAdaptive?.chromeState ?? "expanded";
   const interactionMode = chromeAdaptive?.interactionMode ?? "tablet";
-  const cockpitLayoutMode = useCockpitLayoutMode();
+  /** T-TB-003 : une seule source resize (contexte) — `mobile` ≡ `phone` pour les vues grille. */
+  const responsiveRegime = chromeAdaptive?.responsiveRegime ?? "tablet";
+  const cockpitLayoutMode: CockpitLayoutMode =
+    responsiveRegime === "mobile" ? "phone" : responsiveRegime === "tablet" ? "tablet" : "desktop";
   const revealChrome = chromeAdaptive?.revealChrome ?? (() => {});
 
   const onResolvedTenantChange = useCallback(
@@ -376,9 +379,11 @@ function DashboardWithFiltersContent({
   /**
    * Bandeau Carole fusionné (ReportHeader + réserve scroll) :
    * - phone : bandeau compact dédié (T-PH-001) ;
-   * - tablette + desktop : pilotage « tout » — y compris iPad paysage (≥1024 px sans pointer fin) où
-   *   l’ancienne règle « desktop + interaction desktop » masquait tout le bandeau et retombait sur l’en-tête
-   *   texte « Dorevia Lynki » au lieu du lockup sidebar (DL + Lynki + Cockpit financier).
+   * - tablette : bandeau deux rangées + burger / drawer (&lt; 1024 px) ;
+   * - desktop : bandeau grille « desktop » **sans** burger, sidebar déjà visible (≥ 1024 px).
+   *
+   * T-TB-003 : le `bandLayout` ne doit **pas** dépendre de `interactionMode` (tactile vs souris) : un iPad
+   * en paysage ≥ 1024 px doit avoir le même chrome que le laptop (pas de sidebar + burger à la fois).
    */
   const cockpitMergedHeader =
     showIconGrid && appView === "pilotage" && cockpitLayoutMode !== "phone";
@@ -432,6 +437,18 @@ function DashboardWithFiltersContent({
       parts.push(`${from.toLocaleDateString("fr-FR")} – ${to.toLocaleDateString("fr-FR")}`);
     }
     return parts.join(" · ");
+  }, [companies, effectiveCompanyId, period.from, period.to]);
+
+  /** Phone : ligne 2 très courte (société · année) — période détaillée dans le panneau Filtres. */
+  const cockpitPhoneContextSummary = useMemo(() => {
+    const co = companies.find((c) => c.company_id === effectiveCompanyId);
+    let companyPart = "Vue consolidée";
+    if (co) {
+      const raw = companyDisplayLabel(co.display_name, co.company_id) ?? co.company_id;
+      companyPart = raw.replace(/^(SARL|SAS|EURL|SCI)\s+/i, "").trim() || raw;
+    }
+    const { year } = getKeyAndYearFromPeriod(period.from, period.to);
+    return `${companyPart} · ${year}`;
   }, [companies, effectiveCompanyId, period.from, period.to]);
   const scopeKey = `${scopeTenantId}|${effectiveCompanyId ?? ""}|${period.from}|${period.to}`;
   const fetchMetricsRef = useRef<() => void>(() => {});
@@ -645,14 +662,13 @@ function DashboardWithFiltersContent({
               ? {
                   confidenceScore: cockpitBarScore,
                   confidenceLabel: confidenceLabelFromScore(cockpitBarScore),
-                  /** Tactile / tablette : même rangée marque que la spec iPad ; souris desktop immersif : grille sans doublon avec la sidebar. */
-                  bandLayout:
-                    cockpitLayoutMode === "tablet" || interactionMode !== "desktop" ? "tablet" : "desktop",
+                  /** T-TB-003 : `tablet` uniquement si viewport &lt; 1024 (`cockpitLayoutMode === "tablet"`), jamais via le seul mode d’interaction. */
+                  bandLayout: cockpitLayoutMode === "desktop" ? "desktop" : "tablet",
                 }
               : undefined
           }
           pilotagePhoneCompact={
-            cockpitPhonePilotage ? { contextSummary: cockpitContextLine } : undefined
+            cockpitPhonePilotage ? { contextSummary: cockpitPhoneContextSummary } : undefined
           }
         />
       </div>
@@ -662,7 +678,7 @@ function DashboardWithFiltersContent({
         (CDCF §2.12.1) — liaison header Carole → grille cockpit.
       */}
       <main
-        className={`mx-auto flex min-h-0 flex-1 w-full flex-col pb-16 ${cockpitMergedHeader ? "max-w-none px-5 sm:px-7 lg:px-10 xl:px-12 2xl:mx-auto 2xl:max-w-[1920px] 2xl:px-14" : "max-w-4xl px-4"} ${
+        className={`mx-auto flex min-h-0 flex-1 w-full flex-col ${cockpitMergedHeader ? "max-w-none px-5 sm:px-7 lg:px-10 xl:px-12 2xl:mx-auto 2xl:max-w-[1920px] 2xl:px-14" : "max-w-4xl px-4"} ${
           cockpitMergedHeader && chromeVisible
             ? cockpitLayoutMode === "tablet"
               ? "pt-3 md:pt-4"
@@ -672,7 +688,7 @@ function DashboardWithFiltersContent({
               : chromeVisible
                 ? "pt-6"
                 : "pt-4"
-        }`}
+        } lg:pb-16 max-sm:pb-[calc(5rem+env(safe-area-inset-bottom,0px))] sm:max-lg:pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))]`}
       >
         {/* Vue Synthèse comptable (Lot 2 — AccountingSummaryView) */}
         {appView === "synthese" ? (
@@ -922,7 +938,7 @@ function DashboardWithFiltersContent({
           />
         ) : null}
       </main>
-      {/* Footer : toujours affiché (pas de masquage auto) */}
+      {/* Métadonnées cockpit : sous lg bandeau fixe au-dessus de la bottom nav ; lg+ barre fixe pleine largeur (sidebar). */}
       <LinkyFooter tenantId={scopeTenantId} primarySource={primarySource} sealedCountTotal={dashboardMetrics?.sealed_count_total} />
       {/* Bandeau réapparition : affiché uniquement quand header masqué (hidden) — Phase 2 */}
       {chromeState === "hidden" && (

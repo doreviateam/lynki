@@ -6,6 +6,9 @@ import { CHROME_BREAKPOINT_MOBILE_PX } from "@/app/lib/chrome-constants";
 /**
  * Seuil (px) : au-delà, layout cockpit « bureau » (grille 3 maîtresses + bandeau fusionné éligible).
  * Aligné sur `lg` dans tailwind.config (1024px).
+ *
+ * T-TB-003 : à partir de ce seuil, **bandeau desktop** uniquement (pas de burger / drawer nav) ;
+ * sidebar visible (`lg:`). Voir `getResponsiveRegime` / `DESKTOP_MIN_PX` dans `responsive-regime.ts`.
  */
 export const COCKPIT_LAYOUT_DESKTOP_MIN_PX = 1024;
 

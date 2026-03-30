@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { IntegrityBadge } from "@/components/IntegrityBadge";
@@ -32,6 +33,23 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
     );
   const syntheseActiveTablet = pathname === "/synthese" || pathname.startsWith("/synthese/");
   const aideActiveTablet = pathname === "/aide" || pathname.startsWith("/aide/");
+  const [isClient, setIsClient] = useState(false);
+  const [locationHash, setLocationHash] = useState("");
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncHash = () => setLocationHash(window.location.hash ?? "");
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, []);
+
+  const lexiqueActiveTablet = aideActiveTablet && locationHash.toLowerCase().includes("lexique");
+  const aideMainActiveTablet = aideActiveTablet && !lexiqueActiveTablet;
 
   const {
     productName,
@@ -268,9 +286,34 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
       )
     ) : null;
 
+  /** iPad ligne 1 : preuves / confiance dans le chrome (cloche · preuves · contexte · burger). */
+  const cockpitTabletChromeTrust =
+    cockpitBandTablet && showCockpitContextRow ? (
+      showIntegrityBadge ? (
+        <div className="flex max-w-[min(6.25rem,28vw)] min-w-0 shrink-0 items-center justify-center">
+          <IntegrityBadge
+            tenantId={tenantId}
+            sealedCount={sealedCount}
+            sealedCountComplete={sealedCountComplete}
+            onRefresh={onRefreshMetrics}
+            visualWeight="secondary"
+            countLabelMode="compact"
+            className="origin-center scale-[0.92] [&_[data-testid=integrity-badge-label]]:!inline"
+          />
+        </div>
+      ) : (
+        <span
+          className="inline-flex h-7 max-w-[6.5rem] shrink-0 items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--border)_40%,transparent)] bg-[color-mix(in_srgb,var(--surface)_92%,transparent)] px-1.5 text-[10px] text-[var(--text-secondary)]"
+          title="Synchronisation en cours"
+        >
+          {UI_STATE_LABELS.pending}
+        </span>
+      )
+    ) : null;
+
   /** Filtres cockpit — coquilles type maquette Carole / `carole_suggest_01.html` (sélecteurs sans cadre interne). */
   const cockpitShellSelectClass = cockpitBandTablet
-    ? "mt-0.5 block w-full min-w-0 max-w-full cursor-pointer border-0 bg-transparent p-0 text-[12px] font-semibold text-[var(--text)] focus:outline-none focus:ring-0 disabled:opacity-60"
+    ? "mt-0.5 block w-full min-w-0 max-w-full cursor-pointer border-0 bg-transparent p-0 text-center text-[12px] font-semibold text-[var(--text)] focus:outline-none focus:ring-0 disabled:opacity-60"
     : "mt-1 block w-full min-w-0 max-w-full cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold text-[var(--text)] focus:outline-none focus:ring-0 disabled:opacity-60";
 
   /** Select année : centré dans la coquille (alignement vertical avec les autres filtres). */
@@ -284,7 +327,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
 
   /** Zone valeur tenant dans la coquille (TenantSelector inline ou libellé seul) — tablette : moins bavard. */
   const tenantShellInnerClass = cockpitBandTablet
-    ? "mt-0.5 min-w-0 [&_button]:!min-h-0 [&_button]:h-auto [&_button]:min-w-0 [&_button]:w-full [&_button]:justify-start [&_button]:gap-1.5 [&_button]:rounded-none [&_button]:border-0 [&_button]:bg-transparent [&_button]:px-0 [&_button]:py-0 [&_button]:text-left [&_button]:text-[12px] [&_button]:font-semibold [&_button]:leading-snug [&_button]:shadow-none [&_button]:hover:bg-transparent [&_span]:text-[12px] [&_span]:font-semibold [&_span]:leading-snug"
+    ? "mt-0.5 min-w-0 [&_button]:!min-h-0 [&_button]:h-auto [&_button]:min-w-0 [&_button]:w-full [&_button]:justify-center [&_button]:gap-1.5 [&_button]:rounded-none [&_button]:border-0 [&_button]:bg-transparent [&_button]:px-0 [&_button]:py-0 [&_button]:text-center [&_button]:text-[12px] [&_button]:font-semibold [&_button]:leading-snug [&_button]:shadow-none [&_button]:hover:bg-transparent [&_span]:text-[12px] [&_span]:font-semibold [&_span]:leading-snug [&_span]:text-center"
     : "mt-1 min-w-0 [&_button]:!min-h-0 [&_button]:h-auto [&_button]:min-w-0 [&_button]:w-full [&_button]:justify-start [&_button]:gap-2 [&_button]:rounded-none [&_button]:border-0 [&_button]:bg-transparent [&_button]:px-0 [&_button]:py-0 [&_button]:text-left [&_button]:text-[13px] [&_button]:font-semibold [&_button]:leading-tight [&_button]:shadow-none [&_button]:hover:bg-transparent [&_span]:text-[13px] [&_span]:font-semibold";
 
   const tenantShellSingleClass = cockpitBandTablet
@@ -457,7 +500,7 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
       </div>
     ) : null;
 
-  /** Ligne 2 iPad : filtres en zone scrollable à gauche, badge technique fixe à droite (maquette mars 2026). */
+  /** Ligne 2 iPad : filtres centrés + badge technique à droite (preuves sur la ligne 1). */
   const cockpitTabletBusinessFiltersRow =
     showCockpitContextRow && cockpitBandTablet && (cockpitContextHasFilters || cockpitContextTrustSignal) ? (
       <div
@@ -465,16 +508,17 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
         role="group"
         aria-label="Filtres métier"
       >
-        <div className="min-w-0 flex-1 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
-          <div className="flex w-max min-w-max items-center gap-2 min-[900px]:gap-2.5">
+        <div className="min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
+          <div className="flex min-w-full justify-center">
+            <div className="flex w-max min-w-max items-center gap-2 min-[900px]:gap-2.5">
         {cockpitContextHasFilters ? (
           <>
             {tenantBadgeOrSelector ? (
               <div
-                className={`${cockpitFilterShellClass} min-w-[120px] max-w-[13rem] shrink-0 overflow-hidden min-[900px]:min-w-[132px]`}
+                className={`${cockpitFilterShellClass} min-w-[120px] max-w-[13rem] shrink-0 justify-center overflow-hidden min-[900px]:min-w-[132px]`}
               >
                 <Icon name="filter_alt" size={15} className="shrink-0 text-[var(--accent)]" aria-hidden />
-                <div className="min-w-0 flex-1 leading-tight">
+                <div className="min-w-0 leading-tight text-center">
                   <div className="text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Tenant</div>
                   <div className={tenantShellSingleClass}>{tenantBadgeOrSelector}</div>
                 </div>
@@ -482,10 +526,10 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
             ) : null}
             {showCompanyFilter ? (
               <div
-                className={`${cockpitFilterShellClass} min-w-[180px] max-w-[200px] shrink-0 overflow-hidden min-[900px]:min-w-[200px]`}
+                className={`${cockpitFilterShellClass} min-w-[180px] max-w-[200px] shrink-0 justify-center overflow-hidden min-[900px]:min-w-[200px]`}
               >
-                <div className="min-w-0 w-full max-w-full flex-1 overflow-hidden leading-tight">
-                  <label htmlFor="company-select-cockpit-tb" className="block min-w-0 cursor-pointer">
+                <div className="flex min-w-0 w-full max-w-full flex-1 flex-col items-center justify-center overflow-hidden leading-tight text-center">
+                  <label htmlFor="company-select-cockpit-tb" className="flex min-w-0 w-full cursor-pointer flex-col items-center text-center">
                     <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Société</span>
                     <select
                       id="company-select-cockpit-tb"
@@ -513,9 +557,9 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
             ) : null}
             {showPeriodFilter ? (
               <>
-                <div className={`${cockpitFilterShellClass} min-w-[140px] max-w-[160px] shrink-0 overflow-hidden min-[900px]:min-w-[152px]`}>
-                  <div className="min-w-0 w-full max-w-full flex-1 overflow-hidden leading-tight">
-                    <label htmlFor="period-key-cockpit-tb" className="block min-w-0 cursor-pointer">
+                <div className={`${cockpitFilterShellClass} min-w-[140px] max-w-[160px] shrink-0 justify-center overflow-hidden min-[900px]:min-w-[152px]`}>
+                  <div className="flex min-w-0 w-full max-w-full flex-1 flex-col items-center justify-center overflow-hidden leading-tight text-center">
+                    <label htmlFor="period-key-cockpit-tb" className="flex min-w-0 w-full cursor-pointer flex-col items-center text-center">
                       <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Période</span>
                       <select
                         id="period-key-cockpit-tb"
@@ -559,21 +603,14 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
             ) : null}
           </>
         ) : null}
-        {cockpitContextTrustSignal ? (
-          <div
-            className={`flex min-h-[46px] shrink-0 flex-col justify-center gap-0.5 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-3 py-1.5`}
-          >
-            <span className={`shrink-0 whitespace-nowrap ${COCKPIT_HEADER_FILTER_LABEL}`}>Confiance</span>
-            <div className="flex min-h-[26px] items-center">{cockpitContextTrustSignal}</div>
-          </div>
-        ) : null}
+            </div>
           </div>
         </div>
         <span
-          className="inline-flex max-w-[120px] shrink-0 items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--border)_45%,transparent)] bg-[color-mix(in_srgb,var(--panel)_88%,transparent)] px-2 py-0.5 text-[10px] font-medium leading-tight tabular-nums text-[var(--text-secondary)]"
+          className="inline-flex max-w-[120px] shrink-0 items-center gap-1 self-center rounded-md border border-[color-mix(in_srgb,var(--border)_38%,transparent)] bg-[color-mix(in_srgb,var(--panel)_82%,transparent)] px-1.5 py-0.5 text-[9px] font-medium leading-tight tabular-nums text-[color-mix(in_srgb,var(--muted)_92%,transparent)] opacity-90"
           title={tenantId}
         >
-          <Icon name="badge" size={11} className="shrink-0 opacity-80" aria-hidden />
+          <Icon name="badge" size={10} className="shrink-0 opacity-70" aria-hidden />
           <span className="min-w-0 truncate">{tenantId}</span>
         </span>
       </div>
@@ -584,6 +621,117 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
     "mb-1 flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_50%,transparent)] hover:text-[var(--text)]";
   const tabletNavLinkInactive = `${tabletNavLinkBase} text-[var(--muted)]`;
   const tabletNavLinkActive = `${tabletNavLinkBase} border border-[var(--border)] bg-[var(--panel-2)] font-medium text-[var(--text)] shadow-[0_10px_30px_rgba(0,0,0,0.18)]`;
+  /** T-PH-002 : même drawer complet que l’iPad (overlay + panneau pleine hauteur) — phone et tablette &lt; 1024. */
+  const tactileNavigationDrawer =
+    (cockpitBandTablet || !!pilotagePhoneCompact) && menuOpen && isClient && currentApp === "linky"
+      ? createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[120] bg-black/65 backdrop-blur-[2px]"
+              aria-hidden
+              data-chrome-lock="true"
+              onClick={() => setMenuOpen(false)}
+            />
+            <aside
+              id="linky-tactile-nav-drawer"
+              className="fixed inset-y-0 left-0 z-[121] flex h-[100svh] w-[min(20rem,92vw)] max-w-[20rem] flex-col overflow-hidden border-r border-[var(--border)] bg-[var(--sidebar-bg)] shadow-[12px_0_36px_rgba(0,0,0,0.38)] md:h-[100dvh]"
+              role="dialog"
+              aria-modal="true"
+              aria-label={pilotagePhoneCompact ? "Outils et session" : "Navigation"}
+              data-chrome-lock="true"
+            >
+              <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--sidebar-bg)] px-4 py-4">
+                <span className="font-headline text-lg font-extrabold text-[var(--text)]">
+                  {pilotagePhoneCompact ? "Plus" : "Navigation"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_50%,transparent)]"
+                  aria-label="Fermer le menu"
+                >
+                  <Icon name="close" size={22} />
+                </button>
+              </div>
+              <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
+                <nav
+                  className="flex flex-col px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2"
+                  aria-label={pilotagePhoneCompact ? "Outils et session" : "Navigation principale"}
+                >
+                  {/*
+                    Phone (T-PH-002) : Pilotage / Synthèse = bottom nav uniquement — pas de duplication dans ce tiroir.
+                    Tablette : section Dashboard inchangée.
+                  */}
+                  {!pilotagePhoneCompact ? (
+                    <div>
+                      <div className={tabletNavSectionTitle}>Dashboard</div>
+                      <Link
+                        href={pilotageHomeHref}
+                        className={pilotageActiveTablet ? tabletNavLinkActive : tabletNavLinkInactive}
+                        aria-current={pilotageActiveTablet ? "page" : undefined}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <Icon name="bar_chart" size={20} className={pilotageActiveTablet ? "text-[var(--text)]" : "text-[var(--muted)]"} />
+                        <span>Pilotage</span>
+                      </Link>
+                      <Link
+                        href={syntheseHrefTablet}
+                        className={syntheseActiveTablet ? tabletNavLinkActive : tabletNavLinkInactive}
+                        aria-current={syntheseActiveTablet ? "page" : undefined}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <Icon name="account_balance" size={20} className={syntheseActiveTablet ? "text-[var(--text)]" : "text-[var(--muted)]"} />
+                        <span>Synthèse comptable</span>
+                      </Link>
+                    </div>
+                  ) : null}
+                  <div className={`px-0 pb-2 ${pilotagePhoneCompact ? "pt-0" : "pt-6"}`}>
+                    <div className={tabletNavSectionTitle}>Outils</div>
+                    <Link
+                      href={aideLexiqueHrefTablet}
+                      className={lexiqueActiveTablet ? tabletNavLinkActive : tabletNavLinkInactive}
+                      aria-current={lexiqueActiveTablet ? "page" : undefined}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <Icon name="menu_book" size={20} className={lexiqueActiveTablet ? "text-[var(--text)]" : "text-[var(--muted)]"} />
+                      <span>Lexique</span>
+                    </Link>
+                    <Link
+                      href={aideHrefTablet}
+                      className={aideMainActiveTablet ? tabletNavLinkActive : tabletNavLinkInactive}
+                      aria-current={aideMainActiveTablet ? "page" : undefined}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <Icon name="help" size={20} className={aideMainActiveTablet ? "text-[var(--text)]" : "text-[var(--muted)]"} />
+                      <span>Aide</span>
+                    </Link>
+                  </div>
+                  <div className="mt-3 border-t border-[var(--border)] pt-4">
+                    <div className={tabletNavSectionTitle}>Session</div>
+                    <div className="flex flex-col gap-1">
+                      <ThemeToggle variant="sidebarRow" />
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-[15px] text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_50%,transparent)] hover:text-[var(--text)]"
+                        title="Déconnexion — le raccourci session est aussi disponible via l’avatar en haut à droite du pilotage."
+                        onClick={async () => {
+                          await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+                          setMenuOpen(false);
+                          window.location.href = "/login";
+                        }}
+                      >
+                        <Icon name="logout" size={20} className="text-[var(--muted)]" />
+                        <span>Déconnexion</span>
+                      </button>
+                    </div>
+                  </div>
+                </nav>
+              </div>
+            </aside>
+          </>,
+          document.body
+        )
+      : null;
 
   const content = (
     <div
@@ -645,129 +793,45 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                             Pilotage
                           </h1>
                           <div className="min-h-0 min-w-0 flex-1" aria-hidden />
-                          <div className="flex shrink-0 items-center gap-2">
-                            <button
-                              type="button"
-                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--panel-2)] active:bg-[var(--panel-2)]"
-                              aria-label="Notifications (bientôt disponible)"
+                          <div className="flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
+                            <div className="flex shrink-0 items-center gap-1 rounded-xl border border-[color-mix(in_srgb,var(--border)_25%,transparent)] bg-[color-mix(in_srgb,var(--panel-2)_55%,transparent)] px-0.5 py-0.5">
+                              <button
+                                type="button"
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_40%,transparent)] active:bg-[var(--panel-2)] md:h-9 md:w-9"
+                                aria-label="Notifications (bientôt disponible)"
+                              >
+                                <Icon name="notifications" size={17} />
+                              </button>
+                              {cockpitTabletChromeTrust}
+                            </div>
+                            <div
+                              className="flex min-w-0 max-w-[min(11rem,42vw)] shrink-0 items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-1.5 py-1 shadow-[0_3px_11px_rgba(0,0,0,0.11)] md:gap-2 md:px-2 md:py-1.5"
+                              title={tenantDisplayLabel}
                             >
-                              <Icon name="notifications" size={17} />
-                            </button>
+                              <div
+                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[var(--accent)] font-headline text-xs font-extrabold text-white md:h-8 md:w-8 md:text-sm"
+                                aria-hidden
+                              >
+                                {sessionInitial}
+                              </div>
+                              <span className="min-w-0 truncate text-left text-[12px] font-semibold leading-tight text-[var(--text)] md:text-[13px]">
+                                {tenantDisplayLabel}
+                              </span>
+                            </div>
                             <button
                               type="button"
                               onClick={() => setMenuOpen(true)}
                               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] transition-colors hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] active:bg-[var(--panel-2)]"
                               aria-label="Menu navigation"
                               aria-expanded={menuOpen}
-                              aria-controls="linky-tablet-nav-drawer"
+                              aria-controls="linky-tactile-nav-drawer"
                             >
                               {menuIcon}
                             </button>
-                            <div className="flex min-w-0 max-w-[220px] shrink-0 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--panel-2)] px-2 py-1.5 shadow-[0_3px_11px_rgba(0,0,0,0.11)]">
-                              <div
-                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] font-headline text-sm font-extrabold text-white"
-                                aria-hidden
-                              >
-                                {sessionInitial}
-                              </div>
-                              <span
-                                className="min-w-0 truncate text-[13px] font-semibold leading-snug text-[var(--text)]"
-                                title={tenantDisplayLabel}
-                              >
-                                {tenantDisplayLabel}
-                              </span>
-                            </div>
                           </div>
                         </div>
                         {cockpitTabletBusinessFiltersRow}
                       </div>
-                      {menuOpen ? (
-                        <>
-                          <div
-                            className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-[1px]"
-                            aria-hidden
-                            data-chrome-lock="true"
-                            onClick={() => setMenuOpen(false)}
-                          />
-                          <aside
-                            id="linky-tablet-nav-drawer"
-                            className="fixed left-0 top-0 z-[61] flex h-full max-h-[100dvh] w-[min(20rem,92vw)] max-w-[20rem] flex-col overflow-hidden border-r border-[var(--border)] bg-[var(--sidebar-bg)] shadow-[8px_0_32px_rgba(0,0,0,0.2)]"
-                            role="dialog"
-                            aria-modal="true"
-                            aria-label="Navigation"
-                            data-chrome-lock="true"
-                          >
-                            <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--sidebar-bg)] px-4 py-4">
-                              <span className="font-headline text-lg font-extrabold text-[var(--text)]">Navigation</span>
-                              <button
-                                type="button"
-                                onClick={() => setMenuOpen(false)}
-                                className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_50%,transparent)]"
-                                aria-label="Fermer le menu"
-                              >
-                                <Icon name="close" size={22} />
-                              </button>
-                            </div>
-                            <nav className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden px-3 pb-4 pt-2" aria-label="Navigation principale">
-                              <div className={tabletNavSectionTitle}>Dashboard</div>
-                              <Link
-                                href={pilotageHomeHref}
-                                className={pilotageActiveTablet ? tabletNavLinkActive : tabletNavLinkInactive}
-                                aria-current={pilotageActiveTablet ? "page" : undefined}
-                                onClick={() => setMenuOpen(false)}
-                              >
-                                <Icon name="bar_chart" size={20} className={pilotageActiveTablet ? "text-[var(--text)]" : "text-[var(--muted)]"} />
-                                <span>Pilotage</span>
-                              </Link>
-                              <Link
-                                href={syntheseHrefTablet}
-                                className={syntheseActiveTablet ? tabletNavLinkActive : tabletNavLinkInactive}
-                                aria-current={syntheseActiveTablet ? "page" : undefined}
-                                onClick={() => setMenuOpen(false)}
-                              >
-                                <Icon name="account_balance" size={20} className={syntheseActiveTablet ? "text-[var(--text)]" : "text-[var(--muted)]"} />
-                                <span>Synthèse comptable</span>
-                              </Link>
-                              <div className={`${tabletNavSectionTitle} mt-6`}>Outils</div>
-                              <Link
-                                href={aideLexiqueHrefTablet}
-                                className={tabletNavLinkInactive}
-                                onClick={() => setMenuOpen(false)}
-                              >
-                                <Icon name="menu_book" size={20} className="text-[var(--muted)]" />
-                                <span>Lexique</span>
-                              </Link>
-                              <Link
-                                href={aideHrefTablet}
-                                className={aideActiveTablet ? tabletNavLinkActive : tabletNavLinkInactive}
-                                aria-current={aideActiveTablet ? "page" : undefined}
-                                onClick={() => setMenuOpen(false)}
-                              >
-                                <Icon name="help" size={20} className={aideActiveTablet ? "text-[var(--text)]" : "text-[var(--muted)]"} />
-                                <span>Aide</span>
-                              </Link>
-                            </nav>
-                            <div className="shrink-0 border-t border-[var(--border)] bg-[var(--sidebar-bg)] px-3 py-4">
-                              <div className={tabletNavSectionTitle}>Session</div>
-                              <div className="flex flex-col gap-1">
-                                <ThemeToggle variant="sidebarRow" />
-                                <button
-                                  type="button"
-                                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-[15px] text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_50%,transparent)] hover:text-[var(--text)]"
-                                onClick={async () => {
-                                  await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-                                  setMenuOpen(false);
-                                  window.location.href = "/login";
-                                }}
-                              >
-                                  <Icon name="logout" size={20} className="text-[var(--muted)]" />
-                                  <span>Déconnexion</span>
-                                </button>
-                              </div>
-                            </div>
-                          </aside>
-                        </>
-                      ) : null}
                     </>
                   ) : (
                   <div className="grid grid-cols-1 gap-4 px-4 py-3.5 sm:px-5 sm:py-4 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto] md:items-center md:gap-4 md:px-5 md:py-4 lg:gap-6 lg:px-6 lg:py-5">
@@ -830,95 +894,92 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
           )}
         </>
       ) : pilotagePhoneCompact && currentApp === "linky" && !chromeCompact ? (
-        <div className="min-w-0 px-3 pt-0.5 pb-0" role="region" aria-label="Pilotage">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="shrink-0 font-headline text-xl font-extrabold leading-[1.15] tracking-tight text-[var(--text)]">
-              Pilotage
-            </h2>
-            <div className="flex min-w-0 flex-1 items-center justify-end gap-0">
-              {showIntegrityBadge ? (
-                <div className="max-w-[min(7.5rem,30vw)] min-w-0 shrink scale-[0.92] origin-right">
-                  <IntegrityBadge
-                    tenantId={tenantId}
-                    sealedCount={sealedCount}
-                    sealedCountComplete={sealedCountComplete}
-                    onRefresh={onRefreshMetrics}
-                    visualWeight="secondary"
-                  />
+        <div className="min-w-0 px-3 pt-1 pb-0" role="region" aria-label="En-tête pilotage">
+          {/*
+            T-PH-002 — compaction : [DL] Pilotage · spacer · [N preuves] · avatar · burger.
+            Pas de « Lynki » ni nom d’entité en ligne 1 ; preuves en libellé compact (période/vue).
+          */}
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--panel)] shadow-[0_8px_22px_rgba(0,0,0,0.14)]">
+            <div className="flex min-w-0 flex-nowrap items-center gap-2 px-2.5 py-2 min-[480px]:gap-2.5 min-[480px]:px-3 min-[480px]:py-2.5">
+              <Link
+                href={pilotageHomeHref}
+                className="group flex shrink-0 items-center rounded-xl outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--panel-2)_55%,transparent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                aria-label={`${tabletBrandName} — retour au cockpit`}
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] font-headline text-sm font-extrabold leading-none tracking-tight text-white shadow-[0_4px_12px_rgba(0,0,0,0.14)] min-[480px]:h-9 min-[480px]:w-9 min-[480px]:text-base">
+                  DL
                 </div>
-              ) : (
-                <span
-                  className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[var(--border)] px-1.5 py-px text-[10px] text-[var(--text-secondary)]"
-                  title="Synchronisation en cours"
-                >
-                  {UI_STATE_LABELS.pending}
-                </span>
-              )}
-              <div className="flex shrink-0 scale-90 origin-center">
-                <ThemeToggle />
-              </div>
-              {onRefreshMetrics ? (
-                <button
-                  type="button"
-                  onClick={() => onRefreshMetrics()}
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--muted)] transition-colors hover:bg-[var(--hover)] active:bg-[var(--hover)]"
-                  aria-label="Actualiser les indicateurs"
-                >
-                  <Icon name="sync_saved_locally" size={17} />
-                </button>
-              ) : null}
-              <div className="relative shrink-0">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPilotagePerimeterOpen(false);
-                    setMenuOpen(!menuOpen);
-                  }}
-                  className="flex h-7 w-7 items-center justify-center rounded-md border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
-                  aria-label="Menu application"
-                  aria-expanded={menuOpen}
-                >
-                  {menuIcon}
-                </button>
-                {menuOpen ? (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      aria-hidden
-                      data-chrome-lock="true"
-                      onClick={() => setMenuOpen(false)}
+              </Link>
+              <h1 className="min-w-0 shrink-0 whitespace-nowrap font-headline text-[1.1rem] font-extrabold leading-none tracking-[-0.02em] text-[var(--text)] min-[480px]:text-[1.2rem]">
+                Pilotage
+              </h1>
+              <div className="min-h-0 min-w-0 flex-1" aria-hidden />
+              <div className="flex min-w-0 shrink-0 items-center gap-1.5 min-[480px]:gap-2">
+                <div className="flex min-w-0 max-w-[min(11rem,46vw)] shrink-0 items-center justify-center">
+                  {showIntegrityBadge ? (
+                    <IntegrityBadge
+                      tenantId={tenantId}
+                      sealedCount={sealedCount}
+                      sealedCountComplete={sealedCountComplete}
+                      onRefresh={onRefreshMetrics}
+                      visualWeight="secondary"
+                      countLabelMode="compact"
+                      className="origin-center scale-[0.92] [&_[data-testid=integrity-badge-label]]:!inline"
                     />
-                    <nav
-                      className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg"
-                      role="menu"
-                      data-chrome-lock="true"
+                  ) : (
+                    <span
+                      className="inline-flex h-6 max-w-[6rem] shrink-0 items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--border)_40%,transparent)] bg-[color-mix(in_srgb,var(--surface)_92%,transparent)] px-1 text-[10px] text-[var(--text-secondary)]"
+                      title="Synchronisation en cours"
                     >
-                      {overflowNav}
-                    </nav>
-                  </>
-                ) : null}
+                      {UI_STATE_LABELS.pending}
+                    </span>
+                  )}
+                </div>
+                <div
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--border)_35%,transparent)] bg-[var(--accent)] font-headline text-[11px] font-extrabold leading-none text-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] min-[480px]:h-9 min-[480px]:w-9 min-[480px]:text-xs"
+                  title={tenantDisplayLabel}
+                  aria-label={tenantDisplayLabel}
+                >
+                  {sessionInitial}
+                </div>
+                <div className="relative shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPilotagePerimeterOpen(false);
+                      setMenuOpen(!menuOpen);
+                    }}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] transition-colors hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] active:bg-[var(--panel-2)] min-[480px]:h-9 min-[480px]:w-9"
+                    aria-label={pilotagePhoneCompact ? "Outils et session" : "Menu navigation"}
+                    aria-expanded={menuOpen}
+                    aria-controls="linky-tactile-nav-drawer"
+                  >
+                    {menuIcon}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-          <div className="relative mt-0">
+          <div className="relative mt-1.5">
             <button
               type="button"
               id="pilotage-perimeter-nav-trigger"
-              className="flex w-full cursor-pointer items-center gap-1.5 rounded-md py-0.5 text-left hover:bg-[color-mix(in_srgb,var(--panel)_40%,transparent)] active:bg-[color-mix(in_srgb,var(--panel)_55%,transparent)]"
+              className="flex w-full cursor-pointer items-center gap-1.5 rounded-lg py-1.5 pl-0.5 pr-1 text-left transition-colors hover:bg-[color-mix(in_srgb,var(--panel)_35%,transparent)] active:bg-[color-mix(in_srgb,var(--panel)_50%,transparent)]"
               aria-expanded={pilotagePerimeterOpen}
               aria-controls="pilotage-perimeter-panel"
+              aria-label="Ouvrir le périmètre et les filtres détaillés"
               onClick={() => {
                 setMenuOpen(false);
                 setPilotagePerimeterOpen(!pilotagePerimeterOpen);
               }}
             >
-              <span className="min-w-0 flex-1 truncate text-left text-sm font-medium leading-snug text-[var(--text)]">
+              <span className="min-w-0 flex-1 truncate text-left text-[13px] font-medium leading-snug text-[color-mix(in_srgb,var(--text-secondary)_92%,var(--text)_8%)]">
                 {pilotagePhoneCompact.contextSummary}
               </span>
-              <span className="shrink-0 text-xs font-bold tracking-wide text-[var(--accent)]">Périmètre</span>
+              <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-[var(--accent)]">Filtres</span>
               <Icon
                 name="expand_more"
-                size={20}
+                size={18}
                 className={`shrink-0 text-[var(--muted)] transition-transform ${pilotagePerimeterOpen ? "rotate-180" : ""}`}
                 aria-hidden
               />
@@ -1007,6 +1068,23 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
                     {periodStatusLabel ? (
                       <p className="text-[9px] leading-tight text-[var(--muted)]">{periodStatusLabel}</p>
                     ) : null}
+                    <div className="mt-2 border-t border-[var(--border)] pt-2">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Affichage et données</p>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                        <ThemeToggle />
+                        {onRefreshMetrics ? (
+                          <button
+                            type="button"
+                            onClick={() => onRefreshMetrics()}
+                            className="flex h-9 items-center gap-1.5 rounded-lg border border-[var(--border)] px-2 text-xs font-medium text-[var(--text)] transition-colors hover:bg-[var(--hover)]"
+                            aria-label="Actualiser les indicateurs"
+                          >
+                            <Icon name="sync_saved_locally" size={17} className="text-[var(--muted)]" />
+                            Actualiser
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </>
@@ -1163,7 +1241,12 @@ export function ReportHeaderContentBody(props: ReportHeaderContentProps) {
       )}
     </div>
   );
-  return content;
+  return (
+    <>
+      {content}
+      {tactileNavigationDrawer}
+    </>
+  );
 }
 
 const STATUS_SUFFIX: Record<string, string> = {

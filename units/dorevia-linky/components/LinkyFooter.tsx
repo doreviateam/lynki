@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useChromeLock } from "@/app/context/ChromeAdaptiveContext";
 import { useTenantContextOptional } from "@/app/context/TenantContext";
-import { recordTrustDrawerOpen } from "@/app/lib/chrome-telemetry";
 
 const DOREVIA_VAULT_LINK =
   typeof process.env.NEXT_PUBLIC_DOREVIA_VAULT_LINK === "string" && process.env.NEXT_PUBLIC_DOREVIA_VAULT_LINK
@@ -62,17 +60,10 @@ export function LinkyFooter({
   sealedCountTotal?: number | null;
 }) {
   const tenantCtx = useTenantContextOptional();
-  const showTrustDrawer = tenantCtx?.tenantConfig?.chrome?.footer?.showTrustDrawer ?? true;
   const vaultLinkLabel = tenantCtx?.tenantConfig?.chrome?.footer?.vaultLinkLabel ?? DEFAULT_VAULT_LINK_LABEL;
 
   const [status, setStatus] = useState<PlatformStatus | null>(null);
   const [uxStatus, setUxStatus] = useState<UxMetricsStatus | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  useChromeLock(drawerOpen);
-  // Rules of switch (§5.3) : fermer le drawer au changement de tenant
-  useEffect(() => {
-    setDrawerOpen(false);
-  }, [tenantCtx?.resolvedTenant]);
 
   useEffect(() => {
     let cancelled = false;
@@ -161,18 +152,47 @@ export function LinkyFooter({
   );
 
   const sep = <span className="text-[var(--border)] select-none" aria-hidden>|</span>;
+  const dot = <span className="text-[color-mix(in_srgb,var(--border)_70%,transparent)] select-none">·</span>;
+
+  /** Libellés courts pour footer tablette / iPad (une ligne, wrap toléré). */
+  const proofCumulativeShort =
+    sealedCount != null ? (
+      <span className="shrink-0 tabular-nums" title={PROOF_CUMULATIVE_TITLE}>
+        {sealedCount.toLocaleString("fr-FR")} preuves cumulées ✓
+      </span>
+    ) : (
+      <span className="shrink-0 tabular-nums" title={PROOF_CUMULATIVE_TITLE}>
+        — preuves cumulées
+      </span>
+    );
+  const sourcesInlineTablet = (
+    <span className="min-w-0 max-w-[min(100%,42rem)]" title="Sources des données utilisées pour ce cockpit.">
+      Sources :{" "}
+      {sources.map((s, i) => (
+        <span key={s.name} title={sourceTitle(s)}>
+          {i > 0 ? " / " : ""}
+          {s.name.charAt(0).toUpperCase() + s.name.slice(1)}
+          <SourceIcon status={s.status} />
+        </span>
+      ))}
+    </span>
+  );
 
   return (
     <footer
-      className="fixed bottom-0 left-0 right-0 z-20 shrink-0 border-t border-[var(--border)] bg-[var(--footer-bar)] px-3 py-1.5 lg:left-72"
-      style={{ paddingBottom: "max(0.35rem, env(safe-area-inset-bottom))" }}
+      className="hidden w-full shrink-0 border-t border-[var(--border)] bg-[var(--footer-bar)] px-2 py-1 sm:block sm:px-3 sm:py-1.5 pb-[max(0.35rem,env(safe-area-inset-bottom))]
+        max-lg:fixed max-lg:left-0 max-lg:right-0 max-lg:z-40
+        max-lg:bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))]
+        lg:fixed lg:bottom-0 lg:left-72 lg:right-0 lg:z-30"
+      aria-label="Métadonnées globales du cockpit"
     >
       <div className="mx-auto w-full min-w-0 max-w-none overflow-x-auto">
         {/*
           Grille 1fr | auto | 1fr : le bloc métadonnées reste centré dans la barre ;
           le copyright reste ancré à droite (même largeur de colonnes latérales pour un vrai centrage).
+          Uniquement lg+ : tablette / iPad (sm–lg) utilise la ligne compacte ci-dessous.
         */}
-        <div className="hidden sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-x-2 sm:py-0">
+        <div className="hidden lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-center lg:gap-x-2 lg:py-0">
           <span className="min-w-0" aria-hidden />
           <div className="flex min-w-0 flex-nowrap items-center justify-center gap-x-2 overflow-x-auto text-[10px] leading-snug text-[color-mix(in_srgb,var(--text-secondary)_86%,var(--muted)_14%)] opacity-[0.88] [scrollbar-width:thin]">
             <span className="shrink-0 tabular-nums">{proofBlock}</span>
@@ -214,109 +234,26 @@ export function LinkyFooter({
             <span className="shrink-0 text-xs text-[var(--text-secondary)]">© doreviateam 2026</span>
           </div>
         </div>
-        {/* Mobile — une ligne compacte ; tap ouvre le drawer "confiance système" si showTrustDrawer (tenant config) */}
-        <div className="sm:hidden">
-          {showTrustDrawer ? (
-            <>
-          <button
-            type="button"
-            onClick={() => {
-              recordTrustDrawerOpen();
-              setDrawerOpen(true);
-            }}
-            className="w-full flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-xs text-[var(--text-secondary)] py-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-inset"
-            aria-label="Ouvrir les informations de confiance système"
-            title={PROOF_CUMULATIVE_TITLE}
-          >
-            <span className="text-[var(--text)]">Dorevia-Vault</span>
-            <span className="text-[var(--border)]" aria-hidden>·</span>
-            {sealedCount != null ? (
-              <span className="tabular-nums">{sealedCount.toLocaleString("fr-FR")} cumulées ✓</span>
-            ) : (
-              <span>— cumulées</span>
-            )}
-            <span className="text-[var(--border)]" aria-hidden>·</span>
-            <span className="text-[var(--muted)]">Toucher pour détails</span>
-          </button>
-          {drawerOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-40 bg-black/40"
-                aria-hidden
-                data-chrome-lock="true"
-                onClick={() => setDrawerOpen(false)}
-              />
-              <div
-                role="dialog"
-                aria-label="Confiance système"
-                data-chrome-lock="true"
-                className="fixed inset-x-0 bottom-0 z-50 max-h-[70vh] overflow-y-auto rounded-t-2xl border-t border-[var(--border)] bg-[var(--bg-secondary)] shadow-lg"
-                style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-              >
-                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg-secondary)] px-4 py-3">
-                  <h2 className="text-sm font-semibold text-[var(--text)]">Confiance système</h2>
-                  <button
-                    type="button"
-                    onClick={() => setDrawerOpen(false)}
-                    className="rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-                    aria-label="Fermer"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="px-4 py-4 space-y-4 text-xs">
-                  <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[var(--text)]">
-                    <span className="font-medium tabular-nums">{proofBlock}</span>
-                    {sep}
-                    <span className="tabular-nums" title={uxTitle}>UX P95 : {uxP95Text} {uxIndicator}</span>
-                    {lastSealBlock && (
-                      <>
-                        {sep}
-                        {lastSealBlock}
-                      </>
-                    )}
-                    {sep}
-                    {sourcesBlock}
-                  </div>
-                  <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[var(--text-secondary)]">
-                    <a
-                      href={DOREVIA_VAULT_LINK}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="opacity-80 hover:opacity-100 hover:text-[var(--text)] hover:underline transition-all"
-                    >
-                      {vaultLinkLabel}
-                    </a>
-                    {sep}
-                    <span className="tabular-nums">{version}</span>
-                    {sep}
-                    <span className="tabular-nums" title="Révision UI Linky (build image)">
-                      UI {LINKY_UI_BUILD_REF}
-                    </span>
-                    {sep}
-                    <span>© doreviateam 2026</span>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-            </>
-          ) : (
-            <div
-              className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-xs text-[var(--text-secondary)] py-2"
-              title={PROOF_CUMULATIVE_TITLE}
-            >
-              <span className="text-[var(--text)]">Dorevia-Vault</span>
-              <span className="text-[var(--border)]" aria-hidden>·</span>
-              {sealedCount != null ? (
-                <span className="tabular-nums">{sealedCount.toLocaleString("fr-FR")} cumulées ✓</span>
-              ) : (
-                <span>— cumulées</span>
-              )}
-            </div>
-          )}
+        {/* Tablette & iPad (sm à lg) : footer cockpit compact — preuves cumulées, UX, sources, version (sans répliquer la grille desktop). */}
+        <div
+          className="hidden sm:flex lg:hidden min-w-0 flex-wrap items-center justify-center gap-x-1 gap-y-1 px-0.5 py-1 text-center text-[9px] leading-snug text-[color-mix(in_srgb,var(--text-secondary)_88%,var(--muted)_12%)] sm:text-[10px] sm:py-1.5"
+          aria-label="Métadonnées cockpit (preuves cumulées, UX, sources, version)"
+        >
+          {proofCumulativeShort}
+          {dot}
+          <span className="shrink-0 tabular-nums" title={uxTitle}>
+            UX {uxP95Text} {uxIndicator}
+          </span>
+          {dot}
+          {sourcesInlineTablet}
+          {dot}
+          <span className="shrink-0 tabular-nums" title="Version plateforme (API status)">
+            {version}
+          </span>
+          {dot}
+          <span className="shrink-0 tabular-nums" title="Révision UI Linky (build image Docker / NEXT_PUBLIC_LINKY_UI_BUILD_REF)">
+            UI {LINKY_UI_BUILD_REF}
+          </span>
         </div>
       </div>
     </footer>
