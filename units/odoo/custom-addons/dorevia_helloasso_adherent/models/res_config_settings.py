@@ -37,21 +37,6 @@ class ResConfigSettings(models.TransientModel):
         help="organizationSlug dans les chemins API v5.",
     )
 
-    # Compat : une vue ir.ui.view du module OCA « dms » peut rester active alors que dms n’est
-    # pas chargé (ex. manifest 18.x → non installable sur Odoo 19). Le formulaire Paramètres
-    # référence alors des champs absents → OwlError. Mêmes config_parameter que dms ; retirer ce
-    # bloc si dms est installé pour cette version et redéfinit déjà ces champs.
-    documents_binary_max_size = fields.Integer(
-        string="Documents — taille max. fichier (Mo)",
-        help="Défini par le module dms lorsqu’il est installé ; sinon champ de compatibilité.",
-        config_parameter="dms.binary_max_size",
-    )
-    documents_forbidden_extensions = fields.Char(
-        string="Documents — extensions interdites",
-        help="Défini par le module dms lorsqu’il est installé ; sinon champ de compatibilité.",
-        config_parameter="dms.forbidden_extensions",
-    )
-
     def action_helloasso_test_connection(self):
         """OAuth client_credentials puis ping GET formTypes si slug renseigné (REF_API §2.2, §2.4)."""
         self.ensure_one()
