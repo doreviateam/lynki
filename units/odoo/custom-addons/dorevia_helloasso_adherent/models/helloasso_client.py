@@ -2,6 +2,7 @@
 """Client HTTP HelloAsso (OAuth2 + API v5) — REF_API §2.2, §2.4."""
 
 import logging
+from urllib.parse import quote
 
 import requests
 
@@ -190,3 +191,250 @@ def summarize_form_type_entry(item, index):
     if parts:
         return f"[{index}] " + " — ".join(parts)
     return f"[{index}] {item!r}"[:300]
+
+
+def _items_and_total_from_v5_body(body):
+    """
+    Extrait (liste data, totalCount ou None) depuis une enveloppe v5 type
+    ResultsWithPaginationModel (champs camelCase ou PascalCase).
+    """
+    if not isinstance(body, dict):
+        return None, None
+    data = body.get("data") or body.get("Data")
+    items = data if isinstance(data, list) else None
+    pag = body.get("pagination") or body.get("Pagination")
+    total = None
+    if isinstance(pag, dict):
+        total = pag.get("totalCount")
+        if total is None:
+            total = pag.get("TotalCount")
+    return items, total
+
+
+def _raise_for_status(path_label, status_code, body):
+    if status_code == 200:
+        return
+    hint = ""
+    if isinstance(body, dict):
+        hint = body.get("message") or body.get("Message") or ""
+    if not hint and isinstance(body, dict):
+        errs = body.get("errors") or body.get("Errors")
+        if isinstance(errs, list) and errs:
+            hint = str(errs[0])
+    if not hint and body:
+        hint = _shorten(str(body), 280)
+    msg = f"{path_label} refusé (HTTP {status_code})."
+    if hint:
+        msg += f" {hint}"
+    raise HelloAssoClientError(msg)
+
+
+def fetch_organization_forms(
+    organization_slug,
+    access_token,
+    use_sandbox,
+    form_types=None,
+    page_index=1,
+    page_size=50,
+    timeout=25,
+):
+    """
+    GET /v5/organizations/{slug}/forms — liste paginée (AccessPublicData).
+
+    form_types : ex. [\"Membership\"] pour filtrer ; None = pas de filtre type.
+    Retourne (items, total_count_optionnel).
+    """
+    slug = (organization_slug or "").strip()
+    if not slug:
+        return None, None
+
+    base = api_v5_base(use_sandbox)
+    url = f"{base}/organizations/{quote(slug, safe='')}/forms"
+    params = [("pageIndex", page_index), ("pageSize", page_size)]
+    if form_types:
+        for ft in form_types:
+            params.append(("formTypes", ft))
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/json",
+    }
+    try:
+        resp = requests.get(url, headers=headers, params=params, timeout=timeout)
+    except requests.exceptions.Timeout as e:
+        raise HelloAssoClientError(
+            "Délai dépassé lors de la liste des formulaires. Réessayez."
+        ) from e
+    except requests.exceptions.RequestException as e:
+        raise HelloAssoClientError(f"Erreur réseau (formulaires) : {_shorten(str(e))}") from e
+
+    try:
+        body = resp.json()
+    except ValueError:
+        body = None
+
+    _raise_for_status("Liste des formulaires", resp.status_code, body)
+    items, total = _items_and_total_from_v5_body(body)
+    return items, total
+
+
+def fetch_form_orders_page(
+    organization_slug,
+    form_type,
+    form_slug,
+    access_token,
+    use_sandbox,
+    page_index=1,
+    page_size=1,
+    timeout=25,
+):
+    """
+    GET …/forms/{formType}/{formSlug}/orders — FormAdmin / OrganizationAdmin + AccessTransactions.
+    Retourne (items_première_page, total_count_sur_toutes_pages_ou_None).
+    """
+    org = (organization_slug or "").strip()
+    ft = (form_type or "").strip()
+    fs = (form_slug or "").strip()
+    if not org or not ft or not fs:
+        return None, None
+
+    base = api_v5_base(use_sandbox)
+    path = (
+        f"/organizations/{quote(org, safe='')}/forms/"
+        f"{quote(ft, safe='')}/{quote(fs, safe='')}/orders"
+    )
+    url = f"{base}{path}"
+    params = [("pageIndex", page_index), ("pageSize", page_size)]
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/json",
+    }
+    try:
+        resp = requests.get(url, headers=headers, params=params, timeout=timeout)
+    except requests.exceptions.Timeout as e:
+        raise HelloAssoClientError("Délai dépassé (commandes formulaire).") from e
+    except requests.exceptions.RequestException as e:
+        raise HelloAssoClientError(f"Erreur réseau (commandes) : {_shorten(str(e))}") from e
+
+    try:
+        body = resp.json()
+    except ValueError:
+        body = None
+
+    if resp.status_code != 200:
+        _raise_for_status("Lecture des commandes", resp.status_code, body)
+
+    items, total = _items_and_total_from_v5_body(body)
+    return items, total
+
+
+def fetch_form_payments_page(
+    organization_slug,
+    form_type,
+    form_slug,
+    access_token,
+    use_sandbox,
+    page_index=1,
+    page_size=1,
+    timeout=25,
+):
+    """GET …/forms/{formType}/{formSlug}/payments — mêmes rôles / privilèges que les commandes."""
+    org = (organization_slug or "").strip()
+    ft = (form_type or "").strip()
+    fs = (form_slug or "").strip()
+    if not org or not ft or not fs:
+        return None, None
+
+    base = api_v5_base(use_sandbox)
+    path = (
+        f"/organizations/{quote(org, safe='')}/forms/"
+        f"{quote(ft, safe='')}/{quote(fs, safe='')}/payments"
+    )
+    url = f"{base}{path}"
+    params = [("pageIndex", page_index), ("pageSize", page_size)]
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/json",
+    }
+    try:
+        resp = requests.get(url, headers=headers, params=params, timeout=timeout)
+    except requests.exceptions.Timeout as e:
+        raise HelloAssoClientError("Délai dépassé (paiements formulaire).") from e
+    except requests.exceptions.RequestException as e:
+        raise HelloAssoClientError(f"Erreur réseau (paiements) : {_shorten(str(e))}") from e
+
+    try:
+        body = resp.json()
+    except ValueError:
+        body = None
+
+    if resp.status_code != 200:
+        _raise_for_status("Lecture des paiements", resp.status_code, body)
+
+    items, total = _items_and_total_from_v5_body(body)
+    return items, total
+
+
+def form_light_form_type_str(item):
+    """Valeur formType depuis un FormLight (string ou enum JSON)."""
+    if not isinstance(item, dict):
+        return ""
+    raw = item.get("formType") or item.get("FormType")
+    if raw is None:
+        return ""
+    if isinstance(raw, str):
+        return raw.strip()
+    if isinstance(raw, dict):
+        return str(raw.get("name") or raw.get("Name") or raw.get("value") or "")
+    return str(raw)
+
+
+def form_light_slug(item):
+    if not isinstance(item, dict):
+        return ""
+    return (item.get("formSlug") or item.get("FormSlug") or "").strip()
+
+
+def form_light_title(item):
+    if not isinstance(item, dict):
+        return ""
+    return (item.get("title") or item.get("Title") or item.get("privateTitle") or "").strip()
+
+
+def pick_first_membership_form(forms_list):
+    """Premier formulaire dont le type est Membership (insensible à la casse)."""
+    if not forms_list:
+        return None
+    for form in forms_list:
+        ft = form_light_form_type_str(form)
+        if ft and ft.lower() == "membership":
+            return form
+    return None
+
+
+def order_or_payment_trace_ids(sample_item):
+    """Identifiants candidats pour traçabilité depuis un objet commande ou paiement."""
+    if not isinstance(sample_item, dict):
+        return []
+    keys = (
+        "id",
+        "Id",
+        "orderId",
+        "OrderId",
+        "paymentId",
+        "PaymentId",
+        "reference",
+        "Reference",
+        "orderNumber",
+        "OrderNumber",
+    )
+    out = []
+    for k in keys:
+        v = sample_item.get(k)
+        if v is not None and v != "":
+            out.append(f"{k}={v}")
+            if len(out) >= 2:
+                break
+    return out
