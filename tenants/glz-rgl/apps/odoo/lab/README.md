@@ -21,3 +21,13 @@ Après un ajout ou une mise à jour de module dans ce dossier sur l’hôte :
 Connecteur MVP HelloAsso → `res.partner` (paramètres API sous **Paramètres**, bloc HelloAsso ; champs techniques sur le partenaire, onglet réservé aux utilisateurs paramètres).
 
 « Tester la connexion » appelle OAuth2 + optionnellement `formTypes`. « Synchroniser les adhérents » reste un stub jusqu’au mapping SPEC §6.2.
+
+### Erreur `Invalid field 'helloasso_*' on 'res.partner'`
+
+Cela signifie que la **vue** attend les champs HelloAsso mais le module **`dorevia_helloasso_adherent`** n’est pas chargé dans le registre (non installé, pas à jour, ou workers pas redémarrés après déploiement).
+
+1. **Apps** → mettre à jour la liste, puis **Mettre à jour** `dorevia_helloasso_adherent` (et `dorevia_partner_membership_fields` si besoin).
+2. Redémarrer le conteneur Odoo (`docker compose … restart odoo`).
+3. Vérifier que `requests` est disponible dans l’image (dépendance Python du module HelloAsso).
+
+Le module `dorevia_partner_membership_fields` **dépend** maintenant de `dorevia_helloasso_adherent` pour éviter une installation « adhésion » sans les champs HelloAsso sur `res.partner`.

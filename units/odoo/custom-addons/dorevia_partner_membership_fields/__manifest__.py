@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — champs adhérent / consentement",
-    "version": "19.0.1.0.1",
+    "version": "19.0.1.0.2",
     "category": "Dorevia",
     "summary": "Type d'adhérent et consentement sur les partenaires (complète partner-contact)",
     "author": "Dorevia Team",
@@ -9,6 +9,7 @@
     "license": "LGPL-3",
     "depends": [
         "contacts",
+        "dorevia_helloasso_adherent",
         "partner_stage",
         "partner_contact_personal_information_page",
     ],
