@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import json
 import logging
 
 from odoo import _, fields, models
@@ -21,6 +22,21 @@ from .helloasso_client import (
 )
 
 _logger = logging.getLogger(__name__)
+
+_JSON_PREVIEW_MAX = 12000
+
+
+def _json_block_for_preview(title, payload):
+    """Bloc texte JSON indenté pour la modale (tronqué si trop long)."""
+    if not isinstance(payload, dict):
+        return ""
+    try:
+        s = json.dumps(payload, ensure_ascii=False, indent=2)
+    except (TypeError, ValueError):
+        return ""
+    if len(s) > _JSON_PREVIEW_MAX:
+        s = s[: _JSON_PREVIEW_MAX - 60] + "\n… [tronqué pour affichage]"
+    return "\n%s\n%s" % (title, s)
 
 
 class ResConfigSettings(models.TransientModel):
@@ -184,12 +200,14 @@ class ResConfigSettings(models.TransientModel):
         orders_err = payments_err = None
         ord_items = None
         pay_items = None
+        orders_raw = None
+        payments_raw = None
 
         if membership_form:
             fslug = form_light_slug(membership_form)
             ftype = form_light_form_type_str(membership_form) or "Membership"
             try:
-                ord_items, order_total = fetch_form_orders_page(
+                ord_items, order_total, orders_raw = fetch_form_orders_page(
                     slug, ftype, fslug, token, use_sandbox, page_index=1, page_size=5
                 )
                 if ord_items:
@@ -198,7 +216,7 @@ class ResConfigSettings(models.TransientModel):
                 orders_err = str(err)
                 _logger.info("HelloAsso prévisualisation commandes : %s", err)
             try:
-                pay_items, payment_total = fetch_form_payments_page(
+                pay_items, payment_total, payments_raw = fetch_form_payments_page(
                     slug, ftype, fslug, token, use_sandbox, page_index=1, page_size=5
                 )
                 if pay_items:
@@ -317,6 +335,26 @@ class ResConfigSettings(models.TransientModel):
                 lines.append(summarize_form_type_entry(it, i))
             if len(ft_items) > max_rows:
                 lines.append(_("… et %s autre(s).") % (len(ft_items) - max_rows))
+
+        if membership_form and (orders_raw or payments_raw):
+            lines.append("")
+            lines.append(
+                _("— JSON brut API (copier pour la spec ; anonymiser avant partage externe) —")
+            )
+            if orders_raw:
+                lines.append(
+                    _json_block_for_preview(
+                        _("GET …/orders (réponse)"),
+                        orders_raw,
+                    )
+                )
+            if payments_raw:
+                lines.append(
+                    _json_block_for_preview(
+                        _("GET …/payments (réponse)"),
+                        payments_raw,
+                    )
+                )
 
         message = "\n".join(lines)
         wizard = self.env["dorevia.helloasso.preview.wizard"].create(

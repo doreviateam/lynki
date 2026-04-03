@@ -315,13 +315,13 @@ def fetch_form_orders_page(
 ):
     """
     GET …/forms/{formType}/{formSlug}/orders — FormAdmin / OrganizationAdmin + AccessTransactions.
-    Retourne (items_première_page, total_count_sur_toutes_pages_ou_None).
+    Retourne (items_première_page, total_count_sur_toutes_pages_ou_None, corps_JSON_brut_si_HTTP_200).
     """
     org = (organization_slug or "").strip()
     ft = (form_type or "").strip()
     fs = (form_slug or "").strip()
     if not org or not ft or not fs:
-        return None, None
+        return None, None, None
 
     base = api_v5_base(use_sandbox)
     path = (
@@ -351,7 +351,8 @@ def fetch_form_orders_page(
         _raise_for_status("Lecture des commandes", resp.status_code, body)
 
     items, total = _items_and_total_from_v5_body(body)
-    return items, total
+    raw = body if isinstance(body, dict) else None
+    return items, total, raw
 
 
 def fetch_form_payments_page(
@@ -364,12 +365,15 @@ def fetch_form_payments_page(
     page_size=1,
     timeout=25,
 ):
-    """GET …/forms/{formType}/{formSlug}/payments — mêmes rôles / privilèges que les commandes."""
+    """
+    GET …/forms/{formType}/{formSlug}/payments — mêmes rôles / privilèges que les commandes.
+    Retourne (items, total, corps_JSON_brut_si_HTTP_200).
+    """
     org = (organization_slug or "").strip()
     ft = (form_type or "").strip()
     fs = (form_slug or "").strip()
     if not org or not ft or not fs:
-        return None, None
+        return None, None, None
 
     base = api_v5_base(use_sandbox)
     path = (
@@ -399,7 +403,8 @@ def fetch_form_payments_page(
         _raise_for_status("Lecture des paiements", resp.status_code, body)
 
     items, total = _items_and_total_from_v5_body(body)
-    return items, total
+    raw = body if isinstance(body, dict) else None
+    return items, total, raw
 
 
 def form_light_form_type_str(item):
