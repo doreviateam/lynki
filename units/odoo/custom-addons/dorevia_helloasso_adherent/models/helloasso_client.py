@@ -193,6 +193,23 @@ def summarize_form_type_entry(item, index):
     return f"[{index}] {item!r}"[:300]
 
 
+def sanitize_pagination_total(raw):
+    """
+    HelloAsso renvoie parfois totalCount = -1 lorsque le total global n'est pas calculé.
+    Dans ce cas on retourne None pour forcer l'UI à se rabattre sur le nombre d'éléments
+    retournés dans ``data``.
+    """
+    if raw is None:
+        return None
+    try:
+        n = int(raw)
+    except (TypeError, ValueError):
+        return None
+    if n < 0:
+        return None
+    return n
+
+
 def _items_and_total_from_v5_body(body):
     """
     Extrait (liste data, totalCount ou None) depuis une enveloppe v5 type
@@ -208,7 +225,7 @@ def _items_and_total_from_v5_body(body):
         total = pag.get("totalCount")
         if total is None:
             total = pag.get("TotalCount")
-    return items, total
+    return items, sanitize_pagination_total(total)
 
 
 def _raise_for_status(path_label, status_code, body):

@@ -182,6 +182,8 @@ class ResConfigSettings(models.TransientModel):
         order_total = payment_total = None
         order_ids_line = payment_ids_line = ""
         orders_err = payments_err = None
+        ord_items = None
+        pay_items = None
 
         if membership_form:
             fslug = form_light_slug(membership_form)
@@ -232,18 +234,52 @@ class ResConfigSettings(models.TransientModel):
             lines.append(_("Titre : %s") % (form_light_title(membership_form) or "—"))
             lines.append(_("formType : %s") % (form_light_form_type_str(membership_form) or "—"))
             lines.append(_("formSlug : %s") % (form_light_slug(membership_form) or "—"))
-            if order_total is not None:
-                lines.append(_("Commandes (total déclaré par l’API) : %s") % order_total)
-            elif orders_err:
+            if orders_err:
                 lines.append(_("Commandes : %s") % orders_err)
+            elif order_total is not None:
+                lines.append(_("Commandes (total déclaré par l’API) : %s") % order_total)
+            elif ord_items is not None:
+                n = len(ord_items)
+                if n:
+                    lines.append(
+                        _(
+                            "Commandes : %s résultat(s) sur cette page — total global non fourni par l’API "
+                            "(ex. pagination.totalCount = -1)."
+                        )
+                        % n
+                    )
+                else:
+                    lines.append(
+                        _(
+                            "Commandes : 0 sur la première page — total global non fourni par l’API "
+                            "(ex. totalCount = -1)."
+                        )
+                    )
             else:
                 lines.append(_("Commandes : (aucune donnée)"))
             if order_ids_line:
                 lines.append(_("Ex. identifiants commande : %s") % order_ids_line)
-            if payment_total is not None:
-                lines.append(_("Paiements (total déclaré par l’API) : %s") % payment_total)
-            elif payments_err:
+            if payments_err:
                 lines.append(_("Paiements : %s") % payments_err)
+            elif payment_total is not None:
+                lines.append(_("Paiements (total déclaré par l’API) : %s") % payment_total)
+            elif pay_items is not None:
+                n = len(pay_items)
+                if n:
+                    lines.append(
+                        _(
+                            "Paiements : %s résultat(s) sur cette page — total global non fourni par l’API "
+                            "(ex. pagination.totalCount = -1)."
+                        )
+                        % n
+                    )
+                else:
+                    lines.append(
+                        _(
+                            "Paiements : 0 sur la première page — total global non fourni par l’API "
+                            "(ex. totalCount = -1)."
+                        )
+                    )
             else:
                 lines.append(_("Paiements : (aucune donnée)"))
             if payment_ids_line:
