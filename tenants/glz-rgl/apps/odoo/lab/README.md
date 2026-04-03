@@ -22,13 +22,18 @@ Connecteur MVP HelloAsso → `res.partner` (paramètres API sous **Paramètres**
 
 « Tester la connexion » appelle OAuth2 + optionnellement `formTypes`. « Synchroniser les adhérents » reste un stub jusqu’au mapping SPEC §6.2.
 
-### Erreur `Invalid field 'helloasso_*' on 'res.partner'`
+### Erreurs `Invalid field 'helloasso_*'` ou Owl / « field is undefined » (`helloasso_external_id`)
 
-Cela signifie que la **vue** attend les champs HelloAsso mais le module **`dorevia_helloasso_adherent`** n’est pas chargé dans le registre (non installé, pas à jour, ou workers pas redémarrés après déploiement).
+La **vue** contient les champs HelloAsso, mais le **registre Python** n’expose pas encore ces champs sur `res.partner` : le code sur le disque n’est pas celui attendu, ou la **mise à jour de module** n’a pas été appliquée sur **cette** base (souvent après un `git pull` sans `odoo module upgrade`).
 
-1. **Apps** → mettre à jour la liste, puis **Mettre à jour** `dorevia_helloasso_adherent` (et `dorevia_partner_membership_fields` si besoin).
-2. Redémarrer le conteneur Odoo (`docker compose … restart odoo`).
-3. Vérifier que `requests` est disponible dans l’image (dépendance Python du module HelloAsso).
+Les champs sont définis dans **`dorevia_partner_membership_fields`** (version **≥ 19.0.1.0.4**). À faire dans l’ordre :
+
+1. **`git pull`** sur l’hôte qui sert les addons, puis **redémarrer** le conteneur Odoo (rechargement des workers).
+2. Lancer la **mise à jour CLI** ci-dessous (**`dorevia_partner_membership_fields` en premier**), ou via **Apps** : mettre à jour la liste puis **Mettre à jour** ces deux modules.
+3. Dans le navigateur : rechargement forcé (**Ctrl+Shift+R**) ou vider le cache pour les assets Odoo.
+4. Si ça persiste : **Paramètres → Technique → Interface utilisateur → Vues** : vérifier qu’il n’y a pas une **vue personnalisée / Studio** obsolète sur `res.partner` qui référence encore des champs absents.
+
+En cas de doute, vérifier dans **Paramètres → Technique → Structure de la base → Champs** le modèle `Contact` / `res.partner` : les champs `helloasso_*` doivent apparaître une fois `dorevia_partner_membership_fields` à jour.
 
 Les champs et l’onglet **HelloAsso** sur `res.partner` sont dans **`dorevia_partner_membership_fields`** (pour éviter une base avec la vue mais sans champs si le connecteur API n’est pas installé). Le module **`dorevia_helloasso_adherent`** (API, paramètres) **dépend** de `dorevia_partner_membership_fields`. **`partner_contact_birthdate`** (OCA) fournit date de naissance / âge dans **Informations personnelles**.
 
