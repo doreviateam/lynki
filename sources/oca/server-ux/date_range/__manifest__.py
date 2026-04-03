@@ -3,7 +3,8 @@
 {
     "name": "Date Range",
     "summary": "Manage all kind of date range",
-    "version": "18.0.1.0.0",
+    # Lab Odoo 19 — pas de branche 19.0 dédiée dans le dépôt au moment du portage.
+    "version": "19.0.1.0.0",
     "category": "Uncategorized",
     "website": "https://github.com/OCA/server-ux",
     "author": "ACSONE SA/NV, Odoo Community Association (OCA)",

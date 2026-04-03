@@ -23,7 +23,7 @@ services:
       retries: 5
 
   odoo:
-    image: odoo:19.0
+    image: odoo:19.0-20260324
     container_name: odoo_prod_firmin_christelle
     init: true
     tty: true

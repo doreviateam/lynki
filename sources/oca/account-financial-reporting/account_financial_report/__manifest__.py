@@ -6,7 +6,8 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 {
     "name": "Account Financial Reports",
-    "version": "18.0.1.4.1",
+    # Lab Odoo 19 — OCA account-financial-reporting sans branche 19.0 au moment du portage.
+    "version": "19.0.1.0.0",
     "category": "Reporting",
     "summary": "OCA Financial Reports",
     "author": "Camptocamp,"
