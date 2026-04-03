@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Version** | 0.3.4 |
+| **Version** | 0.3.5 |
 | **Date** | Avril 2026 |
 | **Statut** | **Prête à arbitrage** — hypothèses de travail posées ; les décisions structurantes restent à valider métier / MOA |
 | **Document amont** | [Big Picture HelloAsso → Odoo](./Big_Picture_HelloAsso.md) |
@@ -127,6 +127,8 @@ Les champs exacts dépendent de l’**API HelloAsso** et des formulaires par str
 | **Paiement** (optionnel v1) | Montant, moyen | **Hors compta détaillée** ; usage éventuel : information ou filtre |
 
 ### 6.2. Table de correspondance HelloAsso → Odoo
+
+Le remplissage de cette table doit rester cohérent avec les arbitrages consignés dans l’[ADR HelloAsso ↔ Odoo (adhérents)](./ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md) (**v0.3.3**), notamment sur le **point de vérité métier** du flux, les **références stables candidates** (`order.id`, `payment.id` ou clé composée) et les principes de **rattachement**.
 
 Les tableaux ci-dessous intègrent les **premières observations réelles** (sandbox **HelloAsso**, organisation **`testdorevia`**, avril 2026) : prévisualisation API depuis Odoo + saisie back-office HelloAsso. Ils **ne remplacent pas** l’audit des **payloads JSON** (champs exacts, imbrication) ni la règle d’éligibilité §2.2 — à consigner avant gel du mapping.
 
@@ -373,6 +375,7 @@ Ces quatre sujets **conditionnent** le démarrage du développement et de la rec
 | 0.3.2 | Avril 2026 | **§11.0** — Hypothèse d’exploitation de l’API HelloAsso (lien [REF_API](./REF_API_HELLO_ASSO.md), idempotence notifications, renvoi **point de vérité** vers ADR §4) ; en-tête : décision **point de vérité** dans l’ADR ; **§13** : ligne **point de vérité** → ADR §4 |
 | 0.3.3 | Avril 2026 | **En-tête** : objectif du document (sans numéro de version figé) ; **§11.0** : formulation **point de vérité** ; **§13** scindé en **13.1** (4 arbitrages structurants) et **13.2** (complémentaires) |
 | 0.3.4 | Avril 2026 | **§6.2** : premières lignes de correspondance **terrain** (sandbox `testdorevia`, formulaire `adhesiontestdoreviaglz`, ids commande / paiement et champs adhérent observés) ; **§6.2.3** suite avant gel |
+| 0.3.5 | Avril 2026 | **§6.2** : phrase de renvoi explicite vers l’[ADR](./ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md) **v0.3.3** (point de vérité, références stables, rattachement) |
 
 ---
 
