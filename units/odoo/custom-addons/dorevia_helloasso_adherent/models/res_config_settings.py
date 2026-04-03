@@ -20,6 +20,7 @@ from .helloasso_client import (
     form_light_form_type_str,
     summarize_form_type_entry,
 )
+from .helloasso_sync import run_membership_payments_sync
 
 _logger = logging.getLogger(__name__)
 
@@ -370,13 +371,37 @@ class ResConfigSettings(models.TransientModel):
         }
 
     def action_helloasso_sync_members(self):
-        """Stub : import adhérents à implémenter (mapping §6.2, rapprochement §7)."""
+        """Synchro MVP : payments du formulaire Membership, filtre Registered + Membership (SPEC / ADR)."""
         self.ensure_one()
+        if not (self.helloasso_client_id and self.helloasso_client_secret):
+            raise UserError(
+                _("Renseignez le client ID et le client secret HelloAsso avant la synchronisation.")
+            )
         if not self.helloasso_organization_slug:
             raise UserError(_("Renseignez le slug organisation HelloAsso."))
-        raise UserError(
-            _(
-                "Synchronisation non implémentée dans ce squelette MVP. "
-                "À brancher après audit payloads (commandes / paiements) et table SPEC §6.2."
-            )
+        use_sandbox = bool(self.helloasso_use_sandbox)
+        stats = run_membership_payments_sync(
+            self.env,
+            self.helloasso_organization_slug.strip(),
+            self.helloasso_client_id,
+            self.helloasso_client_secret,
+            use_sandbox,
         )
+        parts = [
+            _("Paiements éligibles traités : %s") % stats["processed"],
+            _("Créations : %s — mises à jour : %s — ignorés : %s")
+            % (stats["created"], stats["updated"], stats["skipped"]),
+        ]
+        if stats["errors"]:
+            parts.append(_("Messages : %s") % " ; ".join(stats["errors"][:5]))
+        message = "\n".join(parts)
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("HelloAsso — synchronisation MVP"),
+                "message": message,
+                "type": "success",
+                "sticky": True,
+            },
+        }

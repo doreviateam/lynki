@@ -35,9 +35,14 @@
                 >
                     <group string="Traçabilité synchronisation">
                         <field name="helloasso_external_id"/>
+                        <field name="helloasso_order_id"/>
                         <field name="helloasso_last_sync_at"/>
                         <field name="helloasso_sync_status"/>
                         <field name="helloasso_source_form"/>
+                        <field name="helloasso_form_type"/>
+                        <field name="helloasso_payment_date"/>
+                        <field name="helloasso_payment_mean"/>
+                        <field name="helloasso_payment_amount"/>
                     </group>
                 </page>
             </xpath>

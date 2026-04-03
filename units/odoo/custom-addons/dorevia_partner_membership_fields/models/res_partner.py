@@ -38,12 +38,39 @@ class ResPartner(models.Model):
         copy=False,
         help="Ex. formSlug, campagne ou libellé utile au routage.",
     )
+    helloasso_order_id = fields.Char(
+        string="HelloAsso — id commande",
+        copy=False,
+        index=True,
+        help="Identifiant commande HelloAsso (traçabilité, croisement API).",
+    )
+    helloasso_form_type = fields.Char(
+        string="HelloAsso — formType",
+        copy=False,
+        help="Ex. Membership — contexte technique.",
+    )
+    helloasso_payment_date = fields.Datetime(
+        string="HelloAsso — date paiement (source)",
+        copy=False,
+    )
+    helloasso_payment_mean = fields.Char(
+        string="HelloAsso — moyen / mode de paiement",
+        copy=False,
+    )
+    helloasso_payment_amount = fields.Float(
+        string="HelloAsso — montant (source)",
+        digits=(12, 2),
+        copy=False,
+        help="Montant tel que renvoyé par l’API (unité selon HelloAsso).",
+    )
     helloasso_sync_status = fields.Selection(
         selection=[
             ("never", "Jamais synchronisé"),
             ("ok", "OK"),
+            ("synced", "Synchronisé"),
             ("error", "Erreur"),
             ("pending", "En attente"),
+            ("pending_review", "À revue manuelle"),
         ],
         string="HelloAsso — statut de synchro",
         default="never",

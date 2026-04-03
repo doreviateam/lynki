@@ -444,6 +444,50 @@ def pick_first_membership_form(forms_list):
     return None
 
 
+def resolve_membership_form(organization_slug, access_token, use_sandbox):
+    """
+    Premier formulaire Membership pour l’organisation (même logique que la prévisualisation).
+    Retourne le dict « form light » ou None.
+    """
+    slug = (organization_slug or "").strip()
+    if not slug:
+        return None
+
+    forms_items = None
+    membership_filter_nonempty = False
+    try:
+        forms_items, _ = fetch_organization_forms(
+            slug, access_token, use_sandbox, form_types=["Membership"]
+        )
+        if forms_items:
+            membership_filter_nonempty = True
+    except HelloAssoClientError:
+        pass
+
+    if not forms_items:
+        try:
+            forms_items, _ = fetch_organization_forms(
+                slug, access_token, use_sandbox, form_types=None
+            )
+        except HelloAssoClientError:
+            return None
+
+    membership_form = pick_first_membership_form(forms_items or [])
+    if (
+        not membership_form
+        and membership_filter_nonempty
+        and forms_items
+    ):
+        try:
+            alt_items, _ = fetch_organization_forms(
+                slug, access_token, use_sandbox, form_types=None
+            )
+            membership_form = pick_first_membership_form(alt_items or [])
+        except HelloAssoClientError:
+            return None
+    return membership_form
+
+
 def order_or_payment_trace_ids(sample_item):
     """Identifiants candidats pour traçabilité depuis un objet commande ou paiement."""
     if not isinstance(sample_item, dict):
