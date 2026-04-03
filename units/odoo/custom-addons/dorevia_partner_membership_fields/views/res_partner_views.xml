@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="base.view_partner_form" />
         <field name="arch" type="xml">
             <xpath expr="//page[@name='internal_notes']" position="after">
-                <page name="dorevia_membership" string="Adhérence">
+                <page name="dorevia_membership" string="Adhésion">
                     <group>
                         <group string="Adhérent">
                             <field name="member_type_id" />
