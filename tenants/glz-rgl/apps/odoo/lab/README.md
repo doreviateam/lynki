@@ -52,3 +52,14 @@ docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_
 ```
 
 Adapter le nom du conteneur et le nom de la base si besoin.
+
+### Même chose sur l’hôte public (`glz-rgl.doreviateam.com`)
+
+Depuis l’environnement de développement (Cursor / CI), **on ne peut pas** exécuter Docker sur le serveur distant sans accès SSH. Sur **la machine qui héberge** réellement les conteneurs du lab :
+
+```bash
+cd /opt/dorevia-plateform
+bash tenants/glz-rgl/apps/odoo/lab/upgrade-dorevia-odoo-on-host.sh
+```
+
+Le script enchaîne `git pull`, `odoo module upgrade` sur les deux modules Dorevia, puis `docker restart` du conteneur Odoo. Variables optionnelles : `REPO_ROOT`, `ODOO_CONTAINER`, `ODOO_DB`, `ODOO_CONF`, `GIT_BRANCH`.
