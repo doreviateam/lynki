@@ -24,6 +24,12 @@
                             class="btn-primary"
                         />
                         <button
+                            name="action_helloasso_preview_data"
+                            type="object"
+                            string="Prévisualiser les données HelloAsso"
+                            class="btn-secondary"
+                        />
+                        <button
                             name="action_helloasso_sync_members"
                             type="object"
                             string="Synchroniser les adhérents"

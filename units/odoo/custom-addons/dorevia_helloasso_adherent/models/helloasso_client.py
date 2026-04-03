@@ -171,3 +171,22 @@ def fetch_form_types_sample(organization_slug, access_token, use_sandbox, timeou
 
     count = len(items) if items is not None else None
     return items, count
+
+
+def summarize_form_type_entry(item, index):
+    """Une ligne lisible pour une entrée formTypes (formats API variables)."""
+    if not isinstance(item, dict):
+        return f"[{index}] {item!r}"
+    name = item.get("name") or item.get("Name") or item.get("label") or item.get("Label")
+    ftype = item.get("type") or item.get("Type") or item.get("formType") or item.get("FormType")
+    fid = item.get("id") or item.get("Id")
+    parts = []
+    if name is not None:
+        parts.append(str(name))
+    if ftype is not None:
+        parts.append(f"type={ftype}")
+    if fid is not None:
+        parts.append(f"id={fid}")
+    if parts:
+        return f"[{index}] " + " — ".join(parts)
+    return f"[{index}] {item!r}"[:300]
