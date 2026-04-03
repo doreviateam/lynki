@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_partner_form_membership" model="ir.ui.view">
+        <field name="name">res.partner.form.membership</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='internal_notes']" position="after">
+                <page name="dorevia_membership" string="Adhérence">
+                    <group>
+                        <group string="Adhérent">
+                            <field name="member_type_id" />
+                        </group>
+                        <group string="Consentement">
+                            <field name="consent_personal_data" />
+                            <field name="consent_date" />
+                            <field name="consent_note" placeholder="Référence document, version CGU, etc." />
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

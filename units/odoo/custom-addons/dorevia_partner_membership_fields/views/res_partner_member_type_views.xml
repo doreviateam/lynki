@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_res_partner_member_type_tree" model="ir.ui.view">
+        <field name="name">res.partner.member.type.list</field>
+        <field name="model">res.partner.member.type</field>
+        <field name="arch" type="xml">
+            <list string="Types d'adhérent" editable="bottom">
+                <field name="sequence" widget="handle" />
+                <field name="name" />
+                <field name="active" />
+            </list>
+        </field>
+    </record>
+
+    <record id="action_res_partner_member_type" model="ir.actions.act_window">
+        <field name="name">Types d'adhérent</field>
+        <field name="res_model">res.partner.member.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_res_partner_member_type"
+        name="Types d'adhérent"
+        parent="contacts.res_partner_menu_config"
+        action="action_res_partner_member_type"
+        sequence="25"
+    />
+</odoo>
