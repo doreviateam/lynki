@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Version** | 0.3.2 |
+| **Version** | 0.3.3 |
 | **Date** | Avril 2026 |
 | **Statut** | Registre d’arbitrage — **version provisoire initialisée** ; hypothèses de départ à confirmer |
 | **Spec de référence** | [SPEC_DOREVIA_HELLOASSO_ADHERENT.md](./SPEC_DOREVIA_HELLOASSO_ADHERENT.md) |
@@ -61,7 +61,7 @@ Mettre à jour ce fichier lorsqu’un arbitrage est **confirmé, ajusté ou éca
 
 *Joindre ou référencer une table externe si elle est volumineuse.*
 
-**Ancrage terrain (sandbox, avril 2026)** — Première boucle réelle sur l’organisation **`testdorevia`** : formulaire d’adhésion *AdhésionTestDoreviaGLZ*, **`formSlug`** `adhesiontestdoreviaglz`, **`formType`** `Membership`. Cet ancrage sert de **preuve de faisabilité** pour le routage par formulaire ; il **ne substitue pas** la table LGZ / RGL / CCC en production (cf. spec §8).
+**Ancrage terrain (sandbox, avril 2026)** — Première boucle réelle sur l’organisation **`testdorevia`** : formulaire d’adhésion *AdhésionTestDoreviaGLZ*, **`formSlug`** `adhesiontestdoreviaglz`, **`formType`** `Membership`. Cet ancrage sert de **premier ancrage de validation technique** pour le routage par formulaire ; il **ne substitue pas** la table LGZ / RGL / CCC en production (cf. spec §8).
 
 ---
 
@@ -73,7 +73,7 @@ La documentation API **ne tranche pas seule** quel objet fait foi pour une adhé
 |---|---|
 | **Décision** | ☐ **Commande** seule · ☐ **Paiement** seul · ☒ **Combinaison** (préciser la règle) · ☐ Autre : |
 | **Nature de la décision** | **Provisoire** |
-| **Règle opérationnelle** | Une adhésion est considérée comme **synchronisable** lorsqu’une **commande** existe pour le formulaire d’adhésion ciblé, avec un **paiement** associé **compatible** avec la règle métier d’**éligibilité** (à formaliser avec le métier, cf. spec §2.2). *Observation sandbox* : pour `adhesiontestdoreviaglz`, présence d’une commande (`id` **82771**) et d’un paiement (`id` **53022**) — à valider sur payloads JSON et comptes réels. |
+| **Règle opérationnelle** | Une adhésion est considérée comme synchronisable lorsqu’une **commande** existe pour le formulaire d’adhésion ciblé et qu’un **paiement** associé est présent dans un **état compatible** avec la règle métier d’**éligibilité** (à formaliser avec le métier, cf. spec §2.2). *Observation sandbox* : pour `adhesiontestdoreviaglz`, présence d’une commande (`id` **82771**) et d’un paiement (`id` **53022**) — à valider sur payloads JSON et comptes réels. |
 | **Référence stable retenue** | **À confirmer** après audit : candidats **`order.id`** et **`payment.id`** (et/ou clé composée) pour idempotence et traçabilité ; alignement avec notifications `Order` / `Payment` |
 | **Date** | Avril 2026 |
 | **Validé par** | Dorevia — hypothèse de travail interne, à confirmer métier / MOA |
@@ -105,6 +105,7 @@ La documentation API **ne tranche pas seule** quel objet fait foi pour une adhé
 | 0.3 | Avril 2026 | Statut **registre d’arbitrage** ; objet allégé ; **§2** — règle d’ambiguïté ; **§4** — référence stable ; **§5** — mécanisme de reprise |
 | 0.3.1 | Avril 2026 | Première version **provisoire remplie** : hypothèses de départ sur modèle Odoo, rapprochement, point de vérité métier et mode de synchronisation |
 | 0.3.2 | Avril 2026 | **§3** — ancrage terrain sandbox (`testdorevia`, `adhesiontestdoreviaglz`) ; **§4** — règle opérationnelle **combinaison** commande + paiement affinée + exemple d’ids observés ; référence stable : candidats `order.id` / `payment.id` |
+| 0.3.3 | Avril 2026 | **§3** — formulation « premier ancrage de validation technique » (à la place de « preuve de faisabilité ») ; **§4** — fluidité de la règle opérationnelle (commande + paiement, état compatible) |
 
 ---
 
