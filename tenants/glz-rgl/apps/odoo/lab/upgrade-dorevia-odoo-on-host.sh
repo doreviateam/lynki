@@ -22,8 +22,11 @@ fi
 docker exec "$CONTAINER" odoo module install -c "$ODOO_CONF" -d "$DB_NAME" dorevia_res_config_dms_shim \
   || docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" dorevia_res_config_dms_shim
 
+# Ordre séquentiel : les nouvelles colonnes res.partner sont dans membership_fields ;
+# un seul « odoo module upgrade » multi-modules peut charger helloasso avant migration DB.
 docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" \
-  dorevia_partner_membership_fields \
+  dorevia_partner_membership_fields
+docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" \
   dorevia_helloasso_adherent
 
 docker restart "$CONTAINER"
