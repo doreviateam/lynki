@@ -20,7 +20,7 @@ Après un ajout ou une mise à jour de module dans ce dossier sur l’hôte :
 
 Connecteur MVP HelloAsso → `res.partner` (paramètres API sous **Paramètres**, bloc HelloAsso ; champs techniques sur le partenaire, onglet réservé aux utilisateurs paramètres).
 
-« Tester la connexion » appelle OAuth2 + optionnellement `formTypes`. « Synchroniser les adhérents » reste un stub jusqu’au mapping SPEC §6.2.
+« Tester la connexion » appelle OAuth2 + optionnellement `formTypes`. « Prévisualiser les données HelloAsso » : lecture seule `formTypes`, notification + log (aucune écriture Odoo). « Synchroniser les adhérents » reste un stub jusqu’au mapping SPEC §6.2.
 
 ### Erreurs `Invalid field 'helloasso_*'` ou Owl / « field is undefined » (`helloasso_external_id`)
 
