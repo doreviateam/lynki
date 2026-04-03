@@ -31,3 +31,19 @@ Cela signifie que la **vue** attend les champs HelloAsso mais le module **`dorev
 3. Vérifier que `requests` est disponible dans l’image (dépendance Python du module HelloAsso).
 
 Le module `dorevia_partner_membership_fields` **dépend** de `dorevia_helloasso_adherent` (champs HelloAsso sur `res.partner`) et de **`partner_contact_birthdate`** (OCA) : l’onglet **Informations personnelles** contient alors **date de naissance** et **âge** (la page seule, sans modules complémentaires, restait vide par conception OCA).
+
+### Mise à jour modules (CLI Odoo 19, conteneur qui tourne déjà)
+
+Ne pas lancer un second `odoo -c … -u … --stop-after-init` dans le même conteneur : le port HTTP est déjà pris par le processus Odoo actif. Utiliser la sous-commande **`odoo module`** :
+
+```bash
+# Dépendances OCA pas encore installées (première fois après ajout birthdate)
+docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl \
+  partner_contact_personal_information_page partner_contact_birthdate
+
+# Mise à jour des modules Dorevia
+docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl \
+  dorevia_partner_membership_fields dorevia_helloasso_adherent
+```
+
+Adapter le nom du conteneur et le nom de la base si besoin.
