@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Version** | 0.3.5 |
+| **Version** | 0.3.9 |
 | **Date** | Avril 2026 |
 | **Statut** | **Prête à arbitrage** — hypothèses de travail posées ; les décisions structurantes restent à valider métier / MOA |
 | **Document amont** | [Big Picture HelloAsso → Odoo](./Big_Picture_HelloAsso.md) |
@@ -248,7 +248,7 @@ La traçabilité **métier** (champs visibles sur la fiche, identifiants source)
 
 ## 11. Mode d’échange technique
 
-Les modalités ci-dessous **encadrent** le choix d’architecture ; elles ne figent pas un produit ou un protocole tant que l’arbitrage technique n’est pas acté.
+Les modalités ci-dessous **encadrent** le choix d’architecture. La **décision de positionnement** (manuel → `ir.cron` → `queue_job` en palier 2 éventuel) est explicitée après le §11.0 ; les **décisions d’arbitrage** correspondantes sont dans l’[ADR §5](./ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md) et [POSITIONNEMENT_SYNC_CRON_VS_QUEUE_JOB.md](./POSITIONNEMENT_SYNC_CRON_VS_QUEUE_JOB.md).
 
 ### 11.0. Hypothèse d’exploitation de l’API HelloAsso
 
@@ -259,15 +259,25 @@ La spec s’appuie sur une **note interne** qui consolide la documentation offic
 * **Notifications :** concevoir le traitement comme **idempotent par événement métier** reçu, compte tenu des **retries** HelloAsso si la réponse n’est pas HTTP 200 (cf. note §3.4).
 * **Point de vérité métier** retenu pour décider qu’une adhésion doit être synchronisée : **commande**, **paiement**, ou **combinaison** de plusieurs objets HelloAsso. La doc technique **ne suffit pas** à le trancher seule — décision à **figer dans l’ADR** ([§4](./ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md)), en cohérence avec le §5.1 de cette spec et la note REF.
 
+### Décision de positionnement
+
+À ce stade, la synchronisation HelloAsso fonctionne en **déclenchement manuel**.
+
+Le **prochain palier retenu** est une automatisation par **`ir.cron`**.
+
+Les **webhooks** et **`queue_job`** ne sont **pas retenus dans l’immédiat** ; `queue_job` reste un **palier 2 éventuel**, conditionné par le retour terrain.
+
 ### 11.1. API / webhook / batch
+
+Le tableau ci-dessous décrit les **modes possibles** sur le plan technique ; le **choix acté** pour le MVP et la suite immédiate est celui de la section **Décision de positionnement** ci-dessus (cf. aussi [ADR §5](./ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md)).
 
 | Mode | Description |
 |------|-------------|
-| **Batch planifié** | Job récurrent interroge l’API HelloAsso pour les adhésions **éligibles** depuis le dernier point de reprise. |
-| **Webhook** (si offert et retenu) | Réception d’un événement → mise en file de traitement (ex. `queue_job`). |
-| **Hybride** | Webhook pour réactivité + batch de réconciliation. |
+| **Batch planifié** | Job récurrent interroge l’API HelloAsso pour les adhésions **éligibles** depuis le dernier point de reprise. **Palier retenu** après le MVP manuel (`ir.cron`). |
+| **Webhook** (si offert et retenu) | Réception d’un événement → mise en file de traitement (ex. `queue_job`). **Non retenu** à ce stade du MVP. |
+| **Hybride** | Webhook pour réactivité + batch de réconciliation. **Non retenu** comme cible du MVP ; reste une option d’architecture ultérieure **si le besoin réel le justifie**. |
 
-Le choix dépend de la **documentation API HelloAsso** (version à référencer), des **quotas** et de l’**hébergement** Dorevia.
+Les **quotas** API, la **documentation HelloAsso** (version à référencer) et l’**hébergement** Dorevia continuent de **contraindre** la mise en œuvre du batch planifié.
 
 ### 11.2. Sécurité
 
@@ -285,9 +295,11 @@ Traitements **idempotents** ; journal des échecs ; relance manuelle ou automati
 
 | Option | Idée |
 |--------|------|
-| **1** | Module Odoo dédié : planification / **`queue_job`** pour appels vers HelloAsso — cf. [inventaire lab](../instance_odoo.md) |
+| **1** | Module Odoo dédié : planification (**`ir.cron`**) pour appels vers HelloAsso ; **`queue_job`** uniquement si un **palier 2** est acté — cf. [inventaire lab](../instance_odoo.md) |
 | **2** | Service externe (worker, orchestrateur) écrivant dans Odoo via les **interfaces d’intégration Odoo retenues pour le projet** (à préciser au choix d’architecture : pas d’hypothèse de protocole figée ici). |
-| **3** | Événement entrant (ex. webhook) → file → **queue_job** Odoo |
+| **3** | Événement entrant (ex. webhook) → file → **queue_job** Odoo — **hors périmètre MVP actuel** |
+
+**MVP livré :** synchro déclenchée **manuellement** depuis Odoo ; pas de `queue_job` spécifique HelloAsso à ce stade (cf. positionnement et [ADR §5](./ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md)).
 
 **Documentation HelloAsso :** consigner dans le projet la **référence exacte** utilisée (URL de la doc développeur, version ou date d’accès, périmètre des endpoints retenus). Ne pas s’appuyer sur un **lien générique** de site public à la place d’une doc technique validée.
 
@@ -376,6 +388,10 @@ Ces quatre sujets **conditionnent** le démarrage du développement et de la rec
 | 0.3.3 | Avril 2026 | **En-tête** : objectif du document (sans numéro de version figé) ; **§11.0** : formulation **point de vérité** ; **§13** scindé en **13.1** (4 arbitrages structurants) et **13.2** (complémentaires) |
 | 0.3.4 | Avril 2026 | **§6.2** : premières lignes de correspondance **terrain** (sandbox `testdorevia`, formulaire `adhesiontestdoreviaglz`, ids commande / paiement et champs adhérent observés) ; **§6.2.3** suite avant gel |
 | 0.3.5 | Avril 2026 | **§6.2** : phrase de renvoi explicite vers l’[ADR](./ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md) **v0.3.3** (point de vérité, références stables, rattachement) |
+| 0.3.6 | Avril 2026 | **§11** : alignement sur l’[ADR v0.3.5](./ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md) — positionnement **manuel → `ir.cron` → `queue_job` palier 2** ; table §11.1 explicitée (hybride / webhook non retenus à ce stade) |
+| 0.3.7 | Avril 2026 | **§11** : un seul bloc **Décision de positionnement** (fusion avec l’ancien « Positionnement retenu ») ; §11.1 — hybride : formulation **besoin réel** (au lieu du seul métier) |
+| 0.3.8 | Avril 2026 | **Liens internes** : note [Validation lab — `ir.cron`](./VALIDATION_LAB_HELLOASSO_CRON.md) (palier 1 automatisation validé sur lab) |
+| 0.3.9 | Avril 2026 | Même fichier [VALIDATION_LAB_HELLOASSO_CRON](./VALIDATION_LAB_HELLOASSO_CRON.md) : élargi en **rapport module MVP** (contenu principal) + **annexe** validation lab (`ir.cron`) |
 
 ---
 
@@ -384,5 +400,7 @@ Ces quatre sujets **conditionnent** le démarrage du développement et de la rec
 * [Big Picture HelloAsso → Odoo](./Big_Picture_HelloAsso.md)
 * [Référence API HelloAsso — note interne](./REF_API_HELLO_ASSO.md) (alignée sur §11.0)
 * [ADR — Décisions d’arbitrage HelloAsso ↔ Odoo (adhérents)](./ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md)
+* [Positionnement automatisation synchro — cron vs queue_job](./POSITIONNEMENT_SYNC_CRON_VS_QUEUE_JOB.md)
+* [Module HelloAsso (MVP) — rapport + annexe validation lab (`ir.cron`)](./VALIDATION_LAB_HELLOASSO_CRON.md)
 * [Note de cadrage projet Odoo](../NOTE_CADRAGE_PROJET_ODOO.md)
 * [Inventaire modules Odoo — lab LGZ](../instance_odoo.md)

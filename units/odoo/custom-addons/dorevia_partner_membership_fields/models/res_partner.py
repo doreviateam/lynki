@@ -58,10 +58,11 @@ class ResPartner(models.Model):
         copy=False,
     )
     helloasso_payment_amount = fields.Float(
-        string="HelloAsso — montant (source)",
+        string="HelloAsso — montant (€)",
         digits=(12, 2),
         copy=False,
-        help="Montant tel que renvoyé par l’API (unité selon HelloAsso).",
+        help="Montant du paiement en euros. L’API HelloAsso fournit des centimes ; "
+        "la synchro les convertit (ex. 1000 → 10,00 €).",
     )
     helloasso_sync_status = fields.Selection(
         selection=[

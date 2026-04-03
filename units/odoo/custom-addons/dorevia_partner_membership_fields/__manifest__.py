@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — champs adhérent / consentement",
-    "version": "19.0.1.0.5",
+    "version": "19.0.1.0.7",
     "category": "Dorevia",
     "summary": "Type d'adhérent, consentement, date de naissance (OCA) sur les partenaires",
     "author": "Dorevia Team",

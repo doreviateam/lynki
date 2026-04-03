@@ -20,6 +20,9 @@ _logger = logging.getLogger(__name__)
 _PAYMENT_PAGE_SIZE = 50
 _MAX_PAYMENT_PAGES = 40
 
+# API HelloAsso (v5) : les montants des paiements sont en centimes (ex. 1000 → 10,00 €).
+_HELLOASSO_PAYMENT_CENTS_PER_EURO = 100
+
 
 def _g(obj, *keys):
     if not isinstance(obj, dict):
@@ -103,9 +106,12 @@ def _payment_trace_vals(payment, form_slug, form_type):
         mean = ""
     dt = _parse_payment_datetime(date_raw)
     try:
-        amt = float(amount) if amount is not None else False
+        amt_cents = float(amount) if amount is not None else False
     except (TypeError, ValueError):
-        amt = False
+        amt_cents = False
+    amt_euros = False
+    if amt_cents is not False:
+        amt_euros = round(amt_cents / _HELLOASSO_PAYMENT_CENTS_PER_EURO, 2)
     return {
         "helloasso_external_id": pid,
         "helloasso_order_id": str(oid) if oid is not None else False,
@@ -113,7 +119,7 @@ def _payment_trace_vals(payment, form_slug, form_type):
         "helloasso_form_type": form_type or False,
         "helloasso_payment_date": dt or False,
         "helloasso_payment_mean": mean or False,
-        "helloasso_payment_amount": amt if amt is not False else False,
+        "helloasso_payment_amount": amt_euros if amt_euros is not False else False,
         "helloasso_sync_status": "synced",
         "helloasso_last_sync_at": fields.Datetime.now(),
     }

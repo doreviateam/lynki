@@ -14,8 +14,14 @@ suite.doreviateam.com {
 }
 
 # Odoo 19 production — Doreviateam (base doreviateam)
-# /longpolling → port 8072 (temps réel : Discuss, notifications)
+# /longpolling et /websocket → port 8072 (workers : bus temps réel Odoo 19)
 odoo.doreviateam.com {
+  handle /websocket* {
+    reverse_proxy odoo_prod_o19:8072 {
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Forwarded-For {remote_host}
+    }
+  }
   handle /longpolling* {
     reverse_proxy odoo_prod_o19:8072 {
       header_up X-Forwarded-Proto {scheme}
@@ -32,6 +38,12 @@ odoo.doreviateam.com {
 
 # Odoo 19 production — Firmin Christelle (base firmin_christelle)
 firmin.christelle.doreviateam.com {
+  handle /websocket* {
+    reverse_proxy odoo_prod_firmin_christelle:8072 {
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Forwarded-For {remote_host}
+    }
+  }
   handle /longpolling* {
     reverse_proxy odoo_prod_firmin_christelle:8072 {
       header_up X-Forwarded-Proto {scheme}
@@ -48,6 +60,12 @@ firmin.christelle.doreviateam.com {
 
 # Tenant: glz-rgl - Odoo 19 lab (DNS dédié)
 glz-rgl.doreviateam.com {
+  handle /websocket* {
+    reverse_proxy odoo_lab_glz-rgl:8072 {
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Forwarded-For {remote_host}
+    }
+  }
   handle /longpolling* {
     reverse_proxy odoo_lab_glz-rgl:8072 {
       header_up X-Forwarded-Proto {scheme}
@@ -64,6 +82,9 @@ glz-rgl.doreviateam.com {
 
 # Tenant: o19 - Environment: lab
 odoo.lab.o19.doreviateam.com {
+  handle /websocket* {
+    reverse_proxy odoo_lab_o19:8072
+  }
   handle /longpolling* {
     reverse_proxy odoo_lab_o19:8072
   }

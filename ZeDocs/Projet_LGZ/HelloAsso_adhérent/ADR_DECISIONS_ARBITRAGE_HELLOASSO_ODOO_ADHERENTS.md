@@ -2,11 +2,12 @@
 
 | | |
 |---|---|
-| **Version** | 0.3.3 |
+| **Version** | 0.3.5 |
 | **Date** | Avril 2026 |
-| **Statut** | Registre d’arbitrage — **version provisoire initialisée** ; hypothèses de départ à confirmer |
+| **Statut** | Registre d’arbitrage — **version provisoire** ; hypothèses de départ à confirmer |
 | **Spec de référence** | [SPEC_DOREVIA_HELLOASSO_ADHERENT.md](./SPEC_DOREVIA_HELLOASSO_ADHERENT.md) |
 | **Note technique API** | [REF_API_HELLO_ASSO.md](./REF_API_HELLO_ASSO.md) |
+| **Automatisation synchro (cron / queue_job)** | [POSITIONNEMENT_SYNC_CRON_VS_QUEUE_JOB.md](./POSITIONNEMENT_SYNC_CRON_VS_QUEUE_JOB.md) |
 
 ---
 
@@ -15,11 +16,18 @@
 Consigner les décisions **actées** sur le connecteur HelloAsso → Odoo (adhérents), sans dupliquer la spec détaillée.
 
 * La **spec** décrit le périmètre, les principes, les hypothèses et les critères de recette.
-* Cet **ADR** enregistre **ce qui a été tranché** : date, version, contenu stable, éventuelles références (réunion, ticket).
+* Cet **ADR** enregistre **les arbitrages tranchés**, qu’ils soient :
+  * **confirmés**
+  * **provisoires**
+  * ou **à réviser ultérieurement**
+
+Chaque entrée peut inclure : date, version, contenu stable, éventuelles références (réunion, ticket).
 
 Tant qu’un arbitrage n’est pas définitivement validé, il peut être consigné ici comme **décision provisoire**, explicitement identifiée comme telle.
 
 Mettre à jour ce fichier lorsqu’un arbitrage est **confirmé, ajusté ou écarté** (cf. spec §13.1 et §13.2).
+
+> **Décision de positionnement (automatisation)** : l’automatisation de la synchro HelloAsso ne passera pas, dans l’immédiat, par `queue_job`. Le prochain palier retenu est une action planifiée Odoo (`ir.cron`). Le recours à `queue_job` est explicitement repoussé à un palier ultérieur, conditionné par le retour terrain.
 
 ---
 
@@ -82,13 +90,17 @@ La documentation API **ne tranche pas seule** quel objet fait foi pour une adhé
 
 ## 5. Mode de synchronisation technique (cf. spec §11)
 
+<!-- id: 0h1f4n — alignement ir.cron / pas queue_job à ce stade -->
+
 | | |
 |---|---|
-| **Mode retenu** | ☐ Batch planifié · ☐ Webhook · ☒ **Hybride** · ☐ Autre : |
+| **Mode retenu** | ☒ **Batch planifié** · ☐ Webhook · ☐ Hybride · ☐ Autre : |
 | **Nature de la décision** | **Provisoire** |
-| **Interfaces Odoo** | À confirmer au choix d’architecture ; orientation actuelle ouverte entre module Odoo dédié et service externe |
-| **Fréquence / déclencheurs** | Notifications si disponibles pour la réactivité ; batch planifié de réconciliation pour sécuriser les écarts et reprises |
-| **Mécanisme de reprise** | Journalisation des échecs + relance manuelle ou automatique + batch de réconciliation |
+| **Position actuelle** | Le MVP fonctionne aujourd’hui en **déclenchement manuel** depuis Odoo. Le **prochain palier retenu** est une automatisation simple par **action planifiée Odoo (`ir.cron`)**. |
+| **Interfaces Odoo** | Synchronisation portée par le module Odoo existant ; pas de service externe retenu à ce stade |
+| **Fréquence / déclencheurs** | Fréquence modérée à définir selon le besoin métier (ex. nocturne ou périodique). Pas de webhook retenu dans l’immédiat |
+| **Mécanisme de reprise** | Journalisation des échecs, relance manuelle possible, puis exécution planifiée de réconciliation |
+| **Position sur `queue_job`** | **Non retenu dans l’immédiat**. `queue_job` est considéré comme un **palier 2**, à envisager uniquement si la volumétrie, la durée d’exécution ou le besoin de non-blocage le justifient |
 | **Référence doc API HelloAsso** | À renseigner précisément lors du choix technique final (URL + date/version) |
 | **Date** | Avril 2026 |
 | **Validé par** | Dorevia — hypothèse de travail interne, à confirmer technique / MOA |
@@ -106,6 +118,8 @@ La documentation API **ne tranche pas seule** quel objet fait foi pour une adhé
 | 0.3.1 | Avril 2026 | Première version **provisoire remplie** : hypothèses de départ sur modèle Odoo, rapprochement, point de vérité métier et mode de synchronisation |
 | 0.3.2 | Avril 2026 | **§3** — ancrage terrain sandbox (`testdorevia`, `adhesiontestdoreviaglz`) ; **§4** — règle opérationnelle **combinaison** commande + paiement affinée + exemple d’ids observés ; référence stable : candidats `order.id` / `payment.id` |
 | 0.3.3 | Avril 2026 | **§3** — formulation « premier ancrage de validation technique » (à la place de « preuve de faisabilité ») ; **§4** — fluidité de la règle opérationnelle (commande + paiement, état compatible) |
+| 0.3.4 | Avril 2026 | Renvoi [POSITIONNEMENT_SYNC_CRON_VS_QUEUE_JOB.md](./POSITIONNEMENT_SYNC_CRON_VS_QUEUE_JOB.md) — prochain palier : `ir.cron` ; `queue_job` en palier 2 si besoin terrain |
+| 0.3.5 | Avril 2026 | **§5** réaligné : MVP **manuel** aujourd’hui ; prochain palier **batch planifié** (`ir.cron`) ; **pas** de webhook ni `queue_job` à ce stade ; statut en-tête et **objet** du document assouplis ; décision d’automatisation gravée en citation sous l’objet |
 
 ---
 
@@ -114,3 +128,4 @@ La documentation API **ne tranche pas seule** quel objet fait foi pour une adhé
 * [Specification — SPEC_DOREVIA_HELLOASSO_ADHERENT.md](./SPEC_DOREVIA_HELLOASSO_ADHERENT.md)
 * [Référence API HelloAsso](./REF_API_HELLO_ASSO.md)
 * [Big Picture HelloAsso → Odoo](./Big_Picture_HelloAsso.md)
+* [Positionnement automatisation synchro — cron vs queue_job](./POSITIONNEMENT_SYNC_CRON_VS_QUEUE_JOB.md)
