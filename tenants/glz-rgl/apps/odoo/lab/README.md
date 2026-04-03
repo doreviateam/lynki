@@ -40,7 +40,7 @@ En cas de doute, vérifier dans **Paramètres → Technique → Structure de la 
 1. Appliquer le patch : `./scripts/apply-oca-dms-odoo19-patch.sh` (voir `patches/README.md`).
 2. Installer le module **`dms`** dans Odoo (Apps → Documents / « Document Management System »).
 
-Sans patch, `dms` reste non installable (manifest 18.0) ; les vues Paramètres peuvent alors provoquer une erreur Owl sur `documents_binary_max_size` si des données orphelines existent déjà en base.
+Sans patch, `dms` reste non installable (manifest 18.0) ; les vues Paramètres peuvent alors provoquer une erreur Owl sur `documents_binary_max_size` si des données orphelines existent déjà en base. Le module **`dorevia_res_config_dms_shim`** expose les champs `documents_*` attendus par ces vues (installé automatiquement avec `dorevia_helloasso_adherent`).
 
 Les champs et l’onglet **HelloAsso** sur `res.partner` sont dans **`dorevia_partner_membership_fields`** (pour éviter une base avec la vue mais sans champs si le connecteur API n’est pas installé). Le module **`dorevia_helloasso_adherent`** (API, paramètres) **dépend** de `dorevia_partner_membership_fields`. **`partner_contact_birthdate`** (OCA) fournit date de naissance / âge dans **Informations personnelles**.
 
@@ -55,7 +55,7 @@ docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_
 
 # Mise à jour des modules Dorevia
 docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl \
-  dorevia_partner_membership_fields dorevia_helloasso_adherent
+  dorevia_res_config_dms_shim dorevia_partner_membership_fields dorevia_helloasso_adherent
 ```
 
 Adapter le nom du conteneur et le nom de la base si besoin.

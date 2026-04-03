@@ -19,6 +19,7 @@ if ! docker ps --format '{{.Names}}' | grep -qx "$CONTAINER"; then
 fi
 
 docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" \
+  dorevia_res_config_dms_shim \
   dorevia_partner_membership_fields \
   dorevia_helloasso_adherent
 

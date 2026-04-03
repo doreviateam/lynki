@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso adhérents (MVP)",
-    "version": "19.0.1.0.5",
+    "version": "19.0.1.0.7",
     "category": "Dorevia",
     "summary": "Connecteur MVP : synchronisation des adhérents HelloAsso vers res.partner",
     "description": """
@@ -20,6 +20,7 @@
         "base_setup",
         "contacts",
         "dorevia_partner_membership_fields",
+        "dorevia_res_config_dms_shim",
     ],
     "external_dependencies": {
         "python": ["requests"],
