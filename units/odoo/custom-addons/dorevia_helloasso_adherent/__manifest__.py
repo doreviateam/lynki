@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso adhérents (MVP)",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.0.1",
     "category": "Dorevia",
     "summary": "Connecteur MVP : synchronisation des adhérents HelloAsso vers res.partner",
     "description": """
         Squelette MVP (SPEC ZeDocs/Projet_LGZ/HelloAsso) :
         - Paramètres API (client ID / secret, sandbox, slug organisation)
-        - Actions « Tester la connexion » et « Synchroniser les adhérents » (stubs)
+        - « Tester la connexion » : OAuth2 client_credentials + ping formTypes si slug renseigné
+        - « Synchroniser les adhérents » : stub (mapping SPEC §6.2)
         - Champs de traçabilité HelloAsso sur le partenaire
-        L’appel HTTP OAuth et le mapping métier sont à compléter après audit API (SPEC §6.2).
     """,
     "author": "Dorevia Team",
     "website": "https://doreviateam.com",

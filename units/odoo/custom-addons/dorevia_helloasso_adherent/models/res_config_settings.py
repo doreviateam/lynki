@@ -3,6 +3,8 @@
 from odoo import _, fields, models
 from odoo.exceptions import UserError
 
+from .helloasso_client import HelloAssoClientError, fetch_client_credentials_token, fetch_form_types_sample
+
 
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
@@ -27,18 +29,73 @@ class ResConfigSettings(models.TransientModel):
     )
 
     def action_helloasso_test_connection(self):
-        """Stub : OAuth + ping API à implémenter (REF_API, SPEC §6.2)."""
+        """OAuth client_credentials puis ping GET formTypes si slug renseigné (REF_API §2.2, §2.4)."""
         self.ensure_one()
         if not (self.helloasso_client_id and self.helloasso_client_secret):
             raise UserError(
                 _("Renseignez le client ID et le client secret HelloAsso avant le test.")
             )
-        raise UserError(
-            _(
-                "Connexion API non implémentée dans ce squelette MVP. "
-                "Implémenter OAuth2 et un appel test (ex. formTypes) selon la SPEC §6.2 et REF_API."
+        use_sandbox = bool(self.helloasso_use_sandbox)
+        try:
+            token_payload = fetch_client_credentials_token(
+                self.helloasso_client_id,
+                self.helloasso_client_secret,
+                use_sandbox,
             )
-        )
+        except HelloAssoClientError as err:
+            raise UserError(str(err)) from err
+
+        env_label = _("sandbox") if use_sandbox else _("production")
+        parts = [
+            _("Jeton d’accès HelloAsso obtenu avec succès (environnement : %s).") % env_label,
+        ]
+        expires = token_payload.get("expires_in")
+        if expires is not None:
+            parts.append(_("Durée indicative du jeton : %s secondes (cf. doc HelloAsso).") % expires)
+
+        slug = (self.helloasso_organization_slug or "").strip()
+        if slug:
+            try:
+                _items, count = fetch_form_types_sample(
+                    slug,
+                    token_payload["access_token"],
+                    use_sandbox,
+                )
+            except HelloAssoClientError as err:
+                raise UserError(
+                    _(
+                        "Le jeton est valide, mais la lecture des types de formulaires a échoué : %s"
+                    )
+                    % str(err)
+                ) from err
+            if count is not None:
+                parts.append(
+                    _("Lecture API OK : %s type(s) de formulaire(s) pour l’organisation « %s ».")
+                    % (count, slug)
+                )
+            else:
+                parts.append(
+                    _("Lecture API OK pour l’organisation « %s » (réponse sans liste exploitable).")
+                    % slug
+                )
+        else:
+            parts.append(
+                _(
+                    "Renseignez aussi le slug organisation pour valider en plus l’appel « formTypes »."
+                )
+            )
+
+        message = "\n".join(parts)
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("HelloAsso — connexion"),
+                "message": message,
+                "type": "success",
+                "sticky": True,
+            },
+        }
 
     def action_helloasso_sync_members(self):
         """Stub : import adhérents à implémenter (mapping §6.2, rapprochement §7)."""
