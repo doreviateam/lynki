@@ -1,0 +1,60 @@
+# Docker Compose - odoo lab glz-rgl (Odoo 19)
+# URL: https://glz-rgl.doreviateam.com
+# DB name: odoo_lab_glz_rgl
+# Compose project: dorevia_odoo_lab_glz-rgl
+
+name: dorevia_odoo_lab_glz-rgl
+
+services:
+  db:
+    image: postgres:16
+    container_name: odoo_db_lab_glz-rgl
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: odoo
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    volumes:
+      - odoo_lab_glz_rgl_db:/var/lib/postgresql/data
+    networks:
+      - dorevia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  odoo:
+    image: odoo:19.0-20260324
+    container_name: odoo_lab_glz-rgl
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ODOO_DVIG_URL: ${ODOO_DVIG_URL:-http://dvig-core-stinger:8080}
+      ODOO_DVIG_SOURCE: glz-rgl.doreviateam.com
+      ODOO_DVIG_TENANT: glz-rgl
+      ODOO_DVIG_TOKEN: ${DVIG_TOKEN_GLZ_RGL:-}
+    networks:
+      - dorevia-network
+    volumes:
+      - /opt/dorevia-plateform/sources/oca:/mnt/oca:ro
+      - /opt/dorevia-plateform/units/odoo/addons-o19:/mnt/addons-o19:ro
+      - oca_extra_addons:/mnt/extra-addons
+      - /opt/dorevia-plateform/units/odoo/custom-addons:/mnt/custom-addons
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
+      - odoo_lab_glz_rgl_data:/var/lib/odoo
+    command: ["sh", "-c", "/mnt/custom-addons/bin/oca_flatten.sh && odoo -c /etc/odoo/odoo.conf"]
+
+volumes:
+  odoo_lab_glz_rgl_db:
+    name: odoo_lab_glz_rgl_db
+  odoo_lab_glz_rgl_data:
+    name: odoo_lab_glz_rgl_data
+  oca_extra_addons:
+    name: oca_extra_addons
+
+networks:
+  dorevia-network:
+    external: true

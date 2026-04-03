@@ -1,7 +1,7 @@
 # Odoo lab — GLZ-RGL
 
 URL : https://glz-rgl.doreviateam.com  
-Base : `odoo_lab_glz_rgl` (voir `odoo.conf`)
+Base : `odoo_lab_glz_rgl` (voir `odoo.conf` — créé localement à partir de `odoo.conf.example`, non versionné)
 
 ## Custom addons Dorevia
 
@@ -20,4 +20,4 @@ Après un ajout ou une mise à jour de module dans ce dossier sur l’hôte :
 
 Connecteur MVP HelloAsso → `res.partner` (paramètres API sous **Paramètres**, bloc HelloAsso ; champs techniques sur le partenaire, onglet réservé aux utilisateurs paramètres).
 
-Les actions « Tester la connexion » et « Synchroniser les adhérents » sont des stubs tant que l’OAuth et le mapping API ne sont pas implémentés.
+« Tester la connexion » appelle OAuth2 + optionnellement `formTypes`. « Synchroniser les adhérents » reste un stub jusqu’au mapping SPEC §6.2.
