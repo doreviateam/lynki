@@ -35,6 +35,10 @@ Les champs sont définis dans **`dorevia_partner_membership_fields`** (version *
 
 En cas de doute, vérifier dans **Paramètres → Technique → Structure de la base → Champs** le modèle `Contact` / `res.partner` : les champs `helloasso_*` doivent apparaître une fois `dorevia_partner_membership_fields` à jour.
 
+### Erreur Owl sur **Paramètres** : `documents_binary_max_size` field is undefined
+
+Souvent une **vue orpheline** du module OCA **dms** (Documents) : le manifest dms peut être incompatible Odoo 19 (`dms` non chargé) alors que des vues `res.config.settings` restent en base. Le module **`dorevia_helloasso_adherent`** (≥ 19.0.1.0.4) redéclare les champs attendus par cette vue ; mettre à jour le module puis recharger le navigateur. À terme : réparer ou désinstaller proprement **dms** sur cette base.
+
 Les champs et l’onglet **HelloAsso** sur `res.partner` sont dans **`dorevia_partner_membership_fields`** (pour éviter une base avec la vue mais sans champs si le connecteur API n’est pas installé). Le module **`dorevia_helloasso_adherent`** (API, paramètres) **dépend** de `dorevia_partner_membership_fields`. **`partner_contact_birthdate`** (OCA) fournit date de naissance / âge dans **Informations personnelles**.
 
 ### Mise à jour modules (CLI Odoo 19, conteneur qui tourne déjà)

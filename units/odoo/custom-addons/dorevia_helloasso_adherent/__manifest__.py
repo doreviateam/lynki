@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso adhérents (MVP)",
-    "version": "19.0.1.0.3",
+    "version": "19.0.1.0.4",
     "category": "Dorevia",
     "summary": "Connecteur MVP : synchronisation des adhérents HelloAsso vers res.partner",
     "description": """
