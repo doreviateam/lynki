@@ -217,8 +217,16 @@ def _items_and_total_from_v5_body(body):
     """
     if not isinstance(body, dict):
         return None, None
-    data = body.get("data") or body.get("Data")
-    items = data if isinstance(data, list) else None
+    # Ne pas utiliser « or » entre data/Data : JSON `"data": null` doit donner [].
+    raw = body.get("data")
+    if raw is None:
+        raw = body.get("Data")
+    if isinstance(raw, list):
+        items = raw
+    elif raw is None:
+        items = []
+    else:
+        items = None
     pag = body.get("pagination") or body.get("Pagination")
     total = None
     if isinstance(pag, dict):
