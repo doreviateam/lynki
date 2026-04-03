@@ -18,8 +18,11 @@ if ! docker ps --format '{{.Names}}' | grep -qx "$CONTAINER"; then
   exit 1
 fi
 
+# Nouveau module : « upgrade » refuse si le module n’est pas encore installé (UserError).
+docker exec "$CONTAINER" odoo module install -c "$ODOO_CONF" -d "$DB_NAME" dorevia_res_config_dms_shim \
+  || docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" dorevia_res_config_dms_shim
+
 docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" \
-  dorevia_res_config_dms_shim \
   dorevia_partner_membership_fields \
   dorevia_helloasso_adherent
 

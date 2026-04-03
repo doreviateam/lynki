@@ -53,9 +53,13 @@ Ne pas lancer un second `odoo -c … -u … --stop-after-init` dans le même con
 docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl \
   partner_contact_personal_information_page partner_contact_birthdate
 
-# Mise à jour des modules Dorevia
+# Shim DMS : installer une première fois (upgrade échoue si le module n’est pas installé)
+docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_res_config_dms_shim \
+  || docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_res_config_dms_shim
+
+# Mise à jour des modules Dorevia déjà installés
 docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl \
-  dorevia_res_config_dms_shim dorevia_partner_membership_fields dorevia_helloasso_adherent
+  dorevia_partner_membership_fields dorevia_helloasso_adherent
 ```
 
 Adapter le nom du conteneur et le nom de la base si besoin.
