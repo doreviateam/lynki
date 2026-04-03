@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Version** | 0.3.3 |
+| **Version** | 0.3.4 |
 | **Date** | Avril 2026 |
 | **Statut** | **Prête à arbitrage** — hypothèses de travail posées ; les décisions structurantes restent à valider métier / MOA |
 | **Document amont** | [Big Picture HelloAsso → Odoo](./Big_Picture_HelloAsso.md) |
@@ -126,11 +126,37 @@ Les champs exacts dépendent de l’**API HelloAsso** et des formulaires par str
 | **Identifiants source** | ID adhésion HelloAsso, identifiants de structure / campagne | Obligatoire pour §10 |
 | **Paiement** (optionnel v1) | Montant, moyen | **Hors compta détaillée** ; usage éventuel : information ou filtre |
 
-### 6.2. Table de correspondance HelloAsso → Odoo (à remplir)
+### 6.2. Table de correspondance HelloAsso → Odoo
 
-| HelloAsso (champ / API) | Odoo (champ / modèle) | Obligatoire | Transformation |
-|-------------------------|----------------------|-------------|----------------|
-| *…* | *…* | Oui / Non | *…* |
+Les tableaux ci-dessous intègrent les **premières observations réelles** (sandbox **HelloAsso**, organisation **`testdorevia`**, avril 2026) : prévisualisation API depuis Odoo + saisie back-office HelloAsso. Ils **ne remplacent pas** l’audit des **payloads JSON** (champs exacts, imbrication) ni la règle d’éligibilité §2.2 — à consigner avant gel du mapping.
+
+#### 6.2.1. Contexte et traçabilité
+
+| HelloAsso (objet / champ / API) | Odoo (champ / modèle) | Obligatoire | Transformation | Impact métier | Remarques |
+|--------------------------------|------------------------|-------------|------------------|---------------|-----------|
+| `organizationSlug` | Paramètres connecteur (`res.config.settings`) | Oui | Aucune | Cible des appels API | Valeur observée sandbox : `testdorevia` |
+| `formType` | Contexte technique / routage sync | Oui | Aucune | Périmètre « adhésion » | Valeur observée : `Membership` |
+| `formSlug` | `helloasso_source_form` sur `res.partner` (ou équivalent) | Oui | Aucune | Rattachement au formulaire source | Valeur observée : `adhesiontestdoreviaglz` |
+| Commande — identifiant stable (ex. `id` ressource order) | Traçabilité / idempotence (champ dédié ou log) | À arbitrer | Cast texte si besoin | Candidat **point de vérité** | Observé via prévisualisation API : `82771` |
+| Paiement — identifiant stable (ex. `id` ressource payment) | Traçabilité / idempotence | À arbitrer | Cast texte si besoin | Candidat **point de vérité** | Observé : `53022` |
+
+#### 6.2.2. Données adhérent (alignement Odoo)
+
+| HelloAsso (origine / champ) | Odoo (champ / modèle) | Obligatoire | Transformation | Impact métier | Remarques |
+|----------------------------|------------------------|-------------|------------------|---------------|-----------|
+| Nom | `res.partner` — nom de famille / champ nom | Oui | Normalisation légère | Identification | Ex. observé : `Norab` |
+| Prénom | `res.partner.firstname` | Oui | Normalisation légère | Identification | Ex. observé : `Daniel` |
+| E-mail | `res.partner.email` | Oui | `lower` / `trim` | Rapprochement | Ex. observé : `daniel@norab.fr` |
+| Date d’adhésion / date commande | Champ métier ou traçabilité | Oui | Format date | Suivi | Ex. observé : `03/04/2026` |
+| Libellé tarif / formule | Remarque, étiquette ou champ technique | Non | Texte | Contexte | Ex. observé : `AdhésionTest` |
+| Montant | Information de contexte (hors compta détaillée sauf arbitrage) | Non | Numérique | Contrôle / lecture | Ex. observé : `10 €` |
+| Statut HelloAsso (ex. back-office) | `helloasso_sync_status` ou journal | Non | Mapping métier à définir | Suivi | Ex. observé : `Hors-ligne` — lien API / éligibilité §2.2 à confirmer |
+
+#### 6.2.3. Suite attendue avant gel
+
+* Payloads JSON **commande** et **paiement** (noms de champs officiels, objets liés).
+* Règle d’**éligibilité** alignée sur les statuts HelloAsso et l’ADR §4.
+* Confirmation **LGZ / RGL / CCC** pour la production (§8) — le sandbox ci-dessus ne suffit pas à figer le routage multi-structures.
 
 ---
 
@@ -329,7 +355,7 @@ Ces quatre sujets **conditionnent** le démarrage du développement et de la rec
 |----------|-------------|--------|
 | Arbitrages §5.4, §7.1, §8, §13.1–13.2 (voir aussi [ADR](./ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md)) | MOA associations | ☐ |
 | Règle écrite d’éligibilité HelloAsso (§2.2) | MOA + tech | ☐ |
-| Table §6.2 (correspondance API) | Tech / AMOA | ☐ |
+| Table §6.2 (correspondance API) | Tech / AMOA | **Partiel** (sandbox — à compléter payloads + prod) |
 | Module ou service connecteur | Développement | ☐ |
 | Recette §14 | AMOA + métier | ☐ |
 | Documentation d’exploitation (clés, logs, reprise) | Tech | ☐ |
@@ -346,6 +372,7 @@ Ces quatre sujets **conditionnent** le démarrage du développement et de la rec
 | 0.3.1 | Avril 2026 | Micro-retouches §2.2 et §13 ; création du document [ADR](./ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md) pour les décisions figées hors corps de spec |
 | 0.3.2 | Avril 2026 | **§11.0** — Hypothèse d’exploitation de l’API HelloAsso (lien [REF_API](./REF_API_HELLO_ASSO.md), idempotence notifications, renvoi **point de vérité** vers ADR §4) ; en-tête : décision **point de vérité** dans l’ADR ; **§13** : ligne **point de vérité** → ADR §4 |
 | 0.3.3 | Avril 2026 | **En-tête** : objectif du document (sans numéro de version figé) ; **§11.0** : formulation **point de vérité** ; **§13** scindé en **13.1** (4 arbitrages structurants) et **13.2** (complémentaires) |
+| 0.3.4 | Avril 2026 | **§6.2** : premières lignes de correspondance **terrain** (sandbox `testdorevia`, formulaire `adhesiontestdoreviaglz`, ids commande / paiement et champs adhérent observés) ; **§6.2.3** suite avant gel |
 
 ---
 
