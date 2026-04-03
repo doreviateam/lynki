@@ -283,15 +283,16 @@ class ResConfigSettings(models.TransientModel):
                 lines.append(_("… et %s autre(s).") % (len(ft_items) - max_rows))
 
         message = "\n".join(lines)
+        wizard = self.env["dorevia.helloasso.preview.wizard"].create(
+            {"preview_text": message}
+        )
         return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "title": _("HelloAsso — prévisualisation"),
-                "message": message,
-                "type": "success",
-                "sticky": True,
-            },
+            "type": "ir.actions.act_window",
+            "name": _("HelloAsso — prévisualisation (lecture seule)"),
+            "res_model": "dorevia.helloasso.preview.wizard",
+            "res_id": wizard.id,
+            "view_mode": "form",
+            "target": "new",
         }
 
     def action_helloasso_sync_members(self):

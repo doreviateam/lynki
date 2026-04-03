@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso adhérents (MVP)",
-    "version": "19.0.1.0.8",
+    "version": "19.0.1.0.9",
     "category": "Dorevia",
     "summary": "Connecteur MVP : synchronisation des adhérents HelloAsso vers res.partner",
     "description": """
         Squelette MVP (SPEC ZeDocs/Projet_LGZ/HelloAsso) :
         - Paramètres API (client ID / secret, sandbox, slug organisation)
         - « Tester la connexion » : OAuth2 client_credentials + ping formTypes si slug renseigné
-        - « Prévisualiser les données HelloAsso » : formTypes + formulaires Membership + volumes commandes/paiements
+        - « Prévisualiser les données HelloAsso » : rapport complet dans une fenêtre modale (pas seulement une notification)
         - « Synchroniser les adhérents » : stub (mapping SPEC §6.2)
         - Champs traçabilité sur res.partner : module dorevia_partner_membership_fields
     """,
@@ -26,6 +26,8 @@
         "python": ["requests"],
     },
     "data": [
+        "security/ir.model.access.csv",
+        "views/helloasso_preview_wizard_views.xml",
         "views/res_config_settings_views.xml",
     ],
     "installable": True,
