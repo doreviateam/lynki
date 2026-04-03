@@ -21,4 +21,26 @@
             </xpath>
         </field>
     </record>
+
+    <record id="view_partner_form_helloasso" model="ir.ui.view">
+        <field name="name">res.partner.form.helloasso</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page
+                    string="HelloAsso"
+                    name="dorevia_helloasso"
+                    groups="base.group_system"
+                >
+                    <group string="Traçabilité synchronisation">
+                        <field name="helloasso_external_id"/>
+                        <field name="helloasso_last_sync_at"/>
+                        <field name="helloasso_sync_status"/>
+                        <field name="helloasso_source_form"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
 </odoo>

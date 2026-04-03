@@ -20,3 +20,32 @@ class ResPartner(models.Model):
         tracking=True,
     )
     consent_note = fields.Text(string="Détail / référence consentement")
+
+    # HelloAsso — traçabilité (défini ici pour éviter res.partner sans champs si le connecteur API seul n’est pas installé)
+    helloasso_external_id = fields.Char(
+        string="HelloAsso — identifiant source",
+        index=True,
+        copy=False,
+        help="Identifiant stable côté HelloAsso pour idempotence et traçabilité.",
+    )
+    helloasso_last_sync_at = fields.Datetime(
+        string="HelloAsso — dernière synchro",
+        copy=False,
+        readonly=True,
+    )
+    helloasso_source_form = fields.Char(
+        string="HelloAsso — formulaire / contexte",
+        copy=False,
+        help="Ex. formSlug, campagne ou libellé utile au routage.",
+    )
+    helloasso_sync_status = fields.Selection(
+        selection=[
+            ("never", "Jamais synchronisé"),
+            ("ok", "OK"),
+            ("error", "Erreur"),
+            ("pending", "En attente"),
+        ],
+        string="HelloAsso — statut de synchro",
+        default="never",
+        copy=False,
+    )

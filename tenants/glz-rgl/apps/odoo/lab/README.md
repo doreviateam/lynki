@@ -30,7 +30,7 @@ Cela signifie que la **vue** attend les champs HelloAsso mais le module **`dorev
 2. Redémarrer le conteneur Odoo (`docker compose … restart odoo`).
 3. Vérifier que `requests` est disponible dans l’image (dépendance Python du module HelloAsso).
 
-Le module `dorevia_partner_membership_fields` **dépend** de `dorevia_helloasso_adherent` (champs HelloAsso sur `res.partner`) et de **`partner_contact_birthdate`** (OCA) : l’onglet **Informations personnelles** contient alors **date de naissance** et **âge** (la page seule, sans modules complémentaires, restait vide par conception OCA).
+Les champs et l’onglet **HelloAsso** sur `res.partner` sont dans **`dorevia_partner_membership_fields`** (pour éviter une base avec la vue mais sans champs si le connecteur API n’est pas installé). Le module **`dorevia_helloasso_adherent`** (API, paramètres) **dépend** de `dorevia_partner_membership_fields`. **`partner_contact_birthdate`** (OCA) fournit date de naissance / âge dans **Informations personnelles**.
 
 ### Mise à jour modules (CLI Odoo 19, conteneur qui tourne déjà)
 
