@@ -65,18 +65,5 @@
         <field name="res_model">dorevia.helloasso.billetterie.order</field>
         <field name="view_mode">list,form</field>
     </record>
-
-    <menuitem
-        id="menu_helloasso_billetterie_root"
-        name="Billetterie HelloAsso"
-        parent="contacts.menu_contacts"
-        sequence="55"
-    />
-    <menuitem
-        id="menu_helloasso_billetterie_orders"
-        name="Commandes"
-        parent="menu_helloasso_billetterie_root"
-        action="action_dorevia_helloasso_billetterie_order"
-        sequence="10"
-    />
+    <!-- Menus applicatifs : voir helloasso_menu_lot1.xml -->
 </odoo>

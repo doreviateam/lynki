@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- M2 — doit précéder la vue d’accueil (boutons %(...)d) -->
+    <record id="action_helloasso_partner_adherents" model="ir.actions.act_window">
+        <field name="name">Adhérents HelloAsso</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain" eval="[('helloasso_external_id', '!=', False), ('helloasso_form_type', '=', 'Membership')]"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucun contact adhérent HelloAsso pour l’instant.
+            </p>
+            <p>
+                Lancez une synchronisation depuis Paramètres (HelloAsso adhérents) après avoir configuré l’API.
+            </p>
+        </field>
+    </record>
+
+    <!-- M1 — Vue d’ensemble -->
+    <record id="view_dorevia_helloasso_landing_form" model="ir.ui.view">
+        <field name="name">dorevia.helloasso.landing.form</field>
+        <field name="model">dorevia.helloasso.landing</field>
+        <field name="arch" type="xml">
+            <form string="Vue d’ensemble HelloAsso" edit="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>HelloAsso</h1>
+                        <p class="text-muted">
+                            Miroir interne des flux synchronisés — la collecte publique reste sur HelloAsso.
+                        </p>
+                    </div>
+                    <group string="Configuration (Paramètres)">
+                        <field name="env_label"/>
+                        <field name="org_slug"/>
+                        <field name="api_ready"/>
+                    </group>
+                    <group string="Raccourcis">
+                        <div colspan="2">
+                            <button
+                                name="%(action_helloasso_partner_adherents)d"
+                                type="action"
+                                string="Adhérents synchronisés"
+                                class="btn-primary"
+                            />
+                            <button
+                                name="%(action_dorevia_helloasso_billetterie_order)d"
+                                type="action"
+                                string="Commandes billetterie"
+                                class="btn-secondary"
+                            />
+                        </div>
+                    </group>
+                    <group string="Information">
+                        <field name="help_text" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dorevia_helloasso_landing" model="ir.actions.act_window">
+        <field name="name">Vue d’ensemble</field>
+        <field name="res_model">dorevia.helloasso.landing</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- M8 — séquences : Vue d’ensemble (5) → Adhérents (15) → Billetterie (40) → Commandes (10) -->
+    <menuitem
+        id="menu_dorevia_helloasso_root"
+        name="HelloAsso"
+        web_icon="dorevia_helloasso_billetterie,static/description/icon.png"
+        sequence="35"
+    />
+    <menuitem
+        id="menu_helloasso_landing"
+        name="Vue d’ensemble"
+        parent="menu_dorevia_helloasso_root"
+        action="action_dorevia_helloasso_landing"
+        sequence="5"
+    />
+    <menuitem
+        id="menu_helloasso_adherents"
+        name="Adhérents"
+        parent="menu_dorevia_helloasso_root"
+        action="action_helloasso_partner_adherents"
+        sequence="15"
+    />
+    <menuitem
+        id="menu_helloasso_billetterie_root"
+        name="Billetterie"
+        parent="menu_dorevia_helloasso_root"
+        sequence="40"
+    />
+    <menuitem
+        id="menu_helloasso_billetterie_orders"
+        name="Commandes"
+        parent="menu_helloasso_billetterie_root"
+        action="action_dorevia_helloasso_billetterie_order"
+        sequence="10"
+    />
+</odoo>
