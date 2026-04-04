@@ -4,7 +4,7 @@
         <field name="name">dorevia.helloasso.billetterie.form.list</field>
         <field name="model">dorevia.helloasso.billetterie.form</field>
         <field name="arch" type="xml">
-            <list string="Formulaires HelloAsso" create="false">
+            <list string="Liste des billetteries" create="false">
                 <header>
                     <button
                         name="action_refresh_inventory_from_helloasso"
@@ -35,7 +35,7 @@
         <field name="name">dorevia.helloasso.billetterie.form.form</field>
         <field name="model">dorevia.helloasso.billetterie.form</field>
         <field name="arch" type="xml">
-            <form string="Formulaire HelloAsso" create="false">
+            <form string="Billetterie HelloAsso" create="false">
                 <header>
                     <button
                         name="action_sync_orders"
@@ -78,7 +78,7 @@
         <field name="name">dorevia.helloasso.billetterie.form.search</field>
         <field name="model">dorevia.helloasso.billetterie.form</field>
         <field name="arch" type="xml">
-            <search string="Formulaires HelloAsso">
+            <search string="Billetteries HelloAsso">
                 <field name="name"/>
                 <field name="organization_slug"/>
                 <field name="form_type"/>
@@ -95,7 +95,7 @@
     </record>
 
     <record id="action_dorevia_helloasso_billetterie_form" model="ir.actions.act_window">
-        <field name="name">Formulaires HelloAsso</field>
+        <field name="name">Liste des billetteries</field>
         <field name="res_model">dorevia.helloasso.billetterie.form</field>
         <field name="view_mode">list,form</field>
         <field name="context">{}</field>
@@ -104,12 +104,12 @@
                 Aucun formulaire inventorié pour l’instant.
             </p>
             <p>
-                Cliquez sur <strong>Actualiser depuis HelloAsso</strong> pour importer la liste des campagnes / formulaires
-                (tous types) de l’organisation configurée dans les paramètres API.
-                Les billetteries sont en général de type <strong>Event</strong> : utilisez les filtres pour les isoler.
+                C’est la <strong>liste des billetteries</strong> (campagnes / formulaires HelloAsso) de votre organisation.
+                Pour la <strong>mettre à jour</strong> : <strong>Actualiser depuis HelloAsso</strong> (en-tête de liste).
+                Les billetteries événements sont en général de type <strong>Event</strong> : utilisez les filtres.
             </p>
             <p>
-                Les <strong>commandes</strong> seront synchronisées ensuite, formulaire par formulaire, une fois les cibles métier choisies.
+                Pour synchroniser les <strong>commandes / billets vendus</strong> : menu <strong>Commandes (billets)</strong>, ou <strong>Synchroniser les commandes</strong> sur une ligne de cette liste, ou Paramètres / assistant de synchro.
             </p>
         </field>
     </record>

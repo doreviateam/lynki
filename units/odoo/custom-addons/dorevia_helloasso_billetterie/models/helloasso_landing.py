@@ -48,9 +48,11 @@ class DoreviaHelloassoLanding(models.TransientModel):
                 "last_adherent_sync_at": last_p.helloasso_last_sync_at or False,
                 "last_billetterie_sync_at": last_o.last_sync_at or False,
                 "help_text": _(
-                    "Les tests de connexion, prévisualisations et synchronisations manuelles "
-                    "sont disponibles dans Paramètres généraux (menu Configuration de cette app), "
-                    "sections HelloAsso adhérents et billetterie."
+                    "Deux listes métier à tenir à jour avec HelloAsso : "
+                    "« Liste des adhésions » (synchro adhérents dans Paramètres ou cron) "
+                    "et « Liste des billetteries » puis « Commandes (billets) » "
+                    "(actualiser l’inventaire, puis synchroniser les commandes par campagne ou via l’assistant). "
+                    "Paramètres généraux : menu Configuration de cette app."
                 ),
             }
         )

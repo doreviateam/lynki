@@ -2,7 +2,7 @@
 <odoo>
     <!-- Action adhésions : liste métier dédiée (vue helloasso_partner_membership_views.xml) -->
     <record id="action_helloasso_partner_adherents" model="ir.actions.act_window">
-        <field name="name">Adhésions HelloAsso</field>
+        <field name="name">Liste des adhésions</field>
         <field name="res_model">res.partner</field>
         <field name="view_mode">list,form,kanban</field>
         <field
@@ -16,7 +16,7 @@
                 Aucune adhésion HelloAsso synchronisée pour l’instant.
             </p>
             <p>
-                Lancez une synchronisation depuis Paramètres généraux (sections HelloAsso) après avoir configuré l’API.
+                Pour <strong>tenir la liste à jour</strong> avec HelloAsso : <strong>Paramètres généraux</strong> (bloc HelloAsso adhérent) → <strong>Synchroniser les adhérents</strong>, ou le <strong>planificateur</strong> si vous l’avez activé.
             </p>
         </field>
     </record>
@@ -50,13 +50,19 @@
                             <button
                                 name="%(action_helloasso_partner_adherents)d"
                                 type="action"
-                                string="Adhésions synchronisées"
+                                string="Liste des adhésions"
                                 class="btn-primary"
+                            />
+                            <button
+                                name="%(action_dorevia_helloasso_billetterie_form)d"
+                                type="action"
+                                string="Liste des billetteries"
+                                class="btn-secondary"
                             />
                             <button
                                 name="%(action_dorevia_helloasso_billetterie_order)d"
                                 type="action"
-                                string="Commandes billetterie"
+                                string="Commandes (billets)"
                                 class="btn-secondary"
                             />
                         </div>
@@ -85,7 +91,7 @@
     />
     <menuitem
         id="menu_helloasso_adherents"
-        name="Adhésions"
+        name="Liste des adhésions"
         parent="menu_dorevia_helloasso_root"
         action="action_helloasso_partner_adherents"
         sequence="5"
@@ -97,17 +103,17 @@
         action="dorevia_helloasso_adherent.action_dorevia_helloasso_sync_log"
         sequence="8"
     />
-    <!-- Billetterie : inventaire formulaires d’abord, puis commandes, puis synchro -->
+    <!-- Billetterie : liste des campagnes (inventaire) puis commandes / billets, puis synchro -->
     <menuitem
         id="menu_helloasso_billetterie_root"
-        name="Billetterie"
+        name="Liste des billetteries"
         parent="menu_dorevia_helloasso_root"
         action="action_dorevia_helloasso_billetterie_form"
         sequence="15"
     />
     <menuitem
         id="menu_helloasso_billetterie_orders"
-        name="Commandes"
+        name="Commandes (billets)"
         parent="menu_helloasso_billetterie_root"
         action="action_dorevia_helloasso_billetterie_order"
         sequence="20"

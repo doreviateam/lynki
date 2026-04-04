@@ -64,7 +64,7 @@
     </record>
 
     <record id="action_dorevia_helloasso_billetterie_order" model="ir.actions.act_window">
-        <field name="name">Commandes billetterie HelloAsso</field>
+        <field name="name">Commandes (billets)</field>
         <field name="res_model">dorevia.helloasso.billetterie.order</field>
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
@@ -72,10 +72,11 @@
                 Aucune commande billetterie synchronisée.
             </p>
             <p>
-                Les <strong>adhésions</strong> et la <strong>billetterie</strong> sont deux flux distincts : cette liste se remplit uniquement après une synchronisation des commandes du formulaire <strong>événement</strong> (souvent type Event).
+                Liste des <strong>commandes / billets</strong> importés depuis HelloAsso (flux distinct des <strong>adhésions</strong>).
+                Elle se remplit après une synchro des commandes d’un formulaire de type <strong>Event</strong> (billetterie).
             </p>
             <p>
-                Ouvrez <strong>Billetterie → Formulaires HelloAsso</strong> puis <strong>Synchroniser les commandes</strong> sur la ligne cible, ou <strong>Billetterie → Synchronisation</strong> pour une prévisualisation globale. Vous pouvez aussi configurer le <strong>form slug</strong> dans <strong>Configuration → Paramètres généraux</strong> (bloc HelloAsso billetterie).
+                Pour <strong>tenir à jour</strong> : <strong>Liste des billetteries</strong> → <strong>Synchroniser les commandes</strong> sur la campagne visée, ou <strong>Synchronisation</strong> (assistant), ou <strong>Paramètres généraux</strong> (bloc billetterie) / planificateur.
             </p>
         </field>
     </record>

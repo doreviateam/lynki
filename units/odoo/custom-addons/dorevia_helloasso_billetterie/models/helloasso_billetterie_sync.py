@@ -305,7 +305,7 @@ def run_billetterie_orders_sync(
 
     :param catalog_form_id: id d’un ``dorevia.helloasso.billetterie.form`` (inventaire) pour
         lier les commandes créées / mises à jour à cette ligne.
-    :param log_origin: si renseigné, enregistre une ligne dans ``dorevia.helloasso.sync.log``.
+    :param log_origin: si renseigné, enregistre une ligne dans ``dorevia.helloasso.logentry``.
     """
     Order = env["dorevia.helloasso.billetterie.order"]
     Line = env["dorevia.helloasso.billetterie.line"]
