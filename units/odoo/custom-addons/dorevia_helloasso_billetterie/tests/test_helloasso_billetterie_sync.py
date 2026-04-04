@@ -157,6 +157,26 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         self.assertEqual(len(r2), 1)
         self.assertEqual(r2.id, rid)
 
+    def test_shared_email_picks_oldest_partner(self):
+        """Plusieurs contacts avec le même e-mail : la synchro ne doit plus ignorer la commande."""
+        email = "dup_payer@test.dorevia.local"
+        Partner = self.env["res.partner"].sudo()
+        p1 = Partner.create({"name": "Premier doublon", "email": email})
+        Partner.create({"name": "Second doublon", "email": email})
+        order = _order_mvp(oid=9301, email=email)
+        self._patch_sync([order])
+        stats = run_billetterie_orders_sync(
+            self.env, "org-dup", "c", "s", True, "Event", None
+        )
+        self.assertEqual(stats["shared_email_partner_picked"], 1)
+        self.assertEqual(stats["skip_ambiguous_partner"], 0)
+        self.assertGreaterEqual(stats["created"], 1)
+        rec = self.env["dorevia.helloasso.billetterie.order"].search(
+            [("helloasso_order_id", "=", "9301")]
+        )
+        self.assertEqual(len(rec), 1)
+        self.assertEqual(rec.payer_partner_id, p1)
+
     def test_cron_skips_when_credentials_missing(self):
         icp = self.env["ir.config_parameter"].sudo()
         icp.set_param("dorevia_helloasso.client_id", "")

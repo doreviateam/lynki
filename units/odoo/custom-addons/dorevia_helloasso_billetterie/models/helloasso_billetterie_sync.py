@@ -185,6 +185,55 @@ def _partner_display_name(firstname, lastname, email):
     return name or (email or _("Contact HelloAsso"))
 
 
+def _pick_payer_partner_by_email(Partner, payer_em, payer_fn, payer_ln, stats):
+    """
+    Partenaire payeur existant pour cet e-mail, ou recordset vide pour en créer un.
+
+    Plusieurs ``res.partner`` avec le même e-mail : départage par proximité avec le nom
+    HelloAsso (prénom/nom contenus dans ``name``), sinon partenaire au plus petit id
+    (création la plus ancienne). Évite de bloquer la synchro ; un avertissement est journalisé.
+    """
+    by_mail = Partner.search([("email", "=ilike", payer_em)], order="id asc")
+    if not by_mail:
+        return Partner.browse()
+    if len(by_mail) == 1:
+        return by_mail[0]
+
+    fn_norm = _norm_str(payer_fn).lower()
+    ln_norm = _norm_str(payer_ln).lower()
+    candidates = by_mail
+    if fn_norm or ln_norm:
+        narrowed = Partner.browse()
+        for p in by_mail:
+            pname = _norm_str(p.name).lower()
+            ok_fn = not fn_norm or fn_norm in pname
+            ok_ln = not ln_norm or ln_norm in pname
+            if ok_fn and ok_ln:
+                narrowed |= p
+        if len(narrowed) == 1:
+            stats["shared_email_partner_picked"] += 1
+            _logger.info(
+                "HelloAsso billetterie: e-mail %s départagé par nom affiché → partenaire id=%s",
+                payer_em,
+                narrowed.id,
+            )
+            return narrowed[0]
+        if len(narrowed) > 1:
+            candidates = narrowed
+
+    chosen = candidates.sorted("id")[0]
+    stats["shared_email_partner_picked"] += 1
+    _logger.warning(
+        "HelloAsso billetterie: e-mail %s partagé par %s partenaires ; choix déterministe id=%s (%s). "
+        "Fusionnez les doublons dans Contacts si besoin.",
+        payer_em,
+        len(by_mail),
+        chosen.id,
+        chosen.display_name,
+    )
+    return chosen
+
+
 def pick_first_form_by_type(forms_list, wanted_type):
     wt = (wanted_type or "").strip().lower()
     if not wt:
@@ -263,6 +312,11 @@ def format_billetterie_sync_result_message(stats):
         parts.append(_("Ignorées (pas d’e-mail payeur dans la réponse API) : %s") % stats["skip_no_payer_email"])
     if stats.get("skip_ambiguous_partner"):
         parts.append(_("Ignorées (e-mail payeur ambigu dans Odoo) : %s") % stats["skip_ambiguous_partner"])
+    if stats.get("shared_email_partner_picked"):
+        parts.append(
+            _("Payeur choisi parmi plusieurs contacts avec le même e-mail : %s (voir journal serveur).")
+            % stats["shared_email_partner_picked"]
+        )
     if stats.get("skip_no_id"):
         parts.append(_("Ignorées (sans identifiant commande) : %s") % stats["skip_no_id"])
     if stats.get("skip_not_dict"):
@@ -327,6 +381,7 @@ def run_billetterie_orders_sync(
         "skip_no_id": 0,
         "skip_no_payer_email": 0,
         "skip_ambiguous_partner": 0,
+        "shared_email_partner_picked": 0,
         "skip_duplicate_odoo": 0,
     }
 
@@ -406,20 +461,10 @@ def run_billetterie_orders_sync(
                 _logger.warning("HelloAsso billetterie: commande %s sans e-mail payeur", oid)
                 continue
 
-            by_mail = Partner.search([("email", "=ilike", payer_em)])
-            if len(by_mail) > 1:
-                stats["skipped"] += 1
-                stats["skip_ambiguous_partner"] += 1
-                stats["errors"].append(
-                    _("E-mail payeur ambigu pour la commande %s : %s partenaires.")
-                    % (oid, len(by_mail))
-                )
-                continue
-
-            payer_partner = by_mail[:1]
-            if payer_partner:
-                payer_partner = payer_partner[0]
-            else:
+            payer_partner = _pick_payer_partner_by_email(
+                Partner, payer_em, payer_fn, payer_ln, stats
+            )
+            if not payer_partner:
                 payer_partner = Partner.create(
                     {
                         "name": _partner_display_name(payer_fn, payer_ln, payer_em),
