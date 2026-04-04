@@ -35,6 +35,20 @@ Les champs sont définis dans **`dorevia_partner_membership_fields`** (version *
 
 En cas de doute, vérifier dans **Paramètres → Technique → Structure de la base → Champs** le modèle `Contact` / `res.partner` : les champs `helloasso_*` doivent apparaître une fois `dorevia_partner_membership_fields` à jour.
 
+### Erreur upgrade : « Le champ catalog_form_id n’existe pas » (`dorevia.helloasso.billetterie.order`)
+
+La **vue** billetterie attend le champ **`catalog_form_id`** sur les commandes, mais le **code Python** chargé par Odoo ne le déclare pas (fichier `helloasso_billetterie_order.py` trop ancien dans le conteneur, ou module masqué par un autre répertoire dans `addons_path`).
+
+1. Sur l’hôte qui monte les volumes : **`git pull`** sur le dépôt (branche livrée), puis vérifier :
+   `grep catalog_form_id units/odoo/custom-addons/dorevia_helloasso_billetterie/models/helloasso_billetterie_order.py`
+2. Dans le conteneur :  
+   `docker exec odoo_lab_glz-rgl grep catalog_form_id /mnt/custom-addons/dorevia_helloasso_billetterie/models/helloasso_billetterie_order.py`  
+   Si vide : le volume ou le déploiement n’est pas aligné avec le dépôt.
+3. **`docker restart`** du service Odoo (workers), puis relancer la mise à jour du module **`dorevia_helloasso_billetterie`**.
+4. Le fichier **`odoo.conf`** du lab place désormais **`/mnt/custom-addons` avant `/mnt/addons-o19`** pour que les modules Dorevia ne soient pas écrasés par un homonyme éventuel dans la pile OCA (à redéployer / recréer le conteneur si la conf a changé).
+
+Le script **`upgrade-dorevia-odoo-on-host.sh`** vérifie la présence de `catalog_form_id` dans le `.py` **avant** l’upgrade billetterie.
+
 ### Documents (OCA **dms**) sur Odoo 19
 
 1. Appliquer le patch : `./scripts/apply-oca-dms-odoo19-patch.sh` (voir `patches/README.md`).

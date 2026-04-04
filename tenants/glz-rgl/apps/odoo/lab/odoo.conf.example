@@ -12,7 +12,8 @@ list_db = False
 lang = fr_FR
 
 ; addons (Odoo 19 — aligné lab o19)
-addons_path = /usr/lib/python3/dist-packages/odoo/addons,/mnt/addons-o19,/mnt/custom-addons,/mnt/extra-addons
+; custom-addons avant addons-o19 (modules Dorevia prioritaires)
+addons_path = /usr/lib/python3/dist-packages/odoo/addons,/mnt/custom-addons,/mnt/addons-o19,/mnt/extra-addons
 data_dir = /var/lib/odoo
 
 proxy_mode = True
