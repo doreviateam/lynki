@@ -69,8 +69,45 @@ def _payer_identity_from_dict(payer):
 
 
 def _order_payer(order):
-    payer = _g(order, "payer", "Payer")
-    return _payer_identity_from_dict(payer)
+    """E-mail payeur obligatoire pour le MVP ; tolère plusieurs emplacements JSON HelloAsso."""
+    if not isinstance(order, dict):
+        return "", "", ""
+    payer = _g(
+        order,
+        "payer",
+        "Payer",
+        "buyer",
+        "Buyer",
+        "orderer",
+        "Orderer",
+        "consumer",
+        "Consumer",
+    )
+    if isinstance(payer, dict):
+        em, fn, ln = _payer_identity_from_dict(payer)
+        if em:
+            return em, fn, ln
+    em_raw = _g(
+        order,
+        "payerEmail",
+        "PayerEmail",
+        "buyerEmail",
+        "BuyerEmail",
+        "userEmail",
+        "UserEmail",
+        "Email",
+        "email",
+    )
+    em = (em_raw or "").strip().lower() if em_raw else ""
+    if em:
+        fn = _norm_str(
+            _g(order, "firstName", "FirstName", "payerFirstName", "PayerFirstName") or ""
+        )
+        ln = _norm_str(
+            _g(order, "lastName", "LastName", "payerLastName", "PayerLastName") or ""
+        )
+        return em, fn, ln
+    return "", "", ""
 
 
 def _item_person_block(item):
@@ -201,6 +238,57 @@ def resolve_billetterie_form(
     return pick_first_form_by_type(forms_items, ft)
 
 
+def format_billetterie_sync_result_message(stats):
+    """Texte détaillé pour notification / logs après run_billetterie_orders_sync."""
+    parts = [
+        _("Formulaire API : type « %s », slug « %s »")
+        % (stats.get("resolved_form_type") or "—", stats.get("resolved_form_slug") or "—"),
+    ]
+    fpc = stats.get("first_page_count")
+    if fpc is not None:
+        parts.append(_("Nombre de commandes sur la 1ʳᵉ page API : %s") % fpc)
+    art = stats.get("api_reported_total")
+    if art is not None:
+        parts.append(_("Total commandes annoncé par l’API : %s") % art)
+    parts.append(
+        _("Créations : %s — mises à jour : %s — ignorées : %s")
+        % (stats["created"], stats["updated"], stats["skipped"])
+    )
+    parts.append(
+        _("Prises en charge après contrôle payeur : %s") % stats.get("processed", 0)
+    )
+    if stats.get("skip_bad_state"):
+        parts.append(_("Ignorées (statut refusé / annulé / expiré…) : %s") % stats["skip_bad_state"])
+    if stats.get("skip_no_payer_email"):
+        parts.append(_("Ignorées (pas d’e-mail payeur dans la réponse API) : %s") % stats["skip_no_payer_email"])
+    if stats.get("skip_ambiguous_partner"):
+        parts.append(_("Ignorées (e-mail payeur ambigu dans Odoo) : %s") % stats["skip_ambiguous_partner"])
+    if stats.get("skip_no_id"):
+        parts.append(_("Ignorées (sans identifiant commande) : %s") % stats["skip_no_id"])
+    if stats.get("skip_not_dict"):
+        parts.append(_("Ignorées (ligne API invalide) : %s") % stats["skip_not_dict"])
+    if stats.get("skip_duplicate_odoo"):
+        parts.append(_("Ignorées (doublon technique Odoo pour un même id commande) : %s") % stats["skip_duplicate_odoo"])
+    if (
+        stats.get("first_page_count") == 0
+        and not stats.get("errors")
+        and stats.get("created", 0) == 0
+        and stats.get("updated", 0) == 0
+    ):
+        parts.append(
+            _(
+                "Aucune commande sur ce formulaire : vérifier le slug événement (billetterie), "
+                "le type (souvent Event), et que vous êtes en production ou sandbox comme sur HelloAsso."
+            )
+        )
+    if stats.get("errors"):
+        parts.append(
+            _("Erreurs / messages : %s")
+            % " ; ".join(str(x) for x in stats["errors"][:8])
+        )
+    return "\n".join(parts)
+
+
 def run_billetterie_orders_sync(
     env,
     organization_slug,
@@ -224,6 +312,16 @@ def run_billetterie_orders_sync(
         "updated": 0,
         "skipped": 0,
         "errors": [],
+        "resolved_form_type": None,
+        "resolved_form_slug": None,
+        "first_page_count": None,
+        "api_reported_total": None,
+        "skip_not_dict": 0,
+        "skip_bad_state": 0,
+        "skip_no_id": 0,
+        "skip_no_payer_email": 0,
+        "skip_ambiguous_partner": 0,
+        "skip_duplicate_odoo": 0,
     }
 
     try:
@@ -251,6 +349,9 @@ def run_billetterie_orders_sync(
     if not fslug:
         raise UserError(_("Le formulaire billetterie n’a pas de formSlug exploitable."))
 
+    stats["resolved_form_type"] = ftype
+    stats["resolved_form_slug"] = fslug
+
     page = 1
     while page <= _MAX_ORDER_PAGES:
         try:
@@ -268,33 +369,41 @@ def run_billetterie_orders_sync(
             _logger.warning("HelloAsso billetterie orders page %s: %s", page, err)
             break
 
+        if page == 1:
+            stats["first_page_count"] = len(items) if items else 0
+            stats["api_reported_total"] = _total
+
         if not items:
             break
 
         for order in items:
             if not isinstance(order, dict):
                 stats["skipped"] += 1
+                stats["skip_not_dict"] += 1
                 continue
             if not order_eligible_mvp(order):
                 stats["skipped"] += 1
+                stats["skip_bad_state"] += 1
                 continue
 
             oid = _order_id(order)
             if not oid:
                 stats["skipped"] += 1
+                stats["skip_no_id"] += 1
                 stats["errors"].append(_("Commande sans id, ignorée."))
                 continue
 
-            stats["processed"] += 1
             payer_em, payer_fn, payer_ln = _order_payer(order)
             if not payer_em:
                 stats["skipped"] += 1
+                stats["skip_no_payer_email"] += 1
                 _logger.warning("HelloAsso billetterie: commande %s sans e-mail payeur", oid)
                 continue
 
             by_mail = Partner.search([("email", "=ilike", payer_em)])
             if len(by_mail) > 1:
                 stats["skipped"] += 1
+                stats["skip_ambiguous_partner"] += 1
                 stats["errors"].append(
                     _("E-mail payeur ambigu pour la commande %s : %s partenaires.")
                     % (oid, len(by_mail))
@@ -332,10 +441,13 @@ def run_billetterie_orders_sync(
             existing = Order.search([("helloasso_order_id", "=", oid)])
             if len(existing) > 1:
                 stats["skipped"] += 1
+                stats["skip_duplicate_odoo"] += 1
                 _logger.warning(
                     "HelloAsso billetterie: plusieurs enregistrements pour commande %s", oid
                 )
                 continue
+
+            stats["processed"] += 1
 
             payer_fb = (payer_em, payer_fn, payer_ln)
             items_list = _g(order, "items", "Items")

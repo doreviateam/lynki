@@ -6,6 +6,7 @@ from odoo.exceptions import UserError
 
 from .helloasso_billetterie_sync import (
     build_billetterie_preview_report,
+    format_billetterie_sync_result_message,
     run_billetterie_orders_sync,
 )
 
@@ -109,24 +110,19 @@ class DoreviaHelloassoBilletterieSyncWizard(models.TransientModel):
             p["form_type"],
             p["form_slug"],
         )
-        parts = [
-            _("Commandes traitées : %s") % stats["processed"],
-            _("Créations : %s — mises à jour : %s — ignorées : %s")
-            % (stats["created"], stats["updated"], stats["skipped"]),
-        ]
-        if stats["errors"]:
-            parts.append(
-                _("Messages : %s")
-                % " ; ".join(str(x) for x in stats["errors"][:5])
-            )
-        message = "\n".join(parts)
+        message = format_billetterie_sync_result_message(stats)
+        notif_type = (
+            "success"
+            if (stats.get("created") or stats.get("updated")) and not stats.get("errors")
+            else "warning"
+        )
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": _("HelloAsso billetterie — synchronisation"),
                 "message": message,
-                "type": "success" if not stats["errors"] else "warning",
+                "type": notif_type,
                 "sticky": True,
             },
         }

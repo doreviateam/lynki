@@ -5,6 +5,7 @@ from unittest.mock import patch
 from odoo.tests.common import TransactionCase, tagged
 
 from odoo.addons.dorevia_helloasso_billetterie.models.helloasso_billetterie_sync import (
+    _order_payer,
     order_eligible_mvp,
     run_billetterie_orders_sync,
 )
@@ -72,6 +73,19 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         o = _order_mvp(state="Refused")
         self.assertFalse(order_eligible_mvp(o))
         self.assertTrue(order_eligible_mvp(_order_mvp(state="Authorized")))
+
+    def test_order_payer_flat_email_fallback(self):
+        order = {
+            "id": 1,
+            "state": "Authorized",
+            "payerEmail": "plat@example.org",
+            "firstName": "Jean",
+            "lastName": "Dupont",
+        }
+        em, fn, ln = _order_payer(order)
+        self.assertEqual(em, "plat@example.org")
+        self.assertEqual(fn, "Jean")
+        self.assertEqual(ln, "Dupont")
 
     def test_nominal_creates_order_and_lines(self):
         order = _order_mvp(email="bil_nominal@test.dorevia.local")
