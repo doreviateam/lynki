@@ -297,9 +297,13 @@ def run_billetterie_orders_sync(
     use_sandbox,
     form_type,
     form_slug=None,
+    catalog_form_id=None,
 ):
     """
     Retourne un dict : processed, created, updated, skipped, errors (liste de messages).
+
+    :param catalog_form_id: id d’un ``dorevia.helloasso.billetterie.form`` (inventaire) pour
+        lier les commandes créées / mises à jour à cette ligne.
     """
     Order = env["dorevia.helloasso.billetterie.order"]
     Line = env["dorevia.helloasso.billetterie.line"]
@@ -437,6 +441,8 @@ def run_billetterie_orders_sync(
                 "last_sync_at": fields.Datetime.now(),
                 "sync_message": False,
             }
+            if catalog_form_id:
+                order_vals["catalog_form_id"] = catalog_form_id
 
             existing = Order.search([("helloasso_order_id", "=", oid)])
             if len(existing) > 1:

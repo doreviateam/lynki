@@ -6,6 +6,10 @@ import logging
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
+from .helloasso_billetterie_sync import (
+    format_billetterie_sync_result_message,
+    run_billetterie_orders_sync,
+)
 from odoo.addons.dorevia_helloasso_adherent.models.helloasso_client import (
     HelloAssoClientError,
     fetch_client_credentials_token,
@@ -174,6 +178,15 @@ class DoreviaHelloassoBilletterieForm(models.Model):
     )
     last_inventory_at = fields.Datetime(string="Dernier inventaire", readonly=True)
     comment = fields.Text(string="Commentaire métier")
+    order_ids = fields.One2many(
+        "dorevia.helloasso.billetterie.order",
+        "catalog_form_id",
+        string="Commandes (liées)",
+    )
+    order_count = fields.Integer(
+        string="Nb commandes liées",
+        compute="_compute_order_count",
+    )
 
     _sql_constraints = [
         (
@@ -188,6 +201,86 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         for rec in self:
             t = (rec.helloasso_title or "").strip()
             rec.name = t or "%s — %s" % (rec.form_type or "?", rec.form_slug or "?")
+
+    @api.depends("order_ids")
+    def _compute_order_count(self):
+        for rec in self:
+            rec.order_count = len(rec.order_ids)
+
+    def _helloasso_api_credentials_aligned(self):
+        """Client ID / secret + cohérence sandbox et slug organisation avec les paramètres."""
+        self.ensure_one()
+        icp = self.env["ir.config_parameter"].sudo()
+        cid = (icp.get_param("dorevia_helloasso.client_id") or "").strip()
+        csec = (icp.get_param("dorevia_helloasso.client_secret") or "").strip()
+        if not (cid and csec):
+            raise UserError(
+                _(
+                    "Identifiants API HelloAsso manquants. "
+                    "Renseignez-les dans Paramètres généraux (bloc HelloAsso adhérent)."
+                )
+            )
+        icp_slug = (icp.get_param("dorevia_helloasso.organization_slug") or "").strip()
+        icp_sb = icp.get_param("dorevia_helloasso.use_sandbox") == "True"
+        if icp_sb != self.use_sandbox:
+            raise UserError(
+                _(
+                    "L’environnement API des paramètres (sandbox / production) doit correspondre "
+                    "à la colonne Sandbox de cette ligne. Actualisez l’inventaire ou les paramètres."
+                )
+            )
+        if icp_slug.lower() != (self.organization_slug or "").strip().lower():
+            raise UserError(
+                _(
+                    "Le slug organisation des paramètres (%s) ne correspond pas à celui de cette ligne (%s)."
+                )
+                % (icp_slug or _("(vide)"), self.organization_slug)
+            )
+        return cid, csec
+
+    def action_open_orders(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Commandes billetterie"),
+            "res_model": "dorevia.helloasso.billetterie.order",
+            "view_mode": "list,form",
+            "domain": [("catalog_form_id", "=", self.id)],
+        }
+
+    def action_sync_orders(self):
+        """Synchro commandes HelloAsso pour ce formulaire (type + slug de la ligne)."""
+        message_blocks = []
+        has_errors = False
+        for rec in self:
+            cid, csec = rec._helloasso_api_credentials_aligned()
+            stats = run_billetterie_orders_sync(
+                rec.sudo().env,
+                rec.organization_slug.strip(),
+                cid,
+                csec,
+                rec.use_sandbox,
+                rec.form_type,
+                rec.form_slug,
+                catalog_form_id=rec.id,
+            )
+            message_blocks.append(
+                _("[%s]\n%s")
+                % (rec.display_name, format_billetterie_sync_result_message(stats))
+            )
+            if stats.get("errors"):
+                has_errors = True
+        notif_type = "warning" if has_errors else "success"
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Synchronisation des commandes"),
+                "message": "\n\n".join(message_blocks),
+                "type": notif_type,
+                "sticky": True,
+            },
+        }
 
     @api.model
     def action_refresh_inventory_from_helloasso(self):

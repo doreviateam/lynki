@@ -107,6 +107,35 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         self.assertEqual(len(rec.line_ids), 1)
         self.assertEqual(rec.line_ids.participant_email, "invite@test.dorevia.local")
 
+    def test_catalog_form_id_set_when_passed(self):
+        order = _order_mvp(oid=9201, email="bil_catalog@test.dorevia.local")
+        self._patch_sync([order])
+        Form = self.env["dorevia.helloasso.billetterie.form"]
+        cat = Form.create(
+            {
+                "use_sandbox": True,
+                "organization_slug": "org-test",
+                "form_type": "Event",
+                "form_slug": "soiree-test",
+                "helloasso_title": "Soirée test",
+            }
+        )
+        stats = run_billetterie_orders_sync(
+            self.env,
+            "org-test",
+            "cid",
+            "csecret",
+            True,
+            "Event",
+            None,
+            catalog_form_id=cat.id,
+        )
+        self.assertGreaterEqual(stats["created"], 1)
+        Order = self.env["dorevia.helloasso.billetterie.order"]
+        rec = Order.search([("helloasso_order_id", "=", "9201")])
+        self.assertEqual(len(rec), 1)
+        self.assertEqual(rec.catalog_form_id, cat)
+
     def test_replay_updates_without_duplicate_order(self):
         email = "bil_replay@test.dorevia.local"
         order = _order_mvp(oid=9101, email=email)

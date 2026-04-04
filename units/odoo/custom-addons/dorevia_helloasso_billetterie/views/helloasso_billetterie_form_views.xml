@@ -14,6 +14,13 @@
                         display="always"
                     />
                 </header>
+                <button
+                    name="action_sync_orders"
+                    type="object"
+                    string="Sync commandes"
+                    title="Synchroniser les commandes HelloAsso pour ce formulaire"
+                    class="btn-link"
+                />
                 <field name="name"/>
                 <field name="use_sandbox" optional="show" readonly="1"/>
                 <field name="organization_slug"/>
@@ -29,7 +36,25 @@
         <field name="model">dorevia.helloasso.billetterie.form</field>
         <field name="arch" type="xml">
             <form string="Formulaire HelloAsso" create="false">
+                <header>
+                    <button
+                        name="action_sync_orders"
+                        type="object"
+                        string="Synchroniser les commandes"
+                        class="btn-primary"
+                    />
+                </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_open_orders"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-shopping-cart"
+                        >
+                            <field name="order_count" widget="statinfo" string="Commandes"/>
+                        </button>
+                    </div>
                     <group>
                         <group string="Identification API">
                             <field name="name" readonly="1"/>
