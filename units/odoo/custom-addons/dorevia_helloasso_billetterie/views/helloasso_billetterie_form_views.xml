@@ -4,13 +4,27 @@
         <field name="name">dorevia.helloasso.billetterie.form.list</field>
         <field name="model">dorevia.helloasso.billetterie.form</field>
         <field name="arch" type="xml">
-            <list string="Campagnes HelloAsso" create="false">
+            <list string="Billetteries HelloAsso" create="false">
                 <header>
                     <button
                         name="action_refresh_inventory_from_helloasso"
                         type="object"
                         string="Actualiser depuis HelloAsso"
                         class="btn-primary"
+                        display="always"
+                    />
+                    <button
+                        name="%(dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_order)d"
+                        type="action"
+                        string="Commandes"
+                        class="btn-secondary"
+                        display="always"
+                    />
+                    <button
+                        name="%(dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_sync_wizard)d"
+                        type="action"
+                        string="Synchronisation"
+                        class="btn-secondary"
                         display="always"
                     />
                 </header>
@@ -66,7 +80,7 @@
                         </group>
                         <group string="Suivi">
                             <field name="last_inventory_at" readonly="1"/>
-                            <field name="comment" placeholder="Priorité, remarques métier, lien avec une campagne…"/>
+                            <field name="comment" placeholder="Priorité, remarques métier, lien avec une billetterie / un événement…"/>
                         </group>
                     </group>
                 </sheet>
@@ -85,31 +99,12 @@
                 <field name="form_slug"/>
                 <filter string="Sandbox" name="sandbox" domain="[('use_sandbox', '=', True)]"/>
                 <filter string="Production" name="production" domain="[('use_sandbox', '=', False)]"/>
-                <filter string="Type Event" name="filter_event" domain="[('form_type', '=ilike', 'event')]"/>
-                <filter string="Type Membership" name="filter_membership" domain="[('form_type', '=ilike', 'membership')]"/>
+                <filter string="Billetteries (Event)" name="filter_event" domain="[('form_type', '=ilike', 'event')]"/>
+                <filter string="Autres types (hors Event)" name="filter_non_event" domain="['!', ('form_type', 'ilike', 'event')]"/>
                 <separator/>
                 <filter string="Par form type" name="group_form_type" context="{'group_by': 'form_type'}"/>
                 <filter string="Par organisation" name="group_org" context="{'group_by': 'organization_slug'}"/>
             </search>
-        </field>
-    </record>
-
-    <record id="action_dorevia_helloasso_billetterie_form" model="ir.actions.act_window">
-        <field name="name">Campagnes</field>
-        <field name="res_model">dorevia.helloasso.billetterie.form</field>
-        <field name="view_mode">list,form</field>
-        <field name="context">{}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Aucun formulaire inventorié pour l’instant.
-            </p>
-            <p>
-                <strong>Campagnes</strong> : formulaires HelloAsso de l’organisation (billetteries, souvent type <strong>Event</strong>).
-                Pour <strong>actualiser</strong> depuis HelloAsso : <strong>Actualiser depuis HelloAsso</strong> (en-tête de liste).
-            </p>
-            <p>
-                Pour les <strong>billets vendus</strong> : menu <strong>Billetteries → Commandes (billets)</strong>, ou <strong>Synchroniser les commandes</strong> sur une ligne ci-dessous.
-            </p>
         </field>
     </record>
 </odoo>

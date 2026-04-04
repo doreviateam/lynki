@@ -22,11 +22,6 @@ class TestHelloassoBilletterieFormInventory(TransactionCase):
                     "formType": "Event",
                     "title": "Soirée test",
                 },
-                {
-                    "formSlug": "adh-test",
-                    "formType": "Membership",
-                    "title": "Adhésions",
-                },
             ],
             1,
         ),
@@ -40,7 +35,7 @@ class TestHelloassoBilletterieFormInventory(TransactionCase):
         stats = run_billetterie_forms_inventory(
             self.env, "org-lab", "cid", "csec", True
         )
-        self.assertEqual(stats["created"], 2)
+        self.assertEqual(stats["created"], 1)
         self.assertEqual(stats["updated"], 0)
         ev = Form.search(
             [
@@ -57,4 +52,4 @@ class TestHelloassoBilletterieFormInventory(TransactionCase):
             self.env, "org-lab", "cid", "csec", True
         )
         self.assertEqual(stats2["created"], 0)
-        self.assertEqual(stats2["updated"], 2)
+        self.assertEqual(stats2["updated"], 1)

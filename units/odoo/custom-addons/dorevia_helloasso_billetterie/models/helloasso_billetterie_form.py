@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Inventaire des formulaires HelloAsso (billetteries / campagnes) — avant synchro commandes."""
+"""Inventaire des formulaires HelloAsso (flux billetterie : événements / billets) — avant synchro commandes."""
 
 import logging
 
@@ -61,7 +61,7 @@ def fetch_all_organization_forms(organization_slug, access_token, use_sandbox, f
 
 def run_billetterie_forms_inventory(env, organization_slug, client_id, client_secret, use_sandbox):
     """
-    Met à jour ``dorevia.helloasso.billetterie.form`` depuis l’API (tous les types de formulaires).
+    Met à jour ``dorevia.helloasso.billetterie.form`` depuis l’API (``formTypes=Event`` : billetteries).
     Retourne un dict stats pour notification.
     """
     Form = env["dorevia.helloasso.billetterie.form"].sudo()
@@ -85,7 +85,7 @@ def run_billetterie_forms_inventory(env, organization_slug, client_id, client_se
     token = token_payload["access_token"]
     try:
         items, pages_read = fetch_all_organization_forms(
-            org_slug, token, use_sandbox, form_types=None
+            org_slug, token, use_sandbox, form_types=["Event"]
         )
     except HelloAssoClientError as err:
         stats["errors"].append(str(err))

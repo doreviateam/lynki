@@ -2,7 +2,7 @@
 <odoo>
     <!-- Action adhésions : liste métier dédiée (vue helloasso_partner_membership_views.xml) -->
     <record id="action_helloasso_partner_adherents" model="ir.actions.act_window">
-        <field name="name">Adhésions</field>
+        <field name="name">Adhésion</field>
         <field name="res_model">res.partner</field>
         <field name="view_mode">list,form,kanban</field>
         <field
@@ -50,19 +50,19 @@
                             <button
                                 name="%(action_helloasso_partner_adherents)d"
                                 type="action"
-                                string="Adhésions"
+                                string="Adhésion"
                                 class="btn-primary"
                             />
                             <button
                                 name="%(action_dorevia_helloasso_billetterie_form)d"
                                 type="action"
-                                string="Campagnes (billetterie)"
+                                string="Billetteries"
                                 class="btn-secondary"
                             />
                             <button
                                 name="%(action_dorevia_helloasso_billetterie_order)d"
                                 type="action"
-                                string="Commandes (billets)"
+                                string="Commandes"
                                 class="btn-secondary"
                             />
                         </div>
@@ -91,69 +91,17 @@
     />
     <menuitem
         id="menu_helloasso_adherents"
-        name="Adhésions"
+        name="Adhésion"
         parent="menu_dorevia_helloasso_root"
         action="action_helloasso_partner_adherents"
         sequence="5"
     />
-    <!-- Deux entrées métier au premier niveau : Adhésions | Billetteries (sous-menus inventaire, commandes, synchro) -->
+    <!-- Billetteries : liste des formulaires Event (comme Adhésion = liste adhérents) ; commandes via en-tête -->
     <menuitem
-        id="menu_helloasso_billetterie_root"
+        id="menu_helloasso_billetterie"
         name="Billetteries"
         parent="menu_dorevia_helloasso_root"
-        sequence="15"
-    />
-    <menuitem
-        id="menu_helloasso_billetterie_inventory"
-        name="Campagnes"
-        parent="menu_helloasso_billetterie_root"
         action="action_dorevia_helloasso_billetterie_form"
-        sequence="10"
-    />
-    <menuitem
-        id="menu_helloasso_billetterie_orders"
-        name="Commandes (billets)"
-        parent="menu_helloasso_billetterie_root"
-        action="action_dorevia_helloasso_billetterie_order"
-        sequence="20"
-    />
-    <menuitem
-        id="menu_helloasso_billetterie_sync"
-        name="Synchronisation"
-        parent="menu_helloasso_billetterie_root"
-        action="action_dorevia_helloasso_billetterie_sync_wizard"
-        sequence="30"
-    />
-
-    <menuitem
-        id="menu_helloasso_configuration"
-        name="Configuration"
-        parent="menu_dorevia_helloasso_root"
-        sequence="90"
-        groups="base.group_system"
-    />
-    <menuitem
-        id="menu_helloasso_configuration_settings"
-        name="Paramètres généraux"
-        parent="menu_helloasso_configuration"
-        action="base_setup.action_general_configuration"
-        sequence="10"
-        groups="base.group_system"
-    />
-    <menuitem
-        id="menu_helloasso_landing"
-        name="Synthèse connecteur"
-        parent="menu_helloasso_configuration"
-        action="action_dorevia_helloasso_landing"
-        sequence="20"
-        groups="base.group_system"
-    />
-    <menuitem
-        id="menu_helloasso_sync_log"
-        name="Journal des synchros"
-        parent="menu_helloasso_configuration"
-        action="dorevia_helloasso_adherent.action_dorevia_helloasso_sync_log"
-        sequence="25"
-        groups="base.group_system"
+        sequence="15"
     />
 </odoo>

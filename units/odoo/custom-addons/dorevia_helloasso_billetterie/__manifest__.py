@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso billetterie (MVP)",
-    "version": "19.0.1.13.0",
+    "version": "19.0.1.16.0",
     "category": "Dorevia",
     "summary": "Connecteur MVP : commandes billetterie HelloAsso → Odoo (traçabilité, payeur, lignes)",
     "description": """
@@ -11,9 +11,9 @@
         - Prévisualisation et synchro manuelle des commandes (API orders)
         - Modèle d’ancrage ``dorevia.helloasso.billetterie.order`` + lignes participants
         - Cron désactivé par défaut (palier 2)
-        - Inventaire formulaires HelloAsso (``dorevia.helloasso.billetterie.form``) puis Commandes + Synchronisation
-        - Menu Journal des synchros (``dorevia.helloasso.logentry`` dans le module adhérent)
-        - App HelloAsso : Adhésions | Billetteries (Campagnes, Commandes, Synchronisation), Configuration (admin)
+        - Menu Billetteries : liste ``dorevia.helloasso.billetterie.form`` (API ``formTypes=Event``) ; commandes et assistant via en-têtes
+        - Journal ``dorevia.helloasso.logentry`` (module adhérent) : pas d’entrée sous l’app HelloAsso pour l’instant
+        - App HelloAsso : Adhésion | Billetteries uniquement
     """,
     "author": "Dorevia Team",
     "website": "https://doreviateam.com",
@@ -32,9 +32,10 @@
     "data": [
         "security/ir.model.access.csv",
         "data/ir_cron_data.xml",
+        "views/helloasso_billetterie_act_windows.xml",
+        "views/helloasso_billetterie_sync_wizard_views.xml",
         "views/helloasso_billetterie_form_views.xml",
         "views/helloasso_billetterie_order_views.xml",
-        "views/helloasso_billetterie_sync_wizard_views.xml",
         "views/helloasso_partner_membership_views.xml",
         "views/helloasso_menu_lot1.xml",
         "views/res_config_settings_views.xml",

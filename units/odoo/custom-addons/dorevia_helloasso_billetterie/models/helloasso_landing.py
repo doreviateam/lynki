@@ -48,9 +48,9 @@ class DoreviaHelloassoLanding(models.TransientModel):
                 "last_adherent_sync_at": last_p.helloasso_last_sync_at or False,
                 "last_billetterie_sync_at": last_o.last_sync_at or False,
                 "help_text": _(
-                    "Menu principal : « Adhésions » et « Billetteries » (campagnes, commandes, synchro). "
-                    "Adhésions à jour : Paramètres → HelloAsso adhérent → Synchroniser (ou cron). "
-                    "Billetteries : Campagnes → Actualiser depuis HelloAsso, puis Commandes ou synchro par campagne."
+                    "Menu HelloAsso : « Adhésion » et « Billetteries » uniquement. "
+                    "Adhésion à jour : Paramètres → HelloAsso adhérent → Synchroniser (ou cron). "
+                    "Billetteries : liste des formulaires Event (Actualiser depuis HelloAsso) ; Commandes et Synchronisation en tête de liste ; Paramètres généraux pour les défauts API."
                 ),
             }
         )

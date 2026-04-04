@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Chargé avant les vues list (boutons d’en-tête croisés Commandes ↔ Billetteries). -->
+    <record id="action_dorevia_helloasso_billetterie_order" model="ir.actions.act_window">
+        <field name="name">Commandes</field>
+        <field name="res_model">dorevia.helloasso.billetterie.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune commande billetterie synchronisée.
+            </p>
+            <p>
+                Liste des <strong>commandes / billets</strong> importés depuis HelloAsso (flux distinct des <strong>adhésions</strong>).
+                Elle se remplit après une synchro des commandes d’un formulaire de type <strong>Event</strong> (billetterie).
+            </p>
+            <p>
+                Pour <strong>tenir à jour</strong> : menu <strong>Billetteries</strong> puis <strong>Synchroniser les commandes</strong> sur une ligne, ou <strong>Synchronisation</strong> (assistant), ou <strong>Paramètres généraux</strong> (bloc HelloAsso billetterie) / planificateur.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_dorevia_helloasso_billetterie_form" model="ir.actions.act_window">
+        <field name="name">Billetteries</field>
+        <field name="res_model">dorevia.helloasso.billetterie.form</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_event': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune billetterie HelloAsso inventoriée pour l’instant.
+            </p>
+            <p>
+                Comme pour <strong>Adhésion</strong> (liste des adhérents), cette vue liste vos <strong>billetteries</strong> : formulaires API HelloAsso de type <strong>Event</strong>, récupérés via
+                <code>GET /v5/organizations/{slug}/forms?formTypes=Event</code>.
+            </p>
+            <p>
+                Pour <strong>charger la liste</strong> : <strong>Actualiser depuis HelloAsso</strong> (en-tête). Puis <strong>Synchroniser les commandes</strong> sur une ligne pour importer les billets, ou ouvrir <strong>Commandes</strong> / <strong>Synchronisation</strong>.
+            </p>
+            <p>
+                Filtre <strong>Autres types</strong> : anciennes lignes non-Event déjà en base (l’inventaire n’en ramène plus depuis l’API).
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -6,7 +6,7 @@
         <field name="model">res.partner</field>
         <field name="priority" eval="32"/>
         <field name="arch" type="xml">
-            <list string="Adhésions HelloAsso">
+            <list string="Adhésion HelloAsso">
                 <field name="display_name" string="Nom"/>
                 <field name="email" optional="show"/>
                 <field name="phone" optional="hide"/>
