@@ -1,33 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- M2 — doit précéder la vue d’accueil (boutons %(...)d) -->
+    <!-- Action adhésions : liste métier dédiée (vue helloasso_partner_membership_views.xml) -->
     <record id="action_helloasso_partner_adherents" model="ir.actions.act_window">
-        <field name="name">Adhérents HelloAsso</field>
+        <field name="name">Adhésions HelloAsso</field>
         <field name="res_model">res.partner</field>
         <field name="view_mode">list,form,kanban</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('dorevia_helloasso_billetterie.view_res_partner_tree_helloasso_memberships')})]"
+        />
         <field name="domain" eval="[('helloasso_external_id', '!=', False), ('helloasso_form_type', '=', 'Membership')]"/>
         <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Aucun contact adhérent HelloAsso pour l’instant.
+                Aucune adhésion HelloAsso synchronisée pour l’instant.
             </p>
             <p>
-                Lancez une synchronisation depuis Paramètres (HelloAsso adhérents) après avoir configuré l’API.
+                Lancez une synchronisation depuis Paramètres généraux (sections HelloAsso) après avoir configuré l’API.
             </p>
         </field>
     </record>
 
-    <!-- M1 — Vue d’ensemble -->
+    <!-- Synthèse connecteur (admin) — plus en entrée principale de l’app -->
     <record id="view_dorevia_helloasso_landing_form" model="ir.ui.view">
         <field name="name">dorevia.helloasso.landing.form</field>
         <field name="model">dorevia.helloasso.landing</field>
         <field name="arch" type="xml">
-            <form string="Vue d’ensemble HelloAsso" edit="false">
+            <form string="Synthèse connecteur HelloAsso" edit="false">
                 <sheet>
                     <div class="oe_title">
                         <h1>HelloAsso</h1>
                         <p class="text-muted">
-                            Miroir interne des flux synchronisés — la collecte publique reste sur HelloAsso.
+                            Indicateurs techniques et raccourcis — la collecte publique reste sur HelloAsso.
                         </p>
                     </div>
                     <group string="Configuration (Paramètres)">
@@ -35,12 +39,18 @@
                         <field name="org_slug"/>
                         <field name="api_ready"/>
                     </group>
+                    <group string="Synthèse des flux synchronisés">
+                        <field name="count_adherents"/>
+                        <field name="count_billetterie_orders"/>
+                        <field name="last_adherent_sync_at"/>
+                        <field name="last_billetterie_sync_at"/>
+                    </group>
                     <group string="Raccourcis">
                         <div colspan="2">
                             <button
                                 name="%(action_helloasso_partner_adherents)d"
                                 type="action"
-                                string="Adhérents synchronisés"
+                                string="Adhésions synchronisées"
                                 class="btn-primary"
                             />
                             <button
@@ -60,13 +70,13 @@
     </record>
 
     <record id="action_dorevia_helloasso_landing" model="ir.actions.act_window">
-        <field name="name">Vue d’ensemble</field>
+        <field name="name">Synthèse connecteur</field>
         <field name="res_model">dorevia.helloasso.landing</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
     </record>
 
-    <!-- M8 — séquences : Vue d’ensemble (5) → Adhérents (15) → Billetterie (40) → Commandes (10) -->
+    <!-- Entrées métier d’abord ; Configuration en dernier ; synthèse sous Configuration (admin) -->
     <menuitem
         id="menu_dorevia_helloasso_root"
         name="HelloAsso"
@@ -74,24 +84,17 @@
         sequence="35"
     />
     <menuitem
-        id="menu_helloasso_landing"
-        name="Vue d’ensemble"
-        parent="menu_dorevia_helloasso_root"
-        action="action_dorevia_helloasso_landing"
-        sequence="5"
-    />
-    <menuitem
         id="menu_helloasso_adherents"
-        name="Adhérents"
+        name="Adhésions"
         parent="menu_dorevia_helloasso_root"
         action="action_helloasso_partner_adherents"
-        sequence="15"
+        sequence="5"
     />
     <menuitem
         id="menu_helloasso_billetterie_root"
         name="Billetterie"
         parent="menu_dorevia_helloasso_root"
-        sequence="40"
+        sequence="15"
     />
     <menuitem
         id="menu_helloasso_billetterie_orders"
@@ -99,5 +102,29 @@
         parent="menu_helloasso_billetterie_root"
         action="action_dorevia_helloasso_billetterie_order"
         sequence="10"
+    />
+
+    <menuitem
+        id="menu_helloasso_configuration"
+        name="Configuration"
+        parent="menu_dorevia_helloasso_root"
+        sequence="90"
+        groups="base.group_system"
+    />
+    <menuitem
+        id="menu_helloasso_configuration_settings"
+        name="Paramètres généraux"
+        parent="menu_helloasso_configuration"
+        action="base_setup.action_general_configuration"
+        sequence="10"
+        groups="base.group_system"
+    />
+    <menuitem
+        id="menu_helloasso_landing"
+        name="Synthèse connecteur"
+        parent="menu_helloasso_configuration"
+        action="action_dorevia_helloasso_landing"
+        sequence="20"
+        groups="base.group_system"
     />
 </odoo>

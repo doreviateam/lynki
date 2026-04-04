@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Liste métier : adhésions HelloAsso (Membership), utilisée par l’action applicative -->
+    <record id="view_res_partner_tree_helloasso_memberships" model="ir.ui.view">
+        <field name="name">res.partner.tree.helloasso.memberships</field>
+        <field name="model">res.partner</field>
+        <field name="priority" eval="32"/>
+        <field name="arch" type="xml">
+            <list string="Adhésions HelloAsso">
+                <field name="display_name" string="Nom"/>
+                <field name="email" optional="show"/>
+                <field name="phone" optional="hide"/>
+                <field name="member_type_id" optional="show"/>
+                <field name="helloasso_source_form" string="Formulaire" optional="show"/>
+                <field name="helloasso_payment_date" string="Paiement (date)" optional="show"/>
+                <field name="helloasso_payment_amount" string="Montant (€)" optional="show"/>
+                <field name="helloasso_payment_mean" string="Moyen de paiement" optional="hide"/>
+                <field name="helloasso_last_sync_at" string="Dernière synchro" optional="show"/>
+                <field name="helloasso_sync_status" string="Statut synchro" optional="show"/>
+                <field name="helloasso_external_id" string="ID HelloAsso" optional="hide"/>
+            </list>
+        </field>
+    </record>
+</odoo>

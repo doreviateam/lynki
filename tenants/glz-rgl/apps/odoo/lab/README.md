@@ -57,9 +57,13 @@ docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_
 docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_res_config_dms_shim \
   || docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_res_config_dms_shim
 
-# Mise à jour des modules Dorevia déjà installés
+# Mise à jour des modules Dorevia déjà installés (ordre : champs partenaire → API adhérent → app billetterie / menus)
 docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl \
-  dorevia_partner_membership_fields dorevia_helloasso_adherent
+  dorevia_partner_membership_fields
+docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl \
+  dorevia_helloasso_adherent
+docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_helloasso_billetterie \
+  || docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_helloasso_billetterie
 ```
 
 Adapter le nom du conteneur et le nom de la base si besoin.
@@ -73,4 +77,4 @@ cd /opt/dorevia-plateform
 bash tenants/glz-rgl/apps/odoo/lab/upgrade-dorevia-odoo-on-host.sh
 ```
 
-Le script enchaîne `git pull`, `odoo module upgrade` sur les deux modules Dorevia, puis `docker restart` du conteneur Odoo. Variables optionnelles : `REPO_ROOT`, `ODOO_CONTAINER`, `ODOO_DB`, `ODOO_CONF`, `GIT_BRANCH`.
+Le script enchaîne `git pull`, `odoo module upgrade` (ou install) sur les modules Dorevia **membership_fields**, **helloasso_adherent** et **helloasso_billetterie**, puis `docker restart` du conteneur Odoo. Variables optionnelles : `REPO_ROOT`, `ODOO_CONTAINER`, `ODOO_DB`, `ODOO_CONF`, `GIT_BRANCH`.
