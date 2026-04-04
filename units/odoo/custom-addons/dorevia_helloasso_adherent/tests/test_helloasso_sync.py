@@ -98,6 +98,25 @@ class TestHelloassoSyncMvp(TransactionCase):
         self.assertEqual(partner.helloasso_sync_status, "synced")
         self.assertEqual(partner.helloasso_payment_amount, 10.0)
 
+    def test_sync_log_written_when_log_origin(self):
+        pay = _payment_mvp(email="journal_sync@test.dorevia.local")
+        self._patch_sync([pay])
+        Log = self.env["dorevia.helloasso.sync.log"]
+        n0 = Log.search_count([])
+        run_membership_payments_sync(
+            self.env,
+            "org-test",
+            "cid",
+            "csecret",
+            True,
+            log_origin="wizard",
+        )
+        self.assertEqual(Log.search_count([]), n0 + 1)
+        line = Log.search([], order="id desc", limit=1)
+        self.assertEqual(line.flow, "membership_payments")
+        self.assertEqual(line.origin, "wizard")
+        self.assertEqual(line.state, "success")
+
     def test_scenario_2_replay_updates_without_duplicate(self):
         email = "s2_replay@test.dorevia.local"
         pay = _payment_mvp(email=email)
@@ -187,3 +206,4 @@ class TestHelloassoSyncMvp(TransactionCase):
         self.assertEqual(args[2], "cid")
         self.assertEqual(args[3], "sec")
         self.assertTrue(args[4])
+        self.assertEqual(mock_run.call_args.kwargs.get("log_origin"), "cron")

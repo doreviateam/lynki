@@ -77,6 +77,7 @@ class ResConfigSettings(models.TransientModel):
             use_sandbox,
             ft or "Event",
             fs or None,
+            log_origin="settings",
         )
         message = format_billetterie_sync_result_message(stats)
         notif_type = (

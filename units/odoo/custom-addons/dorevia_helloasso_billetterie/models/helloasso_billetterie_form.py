@@ -6,6 +6,9 @@ import logging
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
+from odoo.addons.dorevia_helloasso_adherent.models.helloasso_sync_log import (
+    helloasso_sync_log_push,
+)
 from .helloasso_billetterie_sync import (
     format_billetterie_sync_result_message,
     run_billetterie_orders_sync,
@@ -263,6 +266,7 @@ class DoreviaHelloassoBilletterieForm(models.Model):
                 rec.form_type,
                 rec.form_slug,
                 catalog_form_id=rec.id,
+                log_origin="catalog_form",
             )
             message_blocks.append(
                 _("[%s]\n%s")
@@ -302,6 +306,12 @@ class DoreviaHelloassoBilletterieForm(models.Model):
 
         stats = run_billetterie_forms_inventory(
             self.env, slug, cid, csec, use_sandbox
+        )
+        helloasso_sync_log_push(
+            self.env,
+            "billetterie_forms_inventory",
+            "list_inventory",
+            stats,
         )
         message = format_inventory_result_message(stats)
         notif_type = "warning" if stats.get("errors") else "success"

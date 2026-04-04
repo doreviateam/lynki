@@ -90,6 +90,13 @@
         action="action_helloasso_partner_adherents"
         sequence="5"
     />
+    <menuitem
+        id="menu_helloasso_sync_log"
+        name="Journal des synchros"
+        parent="menu_dorevia_helloasso_root"
+        action="dorevia_helloasso_adherent.action_dorevia_helloasso_sync_log"
+        sequence="8"
+    />
     <!-- Billetterie : inventaire formulaires d’abord, puis commandes, puis synchro -->
     <menuitem
         id="menu_helloasso_billetterie_root"

@@ -185,3 +185,4 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         mock_run.assert_called_once()
         args = mock_run.call_args.args
         self.assertEqual(args[1], "org-slug")
+        self.assertEqual(mock_run.call_args.kwargs.get("log_origin"), "cron")

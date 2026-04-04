@@ -131,9 +131,14 @@ def _partner_display_name(firstname, lastname, email):
     return name or (email or _("Contact HelloAsso"))
 
 
-def run_membership_payments_sync(env, organization_slug, client_id, client_secret, use_sandbox):
+def run_membership_payments_sync(
+    env, organization_slug, client_id, client_secret, use_sandbox, log_origin=None
+):
     """
     Retourne un dict : processed, created, updated, skipped, errors (list of str messages).
+
+    :param log_origin: si renseigné (clé ``origin`` du journal), enregistre une ligne dans
+        ``dorevia.helloasso.sync.log`` après exécution.
     """
     Partner = env["res.partner"]
     slug = (organization_slug or "").strip()
@@ -258,4 +263,13 @@ def run_membership_payments_sync(env, organization_slug, client_id, client_secre
             break
         page += 1
 
+    if log_origin:
+        from .helloasso_sync_log import helloasso_sync_log_push
+
+        helloasso_sync_log_push(
+            env,
+            "membership_payments",
+            log_origin,
+            stats,
+        )
     return stats

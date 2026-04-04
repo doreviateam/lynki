@@ -78,7 +78,7 @@
 | M2 | ☑ Livré code | | Lot 1 — action `res.partner` + domain Membership |
 | M3 | ☑ Livré | | Commandes billetterie |
 | M4 | ☐ À arbitrer | | Lot 3 |
-| M5 | ☐ À faire | | Lot 2 |
+| M5 | ☑ Livré code | | Lot 2 — journal ``dorevia.helloasso.sync.log`` + menu |
 | M6 | ☐ À faire | | Lot 2 |
 | M7 | ☑ Acté | | Paramètres |
 | M8 | ☑ Livré code | | Lot 1 — sequences + libellés dans `helloasso_menu_lot1.xml` |

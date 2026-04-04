@@ -38,6 +38,7 @@ class DoreviaHelloassoCron(models.Model):
             client_id,
             client_secret,
             use_sandbox,
+            log_origin="cron",
         )
         _logger.info(
             "HelloAsso cron : terminé — traités=%s créés=%s maj=%s ignorés=%s",

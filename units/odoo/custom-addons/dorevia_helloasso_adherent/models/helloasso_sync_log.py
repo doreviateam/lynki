@@ -1,0 +1,109 @@
+# -*- coding: utf-8 -*-
+"""Journal léger des exécutions de synchro HelloAsso (recette / pilotage)."""
+
+import json
+import logging
+
+from odoo import _, fields, models
+
+_logger = logging.getLogger(__name__)
+
+_DETAIL_MAX_LEN = 65000
+
+
+def _state_and_summary_from_stats(stats):
+    """Déduit état + résumé court à partir d’un dict stats (billetterie ou adhérent ou inventaire)."""
+    stats = stats or {}
+    errs = stats.get("errors") or []
+    cr = int(stats.get("created") or 0)
+    up = int(stats.get("updated") or 0)
+    sk = int(stats.get("skipped") or 0)
+    proc = stats.get("processed")
+    if proc is None:
+        summary = _("Créations : %s — mises à jour : %s — ignorés : %s") % (cr, up, sk)
+        has_work = bool(cr or up)
+    else:
+        proc = int(proc or 0)
+        summary = _("Traités : %s — créés : %s — maj : %s — ignorés : %s") % (proc, cr, up, sk)
+        has_work = bool(proc or cr or up)
+    if errs and not has_work:
+        state = "error"
+    elif errs:
+        state = "warning"
+    else:
+        state = "success"
+    if errs:
+        summary = "%s — %s" % (summary, _("erreurs : %s") % len(errs))
+    return state, summary
+
+
+def helloasso_sync_log_push(env, flow, origin, stats):
+    """
+    Crée une ligne de journal (sudo). Ne lève pas si le modèle est absent (sécurité défensive).
+
+    :param flow: clé Selection du modèle ``dorevia.helloasso.sync.log``
+    :param origin: clé Selection (origine de l’exécution)
+    :param stats: dict retourné par les run_*_sync ou inventaire
+    """
+    try:
+        Log = env["dorevia.helloasso.sync.log"].sudo()
+    except KeyError:
+        _logger.debug("helloasso_sync_log_push: modèle sync.log indisponible")
+        return
+    state, summary = _state_and_summary_from_stats(stats)
+    try:
+        detail = json.dumps(stats or {}, ensure_ascii=False, default=str)
+    except TypeError:
+        detail = str(stats)
+    if len(detail) > _DETAIL_MAX_LEN:
+        detail = detail[: _DETAIL_MAX_LEN] + "…"
+    Log.create(
+        {
+            "flow": flow,
+            "origin": origin,
+            "state": state,
+            "summary": (summary or "")[:512],
+            "detail": detail,
+        }
+    )
+
+
+class DoreviaHelloassoSyncLog(models.Model):
+    _name = "dorevia.helloasso.sync.log"
+    _description = "HelloAsso — journal des synchronisations"
+    _order = "create_date desc, id desc"
+
+    flow = fields.Selection(
+        selection=[
+            ("membership_payments", "Adhésions (paiements)"),
+            ("billetterie_orders", "Billetterie (commandes)"),
+            ("billetterie_forms_inventory", "Billetterie (inventaire formulaires)"),
+        ],
+        string="Flux",
+        required=True,
+        index=True,
+    )
+    origin = fields.Selection(
+        selection=[
+            ("settings", "Paramètres généraux"),
+            ("wizard", "Assistant billetterie"),
+            ("cron", "Planificateur"),
+            ("catalog_form", "Inventaire — synchro depuis une ligne"),
+            ("list_inventory", "Inventaire — actualisation liste"),
+        ],
+        string="Origine",
+        required=True,
+        index=True,
+    )
+    state = fields.Selection(
+        selection=[
+            ("success", "Succès"),
+            ("warning", "Avertissement"),
+            ("error", "Erreur"),
+        ],
+        string="Résultat",
+        required=True,
+        index=True,
+    )
+    summary = fields.Char(string="Résumé")
+    detail = fields.Text(string="Détail (JSON)")

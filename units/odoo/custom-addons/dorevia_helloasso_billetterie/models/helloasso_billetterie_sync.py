@@ -298,12 +298,14 @@ def run_billetterie_orders_sync(
     form_type,
     form_slug=None,
     catalog_form_id=None,
+    log_origin=None,
 ):
     """
     Retourne un dict : processed, created, updated, skipped, errors (liste de messages).
 
     :param catalog_form_id: id d’un ``dorevia.helloasso.billetterie.form`` (inventaire) pour
         lier les commandes créées / mises à jour à cette ligne.
+    :param log_origin: si renseigné, enregistre une ligne dans ``dorevia.helloasso.sync.log``.
     """
     Order = env["dorevia.helloasso.billetterie.order"]
     Line = env["dorevia.helloasso.billetterie.line"]
@@ -499,6 +501,17 @@ def run_billetterie_orders_sync(
             break
         page += 1
 
+    if log_origin:
+        from odoo.addons.dorevia_helloasso_adherent.models.helloasso_sync_log import (
+            helloasso_sync_log_push,
+        )
+
+        helloasso_sync_log_push(
+            env,
+            "billetterie_orders",
+            log_origin,
+            stats,
+        )
     return stats
 
 

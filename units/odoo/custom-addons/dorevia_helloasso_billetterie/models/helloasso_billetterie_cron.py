@@ -40,6 +40,7 @@ class DoreviaHelloassoBilletterieCron(models.Model):
             use_sandbox,
             form_type or "Event",
             form_slug or None,
+            log_origin="cron",
         )
         _logger.info(
             "HelloAsso billetterie cron : terminé — traités=%s créés=%s maj=%s ignorés=%s",

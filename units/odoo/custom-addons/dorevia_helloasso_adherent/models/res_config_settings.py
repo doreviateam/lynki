@@ -386,6 +386,7 @@ class ResConfigSettings(models.TransientModel):
             self.helloasso_client_id,
             self.helloasso_client_secret,
             use_sandbox,
+            log_origin="settings",
         )
         parts = [
             _("Paiements éligibles traités : %s") % stats["processed"],

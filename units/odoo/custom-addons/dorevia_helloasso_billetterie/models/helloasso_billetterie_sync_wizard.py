@@ -109,6 +109,7 @@ class DoreviaHelloassoBilletterieSyncWizard(models.TransientModel):
             p["use_sandbox"],
             p["form_type"],
             p["form_slug"],
+            log_origin="wizard",
         )
         message = format_billetterie_sync_result_message(stats)
         notif_type = (
