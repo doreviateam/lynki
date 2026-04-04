@@ -4,7 +4,7 @@
         <field name="name">dorevia.helloasso.billetterie.form.list</field>
         <field name="model">dorevia.helloasso.billetterie.form</field>
         <field name="arch" type="xml">
-            <list string="Liste des billetteries" create="false">
+            <list string="Campagnes HelloAsso" create="false">
                 <header>
                     <button
                         name="action_refresh_inventory_from_helloasso"
@@ -95,7 +95,7 @@
     </record>
 
     <record id="action_dorevia_helloasso_billetterie_form" model="ir.actions.act_window">
-        <field name="name">Liste des billetteries</field>
+        <field name="name">Campagnes</field>
         <field name="res_model">dorevia.helloasso.billetterie.form</field>
         <field name="view_mode">list,form</field>
         <field name="context">{}</field>
@@ -104,12 +104,11 @@
                 Aucun formulaire inventorié pour l’instant.
             </p>
             <p>
-                C’est la <strong>liste des billetteries</strong> (campagnes / formulaires HelloAsso) de votre organisation.
-                Pour la <strong>mettre à jour</strong> : <strong>Actualiser depuis HelloAsso</strong> (en-tête de liste).
-                Les billetteries événements sont en général de type <strong>Event</strong> : utilisez les filtres.
+                <strong>Campagnes</strong> : formulaires HelloAsso de l’organisation (billetteries, souvent type <strong>Event</strong>).
+                Pour <strong>actualiser</strong> depuis HelloAsso : <strong>Actualiser depuis HelloAsso</strong> (en-tête de liste).
             </p>
             <p>
-                Pour synchroniser les <strong>commandes / billets vendus</strong> : menu <strong>Commandes (billets)</strong>, ou <strong>Synchroniser les commandes</strong> sur une ligne de cette liste, ou Paramètres / assistant de synchro.
+                Pour les <strong>billets vendus</strong> : menu <strong>Billetteries → Commandes (billets)</strong>, ou <strong>Synchroniser les commandes</strong> sur une ligne ci-dessous.
             </p>
         </field>
     </record>

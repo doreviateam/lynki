@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso billetterie (MVP)",
-    "version": "19.0.1.12.0",
+    "version": "19.0.1.13.0",
     "category": "Dorevia",
     "summary": "Connecteur MVP : commandes billetterie HelloAsso → Odoo (traçabilité, payeur, lignes)",
     "description": """
@@ -13,7 +13,7 @@
         - Cron désactivé par défaut (palier 2)
         - Inventaire formulaires HelloAsso (``dorevia.helloasso.billetterie.form``) puis Commandes + Synchronisation
         - Menu Journal des synchros (``dorevia.helloasso.logentry`` dans le module adhérent)
-        - App HelloAsso : Adhésions, Billetterie (formulaires, commandes, synchro), Configuration
+        - App HelloAsso : Adhésions | Billetteries (Campagnes, Commandes, Synchronisation), Configuration (admin)
     """,
     "author": "Dorevia Team",
     "website": "https://doreviateam.com",

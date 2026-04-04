@@ -48,11 +48,9 @@ class DoreviaHelloassoLanding(models.TransientModel):
                 "last_adherent_sync_at": last_p.helloasso_last_sync_at or False,
                 "last_billetterie_sync_at": last_o.last_sync_at or False,
                 "help_text": _(
-                    "Deux listes métier à tenir à jour avec HelloAsso : "
-                    "« Liste des adhésions » (synchro adhérents dans Paramètres ou cron) "
-                    "et « Liste des billetteries » puis « Commandes (billets) » "
-                    "(actualiser l’inventaire, puis synchroniser les commandes par campagne ou via l’assistant). "
-                    "Paramètres généraux : menu Configuration de cette app."
+                    "Menu principal : « Adhésions » et « Billetteries » (campagnes, commandes, synchro). "
+                    "Adhésions à jour : Paramètres → HelloAsso adhérent → Synchroniser (ou cron). "
+                    "Billetteries : Campagnes → Actualiser depuis HelloAsso, puis Commandes ou synchro par campagne."
                 ),
             }
         )

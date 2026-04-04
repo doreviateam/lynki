@@ -76,7 +76,7 @@
                 Elle se remplit après une synchro des commandes d’un formulaire de type <strong>Event</strong> (billetterie).
             </p>
             <p>
-                Pour <strong>tenir à jour</strong> : <strong>Liste des billetteries</strong> → <strong>Synchroniser les commandes</strong> sur la campagne visée, ou <strong>Synchronisation</strong> (assistant), ou <strong>Paramètres généraux</strong> (bloc billetterie) / planificateur.
+                Pour <strong>tenir à jour</strong> : <strong>Billetteries → Campagnes</strong> puis <strong>Synchroniser les commandes</strong> sur la campagne, ou <strong>Billetteries → Synchronisation</strong> (assistant), ou <strong>Paramètres généraux</strong> (bloc billetterie) / planificateur.
             </p>
         </field>
     </record>
