@@ -40,10 +40,11 @@ En cas de doute, vérifier dans **Paramètres → Technique → Structure de la 
 La **vue** billetterie attend le champ **`catalog_form_id`** sur les commandes, mais le **code Python** chargé par Odoo ne le déclare pas (fichier `helloasso_billetterie_order.py` trop ancien dans le conteneur, ou module masqué par un autre répertoire dans `addons_path`).
 
 1. Sur l’hôte qui monte les volumes : **`git pull`** sur le dépôt (branche livrée), puis vérifier :
-   `grep catalog_form_id units/odoo/custom-addons/dorevia_helloasso_billetterie/models/helloasso_billetterie_order.py`
+   `grep -r catalog_form_id units/odoo/custom-addons/dorevia_helloasso_billetterie/models/helloasso_billetterie_order*.py`  
+   (le champ est défini dans **`helloasso_billetterie_order_catalog.py`** depuis la version **19.0.1.9.0** du module.)
 2. Dans le conteneur :  
-   `docker exec odoo_lab_glz-rgl grep catalog_form_id /mnt/custom-addons/dorevia_helloasso_billetterie/models/helloasso_billetterie_order.py`  
-   Si vide : le volume ou le déploiement n’est pas aligné avec le dépôt.
+   `docker exec odoo_lab_glz-rgl sh -c 'grep -r catalog_form_id /mnt/custom-addons/dorevia_helloasso_billetterie/models/helloasso_billetterie_order*.py'`  
+   Si vide : le volume ou le déploiement n’est pas aligné avec le dépôt (fichier **`helloasso_billetterie_order_catalog.py`** manquant ou ancien).
 3. **`docker restart`** du service Odoo (workers), puis relancer la mise à jour du module **`dorevia_helloasso_billetterie`**.
 4. Aligner **`addons_path`** sur **`odoo.conf.example`** : **`/mnt/custom-addons` avant `/mnt/addons-o19`**, puis **redémarrer** le conteneur — ainsi les modules Dorevia ne sont pas masqués par un homonyme éventuel dans la pile OCA.
 

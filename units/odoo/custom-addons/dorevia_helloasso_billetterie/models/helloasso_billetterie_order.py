@@ -35,14 +35,6 @@ class DoreviaHelloassoBilletterieOrder(models.Model):
         ondelete="set null",
         copy=False,
     )
-    catalog_form_id = fields.Many2one(
-        "dorevia.helloasso.billetterie.form",
-        string="Formulaire inventorié",
-        ondelete="set null",
-        index=True,
-        copy=False,
-        help="Lien vers la ligne d’inventaire si la synchro a été lancée depuis celle-ci.",
-    )
     line_ids = fields.One2many(
         "dorevia.helloasso.billetterie.line",
         "order_id",

@@ -31,10 +31,10 @@ docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" \
 
 # App HelloAsso (menus, liste adhésions, billetterie / commandes) : dépend de l’adhérent.
 # Si la vue XML référence catalog_form_id mais que le .py du conteneur est ancien → ParseError au upgrade.
-ORDER_PY="/mnt/custom-addons/dorevia_helloasso_billetterie/models/helloasso_billetterie_order.py"
-if ! docker exec "$CONTAINER" grep -q "catalog_form_id" "$ORDER_PY" 2>/dev/null; then
-  echo "[upgrade-dorevia] ERREUR: « $ORDER_PY » dans le conteneur ne contient pas « catalog_form_id »." >&2
-  echo "[upgrade-dorevia] Sur l’hôte: git pull dans REPO_ROOT, vérifier le même grep sur l’hôte, puis redémarrer le conteneur." >&2
+BILLET_MOD="/mnt/custom-addons/dorevia_helloasso_billetterie/models"
+if ! docker exec "$CONTAINER" sh -c "grep -rq catalog_form_id ${BILLET_MOD}/helloasso_billetterie_order*.py" 2>/dev/null; then
+  echo "[upgrade-dorevia] ERREUR: aucun « catalog_form_id » dans helloasso_billetterie_order*.py sous ${BILLET_MOD} (conteneur)." >&2
+  echo "[upgrade-dorevia] Sur l’hôte: git pull dans REPO_ROOT, vérifier les fichiers, puis redémarrer le conteneur." >&2
   exit 1
 fi
 docker exec "$CONTAINER" odoo module install -c "$ODOO_CONF" -d "$DB_NAME" dorevia_helloasso_billetterie \
