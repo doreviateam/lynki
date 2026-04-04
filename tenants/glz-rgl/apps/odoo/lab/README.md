@@ -50,6 +50,12 @@ La **vue** billetterie attend le champ **`catalog_form_id`** sur les commandes, 
 
 Le script **`upgrade-dorevia-odoo-on-host.sh`** vérifie la présence de `catalog_form_id` dans le `.py` **avant** l’upgrade billetterie.
 
+### Journal des synchros (`dorevia.helloasso.logentry`)
+
+Le modèle technique est **`dorevia.helloasso.logentry`** (module **`dorevia_helloasso_adherent`**, fichier `helloasso_sync_log.py`). Les droits **`ir.model.access`** sont créés au chargement du registre via **`_register_hook`** (pas de lignes dédiées dans `ir.model.access.csv` pour ce modèle — évite les erreurs d’xmlid à l’upgrade Odoo 19).
+
+Ordre obligatoire : **`dorevia_helloasso_adherent` puis `dorevia_helloasso_billetterie`** (le menu « Journal des synchros » référence une action du premier module).
+
 ### Documents (OCA **dms**) sur Odoo 19
 
 1. Appliquer le patch : `./scripts/apply-oca-dms-odoo19-patch.sh` (voir `patches/README.md`).
@@ -92,4 +98,4 @@ cd /opt/dorevia-plateform
 bash tenants/glz-rgl/apps/odoo/lab/upgrade-dorevia-odoo-on-host.sh
 ```
 
-Le script enchaîne `git pull`, `odoo module upgrade` (ou install) sur les modules Dorevia **membership_fields**, **helloasso_adherent** et **helloasso_billetterie**, puis `docker restart` du conteneur Odoo. Variables optionnelles : `REPO_ROOT`, `ODOO_CONTAINER`, `ODOO_DB`, `ODOO_CONF`, `GIT_BRANCH`.
+Le script enchaîne `git pull`, `odoo module upgrade` (ou install) sur les modules Dorevia **membership_fields**, **helloasso_adherent** et **helloasso_billetterie**, puis `docker restart` du conteneur Odoo. Entre adhérent et billetterie, il vérifie que le code du **journal** (`dorevia.helloasso.logentry`) est bien présent dans le volume, puis que **`catalog_form_id`** est présent côté billetterie. Variables optionnelles : `REPO_ROOT`, `ODOO_CONTAINER`, `ODOO_DB`, `ODOO_CONF`, `GIT_BRANCH`.
