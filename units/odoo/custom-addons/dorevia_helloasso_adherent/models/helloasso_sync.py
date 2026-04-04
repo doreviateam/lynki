@@ -138,7 +138,7 @@ def run_membership_payments_sync(
     Retourne un dict : processed, created, updated, skipped, errors (list of str messages).
 
     :param log_origin: si renseigné (clé ``origin`` du journal), enregistre une ligne dans
-        ``dorevia.helloasso.sync.log`` après exécution.
+        ``dorevia.helloasso.logentry`` après exécution.
     """
     Partner = env["res.partner"]
     slug = (organization_slug or "").strip()

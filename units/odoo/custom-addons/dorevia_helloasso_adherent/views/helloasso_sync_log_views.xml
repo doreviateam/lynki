@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="view_dorevia_helloasso_sync_log_tree" model="ir.ui.view">
-        <field name="name">dorevia.helloasso.sync.log.list</field>
-        <field name="model">dorevia.helloasso.sync.log</field>
+        <field name="name">dorevia.helloasso.logentry.list</field>
+        <field name="model">dorevia.helloasso.logentry</field>
         <field name="arch" type="xml">
             <list string="Journal HelloAsso" create="false">
                 <field name="create_date" string="Date"/>
@@ -20,8 +20,8 @@
     </record>
 
     <record id="view_dorevia_helloasso_sync_log_form" model="ir.ui.view">
-        <field name="name">dorevia.helloasso.sync.log.form</field>
-        <field name="model">dorevia.helloasso.sync.log</field>
+        <field name="name">dorevia.helloasso.logentry.form</field>
+        <field name="model">dorevia.helloasso.logentry</field>
         <field name="arch" type="xml">
             <form string="Exécution synchro HelloAsso" create="false" edit="false" delete="false">
                 <sheet>
@@ -47,7 +47,7 @@
 
     <record id="action_dorevia_helloasso_sync_log" model="ir.actions.act_window">
         <field name="name">Journal des synchronisations</field>
-        <field name="res_model">dorevia.helloasso.sync.log</field>
+        <field name="res_model">dorevia.helloasso.logentry</field>
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

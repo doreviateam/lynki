@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso adhérents (MVP)",
-    "version": "19.0.1.0.20",
+    "version": "19.0.1.0.21",
     "category": "Dorevia",
     "summary": "Connecteur MVP : synchronisation des adhérents HelloAsso vers res.partner",
     "description": """
@@ -10,7 +10,7 @@
         - « Tester la connexion » : OAuth2 client_credentials + ping formTypes si slug renseigné
         - « Prévisualiser les données HelloAsso » : rapport + JSON brut orders/payments pour audit SPEC
         - « Synchroniser les adhérents » : MVP payments (Membership + Registered) → res.partner
-        - Journal des synchronisations (dorevia.helloasso.sync.log) — alimenté par les synchros billetterie / adhérent
+        - Journal des synchronisations (dorevia.helloasso.logentry) — alimenté par les synchros billetterie / adhérent
         - Champs traçabilité sur res.partner : module dorevia_partner_membership_fields
     """,
     "author": "Dorevia Team",

@@ -12,7 +12,7 @@
         - Modèle d’ancrage ``dorevia.helloasso.billetterie.order`` + lignes participants
         - Cron désactivé par défaut (palier 2)
         - Inventaire formulaires HelloAsso (``dorevia.helloasso.billetterie.form``) puis Commandes + Synchronisation
-        - Menu Journal des synchros (``dorevia.helloasso.sync.log`` dans le module adhérent)
+        - Menu Journal des synchros (``dorevia.helloasso.logentry`` dans le module adhérent)
         - App HelloAsso : Adhésions, Billetterie (formulaires, commandes, synchro), Configuration
     """,
     "author": "Dorevia Team",

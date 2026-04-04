@@ -101,7 +101,7 @@ class TestHelloassoSyncMvp(TransactionCase):
     def test_sync_log_written_when_log_origin(self):
         pay = _payment_mvp(email="journal_sync@test.dorevia.local")
         self._patch_sync([pay])
-        Log = self.env["dorevia.helloasso.sync.log"]
+        Log = self.env["dorevia.helloasso.logentry"]
         n0 = Log.search_count([])
         run_membership_payments_sync(
             self.env,

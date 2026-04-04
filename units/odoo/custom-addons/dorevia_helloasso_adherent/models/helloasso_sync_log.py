@@ -10,6 +10,9 @@ _logger = logging.getLogger(__name__)
 
 _DETAIL_MAX_LEN = 65000
 
+# Nom technique sans segment « .sync. » : évite des soucis d’xmlid / ordre d’import CSV ir.model.access sous Odoo 19.
+_MODEL = "dorevia.helloasso.logentry"
+
 
 def _state_and_summary_from_stats(stats):
     """Déduit état + résumé court à partir d’un dict stats (billetterie ou adhérent ou inventaire)."""
@@ -37,18 +40,63 @@ def _state_and_summary_from_stats(stats):
     return state, summary
 
 
+def ensure_logentry_access(env):
+    """Crée les ir.model.access si absents (idempotent, sudo)."""
+    model = env["ir.model"].sudo().search([("model", "=", _MODEL)], limit=1)
+    if not model:
+        return
+    Access = env["ir.model.access"].sudo()
+    specs = [
+        (
+            "dorevia.helloasso.logentry — user",
+            "base.group_user",
+            (True, False, False, False),
+        ),
+        (
+            "dorevia.helloasso.logentry — erp",
+            "base.group_erp_manager",
+            (True, False, False, True),
+        ),
+        (
+            "dorevia.helloasso.logentry — system",
+            "base.group_system",
+            (True, True, True, True),
+        ),
+    ]
+    for name, group_xmlid, perms in specs:
+        group = env.ref(group_xmlid, raise_if_not_found=False)
+        if not group:
+            continue
+        if Access.search(
+            [("model_id", "=", model.id), ("group_id", "=", group.id)],
+            limit=1,
+        ):
+            continue
+        Access.create(
+            {
+                "name": name,
+                "model_id": model.id,
+                "group_id": group.id,
+                "perm_read": perms[0],
+                "perm_write": perms[1],
+                "perm_create": perms[2],
+                "perm_unlink": perms[3],
+            }
+        )
+
+
 def helloasso_sync_log_push(env, flow, origin, stats):
     """
     Crée une ligne de journal (sudo). Ne lève pas si le modèle est absent (sécurité défensive).
 
-    :param flow: clé Selection du modèle ``dorevia.helloasso.sync.log``
+    :param flow: clé Selection du modèle journal
     :param origin: clé Selection (origine de l’exécution)
     :param stats: dict retourné par les run_*_sync ou inventaire
     """
     try:
-        Log = env["dorevia.helloasso.sync.log"].sudo()
+        Log = env[_MODEL].sudo()
     except KeyError:
-        _logger.debug("helloasso_sync_log_push: modèle sync.log indisponible")
+        _logger.debug("helloasso_sync_log_push: modèle %s indisponible", _MODEL)
         return
     state, summary = _state_and_summary_from_stats(stats)
     try:
@@ -68,8 +116,8 @@ def helloasso_sync_log_push(env, flow, origin, stats):
     )
 
 
-class DoreviaHelloassoSyncLog(models.Model):
-    _name = "dorevia.helloasso.sync.log"
+class DoreviaHelloassoLogentry(models.Model):
+    _name = _MODEL
     _description = "HelloAsso — journal des synchronisations"
     _order = "create_date desc, id desc"
 
@@ -107,3 +155,7 @@ class DoreviaHelloassoSyncLog(models.Model):
     )
     summary = fields.Char(string="Résumé")
     detail = fields.Text(string="Détail (JSON)")
+
+    def _register_hook(self):
+        super()._register_hook()
+        ensure_logentry_access(self.env)
