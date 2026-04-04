@@ -45,7 +45,7 @@ La **vue** billetterie attend le champ **`catalog_form_id`** sur les commandes, 
    `docker exec odoo_lab_glz-rgl grep catalog_form_id /mnt/custom-addons/dorevia_helloasso_billetterie/models/helloasso_billetterie_order.py`  
    Si vide : le volume ou le déploiement n’est pas aligné avec le dépôt.
 3. **`docker restart`** du service Odoo (workers), puis relancer la mise à jour du module **`dorevia_helloasso_billetterie`**.
-4. Le fichier **`odoo.conf`** du lab place désormais **`/mnt/custom-addons` avant `/mnt/addons-o19`** pour que les modules Dorevia ne soient pas écrasés par un homonyme éventuel dans la pile OCA (à redéployer / recréer le conteneur si la conf a changé).
+4. Aligner **`addons_path`** sur **`odoo.conf.example`** : **`/mnt/custom-addons` avant `/mnt/addons-o19`**, puis **redémarrer** le conteneur — ainsi les modules Dorevia ne sont pas masqués par un homonyme éventuel dans la pile OCA.
 
 Le script **`upgrade-dorevia-odoo-on-host.sh`** vérifie la présence de `catalog_form_id` dans le `.py` **avant** l’upgrade billetterie.
 
