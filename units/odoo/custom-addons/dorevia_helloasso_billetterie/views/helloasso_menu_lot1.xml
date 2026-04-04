@@ -90,18 +90,13 @@
         action="action_helloasso_partner_adherents"
         sequence="5"
     />
+    <!-- Action sur le parent : évite un menu « dossier » invisible selon les clients Odoo -->
     <menuitem
         id="menu_helloasso_billetterie_root"
         name="Billetterie"
         parent="menu_dorevia_helloasso_root"
-        sequence="15"
-    />
-    <menuitem
-        id="menu_helloasso_billetterie_orders"
-        name="Commandes"
-        parent="menu_helloasso_billetterie_root"
         action="action_dorevia_helloasso_billetterie_order"
-        sequence="10"
+        sequence="15"
     />
     <menuitem
         id="menu_helloasso_billetterie_sync"
