@@ -25,7 +25,7 @@ class ResConfigSettings(models.TransientModel):
         help="Si vide, le premier formulaire du type indiqué est utilisé.",
     )
 
-    def action_helloasso_billetterie_preview(self):
+    def action_helloasso_billetterie_preview(self, *args, **kwargs):
         self.ensure_one()
         if not (self.helloasso_client_id and self.helloasso_client_secret):
             raise UserError(
@@ -58,7 +58,7 @@ class ResConfigSettings(models.TransientModel):
             "target": "new",
         }
 
-    def action_helloasso_billetterie_sync_orders(self):
+    def action_helloasso_billetterie_sync_orders(self, *args, **kwargs):
         self.ensure_one()
         if not (self.helloasso_client_id and self.helloasso_client_secret):
             raise UserError(

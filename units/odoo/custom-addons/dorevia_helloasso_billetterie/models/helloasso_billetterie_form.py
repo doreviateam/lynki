@@ -241,7 +241,7 @@ class DoreviaHelloassoBilletterieForm(models.Model):
             )
         return cid, csec
 
-    def action_open_orders(self):
+    def action_open_orders(self, *args, **kwargs):
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
@@ -251,7 +251,7 @@ class DoreviaHelloassoBilletterieForm(models.Model):
             "domain": [("catalog_form_id", "=", self.id)],
         }
 
-    def action_sync_orders(self):
+    def action_sync_orders(self, *args, **kwargs):
         """Synchro commandes HelloAsso pour ce formulaire (type + slug de la ligne)."""
         message_blocks = []
         has_errors = False
@@ -286,9 +286,11 @@ class DoreviaHelloassoBilletterieForm(models.Model):
             },
         }
 
-    @api.model
-    def action_refresh_inventory_from_helloasso(self):
-        """Bouton liste : recharge l’inventaire depuis les paramètres HelloAsso (adhérent)."""
+    def action_refresh_inventory_from_helloasso(self, *args, **kwargs):
+        """Bouton liste : recharge l’inventaire depuis les paramètres HelloAsso (adhérent).
+
+        *args / **kwargs : compatibilité Odoo 19+ (call_button peut passer des arguments).
+        """
         icp = self.env["ir.config_parameter"].sudo()
         cid = (icp.get_param("dorevia_helloasso.client_id") or "").strip()
         csec = (icp.get_param("dorevia_helloasso.client_secret") or "").strip()

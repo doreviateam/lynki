@@ -73,7 +73,7 @@ class DoreviaHelloassoBilletterieSyncWizard(models.TransientModel):
             "form_slug": fs or None,
         }
 
-    def action_helloasso_billetterie_preview(self):
+    def action_helloasso_billetterie_preview(self, *args, **kwargs):
         self.ensure_one()
         p = self._billetterie_api_params()
         message = build_billetterie_preview_report(
@@ -97,7 +97,7 @@ class DoreviaHelloassoBilletterieSyncWizard(models.TransientModel):
             "target": "new",
         }
 
-    def action_helloasso_billetterie_sync_orders(self):
+    def action_helloasso_billetterie_sync_orders(self, *args, **kwargs):
         self.ensure_one()
         p = self._billetterie_api_params()
         # Écritures sur commandes / partenaires : droits connecteur (les utilisateurs n’ont souvent que la lecture).
