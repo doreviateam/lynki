@@ -103,6 +103,13 @@
         action="action_dorevia_helloasso_billetterie_order"
         sequence="10"
     />
+    <menuitem
+        id="menu_helloasso_billetterie_sync"
+        name="Synchronisation"
+        parent="menu_helloasso_billetterie_root"
+        action="action_dorevia_helloasso_billetterie_sync_wizard"
+        sequence="20"
+    />
 
     <menuitem
         id="menu_helloasso_configuration"

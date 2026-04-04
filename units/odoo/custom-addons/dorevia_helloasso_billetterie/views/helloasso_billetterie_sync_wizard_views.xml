@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dorevia_helloasso_billetterie_sync_wizard_form" model="ir.ui.view">
+        <field name="name">dorevia.helloasso.billetterie.sync.wizard.form</field>
+        <field name="model">dorevia.helloasso.billetterie.sync.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Synchronisation billetterie HelloAsso">
+                <sheet>
+                    <group string="Cible actuelle (paramètres serveur)">
+                        <field name="helloasso_sandbox"/>
+                        <field name="helloasso_org_slug"/>
+                        <field name="helloasso_form_type"/>
+                        <field name="helloasso_form_slug"/>
+                    </group>
+                    <p class="text-muted">
+                        Les adhésions et la billetterie sont deux flux distincts.
+                        Renseignez le <strong>slug du formulaire événement</strong> (billetterie), pas celui d’une campagne d’adhésion.
+                        Pour modifier ces valeurs : menu HelloAsso → Configuration → Paramètres généraux → bloc HelloAsso (billetterie).
+                    </p>
+                    <footer>
+                        <button
+                            name="action_helloasso_billetterie_preview"
+                            type="object"
+                            string="Prévisualiser les commandes"
+                            class="btn-secondary"
+                        />
+                        <button
+                            name="action_helloasso_billetterie_sync_orders"
+                            type="object"
+                            string="Synchroniser la billetterie"
+                            class="btn-primary"
+                        />
+                        <button string="Fermer" special="cancel" class="btn-secondary"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dorevia_helloasso_billetterie_sync_wizard" model="ir.actions.act_window">
+        <field name="name">Synchronisation billetterie</field>
+        <field name="res_model">dorevia.helloasso.billetterie.sync.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+</odoo>
