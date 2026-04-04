@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dorevia_helloasso_billetterie_form_tree" model="ir.ui.view">
+        <field name="name">dorevia.helloasso.billetterie.form.list</field>
+        <field name="model">dorevia.helloasso.billetterie.form</field>
+        <field name="arch" type="xml">
+            <list string="Formulaires HelloAsso" create="false">
+                <header>
+                    <button
+                        name="action_refresh_inventory_from_helloasso"
+                        type="object"
+                        string="Actualiser depuis HelloAsso"
+                        class="btn-primary"
+                        display="always"
+                    />
+                </header>
+                <field name="name"/>
+                <field name="use_sandbox" optional="show" readonly="1"/>
+                <field name="organization_slug"/>
+                <field name="form_type"/>
+                <field name="form_slug"/>
+                <field name="last_inventory_at" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dorevia_helloasso_billetterie_form_form" model="ir.ui.view">
+        <field name="name">dorevia.helloasso.billetterie.form.form</field>
+        <field name="model">dorevia.helloasso.billetterie.form</field>
+        <field name="arch" type="xml">
+            <form string="Formulaire HelloAsso" create="false">
+                <sheet>
+                    <group>
+                        <group string="Identification API">
+                            <field name="name" readonly="1"/>
+                            <field name="helloasso_title" readonly="1"/>
+                            <field name="use_sandbox" readonly="1"/>
+                            <field name="organization_slug" readonly="1"/>
+                            <field name="form_type" readonly="1"/>
+                            <field name="form_slug" readonly="1"/>
+                        </group>
+                        <group string="Suivi">
+                            <field name="last_inventory_at" readonly="1"/>
+                            <field name="comment" placeholder="Priorité, remarques métier, lien avec une campagne…"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dorevia_helloasso_billetterie_form_search" model="ir.ui.view">
+        <field name="name">dorevia.helloasso.billetterie.form.search</field>
+        <field name="model">dorevia.helloasso.billetterie.form</field>
+        <field name="arch" type="xml">
+            <search string="Formulaires HelloAsso">
+                <field name="name"/>
+                <field name="organization_slug"/>
+                <field name="form_type"/>
+                <field name="form_slug"/>
+                <filter string="Sandbox" name="sandbox" domain="[('use_sandbox', '=', True)]"/>
+                <filter string="Production" name="production" domain="[('use_sandbox', '=', False)]"/>
+                <filter string="Type Event" name="filter_event" domain="[('form_type', '=ilike', 'event')]"/>
+                <filter string="Type Membership" name="filter_membership" domain="[('form_type', '=ilike', 'membership')]"/>
+                <separator/>
+                <filter string="Par form type" name="group_form_type" context="{'group_by': 'form_type'}"/>
+                <filter string="Par organisation" name="group_org" context="{'group_by': 'organization_slug'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dorevia_helloasso_billetterie_form" model="ir.actions.act_window">
+        <field name="name">Formulaires HelloAsso</field>
+        <field name="res_model">dorevia.helloasso.billetterie.form</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucun formulaire inventorié pour l’instant.
+            </p>
+            <p>
+                Cliquez sur <strong>Actualiser depuis HelloAsso</strong> pour importer la liste des campagnes / formulaires
+                (tous types) de l’organisation configurée dans les paramètres API.
+                Les billetteries sont en général de type <strong>Event</strong> : utilisez les filtres pour les isoler.
+            </p>
+            <p>
+                Les <strong>commandes</strong> seront synchronisées ensuite, formulaire par formulaire, une fois les cibles métier choisies.
+            </p>
+        </field>
+    </record>
+</odoo>

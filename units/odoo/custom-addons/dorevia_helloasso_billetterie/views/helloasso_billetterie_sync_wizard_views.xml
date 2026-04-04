@@ -13,9 +13,11 @@
                         <field name="helloasso_form_slug"/>
                     </group>
                     <p class="text-muted">
-                        Les adhésions et la billetterie sont deux flux distincts.
-                        Renseignez le <strong>slug du formulaire événement</strong> (billetterie), pas celui d’une campagne d’adhésion.
-                        Pour modifier ces valeurs : menu HelloAsso → Configuration → Paramètres généraux → bloc HelloAsso (billetterie).
+                        Consultez d’abord la liste <strong>Billetterie</strong> (inventaire des formulaires HelloAsso) pour identifier le
+                        <strong>form slug</strong> et le <strong>type</strong> de chaque campagne.
+                        Les adhésions et la billetterie sont deux flux distincts : pour les commandes billets, utilisez le slug
+                        d’un formulaire <strong>événement</strong>, pas celui d’une adhésion.
+                        Pour modifier les paramètres par défaut : HelloAsso → Configuration → Paramètres généraux → bloc HelloAsso (billetterie).
                     </p>
                     <footer>
                         <button
