@@ -54,10 +54,61 @@ def _order_id(order):
     return str(v)
 
 
+def _order_collect_state_strings(order):
+    """États texte (minuscules) : racine commande + chaque paiement imbriqué.
+
+    La liste ``…/forms/…/orders`` n’expose souvent **pas** ``state`` à la racine ; il est
+    sur ``payments[].state`` (ex. Authorized) ou sur les lignes.
+    """
+    out = []
+    if not isinstance(order, dict):
+        return out
+    rs = _norm_str(_g(order, "state", "State")).lower()
+    if rs:
+        out.append(rs)
+    pays = _g(order, "payments", "Payments")
+    if isinstance(pays, list):
+        for p in pays:
+            if not isinstance(p, dict):
+                continue
+            ps = _norm_str(_g(p, "state", "State")).lower()
+            if ps:
+                out.append(ps)
+    return out
+
+
+def _order_state_raw_for_storage(order):
+    """Libellé statut HelloAsso pour affichage Odoo (racine → 1er paiement → 1ère ligne)."""
+    if not isinstance(order, dict):
+        return False
+    root = _norm_str(_g(order, "state", "State"))
+    if root:
+        return root
+    pays = _g(order, "payments", "Payments")
+    if isinstance(pays, list):
+        for p in pays:
+            if not isinstance(p, dict):
+                continue
+            ps = _norm_str(_g(p, "state", "State"))
+            if ps:
+                return ps
+    items = _g(order, "items", "Items")
+    if isinstance(items, list):
+        for it in items:
+            if not isinstance(it, dict):
+                continue
+            st = _norm_str(_g(it, "state", "State"))
+            if st:
+                return st
+    return False
+
+
 def order_eligible_mvp(order):
     """Exclut les commandes annulées / refusées ; le reste est traité (MVP)."""
-    st = _norm_str(_g(order, "state", "State")).lower()
-    if st and st in _BAD_ORDER_STATES:
+    states = _order_collect_state_strings(order)
+    if not states:
+        return True
+    if any(s in _BAD_ORDER_STATES for s in states):
         return False
     return True
 
@@ -546,7 +597,7 @@ def run_billetterie_orders_sync(
 
             amt = _order_amount_euros(order)
             dt = parse_helloasso_api_datetime(_order_first_datetime_raw(order))
-            st_raw = _norm_str(_g(order, "state", "State")) or False
+            st_raw = _order_state_raw_for_storage(order) or False
 
             order_vals = {
                 "helloasso_order_id": oid,

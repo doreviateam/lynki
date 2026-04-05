@@ -7,6 +7,7 @@ from odoo.tests.common import TransactionCase, tagged
 from odoo.addons.dorevia_helloasso_billetterie.models.helloasso_billetterie_sync import (
     _order_amount_euros,
     _order_payer,
+    _order_state_raw_for_storage,
     order_eligible_mvp,
     run_billetterie_orders_sync,
 )
@@ -74,6 +75,28 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         o = _order_mvp(state="Refused")
         self.assertFalse(order_eligible_mvp(o))
         self.assertTrue(order_eligible_mvp(_order_mvp(state="Authorized")))
+
+    def test_order_eligible_mvp_rejects_refused_on_nested_payment(self):
+        o = {
+            "id": 1,
+            "state": "",
+            "payments": [{"state": "Refused", "id": 1}],
+        }
+        self.assertFalse(order_eligible_mvp(o))
+
+    def test_order_state_raw_from_payment_when_root_missing(self):
+        o = {
+            "id": 82810,
+            "payments": [{"id": 53041, "state": "Authorized"}],
+        }
+        self.assertEqual(_order_state_raw_for_storage(o), "Authorized")
+
+    def test_order_state_raw_from_item_when_no_payment_state(self):
+        o = {
+            "id": 1,
+            "items": [{"id": 10, "state": "Processed", "type": "Registration"}],
+        }
+        self.assertEqual(_order_state_raw_for_storage(o), "Processed")
 
     def test_order_amount_euros_from_amount_object_total(self):
         o = {"amount": {"total": 4500, "vat": 0, "discount": 0}}
