@@ -4,7 +4,7 @@
         <field name="name">dorevia.helloasso.billetterie.order.tree</field>
         <field name="model">dorevia.helloasso.billetterie.order</field>
         <field name="arch" type="xml">
-            <list string="Commandes billetterie">
+            <list string="Commandes billetterie" create="false">
                 <header>
                     <button
                         name="%(dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_form)d"
@@ -40,7 +40,7 @@
         <field name="name">dorevia.helloasso.billetterie.order.form</field>
         <field name="model">dorevia.helloasso.billetterie.order</field>
         <field name="arch" type="xml">
-            <form string="Commande billetterie">
+            <form string="Commande billetterie" create="false">
                 <sheet>
                     <group>
                         <group string="Commande">
