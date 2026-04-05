@@ -68,6 +68,9 @@
                                     <field name="sequence" widget="handle"/>
                                     <field name="ticket_label"/>
                                     <field name="item_type"/>
+                                    <field name="helloasso_payment_ids" optional="show"/>
+                                    <field name="payment_share_euros" optional="show"/>
+                                    <field name="payment_state_raw" optional="hide"/>
                                     <field name="participant_email"/>
                                     <field name="participant_first_name"/>
                                     <field name="participant_last_name"/>

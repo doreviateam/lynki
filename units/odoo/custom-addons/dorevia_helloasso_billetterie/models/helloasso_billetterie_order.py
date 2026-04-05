@@ -120,3 +120,19 @@ class DoreviaHelloassoBilletterieLine(models.Model):
         copy=False,
         index=True,
     )
+    helloasso_payment_ids = fields.Char(
+        string="HelloAsso — id(s) paiement (ligne)",
+        copy=False,
+        help="Identifiant(s) du ou des paiements HelloAsso rattachés à cette ligne (JSON ``items[].payments``).",
+    )
+    payment_share_euros = fields.Float(
+        string="Part paiement (€)",
+        digits=(12, 2),
+        copy=False,
+        help="Somme des ``shareAmount`` des paiements de la ligne, convertie depuis les centimes API.",
+    )
+    payment_state_raw = fields.Char(
+        string="Statut paiement (ligne)",
+        copy=False,
+        help="État texte du paiement côté ligne, si fourni par l’API.",
+    )

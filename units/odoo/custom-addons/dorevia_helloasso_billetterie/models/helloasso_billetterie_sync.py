@@ -183,6 +183,63 @@ def _item_person_block(item):
     return None
 
 
+def _line_payment_vals_from_item(item):
+    """Paiements imbriqués sur une ligne (``items[].payments[]`` : id, shareAmount, state)."""
+    pays = _g(item, "payments", "Payments")
+    empty = {
+        "helloasso_payment_ids": False,
+        "payment_share_euros": False,
+        "payment_state_raw": False,
+    }
+    if not isinstance(pays, list) or not pays:
+        return empty
+    ids = []
+    cents = 0.0
+    states = []
+    for p in pays:
+        if not isinstance(p, dict):
+            continue
+        pid = _g(p, "id", "Id")
+        if pid is not None:
+            ids.append(str(pid))
+        sa = _g(p, "shareAmount", "ShareAmount")
+        if sa is None:
+            sa = _g(p, "amount", "Amount")
+        if sa is not None:
+            try:
+                cents += float(sa)
+            except (TypeError, ValueError):
+                pass
+        pst = _norm_str(_g(p, "state", "State"))
+        if pst:
+            states.append(pst)
+    seen = set()
+    uniq_ids = []
+    for i in ids:
+        if i not in seen:
+            seen.add(i)
+            uniq_ids.append(i)
+    uniq_states = []
+    seen_s = set()
+    for s in states:
+        key = s.lower()
+        if key not in seen_s:
+            seen_s.add(key)
+            uniq_states.append(s)
+    out = dict(empty)
+    if uniq_ids:
+        out["helloasso_payment_ids"] = ", ".join(uniq_ids)
+    if cents > 0:
+        out["payment_share_euros"] = round(
+            cents / _HELLOASSO_AMOUNT_CENTS_PER_EURO, 2
+        )
+    if uniq_states:
+        out["payment_state_raw"] = (
+            " / ".join(uniq_states) if len(uniq_states) > 1 else uniq_states[0]
+        )
+    return out
+
+
 def _line_vals_from_item(idx, item, payer_fallback):
     """Construit les valeurs d'une ligne ; participant peut manquer (champs vides)."""
     label = _g(item, "name", "Name", "label", "Label", "title", "Title") or ""
@@ -202,7 +259,7 @@ def _line_vals_from_item(idx, item, payer_fallback):
     if not em and payer_fallback:
         em, fn, ln = payer_fallback
 
-    return {
+    vals = {
         "sequence": (idx + 1) * 10,
         "ticket_label": _norm_str(label) or False,
         "item_type": itype or False,
@@ -211,6 +268,8 @@ def _line_vals_from_item(idx, item, payer_fallback):
         "participant_last_name": ln or False,
         "helloasso_item_id": iid_str or False,
     }
+    vals.update(_line_payment_vals_from_item(item))
+    return vals
 
 
 def _order_amount_cents_from_items(order):
@@ -642,6 +701,9 @@ def run_billetterie_orders_sync(
                         "participant_email": payer_em or False,
                         "participant_first_name": payer_fn or False,
                         "participant_last_name": payer_ln or False,
+                        "helloasso_payment_ids": False,
+                        "payment_share_euros": False,
+                        "payment_state_raw": False,
                     }
                 )
 

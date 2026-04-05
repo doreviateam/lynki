@@ -5,6 +5,7 @@ from unittest.mock import patch
 from odoo.tests.common import TransactionCase, tagged
 
 from odoo.addons.dorevia_helloasso_billetterie.models.helloasso_billetterie_sync import (
+    _line_payment_vals_from_item,
     _order_amount_euros,
     _order_payer,
     _order_state_raw_for_storage,
@@ -34,6 +35,7 @@ def _order_mvp(
                 "id": 501,
                 "type": "Ticket",
                 "name": "Place standard",
+                "payments": [{"id": 53099, "shareAmount": 2500}],
                 "user": {
                     "email": "invite@test.dorevia.local",
                     "firstName": "Bob",
@@ -106,6 +108,18 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         o = {"items": [{"amount": 2000}, {"amount": 500}]}
         self.assertEqual(_order_amount_euros(o), 25.0)
 
+    def test_line_payment_vals_sums_share_amount_and_ids(self):
+        item = {
+            "payments": [
+                {"id": 1, "shareAmount": 1000, "state": "Authorized"},
+                {"id": 2, "shareAmount": 500},
+            ]
+        }
+        v = _line_payment_vals_from_item(item)
+        self.assertEqual(v["helloasso_payment_ids"], "1, 2")
+        self.assertEqual(v["payment_share_euros"], 15.0)
+        self.assertEqual(v["payment_state_raw"], "Authorized")
+
     def test_order_payer_flat_email_fallback(self):
         order = {
             "id": 1,
@@ -138,6 +152,8 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         self.assertEqual(rec.amount_total, 25.0)
         self.assertEqual(len(rec.line_ids), 1)
         self.assertEqual(rec.line_ids.participant_email, "invite@test.dorevia.local")
+        self.assertEqual(rec.line_ids.helloasso_payment_ids, "53099")
+        self.assertEqual(rec.line_ids.payment_share_euros, 25.0)
         self.assertTrue(rec.date_order, "date commande API ISO +fuseau doit être stockée")
 
     def test_catalog_form_id_set_when_passed(self):
