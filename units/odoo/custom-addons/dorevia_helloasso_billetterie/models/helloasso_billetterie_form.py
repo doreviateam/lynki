@@ -261,7 +261,11 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         }
 
     def action_sync_orders(self, *args, **kwargs):
-        """Synchro commandes HelloAsso pour ce formulaire (type + slug de la ligne)."""
+        """Synchro commandes HelloAsso pour chaque ligne (fiche, liste avec sélection, ou action serveur)."""
+        if not self:
+            raise UserError(
+                _("Sélectionnez au moins une billetterie pour synchroniser les commandes.")
+            )
         message_blocks = []
         has_errors = False
         for rec in self:

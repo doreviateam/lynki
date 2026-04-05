@@ -14,6 +14,14 @@
                         display="always"
                     />
                     <button
+                        name="action_sync_orders"
+                        type="object"
+                        string="Synchroniser les commandes"
+                        title="Import HelloAsso pour les lignes sélectionnées (sinon sélectionnez au moins une billetterie)"
+                        class="btn-secondary"
+                        display="always"
+                    />
+                    <button
                         name="%(dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_order)d"
                         type="action"
                         string="Commandes"
@@ -28,13 +36,6 @@
                         display="always"
                     />
                 </header>
-                <button
-                    name="action_sync_orders"
-                    type="object"
-                    string="Synchroniser les commandes"
-                    title="Importer les commandes HelloAsso pour cette billetterie"
-                    class="btn-link"
-                />
                 <field name="name"/>
                 <field name="use_sandbox" optional="show" readonly="1"/>
                 <field name="billetterie_org_caption"/>
@@ -110,5 +111,15 @@
                 <filter string="Par organisation" name="group_org" context="{'group_by': 'organization_slug'}"/>
             </search>
         </field>
+    </record>
+
+    <!-- Liste : action contextuelle (menu Action) — même logique que le bouton d’en-tête -->
+    <record id="action_server_billetterie_form_sync_orders" model="ir.actions.server">
+        <field name="name">Synchroniser les commandes HelloAsso</field>
+        <field name="model_id" ref="model_dorevia_helloasso_billetterie_form"/>
+        <field name="binding_model_id" ref="model_dorevia_helloasso_billetterie_form"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_sync_orders()</field>
     </record>
 </odoo>
