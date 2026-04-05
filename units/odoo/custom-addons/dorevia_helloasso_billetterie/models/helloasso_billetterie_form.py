@@ -174,6 +174,7 @@ class DoreviaHelloassoBilletterieForm(models.Model):
     organization_label = fields.Char(
         string="Organisation",
         compute="_compute_organization_label",
+        store=True,
         readonly=True,
         help="Nom lisible si renseigné dans les paramètres HelloAsso ; sinon la référence technique.",
     )

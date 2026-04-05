@@ -13,6 +13,15 @@ from .helloasso_billetterie_sync import (
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
+    def set_values(self):
+        res = super().set_values()
+        # Recalcul des libellés organisation (ICP slug / nom affiché) sur l’inventaire billetterie.
+        Form = self.env["dorevia.helloasso.billetterie.form"].sudo()
+        forms = Form.search([])
+        if forms:
+            forms.invalidate_recordset(["organization_label"])
+        return res
+
     helloasso_billetterie_form_type = fields.Char(
         string="Type de campagne par défaut",
         config_parameter="dorevia_helloasso_billetterie.form_type",
