@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class ResPartner(models.Model):
@@ -34,9 +34,19 @@ class ResPartner(models.Model):
         readonly=True,
     )
     helloasso_source_form = fields.Char(
-        string="HelloAsso — formulaire / contexte",
+        string="HelloAsso — réf. formulaire (slug)",
         copy=False,
-        help="Ex. formSlug, campagne ou libellé utile au routage.",
+        help="Identifiant technique du formulaire côté HelloAsso (formSlug).",
+    )
+    helloasso_source_form_title = fields.Char(
+        string="HelloAsso — titre du formulaire",
+        copy=False,
+        help="Titre affiché sur HelloAsso pour la campagne d’adhésion (rempli à la synchro).",
+    )
+    helloasso_sync_form_caption = fields.Char(
+        string="Campagne HelloAsso",
+        compute="_compute_helloasso_sync_form_caption",
+        help="Titre métier si connu, sinon la référence technique du formulaire.",
     )
     helloasso_order_id = fields.Char(
         string="HelloAsso — id commande",
@@ -77,3 +87,10 @@ class ResPartner(models.Model):
         default="never",
         copy=False,
     )
+
+    @api.depends("helloasso_source_form_title", "helloasso_source_form")
+    def _compute_helloasso_sync_form_caption(self):
+        for rec in self:
+            title = (rec.helloasso_source_form_title or "").strip()
+            slug = (rec.helloasso_source_form or "").strip()
+            rec.helloasso_sync_form_caption = title or slug or ""

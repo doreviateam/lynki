@@ -127,12 +127,14 @@ def _payment_raw_datetime(payment, order):
     """Extrait la date de paiement depuis la réponse GET …/forms/{type}/{slug}/payments.
 
     Chaque élément de ``data`` est un **paiement** (modèle public v5). Champs documentés
-    côté HelloAsso (camelCase ou PascalCase selon sérialisation) :
+    côté HelloAsso (swagger v5, camelCase ou PascalCase) :
 
-    * sur l’objet **paiement** : ``date``, ``orderDate``, ``authorizationDate`` ;
-    * sinon sur l’objet **order** imbriqué (``order`` / ``Order``) : ``date``, ``orderDate``, ``createdAt``.
+    * sur le **paiement** : ``date``, ``orderDate``, ``authorizationDate`` ;
+    * repli si ``date`` absente / vide : ``cashOutDate``, ``updateDate`` (tri API) ;
+    * repli **meta** : ``meta.createdAt``, ``meta.updatedAt`` ;
+    * sinon sur **order** : ``date``, ``orderDate``, ``createdAt``.
 
-    Réf. modèle : *HelloAssoApiV5ModelsPaymentPublicPaymentModel* (doc générée helloasso-node).
+    Réf. schéma : *HelloAsso.Api.V5.Common.Models.Statistics.Payment*.
     """
     if not isinstance(payment, dict):
         return None
@@ -149,6 +151,30 @@ def _payment_raw_datetime(payment, order):
     )
     if v is not None:
         return v
+    v = _dateish_value(
+        payment,
+        (
+            "cashOutDate",
+            "CashOutDate",
+            "updateDate",
+            "UpdateDate",
+        ),
+    )
+    if v is not None:
+        return v
+    meta = _g(payment, "meta", "Meta")
+    if isinstance(meta, dict):
+        v = _dateish_value(
+            meta,
+            (
+                "createdAt",
+                "CreatedAt",
+                "updatedAt",
+                "UpdatedAt",
+            ),
+        )
+        if v is not None:
+            return v
     return _dateish_value(
         order,
         (
