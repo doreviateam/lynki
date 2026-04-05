@@ -300,7 +300,9 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         }
 
     def action_refresh_inventory_from_helloasso(self, *args, **kwargs):
-        """Bouton liste : recharge l’inventaire depuis les paramètres HelloAsso (adhérent).
+        """Recharge le référentiel billetteries depuis l’API (paramètres HelloAsso adhérent).
+
+        Appelable depuis le menu Action en liste ou tout autre bouton ; ignore l’enregistrement courant.
 
         *args / **kwargs : compatibilité Odoo 19+ (call_button peut passer des arguments).
         """

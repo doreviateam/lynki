@@ -29,7 +29,7 @@
                 Aucune billetterie HelloAsso inventoriée pour l’instant.
             </p>
             <p>
-                Comme pour <strong>Adhésion</strong>, cette liste regroupe vos <strong>billetteries</strong> : campagnes événements côté HelloAsso, mises à jour depuis le bouton <strong>Actualiser l’inventaire</strong>.
+                Comme pour <strong>Adhésion</strong>, cette liste sert avant tout à <strong>consulter</strong> le référentiel des <strong>billetteries</strong> (campagnes événements côté HelloAsso). Pour <strong>recharger ce référentiel</strong> depuis l’API (opération occasionnelle) : menu <strong>Action → Recharger le référentiel billetteries (HelloAsso)</strong>.
             </p>
             <p>
                 Pour <strong>importer les commandes</strong> : cochez une ou plusieurs lignes, puis <strong>Importer les commandes</strong> (bouton visible après sélection) ou le menu <strong>Action</strong>. La <strong>fiche</strong> billetterie propose le même import.

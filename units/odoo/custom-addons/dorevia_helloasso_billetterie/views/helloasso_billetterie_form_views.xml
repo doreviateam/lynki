@@ -7,14 +7,6 @@
             <list string="Billetteries" create="false">
                 <header>
                     <button
-                        name="action_refresh_inventory_from_helloasso"
-                        type="object"
-                        string="Actualiser l’inventaire"
-                        title="Recharger la liste des billetteries depuis HelloAsso (catalogue événements), selon les paramètres API."
-                        class="btn-primary"
-                        display="always"
-                    />
-                    <button
                         name="action_sync_orders"
                         type="object"
                         string="Importer les commandes"
@@ -98,6 +90,16 @@
                 <filter string="Par organisation" name="group_org" context="{'group_by': 'organization_slug'}"/>
             </search>
         </field>
+    </record>
+
+    <!-- Liste : menu Action — rechargement référentiel (API globale, occasionnel) -->
+    <record id="action_server_billetterie_form_refresh_inventory" model="ir.actions.server">
+        <field name="name">Recharger le référentiel billetteries (HelloAsso)</field>
+        <field name="model_id" ref="model_dorevia_helloasso_billetterie_form"/>
+        <field name="binding_model_id" ref="model_dorevia_helloasso_billetterie_form"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = env["dorevia.helloasso.billetterie.form"].browse([]).action_refresh_inventory_from_helloasso()</field>
     </record>
 
     <!-- Liste : menu Action — import (même logique que le bouton d’en-tête contextualisé) -->

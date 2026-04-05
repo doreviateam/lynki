@@ -50,7 +50,7 @@ class DoreviaHelloassoLanding(models.TransientModel):
                 "help_text": _(
                     "Menu HelloAsso : « Adhésion » et « Billetteries » uniquement. "
                     "Adhésion à jour : Paramètres → HelloAsso adhérent → Synchroniser (ou cron). "
-                    "Billetteries : inventaire Event (Actualiser l’inventaire) et import sur sélection ; liste Commandes centrée consultation (navigation par menu) ; assistant depuis Billetteries (Action) ou Paramètres généraux."
+                    "Billetteries : consultation référentiel Event ; import sur sélection ; rechargement catalogue via Action ; liste Commandes consultation pure ; assistant via Action ou Paramètres généraux."
                 ),
             }
         )
