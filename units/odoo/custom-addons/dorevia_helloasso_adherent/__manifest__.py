@@ -1,37 +1,24 @@
 # -*- coding: utf-8 -*-
 {
-    "name": "Dorevia — HelloAsso adhérents (MVP)",
-    "version": "19.0.1.0.22",
+    "name": "Dorevia — HelloAsso adhérents (shim legacy)",
+    "version": "19.0.2.0.0",
     "category": "Dorevia",
-    "summary": "Connecteur MVP : synchronisation des adhérents HelloAsso vers res.partner",
+    "summary": "Shim : installe HelloAsso Members — à terme remplacé par dorevia_helloasso_app",
     "description": """
-        Squelette MVP (SPEC ZeDocs/Projet_LGZ/HelloAsso) :
-        - Dépend du socle ``dorevia_helloasso_connector`` (client API, journal ``dorevia.helloasso.logentry``)
-        - Paramètres API (client ID / secret, sandbox, slug organisation)
-        - « Tester la connexion » : OAuth2 client_credentials + ping formTypes si slug renseigné
-        - « Prévisualiser les données HelloAsso » : rapport + JSON brut orders/payments pour audit SPEC
-        - « Synchroniser les adhérents » : MVP payments (Membership + Registered) → res.partner
-        - Champs traçabilité sur res.partner : module dorevia_partner_membership_fields
+        **Module de compatibilité** après refonte HelloAsso.
+
+        Ne contient plus de code Python : il ne fait que dépendre de
+        ``dorevia_helloasso_members`` pour que les bases et scripts qui référencent
+        encore ``dorevia_helloasso_adherent`` continuent à résoudre la chaîne
+        connector → members.
+
+        Nouvelle intégration : installer **HelloAsso Members** (ou le futur module app).
     """,
     "author": "Dorevia Team",
     "website": "https://doreviateam.com",
     "license": "LGPL-3",
     "depends": [
-        "base",
-        "base_setup",
-        "contacts",
-        "dorevia_helloasso_connector",
-        "dorevia_partner_membership_fields",
-        "dorevia_res_config_dms_shim",
-    ],
-    "external_dependencies": {
-        "python": ["requests"],
-    },
-    "data": [
-        "security/ir.model.access.csv",
-        "data/ir_cron_data.xml",
-        "views/helloasso_preview_wizard_views.xml",
-        "views/res_config_settings_views.xml",
+        "dorevia_helloasso_members",
     ],
     "installable": True,
     "application": True,

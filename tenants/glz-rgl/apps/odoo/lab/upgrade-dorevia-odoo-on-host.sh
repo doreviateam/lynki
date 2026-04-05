@@ -27,9 +27,13 @@ docker exec "$CONTAINER" odoo module install -c "$ODOO_CONF" -d "$DB_NAME" dorev
 docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" \
   dorevia_partner_membership_fields
 
-# Socle HelloAsso (client API + journal) — doit être installé / à jour avant l’adhérent.
+# Socle HelloAsso (client API + journal) — avant members / shim adherent.
 docker exec "$CONTAINER" odoo module install -c "$ODOO_CONF" -d "$DB_NAME" dorevia_helloasso_connector \
   || docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" dorevia_helloasso_connector
+
+# Métier synchro Membership (cron, wizard, paramètres res.config) — avant le shim adherent.
+docker exec "$CONTAINER" odoo module install -c "$ODOO_CONF" -d "$DB_NAME" dorevia_helloasso_members \
+  || docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" dorevia_helloasso_members
 
 docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" \
   dorevia_helloasso_adherent
@@ -42,7 +46,7 @@ if ! docker exec "$CONTAINER" grep -q "dorevia.helloasso.logentry" "$ADH_SYNC_LO
   exit 1
 fi
 
-# App HelloAsso (menus, liste adhésions, billetterie / commandes) : dépend de l’adhérent.
+# App HelloAsso (menus, liste adhésions, billetterie / commandes) : dépend de members (+ shim adherent pour la chaîne).
 # Si la vue XML référence catalog_form_id mais que le .py du conteneur est ancien → ParseError au upgrade.
 BILLET_MOD="/mnt/custom-addons/dorevia_helloasso_billetterie/models"
 if ! docker exec "$CONTAINER" sh -c "grep -rq catalog_form_id ${BILLET_MOD}/helloasso_billetterie_order*.py" 2>/dev/null; then

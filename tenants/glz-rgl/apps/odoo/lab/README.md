@@ -16,9 +16,11 @@ Après un ajout ou une mise à jour de module dans ce dossier sur l’hôte :
 3. Dans l’interface Odoo : **Apps** → **Mettre à jour la liste des Apps**.
 4. Rechercher **dorevia** ou **HelloAsso**, puis **Installer** (ou **Mettre à jour**) le module concerné.
 
-### Module `dorevia_helloasso_adherent`
+### Modules HelloAsso — `dorevia_helloasso_members` et shim `dorevia_helloasso_adherent`
 
-Connecteur MVP HelloAsso → `res.partner` (paramètres API sous **Paramètres**, bloc HelloAsso ; champs techniques sur le partenaire, onglet réservé aux utilisateurs paramètres).
+La **synchro Membership**, le **cron**, la **prévisualisation** et le bloc **Paramètres** HelloAsso sont dans **`dorevia_helloasso_members`** (dépend du socle **`dorevia_helloasso_connector`**). **`dorevia_helloasso_adherent`** est un **shim** (même nom de module pour les bases existantes) qui ne fait que dépendre de `members` et rester **application** dans la liste des Apps.
+
+Connecteur MVP HelloAsso → `res.partner` (paramètres API sous **Paramètres**, bloc HelloAsso ; champs techniques sur le partenaire via **`dorevia_partner_membership_fields`**).
 
 « Tester la connexion » appelle OAuth2 + optionnellement `formTypes`. « Prévisualiser les données HelloAsso » : rapport **lecture seule** (formTypes, formulaires Membership, totaux commandes/paiements, identifiants candidats) dans une **fenêtre modale** — pas seulement une notification courte ; détail aussi dans les logs serveur. « Synchroniser les adhérents » reste un stub jusqu’au mapping SPEC §6.2.
 
@@ -52,18 +54,18 @@ Le script **`upgrade-dorevia-odoo-on-host.sh`** vérifie la présence de `catalo
 
 ### Journal des synchros (`dorevia.helloasso.logentry`)
 
-Le modèle technique est **`dorevia.helloasso.logentry`** (module **`dorevia_helloasso_adherent`**, fichier `helloasso_sync_log.py`). Les droits **`ir.model.access`** sont créés au chargement du registre via **`_register_hook`** (pas de lignes dédiées dans `ir.model.access.csv` pour ce modèle — évite les erreurs d’xmlid à l’upgrade Odoo 19).
+Le modèle technique est **`dorevia.helloasso.logentry`** (module **`dorevia_helloasso_connector`**, fichier `helloasso_sync_log.py`). Les droits **`ir.model.access`** sont créés au chargement du registre via **`_register_hook`**.
 
-Ordre obligatoire : **`dorevia_helloasso_adherent` puis `dorevia_helloasso_billetterie`** (le menu « Journal des synchros » référence une action du premier module).
+Ordre recommandé : **`dorevia_helloasso_connector`** → **`dorevia_helloasso_members`** → **`dorevia_helloasso_adherent`** (shim) → **`dorevia_helloasso_billetterie`**.
 
 ### Documents (OCA **dms**) sur Odoo 19
 
 1. Appliquer le patch : `./scripts/apply-oca-dms-odoo19-patch.sh` (voir `patches/README.md`).
 2. Installer le module **`dms`** dans Odoo (Apps → Documents / « Document Management System »).
 
-Sans patch, `dms` reste non installable (manifest 18.0) ; les vues Paramètres peuvent alors provoquer une erreur Owl sur `documents_binary_max_size` si des données orphelines existent déjà en base. Le module **`dorevia_res_config_dms_shim`** expose les champs `documents_*` attendus par ces vues (installé automatiquement avec `dorevia_helloasso_adherent`).
+Sans patch, `dms` reste non installable (manifest 18.0) ; les vues Paramètres peuvent alors provoquer une erreur Owl sur `documents_binary_max_size` si des données orphelines existent déjà en base. Le module **`dorevia_res_config_dms_shim`** expose les champs `documents_*` attendus par ces vues (dépendance de **`dorevia_helloasso_members`** / chaîne HelloAsso).
 
-Les champs et l’onglet **HelloAsso** sur `res.partner` sont dans **`dorevia_partner_membership_fields`** (pour éviter une base avec la vue mais sans champs si le connecteur API n’est pas installé). Le module **`dorevia_helloasso_adherent`** (API, paramètres) **dépend** de `dorevia_partner_membership_fields`. **`partner_contact_birthdate`** (OCA) fournit date de naissance / âge dans **Informations personnelles**.
+Les champs et l’onglet **HelloAsso** sur `res.partner` sont dans **`dorevia_partner_membership_fields`**. **`dorevia_helloasso_members`** (paramètres API, synchro) **dépend** de `dorevia_partner_membership_fields`. **`partner_contact_birthdate`** (OCA) fournit date de naissance / âge dans **Informations personnelles**.
 
 ### Mise à jour modules (CLI Odoo 19, conteneur qui tourne déjà)
 
@@ -78,9 +80,13 @@ docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_
 docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_res_config_dms_shim \
   || docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_res_config_dms_shim
 
-# Mise à jour des modules Dorevia déjà installés (ordre : champs partenaire → API adhérent → app billetterie / menus)
+# Mise à jour des modules Dorevia (ordre : champs partenaire → connector → members → shim adherent → billetterie)
 docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl \
   dorevia_partner_membership_fields
+docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_helloasso_connector \
+  || docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_helloasso_connector
+docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_helloasso_members \
+  || docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_helloasso_members
 docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl \
   dorevia_helloasso_adherent
 docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_helloasso_billetterie \

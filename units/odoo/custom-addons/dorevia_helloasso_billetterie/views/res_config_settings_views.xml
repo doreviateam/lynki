@@ -3,7 +3,7 @@
     <record id="res_config_settings_view_form_helloasso_billetterie" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.inherit.helloasso.billetterie</field>
         <field name="model">res.config.settings</field>
-        <field name="inherit_id" ref="dorevia_helloasso_adherent.res_config_settings_view_form_helloasso"/>
+        <field name="inherit_id" ref="dorevia_helloasso_members.res_config_settings_view_form_helloasso"/>
         <field name="arch" type="xml">
             <xpath expr="//block[@name='dorevia_helloasso_settings_block']" position="after">
                 <block title="HelloAsso (billetterie)" name="dorevia_helloasso_billetterie_settings_block">

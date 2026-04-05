@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from odoo.tests.common import TransactionCase, tagged
 
-from odoo.addons.dorevia_helloasso_adherent.models.helloasso_sync import (
+from odoo.addons.dorevia_helloasso_members.models.helloasso_sync import (
     _payment_trace_vals,
     payment_eligible_mvp,
     run_membership_payments_sync,
@@ -40,21 +40,21 @@ def _payment_mvp(
 MEMBERSHIP_FORM = {"formSlug": "adhesiontest", "formType": "Membership", "title": "Test"}
 
 
-@tagged("post_install", "-at_install", "dorevia_helloasso")
+@tagged("post_install", "-at_install", "dorevia_helloasso", "dorevia_helloasso_members")
 class TestHelloassoSyncMvp(TransactionCase):
     """Synchro mockée : pas d’appel réseau HelloAsso."""
 
     def _patch_sync(self, payments_list):
         token_p = patch(
-            "odoo.addons.dorevia_helloasso_adherent.models.helloasso_sync.fetch_client_credentials_token",
+            "odoo.addons.dorevia_helloasso_members.models.helloasso_sync.fetch_client_credentials_token",
             return_value={"access_token": "fake-token"},
         )
         resolve_p = patch(
-            "odoo.addons.dorevia_helloasso_adherent.models.helloasso_sync.resolve_membership_form",
+            "odoo.addons.dorevia_helloasso_members.models.helloasso_sync.resolve_membership_form",
             return_value=dict(MEMBERSHIP_FORM),
         )
         fetch_p = patch(
-            "odoo.addons.dorevia_helloasso_adherent.models.helloasso_sync.fetch_form_payments_page",
+            "odoo.addons.dorevia_helloasso_members.models.helloasso_sync.fetch_form_payments_page",
             return_value=(payments_list, len(payments_list), {}),
         )
         token_p.start()
@@ -184,7 +184,7 @@ class TestHelloassoSyncMvp(TransactionCase):
         self.env["dorevia.helloasso.cron"].cron_sync_membership_adherents()
 
     @patch(
-        "odoo.addons.dorevia_helloasso_adherent.models.helloasso_cron.run_membership_payments_sync"
+        "odoo.addons.dorevia_helloasso_members.models.helloasso_cron.run_membership_payments_sync"
     )
     def test_cron_calls_sync_when_configured(self, mock_run):
         mock_run.return_value = {

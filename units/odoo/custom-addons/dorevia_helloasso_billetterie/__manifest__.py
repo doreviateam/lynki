@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso billetterie (MVP)",
-    "version": "19.0.1.19.0",
+    "version": "19.0.1.20.0",
     "category": "Dorevia",
     "summary": "Connecteur MVP : commandes billetterie HelloAsso → Odoo (traçabilité, payeur, lignes)",
     "description": """
         MVP aligné ZeDocs/Projet_LGZ/HelloAsso_billetterie (SPEC / ADR) :
-        - Réutilise le socle ``dorevia_helloasso_connector`` (client API, journal) et les paramètres du module adhérent
+        - Réutilise ``dorevia_helloasso_connector`` et ``dorevia_helloasso_members`` (paramètres API sur res.config)
         - Paramètres billetterie : formType (défaut Event), formSlug optionnel
         - Prévisualisation et synchro manuelle des commandes (API orders)
         - Modèle d’ancrage ``dorevia.helloasso.billetterie.order`` + lignes participants
@@ -23,7 +23,7 @@
         "base_setup",
         "contacts",
         "dorevia_helloasso_connector",
-        "dorevia_helloasso_adherent",
+        "dorevia_helloasso_members",
         "dorevia_partner_membership_fields",
         "dorevia_res_config_dms_shim",
     ],
