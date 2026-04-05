@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Page repère applicative : grands flux HelloAsso dans Odoo (lecture seule, sans fiche technique)."""
+"""Page d’aide applicative : orientation HelloAsso dans Odoo (lecture seule, sans fiche technique)."""
 
 from odoo import _, api, fields, models
 
 
 class DoreviaHelloassoFormGuide(models.TransientModel):
     _name = "dorevia.helloasso.form.guide"
-    _description = "HelloAsso — page repère (transient)"
+    _description = "HelloAsso — page d’aide (transient)"
     # Ne pas nommer ce champ « name » : le client web Owl peut le traiter comme réservé
     # et lever « field is undefined » sur les formulaires.
     _rec_name = "page_title"
@@ -16,15 +16,12 @@ class DoreviaHelloassoFormGuide(models.TransientModel):
     env_label = fields.Char(string="Environnement", readonly=True)
     org_slug = fields.Char(string="Organisation", readonly=True)
     count_event_forms = fields.Integer(
-        string="Billetteries repérées",
+        string="Billetteries en base",
         readonly=True,
     )
-    membership_blurb = fields.Text(string="À quoi sert l’adhésion", readonly=True)
-    billetterie_blurb = fields.Text(string="À quoi sert la billetterie", readonly=True)
-    technical_blurb = fields.Text(string="Configuration commune", readonly=True)
 
     def name_get(self):
-        label = _("Repère HelloAsso")
+        label = _("Aide HelloAsso")
         return [(rec.id, label) for rec in self]
 
     @api.model
@@ -37,25 +34,10 @@ class DoreviaHelloassoFormGuide(models.TransientModel):
         event_count = Form.search_count([("form_type", "=", "Event")])
         vals.update(
             {
-                "page_title": _("Repère HelloAsso"),
-                "env_label": _("Bac à sable (test)") if use_sb else _("Production"),
-                "org_slug": slug or _("Non renseignée — à compléter dans les paramètres"),
+                "page_title": _("Aide HelloAsso"),
+                "env_label": _("Essai (bac à sable)") if use_sb else _("Production"),
+                "org_slug": slug or _("Non renseignée — voir Paramètres généraux"),
                 "count_event_forms": event_count,
-                "membership_blurb": _(
-                    "Les cotisations et adhésions saisies sur HelloAsso sont rapprochées vers vos contacts dans Odoo. "
-                    "Retrouvez les fiches concernées sous le menu « Adhésion ». "
-                    "Pour mettre à jour les données : Paramètres généraux, bloc HelloAsso dédié aux membres (synchronisation ou planificateur)."
-                ),
-                "billetterie_blurb": _(
-                    "Les ventes de billets liées à vos événements HelloAsso sont suivies à part : "
-                    "le menu « Billetteries » liste les campagnes connues ; les commandes importées sont accessibles depuis cette zone. "
-                    "La mise à jour se fait depuis la liste des billetteries ou l’assistant de synchronisation."
-                ),
-                "technical_blurb": _(
-                    "Une seule connexion HelloAsso (organisation, mode test ou production, identifiants) sert à la fois "
-                    "à l’adhésion et à la billetterie. Tout se règle dans Paramètres généraux — les vérifications avant synchro "
-                    "y sont également disponibles."
-                ),
             }
         )
         return vals

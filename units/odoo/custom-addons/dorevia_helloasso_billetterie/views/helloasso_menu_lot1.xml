@@ -82,52 +82,62 @@
         <field name="target">current</field>
     </record>
 
-    <!-- M6 : page repère applicative (pas de fiche technique / NewId visible) -->
+    <!-- M6 : page d’aide applicative (pas de fiche technique / NewId visible) -->
     <record id="view_dorevia_helloasso_form_guide_form" model="ir.ui.view">
         <field name="name">dorevia.helloasso.form.guide.form</field>
         <field name="model">dorevia.helloasso.form.guide</field>
         <field name="arch" type="xml">
-            <form string="Repère HelloAsso" edit="false" create="false" delete="false" duplicate="false">
+            <form string="Aide HelloAsso" edit="false" create="false" delete="false" duplicate="false">
                 <sheet>
                     <div class="oe_title">
-                        <h1>Repère HelloAsso</h1>
+                        <h1>Aide HelloAsso</h1>
                         <p class="text-muted">
-                            Vue d’ensemble des usages dans cette application : adhésion, billetterie et réglages communs.
-                            Les campagnes publiques restent sur HelloAsso.
+                            Réponses courtes pour vous orienter. Les ventes et campagnes publiques restent sur HelloAsso.
                         </p>
                     </div>
-                    <group string="Organisation connectée">
+                    <group string="Rappel (votre site)">
                         <field name="env_label"/>
                         <field name="org_slug"/>
                         <field name="count_event_forms"/>
                     </group>
-                    <group string="Adhésion">
-                        <field name="membership_blurb" nolabel="1" colspan="2" widget="text"/>
+                    <group string="Questions fréquentes">
+                        <div colspan="2">
+                            <p class="mb-3">
+                                <strong>Où voir les adhésions ?</strong><br/>
+                                Menu <strong>HelloAsso</strong> → <strong>Adhésion</strong>.
+                            </p>
+                            <p class="mb-3">
+                                <strong>Où voir les billetteries ?</strong><br/>
+                                <strong>HelloAsso</strong> → <strong>Billetterie</strong> → <strong>Billetteries</strong>.
+                            </p>
+                            <p class="mb-3">
+                                <strong>Où voir les commandes importées ?</strong><br/>
+                                <strong>HelloAsso</strong> → <strong>Billetterie</strong> → <strong>Commandes</strong>.
+                            </p>
+                            <p class="mb-0">
+                                <strong>Où se règle la connexion HelloAsso ?</strong><br/>
+                                <strong>Paramètres généraux</strong> (icône engrenage) → section <strong>HelloAsso</strong> : organisation, essai ou production, identifiants API. Cette configuration sert à la fois à l’adhésion et à la billetterie.
+                            </p>
+                        </div>
                     </group>
-                    <group string="Billetterie">
-                        <field name="billetterie_blurb" nolabel="1" colspan="2" widget="text"/>
-                    </group>
-                    <group string="Configuration commune">
-                        <field name="technical_blurb" nolabel="1" colspan="2" widget="text"/>
-                    </group>
-                    <group string="Aller plus loin">
+                    <group string="Raccourcis">
                         <div colspan="2" class="d-flex flex-wrap gap-2">
                             <button
                                 name="%(action_helloasso_partner_adherents)d"
                                 type="action"
-                                string="Ouvrir Adhésion"
+                                string="Adhésion"
                                 class="btn-secondary"
                             />
                             <button
                                 name="%(action_dorevia_helloasso_billetterie_form)d"
                                 type="action"
-                                string="Ouvrir Billetteries"
+                                string="Billetteries"
                                 class="btn-secondary"
                             />
                             <button
                                 name="%(action_dorevia_helloasso_billetterie_order)d"
                                 type="action"
-                                string="Ouvrir Commandes"
+                                string="Commandes"
                                 class="btn-secondary"
                             />
                         </div>
@@ -138,7 +148,7 @@
     </record>
 
     <record id="action_dorevia_helloasso_form_guide" model="ir.actions.act_window">
-        <field name="name">Repère HelloAsso</field>
+        <field name="name">Aide HelloAsso</field>
         <field name="res_model">dorevia.helloasso.form.guide</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
@@ -182,7 +192,7 @@
     />
     <menuitem
         id="menu_helloasso_form_guide"
-        name="Repère"
+        name="Aide"
         parent="menu_dorevia_helloasso_root"
         action="action_dorevia_helloasso_form_guide"
         sequence="40"
