@@ -264,7 +264,7 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         """Synchro commandes HelloAsso pour chaque ligne (fiche, liste avec sélection, ou action serveur)."""
         if not self:
             raise UserError(
-                _("Sélectionnez au moins une billetterie pour synchroniser les commandes.")
+                _("Sélectionnez au moins une billetterie pour importer les commandes.")
             )
         message_blocks = []
         has_errors = False

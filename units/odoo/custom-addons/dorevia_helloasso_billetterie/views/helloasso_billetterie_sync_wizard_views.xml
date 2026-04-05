@@ -13,7 +13,7 @@
                         <field name="helloasso_form_slug"/>
                     </group>
                     <p class="text-muted">
-                        Ouvrez d’abord le menu <strong>Billetteries</strong> (ou le bouton du même nom en tête de la liste Commandes) pour repérer le
+                        Ouvrez d’abord le menu <strong>Billetteries</strong> (ou le bouton <strong>Billetteries</strong> en tête de la liste Commandes) pour repérer le
                         <strong>type</strong> et l’<strong>identifiant HelloAsso</strong> de chaque campagne.
                         Seules les <strong>billetteries</strong> (billets / événements) sont concernées ici, pas les adhésions.
                         Pour modifier les valeurs par défaut : <strong>Paramètres</strong> → <strong>Paramètres généraux</strong> → bloc HelloAsso billetterie.

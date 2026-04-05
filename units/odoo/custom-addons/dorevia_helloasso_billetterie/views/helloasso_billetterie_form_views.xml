@@ -9,31 +9,18 @@
                     <button
                         name="action_refresh_inventory_from_helloasso"
                         type="object"
-                        string="Actualiser"
+                        string="Actualiser l’inventaire"
+                        title="Recharger la liste des billetteries depuis HelloAsso (catalogue événements), selon les paramètres API."
                         class="btn-primary"
                         display="always"
                     />
                     <button
                         name="action_sync_orders"
                         type="object"
-                        string="Synchroniser les commandes"
-                        title="Import HelloAsso pour les lignes sélectionnées (sinon sélectionnez au moins une billetterie)"
+                        string="Importer les commandes"
+                        title="Import HelloAsso pour les billetteries cochées. Cochez une ou plusieurs lignes pour activer cette action."
                         class="btn-secondary"
-                        display="always"
-                    />
-                    <button
-                        name="%(dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_order)d"
-                        type="action"
-                        string="Commandes"
-                        class="btn-secondary"
-                        display="always"
-                    />
-                    <button
-                        name="%(dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_sync_wizard)d"
-                        type="action"
-                        string="Assistant de synchronisation"
-                        class="btn-secondary"
-                        display="always"
+                        display="selection"
                     />
                 </header>
                 <field name="name"/>
@@ -57,7 +44,7 @@
                     <button
                         name="action_sync_orders"
                         type="object"
-                        string="Synchroniser les commandes"
+                        string="Importer les commandes"
                         class="btn-primary"
                     />
                 </header>
@@ -113,13 +100,31 @@
         </field>
     </record>
 
-    <!-- Liste : action contextuelle (menu Action) — même logique que le bouton d’en-tête -->
+    <!-- Liste : menu Action — import (même logique que le bouton d’en-tête contextualisé) -->
     <record id="action_server_billetterie_form_sync_orders" model="ir.actions.server">
-        <field name="name">Synchroniser les commandes HelloAsso</field>
+        <field name="name">Importer les commandes HelloAsso</field>
         <field name="model_id" ref="model_dorevia_helloasso_billetterie_form"/>
         <field name="binding_model_id" ref="model_dorevia_helloasso_billetterie_form"/>
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">action = records.action_sync_orders()</field>
+    </record>
+
+    <record id="action_server_billetterie_form_open_orders" model="ir.actions.server">
+        <field name="name">Ouvrir la liste des commandes</field>
+        <field name="model_id" ref="model_dorevia_helloasso_billetterie_form"/>
+        <field name="binding_model_id" ref="model_dorevia_helloasso_billetterie_form"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = env.ref("dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_order").sudo().read()[0]</field>
+    </record>
+
+    <record id="action_server_billetterie_form_open_sync_wizard" model="ir.actions.server">
+        <field name="name">Assistant de synchronisation (paramètres)</field>
+        <field name="model_id" ref="model_dorevia_helloasso_billetterie_form"/>
+        <field name="binding_model_id" ref="model_dorevia_helloasso_billetterie_form"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = env.ref("dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_sync_wizard").sudo().read()[0]</field>
     </record>
 </odoo>

@@ -11,10 +11,10 @@
             </p>
             <p>
                 Liste des <strong>commandes et billets</strong> importés depuis HelloAsso (flux distinct des <strong>adhésions</strong>).
-                Elle se remplit après une synchronisation des commandes pour une <strong>billetterie événement</strong>.
+                Elle se remplit après un <strong>import des commandes</strong> pour une <strong>billetterie événement</strong>.
             </p>
             <p>
-                Pour <strong>tenir à jour</strong> : <strong>HelloAsso → Billetterie → Billetteries</strong>, puis le bouton d’en-tête <strong>Synchroniser les commandes</strong> (après avoir sélectionné des lignes), le menu <strong>Action</strong>, la <strong>fiche</strong> billetterie, l’<strong>assistant de synchronisation</strong>, ou <strong>Paramètres généraux</strong> / planificateur.
+                Pour <strong>tenir à jour</strong> : <strong>HelloAsso → Billetterie → Billetteries</strong>, puis cochez des lignes et <strong>Importer les commandes</strong> (en-tête ou menu <strong>Action</strong>), la <strong>fiche</strong> billetterie, le menu <strong>Action → Assistant de synchronisation</strong>, ou <strong>Paramètres généraux</strong> / planificateur.
             </p>
         </field>
     </record>
@@ -29,10 +29,13 @@
                 Aucune billetterie HelloAsso inventoriée pour l’instant.
             </p>
             <p>
-                Comme pour <strong>Adhésion</strong>, cette liste regroupe vos <strong>billetteries</strong> : campagnes événements côté HelloAsso, rafraîchies depuis le bouton <strong>Actualiser</strong>.
+                Comme pour <strong>Adhésion</strong>, cette liste regroupe vos <strong>billetteries</strong> : campagnes événements côté HelloAsso, mises à jour depuis le bouton <strong>Actualiser l’inventaire</strong>.
             </p>
             <p>
-                Pour <strong>importer les commandes</strong> : en-tête <strong>Synchroniser les commandes</strong> (lignes sélectionnées), menu <strong>Action</strong>, bouton sur la <strong>fiche</strong>, menu <strong>HelloAsso → Billetterie → Commandes</strong> ou l’<strong>assistant de synchronisation</strong>.
+                Pour <strong>importer les commandes</strong> : cochez une ou plusieurs lignes, puis <strong>Importer les commandes</strong> (bouton visible après sélection) ou le menu <strong>Action</strong>. La <strong>fiche</strong> billetterie propose le même import.
+            </p>
+            <p>
+                Pour <strong>consulter</strong> les commandes déjà importées : <strong>HelloAsso → Billetterie → Commandes</strong> ou menu <strong>Action → Ouvrir la liste des commandes</strong>. L’<strong>assistant</strong> avancé (paramètres ICP) : <strong>Action → Assistant de synchronisation</strong>.
             </p>
             <p>
                 Le filtre <strong>Autres campagnes</strong> sert aux anciennes lignes déjà en base qui ne sont plus proposées par l’inventaire actuel.
