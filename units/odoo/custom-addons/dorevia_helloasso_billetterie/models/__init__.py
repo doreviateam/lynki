@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from . import helloasso_ux_labels
 from . import helloasso_billetterie_order
 from . import helloasso_billetterie_order_catalog
 from . import helloasso_billetterie_sync

@@ -6,6 +6,8 @@ import logging
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
+from .helloasso_ux_labels import form_type_label_for_display
+
 from odoo.addons.dorevia_helloasso_connector.models.helloasso_sync_log import (
     helloasso_sync_log_push,
 )
@@ -164,16 +166,26 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         help="Coché si cette ligne provient du mode test HelloAsso (bac à sable).",
     )
     organization_slug = fields.Char(
-        string="Organisation",
+        string="Réf. organisation HelloAsso",
         required=True,
         index=True,
-        help="Identifiant d’organisation côté HelloAsso (usage interne si besoin).",
+        help="Identifiant technique d’organisation côté HelloAsso.",
+    )
+    organization_display = fields.Char(
+        string="Organisation",
+        compute="_compute_organization_display",
+        help="Nom lisible si renseigné dans les paramètres HelloAsso ; sinon la référence technique.",
     )
     form_type = fields.Char(
-        string="Type",
+        string="Type (HelloAsso)",
         required=True,
         index=True,
-        help="Catégorie de campagne côté HelloAsso (ex. billetterie événement).",
+        help="Valeur technique côté HelloAsso ; la colonne « Type » affiche un libellé métier.",
+    )
+    form_type_display = fields.Char(
+        string="Type",
+        compute="_compute_form_type_display",
+        store=True,
     )
     form_slug = fields.Char(
         string="Identifiant HelloAsso",
@@ -204,11 +216,29 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         ),
     ]
 
-    @api.depends("helloasso_title", "form_slug", "form_type")
+    @api.depends("organization_slug")
+    def _compute_organization_display(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        label = (icp.get_param("dorevia_helloasso.organization_display_name") or "").strip()
+        param_slug = (icp.get_param("dorevia_helloasso.organization_slug") or "").strip().lower()
+        for rec in self:
+            row_slug = (rec.organization_slug or "").strip().lower()
+            if label and param_slug and row_slug == param_slug:
+                rec.organization_display = label
+            else:
+                rec.organization_display = rec.organization_slug or ""
+
+    @api.depends("form_type")
+    def _compute_form_type_display(self):
+        for rec in self:
+            rec.form_type_display = form_type_label_for_display(rec.form_type)
+
+    @api.depends("helloasso_title", "form_slug", "form_type", "form_type_display")
     def _compute_name(self):
         for rec in self:
             t = (rec.helloasso_title or "").strip()
-            rec.name = t or "%s — %s" % (rec.form_type or "?", rec.form_slug or "?")
+            type_label = rec.form_type_display or form_type_label_for_display(rec.form_type)
+            rec.name = t or "%s — %s" % (type_label or "?", rec.form_slug or "?")
 
     @api.depends("order_ids")
     def _compute_order_count(self):

@@ -13,6 +13,7 @@
                     >
                         <field name="helloasso_use_sandbox"/>
                         <field name="helloasso_organization_slug" placeholder="ex. mon-association"/>
+                        <field name="helloasso_organization_display_name" placeholder="ex. Association Mon Projet"/>
                         <field name="helloasso_client_id"/>
                         <field name="helloasso_client_secret" password="True"/>
                     </setting>

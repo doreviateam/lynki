@@ -2,6 +2,8 @@
 
 from odoo import api, fields, models
 
+from .helloasso_ux_labels import form_type_label_for_display
+
 
 class DoreviaHelloassoBilletterieOrder(models.Model):
     _name = "dorevia.helloasso.billetterie.order"
@@ -25,9 +27,14 @@ class DoreviaHelloassoBilletterieOrder(models.Model):
         help="Référence de la billetterie sur HelloAsso.",
     )
     form_type = fields.Char(
-        string="Type",
+        string="Type (HelloAsso)",
         copy=False,
-        help="Type de campagne côté HelloAsso.",
+        help="Valeur technique côté HelloAsso.",
+    )
+    form_type_display = fields.Char(
+        string="Type",
+        compute="_compute_form_type_display",
+        store=True,
     )
     state_raw = fields.Char(
         string="Statut HelloAsso",
@@ -70,6 +77,11 @@ class DoreviaHelloassoBilletterieOrder(models.Model):
             "Une commande avec cet identifiant HelloAsso existe déjà.",
         ),
     ]
+
+    @api.depends("form_type")
+    def _compute_form_type_display(self):
+        for rec in self:
+            rec.form_type_display = form_type_label_for_display(rec.form_type)
 
     @api.depends("helloasso_order_id", "form_slug")
     def _compute_name(self):

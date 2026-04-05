@@ -61,6 +61,11 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="dorevia_helloasso.organization_slug",
         help="organizationSlug dans les chemins API v5.",
     )
+    helloasso_organization_display_name = fields.Char(
+        string="HelloAsso — nom affiché (facultatif)",
+        config_parameter="dorevia_helloasso.organization_display_name",
+        help="Libellé lisible dans les listes HelloAsso (app Billetteries, etc.). Si vide, la référence technique est affichée.",
+    )
 
     def action_helloasso_test_connection(self):
         """OAuth client_credentials puis ping GET formTypes si slug renseigné (REF_API §2.2, §2.4)."""
