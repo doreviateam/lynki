@@ -26,11 +26,12 @@ Le menu doit donc :
 | Menu          | Sous-menu                   | Modèle Odoo principal                                                    | Utilisateur visé                                             | Commentaire                                                                                                                                                                                      |
 | ------------- | --------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **HelloAsso** | **Vue d’ensemble**          | vue fonctionnelle dédiée ou action d’accueil                             | Administration, coordination, référent projet                | Point d’entrée de l’application. Lecture rapide de l’état du connecteur, des derniers flux synchronisés et des accès vers les objets principaux. Vue légère, non technique dans sa présentation. |
-| **HelloAsso** | **Adhérents**               | `res.partner` (champs HelloAsso via `dorevia_partner_membership_fields`) | Administration, gestion associative, suivi adhésions         | Lecture interne du flux Membership. Contacts synchronisés avec traçabilité utile. Peut s’appuyer sur une **vue filtrée** des contacts concernés.                                                 |
-| **HelloAsso** | **Billetterie / Commandes** | `dorevia.helloasso.billetterie.order`                                    | Administration, coordination événementielle, gestion interne | Point d’entrée principal du flux billetterie. Objet miroir central. Vue simple : référence, date, payeur, montant, statut, formulaire, état de synchro.                                          |
+| **HelloAsso** | **Adhésion**                | `res.partner` (champs HelloAsso via `dorevia_partner_membership_fields`) | Administration, gestion associative, suivi adhésions         | Libellé menu livré : **Adhésion** (flux Membership). Contacts synchronisés avec traçabilité utile ; vue filtrée.                                                                                    |
+| **HelloAsso** | **Billetterie → Billetteries** | `dorevia.helloasso.billetterie.form`                                  | Administration, coordination événementielle                  | Référentiel des campagnes événements côté HelloAsso (inventaire). Consultation prioritaire ; actions techniques (rechargement API, import commandes, assistant) en **second niveau** (menu **Action** / fiche). |
+| **HelloAsso** | **Billetterie → Commandes** | `dorevia.helloasso.billetterie.order`                                    | Administration, coordination événementielle, gestion interne | Commandes importées : consultation, filtres, fiche. **Pas** de boutons d’en-tête redondants (navigation par menu).                                                                                |
 | **HelloAsso** | **Billetterie / Lignes**    | `dorevia.helloasso.billetterie.line`                                     | Administration, coordination événementielle                  | Vue complémentaire (billet / participant / article). Peut être **masquée** ou secondaire si elle complexifie inutilement le MVP.                                                                 |
 | **HelloAsso** | **Synchronisations**        | modèle technique dédié, journal de synchro, ou vue fonctionnelle dérivée | Administration, référent fonctionnel, technique              | Derniers lancements, résultats, volumes traités / ignorés, erreurs. Plus technique possible, mais lisible.                                                                                       |
-| **HelloAsso** | **Repère**                  | page guide applicative (transient métier)                                | Administration, référent projet                              | Vue d’ensemble lisible : organisation connectée, rôles adhésion / billetterie / configuration commune — sans affichage d’identifiants techniques Odoo.                                           |
+| **HelloAsso** | **Aide**                    | page d’orientation (`dorevia.helloasso.form.guide`, transient)          | Tous profils utilisateurs de l’app                           | Questions courtes (où sont adhésions, billetteries, commandes, paramètres) + raccourcis ; sans identifiants techniques Odoo. Anciennement intitulé **Repère**.                                      |
 
 
 ---
@@ -55,7 +56,7 @@ Le menu doit donc :
 | Profil                                | Ce qu’il doit trouver facilement                                          | Ce qu’il ne doit pas subir                |
 | ------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------- |
 | **Utilisateur métier / coordination** | Adhérents, commandes billetterie, données synchronisées en lecture simple | Paramètres API, OAuth, options techniques |
-| **Administrateur fonctionnel**        | Vue d’ensemble, synchronisations, formulaires, données métier             | Arborescence confuse ou trop éclatée      |
+| **Administrateur fonctionnel**        | Vue d’ensemble, synchronisations, **Aide**, données métier                | Arborescence confuse ou trop éclatée      |
 | **Administrateur technique**          | Paramètres, tests, prévisualisation, déclenchements manuels, journaux     | Séparation floue métier / configuration   |
 
 
@@ -65,21 +66,24 @@ Le menu doit donc :
 
 #### Arborescence recommandée à court terme
 
+**Arborescence livrée dans l’app (synthèse)** :
+
 ```text
 HelloAsso
-- Vue d’ensemble
-- Adhérents
+- Adhésion
 - Billetterie
+  - Billetteries
   - Commandes
-  - Lignes
-- Synchronisations
-- Repère
+- Aide
+```
 
+*Cible plus large (Vue d’ensemble, Synchronisations sous l’app, sous-menu Lignes) : voir tableau ci-dessus et annexe — tout n’est pas encore exposé comme entrée de menu.*
+
+```text
 Paramètres
-- Configuration HelloAsso
+- Configuration HelloAsso (adhérent / billetterie)
 - Tester la connexion
-- Prévisualiser
-- Synchroniser les flux
+- Prévisualiser / synchroniser (actions techniques)
 ```
 
 #### Recommandation de sobriété
@@ -123,12 +127,12 @@ Les intentions détaillées (intention, périmètre, rubriques « Vue d’ensemb
 | Élément                              | Implémentation actuelle                                                                                                                                      |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Icône **HelloAsso** sur l’écran Apps | Menu racine `menu_dorevia_helloasso_root` (`dorevia_helloasso_billetterie`, `helloasso_billetterie_order_views.xml`).                                        |
-| Au clic sur l’app                    | Application **HelloAsso** : sous-menus selon droits. **Menus** : Adhésion, Billetteries, Repère ; commandes et assistant accessibles depuis les listes.      |
-| Arborescence livrée                  | **Vue d’ensemble** (`dorevia.helloasso.landing`, action sans menu dédié) → **Adhésion** (`res.partner` filtré Membership + `helloasso_external_id`) → **Billetteries** (`dorevia.helloasso.billetterie.form`) → **Repère** (page guide « Repère HelloAsso », titre métier sans fuite technique). Commandes : en-tête / actions croisées. Lignes : onglet sur la fiche commande uniquement. |
+| Au clic sur l’app                    | **HelloAsso** : **Adhésion**, **Billetterie** (sous-menus **Billetteries**, **Commandes**), **Aide**.                                                                                              |
+| Arborescence livrée                  | **Adhésion** → `res.partner` (Membership + `helloasso_external_id`). **Billetteries** → inventaire `dorevia.helloasso.billetterie.form` (liste consultation ; actions techniques via **Action**). **Commandes** → `dorevia.helloasso.billetterie.order` (liste sans en-tête redondant). **Aide** → `dorevia.helloasso.form.guide` (FAQ). **Synthèse connecteur** : `dorevia.helloasso.landing` existe mais **sans** entrée de menu dédiée. **Lignes** : onglet sur la fiche commande uniquement. |
 | Flux adhérents côté UI               | **Contacts** + onglet HelloAsso sur `res.partner` ; synchro depuis **Paramètres → HelloAsso (adhérents)**.                                                   |
 
 
-**Écart résiduel vs cible opérationnelle :** menu **Synchronisations** (journal) non exposé sous l’app HelloAsso pour l’instant ; **Lignes** billetterie sans entrée dédiée (conforme sobriété MVP). **Repère** : page applicative livrée (évolution possible vers module `dorevia_helloasso_app`). Le paramétrage API reste sous **Paramètres**.
+**Écart résiduel vs cible opérationnelle :** menu **Synchronisations** (journal) non exposé sous l’app HelloAsso pour l’instant ; **Lignes** billetterie sans entrée dédiée (conforme sobriété MVP). **Aide** (ex-**Repère**) : page d’orientation livrée (évolution possible vers module `dorevia_helloasso_app`). Le paramétrage API reste sous **Paramètres**.
 
 ---
 

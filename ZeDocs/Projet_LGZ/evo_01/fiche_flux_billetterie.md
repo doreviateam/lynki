@@ -17,6 +17,16 @@ Reproduire dans Odoo une **représentation interne** des **commandes** de billet
 
 ---
 
+## Consultation dans l’app HelloAsso (rappel UX)
+
+* **Commandes importées** : menu **HelloAsso → Billetterie → Commandes** (liste centrée consultation ; pas de raccourcis d’en-tête redondants).
+* **Référentiel billetteries** : **HelloAsso → Billetterie → Billetteries** ; rechargement catalogue API et outils avancés : menu **Action** sur la liste (ou **Paramètres** / assistant selon le parcours).
+* **Orientation** : **HelloAsso → Aide** (FAQ : où trouver adhésions, billetteries, commandes, réglage connexion).
+
+*Détail des arbitrages menu / listes :* [backlog menu HelloAsso](./backlog_impl_menu_helloasso_odoo.md), [note d’arborescence](./note_arborescence_fonctionnelle_menu_helloasso.md).
+
+---
+
 ## Sens du flux
 
 **Unidirectionnel : HelloAsso → Odoo.**

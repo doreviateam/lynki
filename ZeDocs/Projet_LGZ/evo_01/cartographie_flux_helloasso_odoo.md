@@ -40,6 +40,7 @@ Ensemble, cela forme un **dossier d’architecture fonctionnelle réelle** (inte
 * Sens global **HelloAsso → Odoo** ; pas de maîtrise inverse des flux publics dans le périmètre MVP.  
 * Deux connecteurs distincts : **adhérent** vs **billetterie** (ne pas amalgamer règles et objets).  
 * Billetterie actuelle = **miroir structuré des commandes** exploitable en interne, **pas** une intégration métier profonde type événement Odoo ou vente complète.
+* **App HelloAsso (menu / listes)** : entrée **Aide** (ex-**Repère**) pour l’orientation ; listes **Billetteries** et **Commandes** hiérarchisées pour privilégier la **consultation** et reléguer les actions techniques au **menu Action** ou au menu **Paramètres** — voir [note d’arborescence](./note_arborescence_fonctionnelle_menu_helloasso.md) et [backlog menu](./backlog_impl_menu_helloasso_odoo.md).
 
 ---
 
