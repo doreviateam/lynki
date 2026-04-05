@@ -24,6 +24,6 @@ def migrate(cr, version):
             {
                 "active": True,
                 "interval_type": "hours",
-                "interval_number": 1,
+                "interval_number": 6,
             }
         )

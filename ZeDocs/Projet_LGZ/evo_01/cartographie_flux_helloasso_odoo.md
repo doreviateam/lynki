@@ -41,7 +41,7 @@ Ensemble, cela forme un **dossier d’architecture fonctionnelle réelle** (inte
 * Deux connecteurs distincts : **adhérent** vs **billetterie** (ne pas amalgamer règles et objets).  
 * Billetterie actuelle = **miroir structuré des commandes** exploitable en interne, **pas** une intégration métier profonde type événement Odoo ou vente complète.
 * **App HelloAsso (menu / listes)** : entrée **Aide** (ex-**Repère**) pour l’orientation ; listes **Billetteries** et **Commandes** hiérarchisées pour privilégier la **consultation** et reléguer les actions techniques au **menu Action** ou au menu **Paramètres** — voir [note d’arborescence](./note_arborescence_fonctionnelle_menu_helloasso.md) et [backlog menu](./backlog_impl_menu_helloasso_odoo.md).
-* **Planificateurs** : synchro **adhérents** et **billetterie** via `ir.cron` **actifs par défaut** (fréquence type **horaire**, désactivables ou ajustables dans **Paramètres → Technique → Actions planifiées**). La tâche billetterie enchaîne **inventaire** + import **toutes** les billetteries connues pour l’organisation (voir [fiche flux billetterie](./fiche_flux_billetterie.md)).
+* **Planificateurs** : synchro **adhérents** et **billetterie** via `ir.cron` **actifs par défaut** (fréquence par défaut **toutes les 6 h**, désactivables ou ajustables dans **Paramètres → Technique → Actions planifiées**). La tâche billetterie enchaîne **inventaire** + import **toutes** les billetteries connues pour l’organisation (voir [fiche flux billetterie](./fiche_flux_billetterie.md)).
 
 ---
 

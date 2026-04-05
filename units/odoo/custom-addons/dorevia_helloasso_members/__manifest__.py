@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso Members",
-    "version": "19.0.1.8.0",
+    "version": "19.0.1.9.0",
     "category": "Dorevia",
     "summary": "Synchronisation HelloAsso Membership → res.partner (API v5)",
     "description": """
         Module métier **Members** (refonte HelloAsso) :
         - Paramètres API partagés (sandbox, slug, nom d’organisation affiché optionnel, client ID / secret)
         - Synchro paiements Membership éligibles → contacts
-        - Prévisualisation lecture seule, planificateur **actif par défaut** (toutes les heures si identifiants OK), actions Paramètres
+        - Prévisualisation lecture seule, planificateur **actif par défaut** (toutes les **6 h** si identifiants OK ; modifiable), actions Paramètres
 
         Dépend du socle ``dorevia_helloasso_connector`` (client HTTP, journal).
     """,

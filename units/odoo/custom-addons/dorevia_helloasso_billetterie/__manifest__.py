@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso billetterie (MVP)",
-    "version": "19.0.1.44.0",
+    "version": "19.0.1.45.0",
     "category": "Dorevia",
     "summary": "Connecteur MVP : commandes billetterie HelloAsso → Odoo (traçabilité, payeur, lignes)",
     "description": """
@@ -10,7 +10,7 @@
         - Paramètres billetterie : type de campagne par défaut, identifiant optionnel
         - Prévisualisation et import manuel des commandes
         - Modèle d’ancrage ``dorevia.helloasso.billetterie.order`` + lignes participants
-        - Cron billetterie **actif par défaut** (toutes les heures) : inventaire Event + import commandes pour chaque ligne d’inventaire (repli sur paramètres ICP si inventaire vide)
+        - Cron billetterie **actif par défaut** (toutes les **6 h**) : inventaire Event + import commandes pour chaque ligne d’inventaire (repli sur paramètres ICP si inventaire vide)
         - Menu Billetteries : consultation référentiel ; import contextualisé en en-tête ; rechargement API et autres outils via menu Action
         - Journal ``dorevia.helloasso.logentry`` (socle connector) : pas d’entrée sous l’app HelloAsso pour l’instant
         - App HelloAsso : Adhésion | Billetterie (Billetteries, Commandes) | Aide (orientation utilisateur)
