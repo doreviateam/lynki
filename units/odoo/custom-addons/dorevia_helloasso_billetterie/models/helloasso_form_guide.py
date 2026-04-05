@@ -1,22 +1,29 @@
 # -*- coding: utf-8 -*-
-"""Repère lecture seule : rôle des formulaires HelloAsso (Membership vs Event)."""
+"""Page repère applicative : grands flux HelloAsso dans Odoo (lecture seule, sans fiche technique)."""
 
 from odoo import _, api, fields, models
 
 
 class DoreviaHelloassoFormGuide(models.TransientModel):
     _name = "dorevia.helloasso.form.guide"
-    _description = "HelloAsso — repère formulaires"
+    _description = "HelloAsso — page repère (transient)"
+    _rec_name = "name"
 
-    env_label = fields.Char(string="Environnement API", readonly=True)
-    org_slug = fields.Char(string="Organisation (slug)", readonly=True)
+    name = fields.Char(string="Titre", readonly=True)
+
+    env_label = fields.Char(string="Environnement", readonly=True)
+    org_slug = fields.Char(string="Organisation", readonly=True)
     count_event_forms = fields.Integer(
-        string="Billetteries inventoriées (formulaires Event)",
+        string="Billetteries repérées",
         readonly=True,
     )
-    membership_blurb = fields.Text(string="Flux adhésion (Membership)", readonly=True)
-    billetterie_blurb = fields.Text(string="Flux billetterie (Event)", readonly=True)
-    technical_blurb = fields.Text(string="Paramètres et API", readonly=True)
+    membership_blurb = fields.Text(string="À quoi sert l’adhésion", readonly=True)
+    billetterie_blurb = fields.Text(string="À quoi sert la billetterie", readonly=True)
+    technical_blurb = fields.Text(string="Configuration commune", readonly=True)
+
+    def name_get(self):
+        label = _("Repère HelloAsso")
+        return [(rec.id, label) for rec in self]
 
     @api.model
     def default_get(self, fields_list):
@@ -28,22 +35,24 @@ class DoreviaHelloassoFormGuide(models.TransientModel):
         event_count = Form.search_count([("form_type", "=", "Event")])
         vals.update(
             {
-                "env_label": _("Sandbox") if use_sb else _("Production"),
-                "org_slug": slug or _("(non renseigné)"),
+                "name": _("Repère HelloAsso"),
+                "env_label": _("Bac à sable (test)") if use_sb else _("Production"),
+                "org_slug": slug or _("Non renseignée — à compléter dans les paramètres"),
                 "count_event_forms": event_count,
                 "membership_blurb": _(
-                    "Les adhésions proviennent des paiements sur des formulaires HelloAsso de type « Membership ». "
-                    "Odoo les rapproche vers les contacts (identifiants HelloAsso, traçabilité). "
-                    "Liste à jour : menu Adhésion ; synchro : Paramètres généraux → bloc HelloAsso (adhérent / Members)."
+                    "Les cotisations et adhésions saisies sur HelloAsso sont rapprochées vers vos contacts dans Odoo. "
+                    "Retrouvez les fiches concernées sous le menu « Adhésion ». "
+                    "Pour mettre à jour les données : Paramètres généraux, bloc HelloAsso dédié aux membres (synchronisation ou planificateur)."
                 ),
                 "billetterie_blurb": _(
-                    "Les billetteries correspondent aux formulaires de type « Event » exposés par l’API "
-                    "(inventaire sous menu Billetteries). Chaque ligne porte le slug et le titre HelloAsso ; "
-                    "la synchronisation des commandes s’effectue depuis cette liste ou via l’assistant Synchronisation."
+                    "Les ventes de billets liées à vos événements HelloAsso sont suivies à part : "
+                    "le menu « Billetteries » liste les campagnes connues ; les commandes importées sont accessibles depuis cette zone. "
+                    "La mise à jour se fait depuis la liste des billetteries ou l’assistant de synchronisation."
                 ),
                 "technical_blurb": _(
-                    "Identifiants OAuth2, slug d’organisation et mode sandbox / production sont communs aux deux flux "
-                    "(Paramètres généraux). La prévisualisation API et les rapports techniques restent dans ce même bloc."
+                    "Une seule connexion HelloAsso (organisation, mode test ou production, identifiants) sert à la fois "
+                    "à l’adhésion et à la billetterie. Tout se règle dans Paramètres généraux — les vérifications avant synchro "
+                    "y sont également disponibles."
                 ),
             }
         )

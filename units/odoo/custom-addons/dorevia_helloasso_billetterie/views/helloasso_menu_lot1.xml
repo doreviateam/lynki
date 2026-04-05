@@ -82,45 +82,47 @@
         <field name="target">current</field>
     </record>
 
-    <!-- M6 backlog : repère formulaires (Membership vs Event), lecture seule -->
+    <!-- M6 : page repère applicative (pas de fiche technique / NewId visible) -->
     <record id="view_dorevia_helloasso_form_guide_form" model="ir.ui.view">
         <field name="name">dorevia.helloasso.form.guide.form</field>
         <field name="model">dorevia.helloasso.form.guide</field>
         <field name="arch" type="xml">
-            <form string="Formulaires HelloAsso" edit="false">
+            <form string="Repère HelloAsso" edit="false" create="false" delete="false" duplicate="false">
                 <sheet>
+                    <field name="name" invisible="1"/>
                     <div class="oe_title">
-                        <h1>Formulaires</h1>
+                        <h1>Repère HelloAsso</h1>
                         <p class="text-muted">
-                            Repère sur les types de formulaires utiles dans Odoo — la collecte publique reste sur HelloAsso.
+                            Vue d’ensemble des usages dans cette application : adhésion, billetterie et réglages communs.
+                            Les campagnes publiques restent sur HelloAsso.
                         </p>
                     </div>
-                    <group string="Organisation">
+                    <group string="Organisation connectée">
                         <field name="env_label"/>
                         <field name="org_slug"/>
                         <field name="count_event_forms"/>
                     </group>
-                    <group string="Flux adhésion (Membership)">
-                        <field name="membership_blurb" nolabel="1" colspan="2"/>
+                    <group string="Adhésion">
+                        <field name="membership_blurb" nolabel="1" colspan="2" widget="text"/>
                     </group>
-                    <group string="Flux billetterie (Event)">
-                        <field name="billetterie_blurb" nolabel="1" colspan="2"/>
+                    <group string="Billetterie">
+                        <field name="billetterie_blurb" nolabel="1" colspan="2" widget="text"/>
                     </group>
-                    <group string="Configuration">
-                        <field name="technical_blurb" nolabel="1" colspan="2"/>
+                    <group string="Configuration commune">
+                        <field name="technical_blurb" nolabel="1" colspan="2" widget="text"/>
                     </group>
-                    <group string="Accès rapides">
-                        <div colspan="2">
+                    <group string="Aller plus loin">
+                        <div colspan="2" class="d-flex flex-wrap gap-2">
                             <button
                                 name="%(action_helloasso_partner_adherents)d"
                                 type="action"
-                                string="Adhésion"
+                                string="Ouvrir Adhésion"
                                 class="btn-secondary"
                             />
                             <button
                                 name="%(action_dorevia_helloasso_billetterie_form)d"
                                 type="action"
-                                string="Billetteries"
+                                string="Ouvrir Billetteries"
                                 class="btn-secondary"
                             />
                         </div>
@@ -131,10 +133,11 @@
     </record>
 
     <record id="action_dorevia_helloasso_form_guide" model="ir.actions.act_window">
-        <field name="name">Formulaires</field>
+        <field name="name">Repère HelloAsso</field>
         <field name="res_model">dorevia.helloasso.form.guide</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
+        <field name="context">{'create': False}</field>
     </record>
 
     <!-- Entrées métier d’abord ; Configuration en dernier ; synthèse sous Configuration (admin) -->
@@ -161,7 +164,7 @@
     />
     <menuitem
         id="menu_helloasso_form_guide"
-        name="Formulaires"
+        name="Repère"
         parent="menu_dorevia_helloasso_root"
         action="action_dorevia_helloasso_form_guide"
         sequence="40"

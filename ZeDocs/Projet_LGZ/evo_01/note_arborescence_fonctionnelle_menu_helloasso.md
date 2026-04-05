@@ -30,7 +30,7 @@ Le menu doit donc :
 | **HelloAsso** | **Billetterie / Commandes** | `dorevia.helloasso.billetterie.order`                                    | Administration, coordination événementielle, gestion interne | Point d’entrée principal du flux billetterie. Objet miroir central. Vue simple : référence, date, payeur, montant, statut, formulaire, état de synchro.                                          |
 | **HelloAsso** | **Billetterie / Lignes**    | `dorevia.helloasso.billetterie.line`                                     | Administration, coordination événementielle                  | Vue complémentaire (billet / participant / article). Peut être **masquée** ou secondaire si elle complexifie inutilement le MVP.                                                                 |
 | **HelloAsso** | **Synchronisations**        | modèle technique dédié, journal de synchro, ou vue fonctionnelle dérivée | Administration, référent fonctionnel, technique              | Derniers lancements, résultats, volumes traités / ignorés, erreurs. Plus technique possible, mais lisible.                                                                                       |
-| **HelloAsso** | **Formulaires**             | modèle dédié si créé, sinon vue d’information / action                   | Administration, référent projet                              | Repère sur les formulaires utiles : type, slug, rôle métier. Peut rester une vue d’information légère sans modèle Odoo complet au départ.                                                        |
+| **HelloAsso** | **Repère**                  | page guide applicative (transient métier)                                | Administration, référent projet                              | Vue d’ensemble lisible : organisation connectée, rôles adhésion / billetterie / configuration commune — sans affichage d’identifiants techniques Odoo.                                           |
 
 
 ---
@@ -73,7 +73,7 @@ HelloAsso
   - Commandes
   - Lignes
 - Synchronisations
-- Formulaires
+- Repère
 
 Paramètres
 - Configuration HelloAsso
@@ -124,11 +124,11 @@ Les intentions détaillées (intention, périmètre, rubriques « Vue d’ensemb
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Icône **HelloAsso** sur l’écran Apps | Menu racine `menu_dorevia_helloasso_root` (`dorevia_helloasso_billetterie`, `helloasso_billetterie_order_views.xml`).                                        |
 | Au clic sur l’app                    | Application **HelloAsso** : sous-menus selon droits. **Lot 1 menu** : Vue d’ensemble, Adhérents, Billetterie → Commandes.                                    |
-| Arborescence livrée                  | **Vue d’ensemble** (`dorevia.helloasso.landing`, action sans menu dédié) → **Adhésion** (`res.partner` filtré Membership + `helloasso_external_id`) → **Billetteries** (`dorevia.helloasso.billetterie.form`) → **Formulaires** (repère `dorevia.helloasso.form.guide`). Commandes : en-tête / actions croisées. Lignes : onglet sur la fiche commande uniquement. |
+| Arborescence livrée                  | **Vue d’ensemble** (`dorevia.helloasso.landing`, action sans menu dédié) → **Adhésion** (`res.partner` filtré Membership + `helloasso_external_id`) → **Billetteries** (`dorevia.helloasso.billetterie.form`) → **Repère** (page guide « Repère HelloAsso », titre métier sans fuite technique). Commandes : en-tête / actions croisées. Lignes : onglet sur la fiche commande uniquement. |
 | Flux adhérents côté UI               | **Contacts** + onglet HelloAsso sur `res.partner` ; synchro depuis **Paramètres → HelloAsso (adhérents)**.                                                   |
 
 
-**Écart résiduel vs cible opérationnelle :** menu **Synchronisations** (journal) non exposé sous l’app HelloAsso pour l’instant ; **Lignes** billetterie sans entrée dédiée (conforme sobriété MVP). **Formulaires** : repère lecture seule livré. Le paramétrage API reste sous **Paramètres**.
+**Écart résiduel vs cible opérationnelle :** menu **Synchronisations** (journal) non exposé sous l’app HelloAsso pour l’instant ; **Lignes** billetterie sans entrée dédiée (conforme sobriété MVP). **Repère** : page applicative livrée (évolution possible vers module `dorevia_helloasso_app`). Le paramétrage API reste sous **Paramètres**.
 
 ---
 
