@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso billetterie (MVP)",
-    "version": "19.0.1.46.0",
+    "version": "19.0.1.47.0",
     "category": "Dorevia",
     "summary": "Connecteur MVP : commandes billetterie HelloAsso → Odoo (traçabilité, payeur, lignes)",
     "description": """
@@ -33,11 +33,11 @@
     "data": [
         "security/ir.model.access.csv",
         "data/ir_cron_data.xml",
-        "views/helloasso_billetterie_act_windows.xml",
         "views/helloasso_billetterie_sync_wizard_views.xml",
         "views/helloasso_billetterie_form_views.xml",
         "views/helloasso_billetterie_order_views.xml",
         "views/helloasso_partner_membership_views.xml",
+        "views/helloasso_billetterie_act_windows.xml",
         "views/helloasso_menu_lot1.xml",
         "views/res_config_settings_views.xml",
     ],

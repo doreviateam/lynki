@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Chargé avant les vues list (ordre de chargement des actions fenêtre). -->
+    <!-- Chargé après les vues kanban/list (view_ids avec ref). -->
     <record id="action_dorevia_helloasso_billetterie_order" model="ir.actions.act_window">
         <field name="name">Commandes</field>
         <field name="res_model">dorevia.helloasso.billetterie.order</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'kanban', 'view_id': ref('dorevia_helloasso_billetterie.view_dorevia_helloasso_billetterie_order_kanban')}),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('dorevia_helloasso_billetterie.view_dorevia_helloasso_billetterie_order_tree')}),
+            ]"
+        />
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Aucune commande billetterie synchronisée.
@@ -22,7 +29,14 @@
     <record id="action_dorevia_helloasso_billetterie_form" model="ir.actions.act_window">
         <field name="name">Billetteries</field>
         <field name="res_model">dorevia.helloasso.billetterie.form</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'kanban', 'view_id': ref('dorevia_helloasso_billetterie.view_dorevia_helloasso_billetterie_form_kanban')}),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('dorevia_helloasso_billetterie.view_dorevia_helloasso_billetterie_form_tree')}),
+            ]"
+        />
         <field name="context">{'search_default_filter_event': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
