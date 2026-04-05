@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Chargé avant les vues list (boutons d’en-tête croisés Commandes ↔ Billetteries). -->
+    <!-- Chargé avant les vues list (ordre de chargement des actions fenêtre). -->
     <record id="action_dorevia_helloasso_billetterie_order" model="ir.actions.act_window">
         <field name="name">Commandes</field>
         <field name="res_model">dorevia.helloasso.billetterie.order</field>
@@ -14,7 +14,7 @@
                 Elle se remplit après un <strong>import des commandes</strong> pour une <strong>billetterie événement</strong>.
             </p>
             <p>
-                Pour <strong>tenir à jour</strong> : <strong>HelloAsso → Billetterie → Billetteries</strong>, puis cochez des lignes et <strong>Importer les commandes</strong> (en-tête ou menu <strong>Action</strong>), la <strong>fiche</strong> billetterie, le menu <strong>Action → Assistant de synchronisation</strong>, ou <strong>Paramètres généraux</strong> / planificateur.
+                Pour <strong>importer de nouvelles commandes</strong> ou <strong>resynchroniser</strong> : <strong>HelloAsso → Billetterie → Billetteries</strong>, puis cochez des lignes et <strong>Importer les commandes</strong> (en-tête ou menu <strong>Action</strong>), ou la <strong>fiche</strong> billetterie ; l’<strong>assistant</strong> avancé reste accessible depuis la liste Billetteries (<strong>Action → Assistant de synchronisation</strong>) ou <strong>Paramètres généraux</strong> / planificateur.
             </p>
         </field>
     </record>

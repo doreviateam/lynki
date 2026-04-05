@@ -5,22 +5,6 @@
         <field name="model">dorevia.helloasso.billetterie.order</field>
         <field name="arch" type="xml">
             <list string="Commandes billetterie" create="false">
-                <header>
-                    <button
-                        name="%(dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_form)d"
-                        type="action"
-                        string="Billetteries"
-                        class="btn-secondary"
-                        display="always"
-                    />
-                    <button
-                        name="%(dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_sync_wizard)d"
-                        type="action"
-                        string="Assistant de synchronisation"
-                        class="btn-secondary"
-                        display="always"
-                    />
-                </header>
                 <field name="name"/>
                 <field name="helloasso_order_id"/>
                 <field name="billetterie_type_caption"/>
