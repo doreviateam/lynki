@@ -7,7 +7,6 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 from .helloasso_ux_labels import form_type_label_for_display
-
 from odoo.addons.dorevia_helloasso_connector.models.helloasso_sync_log import (
     helloasso_sync_log_push,
 )
@@ -171,24 +170,11 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         index=True,
         help="Identifiant technique d’organisation côté HelloAsso.",
     )
-    billetterie_org_caption = fields.Char(
-        string="Organisation",
-        compute="_compute_billetterie_org_caption",
-        store=True,
-        readonly=True,
-        help="Nom lisible si renseigné dans les paramètres HelloAsso ; sinon la référence technique.",
-    )
     form_type = fields.Char(
         string="Type (HelloAsso)",
         required=True,
         index=True,
         help="Valeur technique côté HelloAsso ; la colonne « Type » affiche un libellé métier.",
-    )
-    billetterie_type_caption = fields.Char(
-        string="Type",
-        compute="_compute_billetterie_type_caption",
-        store=True,
-        readonly=True,
     )
     form_slug = fields.Char(
         string="Identifiant HelloAsso",
@@ -219,28 +205,13 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         ),
     ]
 
-    @api.depends("organization_slug")
-    def _compute_billetterie_org_caption(self):
-        icp = self.env["ir.config_parameter"].sudo()
-        label = (icp.get_param("dorevia_helloasso.organization_display_name") or "").strip()
-        param_slug = (icp.get_param("dorevia_helloasso.organization_slug") or "").strip().lower()
-        for rec in self:
-            row_slug = (rec.organization_slug or "").strip().lower()
-            if label and param_slug and row_slug == param_slug:
-                rec.billetterie_org_caption = label
-            else:
-                rec.billetterie_org_caption = rec.organization_slug or ""
-
-    @api.depends("form_type")
-    def _compute_billetterie_type_caption(self):
-        for rec in self:
-            rec.billetterie_type_caption = form_type_label_for_display(rec.form_type)
-
     @api.depends("helloasso_title", "form_slug", "form_type", "billetterie_type_caption")
     def _compute_name(self):
         for rec in self:
             t = (rec.helloasso_title or "").strip()
-            type_label = rec.billetterie_type_caption or form_type_label_for_display(rec.form_type)
+            type_label = rec.billetterie_type_caption or form_type_label_for_display(
+                rec.form_type
+            )
             rec.name = t or "%s — %s" % (type_label or "?", rec.form_slug or "?")
 
     @api.depends("order_ids")
