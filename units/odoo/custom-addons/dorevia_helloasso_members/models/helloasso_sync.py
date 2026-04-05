@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Synchro MVP adhérents : lecture payments, filtre Membership + Registered, rapprochement res.partner."""
 
-import datetime
 import logging
 
 from odoo import _, fields
@@ -15,6 +14,9 @@ from odoo.addons.dorevia_helloasso_connector.models.helloasso_client import (
     form_light_slug,
     form_light_title,
     resolve_membership_form,
+)
+from odoo.addons.dorevia_helloasso_connector.models.helloasso_datetime import (
+    parse_helloasso_api_datetime,
 )
 
 _logger = logging.getLogger(__name__)
@@ -79,58 +81,6 @@ def _payment_id(payment):
     if v is None:
         return None
     return str(v)
-
-
-def _parse_payment_datetime(raw):
-    """Interprète une date/heure API HelloAsso (ISO 8601 avec T et fuseau, date seule, timestamp).
-
-    HelloAsso renvoie typiquement ``2026-04-03T00:00:00+02:00`` : ``fields.Datetime.to_datetime``
-    (Odoo 19) n’accepte ni le ``T`` ni le décalage ; on parse avec ``fromisoformat`` puis on
-    normalise en UTC naïf attendu par l’ORM.
-    """
-    if raw is None:
-        return False
-    if isinstance(raw, (int, float)):
-        try:
-            sec = float(raw)
-            if sec > 1e12:  # millisecondes
-                sec = sec / 1000.0
-            aware = datetime.datetime.fromtimestamp(sec, tz=datetime.timezone.utc)
-            naive_utc = aware.replace(tzinfo=None)
-            return fields.Datetime.to_datetime(naive_utc)
-        except Exception:
-            return False
-    if isinstance(raw, datetime.datetime):
-        dt = raw
-        if dt.tzinfo is not None:
-            dt = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
-        try:
-            return fields.Datetime.to_datetime(dt)
-        except Exception:
-            return False
-    if isinstance(raw, str):
-        s = raw.strip()
-        if not s:
-            return False
-        # ISO 8601 : …T… avec fuseau (+hh:mm / Z) ou sans (HelloAsso : avec fuseau)
-        if "T" in s and len(s) >= 11 and s[4:5] == "-" and s[7:8] == "-":
-            try:
-                norm = s.replace("Z", "+00:00")
-                parsed = datetime.datetime.fromisoformat(norm)
-                if parsed.tzinfo is not None:
-                    parsed = parsed.astimezone(datetime.timezone.utc).replace(tzinfo=None)
-                return fields.Datetime.to_datetime(parsed)
-            except ValueError:
-                pass
-        if len(s) == 10 and s[4:5] == "-" and s[7:8] == "-":
-            try:
-                return fields.Datetime.to_datetime("%s 12:00:00" % s)
-            except Exception:
-                pass
-    try:
-        return fields.Datetime.to_datetime(raw)
-    except Exception:
-        return False
 
 
 def _dateish_value(obj, keys):
@@ -230,7 +180,7 @@ def _payment_trace_vals(payment, form_slug, form_type, form_title=None):
         mean = str(mean)
     else:
         mean = ""
-    dt = _parse_payment_datetime(date_raw)
+    dt = parse_helloasso_api_datetime(date_raw)
     try:
         amt_cents = float(amount) if amount is not None else False
     except (TypeError, ValueError):

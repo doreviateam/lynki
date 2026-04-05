@@ -15,6 +15,9 @@ from odoo.addons.dorevia_helloasso_connector.models.helloasso_client import (
     form_light_slug,
     form_light_title,
 )
+from odoo.addons.dorevia_helloasso_connector.models.helloasso_datetime import (
+    parse_helloasso_api_datetime,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -170,13 +173,38 @@ def _order_amount_euros(order):
     return round(cents / _HELLOASSO_AMOUNT_CENTS_PER_EURO, 2)
 
 
-def _order_datetime(raw):
-    if raw is None:
-        return False
-    try:
-        return fields.Datetime.to_datetime(raw)
-    except Exception:
-        return False
+def _order_first_datetime_raw(order):
+    """Première date non vide sur la commande API (champs directs ou ``meta`` HelloAsso v5)."""
+    if not isinstance(order, dict):
+        return None
+    for key in (
+        "date",
+        "Date",
+        "orderDate",
+        "OrderDate",
+        "createdAt",
+        "CreatedAt",
+    ):
+        if key not in order:
+            continue
+        v = order[key]
+        if v is None:
+            continue
+        if isinstance(v, str) and not v.strip():
+            continue
+        return v
+    meta = _g(order, "meta", "Meta")
+    if isinstance(meta, dict):
+        for key in ("createdAt", "CreatedAt", "updatedAt", "UpdatedAt"):
+            if key not in meta:
+                continue
+            v = meta[key]
+            if v is None:
+                continue
+            if isinstance(v, str) and not v.strip():
+                continue
+            return v
+    return None
 
 
 def _partner_display_name(firstname, lastname, email):
@@ -473,7 +501,7 @@ def run_billetterie_orders_sync(
                 )
 
             amt = _order_amount_euros(order)
-            dt = _order_datetime(_g(order, "date", "Date", "createdAt", "CreatedAt"))
+            dt = parse_helloasso_api_datetime(_order_first_datetime_raw(order))
             st_raw = _norm_str(_g(order, "state", "State")) or False
 
             order_vals = {

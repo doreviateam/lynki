@@ -21,7 +21,7 @@ def _order_mvp(
         "id": oid,
         "state": state,
         "amount": amount_cents,
-        "date": "2026-04-04T18:00:00+00:00",
+        "date": "2026-04-04T18:00:00+02:00",
         "payer": {
             "email": email,
             "firstName": "Alice",
@@ -106,6 +106,7 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         self.assertEqual(rec.amount_total, 25.0)
         self.assertEqual(len(rec.line_ids), 1)
         self.assertEqual(rec.line_ids.participant_email, "invite@test.dorevia.local")
+        self.assertTrue(rec.date_order, "date commande API ISO +fuseau doit être stockée")
 
     def test_catalog_form_id_set_when_passed(self):
         order = _order_mvp(oid=9201, email="bil_catalog@test.dorevia.local")

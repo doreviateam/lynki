@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso connector (socle)",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.0.1",
     "category": "Dorevia",
     "summary": "Socle technique HelloAsso : client API v5, OAuth, journal des synchros",
     "description": """
