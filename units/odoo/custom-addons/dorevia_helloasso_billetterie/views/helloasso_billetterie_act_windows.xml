@@ -14,7 +14,7 @@
                 Elle se remplit après une synchronisation des commandes pour une <strong>billetterie événement</strong>.
             </p>
             <p>
-                Pour <strong>tenir à jour</strong> : menu <strong>Billetteries</strong>, puis <strong>Synchroniser les commandes</strong> sur une ligne, ou l’<strong>assistant de synchronisation</strong>, ou <strong>Paramètres généraux</strong> (bloc HelloAsso billetterie) / planificateur.
+                Pour <strong>tenir à jour</strong> : <strong>HelloAsso → Billetterie → Billetteries</strong>, puis <strong>Synchroniser les commandes</strong> sur une ligne, ou l’<strong>assistant de synchronisation</strong>, ou <strong>Paramètres généraux</strong> (bloc HelloAsso billetterie) / planificateur.
             </p>
         </field>
     </record>
@@ -32,7 +32,7 @@
                 Comme pour <strong>Adhésion</strong>, cette liste regroupe vos <strong>billetteries</strong> : campagnes événements côté HelloAsso, rafraîchies depuis le bouton <strong>Actualiser</strong>.
             </p>
             <p>
-                Pour <strong>importer les commandes</strong> : <strong>Synchroniser les commandes</strong> sur une ligne, ou ouvrir <strong>Commandes</strong> / l’<strong>assistant de synchronisation</strong>.
+                Pour <strong>importer les commandes</strong> : <strong>Synchroniser les commandes</strong> sur une ligne, ou menu <strong>HelloAsso → Billetterie → Commandes</strong> / l’<strong>assistant de synchronisation</strong>.
             </p>
             <p>
                 Le filtre <strong>Autres campagnes</strong> sert aux anciennes lignes déjà en base qui ne sont plus proposées par l’inventaire actuel.

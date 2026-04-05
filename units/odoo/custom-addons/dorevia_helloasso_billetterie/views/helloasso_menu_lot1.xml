@@ -4,7 +4,7 @@
     <record id="action_helloasso_partner_adherents" model="ir.actions.act_window">
         <field name="name">Adhésion</field>
         <field name="res_model">res.partner</field>
-        <field name="view_mode">list,form,kanban</field>
+        <field name="view_mode">list,form</field>
         <field
             name="view_ids"
             eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('dorevia_helloasso_billetterie.view_res_partner_tree_helloasso_memberships')})]"
@@ -124,6 +124,12 @@
                                 string="Ouvrir Billetteries"
                                 class="btn-secondary"
                             />
+                            <button
+                                name="%(action_dorevia_helloasso_billetterie_order)d"
+                                type="action"
+                                string="Ouvrir Commandes"
+                                class="btn-secondary"
+                            />
                         </div>
                     </group>
                 </sheet>
@@ -153,12 +159,25 @@
         action="action_helloasso_partner_adherents"
         sequence="5"
     />
-    <!-- Billetteries : liste des formulaires Event (comme Adhésion = liste adhérents) ; commandes via en-tête -->
+    <!-- Rubrique Billetterie : inventaire des campagnes + commandes (sous-domaine fonctionnel) -->
     <menuitem
         id="menu_helloasso_billetterie"
-        name="Billetteries"
+        name="Billetterie"
         parent="menu_dorevia_helloasso_root"
+        sequence="15"
+    />
+    <menuitem
+        id="menu_helloasso_billetterie_forms"
+        name="Billetteries"
+        parent="menu_helloasso_billetterie"
         action="action_dorevia_helloasso_billetterie_form"
+        sequence="5"
+    />
+    <menuitem
+        id="menu_helloasso_billetterie_orders"
+        name="Commandes"
+        parent="menu_helloasso_billetterie"
+        action="action_dorevia_helloasso_billetterie_order"
         sequence="15"
     />
     <menuitem
