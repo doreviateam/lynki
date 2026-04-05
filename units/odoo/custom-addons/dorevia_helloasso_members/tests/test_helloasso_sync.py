@@ -69,9 +69,20 @@ class TestHelloassoSyncMvp(TransactionCase):
         self.assertTrue(payment_eligible_mvp(p))
 
     def test_payment_trace_vals_converts_cents_to_euros(self):
-        vals = _payment_trace_vals(_payment_mvp(amount_cents=1000), "adhesiontest", "Membership")
+        vals = _payment_trace_vals(
+            _payment_mvp(amount_cents=1000), "adhesiontest", "Membership", "Ma campagne"
+        )
         self.assertEqual(vals.get("helloasso_payment_amount"), 10.0)
         self.assertEqual(vals.get("helloasso_external_id"), "53022")
+        self.assertEqual(vals.get("helloasso_source_form_title"), "Ma campagne")
+        self.assertTrue(vals.get("helloasso_payment_date"))
+
+    def test_payment_trace_vals_falls_back_to_order_date(self):
+        pay = dict(_payment_mvp())
+        pay.pop("date", None)
+        pay["orderDate"] = "2026-04-01T10:00:00+00:00"
+        vals = _payment_trace_vals(pay, "adhesiontest", "Membership")
+        self.assertTrue(vals.get("helloasso_payment_date"))
 
     def test_scenario_1_nominal_creates_partner(self):
         pay = _payment_mvp(email="s1_create_only@test.dorevia.local")
@@ -95,6 +106,8 @@ class TestHelloassoSyncMvp(TransactionCase):
         self.assertEqual(partner.helloasso_external_id, "53022")
         self.assertEqual(partner.helloasso_order_id, "82771")
         self.assertEqual(partner.helloasso_source_form, "adhesiontest")
+        self.assertEqual(partner.helloasso_source_form_title, "Test")
+        self.assertEqual(partner.helloasso_sync_form_caption, "Test")
         self.assertEqual(partner.helloasso_sync_status, "synced")
         self.assertEqual(partner.helloasso_payment_amount, 10.0)
 

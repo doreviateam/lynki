@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Synchro MVP adhérents : lecture payments, filtre Membership + Registered, rapprochement res.partner."""
 
+import datetime
 import logging
 
 from odoo import _, fields
@@ -12,6 +13,7 @@ from odoo.addons.dorevia_helloasso_connector.models.helloasso_client import (
     fetch_form_payments_page,
     form_light_form_type_str,
     form_light_slug,
+    form_light_title,
     resolve_membership_form,
 )
 
@@ -80,21 +82,67 @@ def _payment_id(payment):
 
 
 def _parse_payment_datetime(raw):
+    """Interprète une date/heure API HelloAsso (souvent ISO 8601 ; parfois date seule ou timestamp)."""
     if raw is None:
         return False
+    if isinstance(raw, (int, float)):
+        try:
+            sec = float(raw)
+            if sec > 1e12:  # millisecondes
+                sec = sec / 1000.0
+            aware = datetime.datetime.fromtimestamp(sec, tz=datetime.timezone.utc)
+            return fields.Datetime.to_datetime(aware)
+        except Exception:
+            return False
+    if isinstance(raw, str):
+        s = raw.strip()
+        if len(s) == 10 and s[4:5] == "-" and s[7:8] == "-":
+            try:
+                return fields.Datetime.to_datetime("%s 12:00:00" % s)
+            except Exception:
+                pass
     try:
         return fields.Datetime.to_datetime(raw)
     except Exception:
         return False
 
 
-def _payment_trace_vals(payment, form_slug, form_type):
+def _payment_raw_datetime(payment, order):
+    """Première valeur date non nulle : doc API (date, orderDate, authorizationDate…) + objet order."""
+    if not isinstance(payment, dict):
+        return None
+    for k in (
+        "date",
+        "Date",
+        "orderDate",
+        "OrderDate",
+        "authorizationDate",
+        "AuthorizationDate",
+    ):
+        if k in payment and payment[k] is not None:
+            return payment[k]
+    if not isinstance(order, dict):
+        return None
+    for k in (
+        "date",
+        "Date",
+        "orderDate",
+        "OrderDate",
+        "createdAt",
+        "CreatedAt",
+    ):
+        if k in order and order[k] is not None:
+            return order[k]
+    return None
+
+
+def _payment_trace_vals(payment, form_slug, form_type, form_title=None):
     """Champs traçabilité / contexte depuis un objet payment API (camelCase ou PascalCase)."""
     order = _g(payment, "order", "Order") or {}
     oid = _g(order, "id", "Id")
     pid = _payment_id(payment)
     amount = _g(payment, "amount", "Amount")
-    date_raw = _g(payment, "date", "Date")
+    date_raw = _payment_raw_datetime(payment, order)
     mean = _g(payment, "paymentMeans", "PaymentMeans") or _g(
         payment, "paymentOffLineMean", "PaymentOffLineMean"
     )
@@ -112,10 +160,12 @@ def _payment_trace_vals(payment, form_slug, form_type):
     amt_euros = False
     if amt_cents is not False:
         amt_euros = round(amt_cents / _HELLOASSO_PAYMENT_CENTS_PER_EURO, 2)
+    title_clean = (form_title or "").strip() or False
     return {
         "helloasso_external_id": pid,
         "helloasso_order_id": str(oid) if oid is not None else False,
         "helloasso_source_form": form_slug or False,
+        "helloasso_source_form_title": title_clean,
         "helloasso_form_type": form_type or False,
         "helloasso_payment_date": dt or False,
         "helloasso_payment_mean": mean or False,
@@ -168,6 +218,7 @@ def run_membership_payments_sync(
     ftype = form_light_form_type_str(membership_form) or "Membership"
     if not fslug:
         raise UserError(_("Le formulaire Membership n’a pas de formSlug exploitable."))
+    form_title = form_light_title(membership_form) or ""
 
     page = 1
     while page <= _MAX_PAYMENT_PAGES:
@@ -209,7 +260,7 @@ def run_membership_payments_sync(
                 _logger.warning("HelloAsso sync: payment %s sans email payer", pid)
                 continue
 
-            trace_vals = _payment_trace_vals(payment, fslug, ftype)
+            trace_vals = _payment_trace_vals(payment, fslug, ftype, form_title)
 
             by_ext = Partner.search([("helloasso_external_id", "=", pid)])
             if len(by_ext) > 1:
