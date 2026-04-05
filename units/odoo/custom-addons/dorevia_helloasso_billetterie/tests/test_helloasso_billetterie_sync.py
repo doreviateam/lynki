@@ -5,6 +5,7 @@ from unittest.mock import patch
 from odoo.tests.common import TransactionCase, tagged
 
 from odoo.addons.dorevia_helloasso_billetterie.models.helloasso_billetterie_sync import (
+    _order_amount_euros,
     _order_payer,
     order_eligible_mvp,
     run_billetterie_orders_sync,
@@ -73,6 +74,14 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         o = _order_mvp(state="Refused")
         self.assertFalse(order_eligible_mvp(o))
         self.assertTrue(order_eligible_mvp(_order_mvp(state="Authorized")))
+
+    def test_order_amount_euros_from_amount_object_total(self):
+        o = {"amount": {"total": 4500, "vat": 0, "discount": 0}}
+        self.assertEqual(_order_amount_euros(o), 45.0)
+
+    def test_order_amount_euros_sums_items_when_no_scalar_amount(self):
+        o = {"items": [{"amount": 2000}, {"amount": 500}]}
+        self.assertEqual(_order_amount_euros(o), 25.0)
 
     def test_order_payer_flat_email_fallback(self):
         order = {

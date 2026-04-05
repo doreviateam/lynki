@@ -162,13 +162,57 @@ def _line_vals_from_item(idx, item, payer_fallback):
     }
 
 
+def _order_amount_cents_from_items(order):
+    """Somme des ``amount`` des lignes (centimes) si la commande ne les agrège pas en scalaire."""
+    items = _g(order, "items", "Items")
+    if not isinstance(items, list):
+        return None
+    total = 0.0
+    any_ok = False
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        a = _g(it, "amount", "Amount")
+        if a is None:
+            continue
+        try:
+            total += float(a)
+            any_ok = True
+        except (TypeError, ValueError):
+            continue
+    return total if any_ok else None
+
+
 def _order_amount_euros(order):
-    raw = _g(order, "amount", "Amount", "totalAmount", "TotalAmount")
-    if raw is None:
+    """Montant total en euros.
+
+    L’API v5 renvoie souvent ``amount`` comme entier (centimes) ou comme objet
+    ``{"total": 4500, "vat": 0, "discount": 0}``. Un simple ``float(amount)`` échoue
+    sur le dict → 0 € en base ; on lit ``total`` et, à défaut, on somme les lignes.
+    """
+    if not isinstance(order, dict):
         return False
-    try:
-        cents = float(raw)
-    except (TypeError, ValueError):
+    raw = _g(order, "amount", "Amount", "totalAmount", "TotalAmount")
+    cents = None
+    if isinstance(raw, dict):
+        tv = raw.get("total")
+        if tv is None:
+            tv = raw.get("Total")
+        if tv is not None:
+            try:
+                cents = float(tv)
+            except (TypeError, ValueError):
+                cents = None
+    elif raw is not None:
+        try:
+            cents = float(raw)
+        except (TypeError, ValueError):
+            cents = None
+    if cents is None:
+        from_items = _order_amount_cents_from_items(order)
+        if from_items is not None:
+            cents = from_items
+    if cents is None:
         return False
     return round(cents / _HELLOASSO_AMOUNT_CENTS_PER_EURO, 2)
 
