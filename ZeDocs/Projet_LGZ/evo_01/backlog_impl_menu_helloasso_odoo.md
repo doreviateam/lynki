@@ -88,6 +88,10 @@
 
 L’écran **Repère** est une **page applicative** : titre métier explicite (« Repère HelloAsso »), pas d’affichage d’enregistrement technique (`NewId`, nom de modèle). L’implémentation peut rester dans `dorevia_helloasso_billetterie` jusqu’à un futur module `dorevia_helloasso_app` si l’on centralise l’habillage de l’app.
 
+### Arbitrage UX (liste Billetteries et voisins)
+
+Les vues **métier** de l’app HelloAsso n’affichent pas le vocabulaire brut du connecteur (`slug`, `Form type`, `Event`, `Sync commandes`, etc.) : libellés de champs, filtres, boutons et textes d’aide sont formulés en **langage produit** (ex. **Organisation**, **Type**, **Identifiant HelloAsso**, **Synchroniser les commandes**, **Billetteries événements**). L’assistant et Paramètres restent un peu plus descriptifs mais sans jargon API dans les titres visibles.
+
 ---
 
 ## Références

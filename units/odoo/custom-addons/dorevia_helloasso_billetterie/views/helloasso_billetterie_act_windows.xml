@@ -10,11 +10,11 @@
                 Aucune commande billetterie synchronisée.
             </p>
             <p>
-                Liste des <strong>commandes / billets</strong> importés depuis HelloAsso (flux distinct des <strong>adhésions</strong>).
-                Elle se remplit après une synchro des commandes d’un formulaire de type <strong>Event</strong> (billetterie).
+                Liste des <strong>commandes et billets</strong> importés depuis HelloAsso (flux distinct des <strong>adhésions</strong>).
+                Elle se remplit après une synchronisation des commandes pour une <strong>billetterie événement</strong>.
             </p>
             <p>
-                Pour <strong>tenir à jour</strong> : menu <strong>Billetteries</strong> puis <strong>Synchroniser les commandes</strong> sur une ligne, ou <strong>Synchronisation</strong> (assistant), ou <strong>Paramètres généraux</strong> (bloc HelloAsso billetterie) / planificateur.
+                Pour <strong>tenir à jour</strong> : menu <strong>Billetteries</strong>, puis <strong>Synchroniser les commandes</strong> sur une ligne, ou l’<strong>assistant de synchronisation</strong>, ou <strong>Paramètres généraux</strong> (bloc HelloAsso billetterie) / planificateur.
             </p>
         </field>
     </record>
@@ -29,14 +29,13 @@
                 Aucune billetterie HelloAsso inventoriée pour l’instant.
             </p>
             <p>
-                Comme pour <strong>Adhésion</strong> (liste des adhérents), cette vue liste vos <strong>billetteries</strong> : formulaires API HelloAsso de type <strong>Event</strong>, récupérés via
-                <code>GET /v5/organizations/{slug}/forms?formTypes=Event</code>.
+                Comme pour <strong>Adhésion</strong>, cette liste regroupe vos <strong>billetteries</strong> : campagnes événements côté HelloAsso, rafraîchies depuis le bouton <strong>Actualiser</strong>.
             </p>
             <p>
-                Pour <strong>charger la liste</strong> : <strong>Actualiser depuis HelloAsso</strong> (en-tête). Puis <strong>Synchroniser les commandes</strong> sur une ligne pour importer les billets, ou ouvrir <strong>Commandes</strong> / <strong>Synchronisation</strong>.
+                Pour <strong>importer les commandes</strong> : <strong>Synchroniser les commandes</strong> sur une ligne, ou ouvrir <strong>Commandes</strong> / l’<strong>assistant de synchronisation</strong>.
             </p>
             <p>
-                Filtre <strong>Autres types</strong> : anciennes lignes non-Event déjà en base (l’inventaire n’en ramène plus depuis l’API).
+                Le filtre <strong>Autres types de campagne</strong> sert aux anciennes lignes déjà en base qui ne sont plus proposées par l’inventaire actuel.
             </p>
         </field>
     </record>

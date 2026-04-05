@@ -4,12 +4,12 @@
         <field name="name">dorevia.helloasso.billetterie.form.list</field>
         <field name="model">dorevia.helloasso.billetterie.form</field>
         <field name="arch" type="xml">
-            <list string="Billetteries HelloAsso" create="false">
+            <list string="Billetteries" create="false">
                 <header>
                     <button
                         name="action_refresh_inventory_from_helloasso"
                         type="object"
-                        string="Actualiser depuis HelloAsso"
+                        string="Actualiser"
                         class="btn-primary"
                         display="always"
                     />
@@ -23,7 +23,7 @@
                     <button
                         name="%(dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_sync_wizard)d"
                         type="action"
-                        string="Synchronisation"
+                        string="Assistant de synchronisation"
                         class="btn-secondary"
                         display="always"
                     />
@@ -31,8 +31,8 @@
                 <button
                     name="action_sync_orders"
                     type="object"
-                    string="Sync commandes"
-                    title="Synchroniser les commandes HelloAsso pour ce formulaire"
+                    string="Synchroniser les commandes"
+                    title="Importer les commandes HelloAsso pour cette billetterie"
                     class="btn-link"
                 />
                 <field name="name"/>
@@ -49,7 +49,7 @@
         <field name="name">dorevia.helloasso.billetterie.form.form</field>
         <field name="model">dorevia.helloasso.billetterie.form</field>
         <field name="arch" type="xml">
-            <form string="Billetterie HelloAsso" create="false">
+            <form string="Billetterie" create="false">
                 <header>
                     <button
                         name="action_sync_orders"
@@ -70,7 +70,7 @@
                         </button>
                     </div>
                     <group>
-                        <group string="Identification API">
+                        <group string="Référence HelloAsso">
                             <field name="name" readonly="1"/>
                             <field name="helloasso_title" readonly="1"/>
                             <field name="use_sandbox" readonly="1"/>
@@ -92,17 +92,17 @@
         <field name="name">dorevia.helloasso.billetterie.form.search</field>
         <field name="model">dorevia.helloasso.billetterie.form</field>
         <field name="arch" type="xml">
-            <search string="Billetteries HelloAsso">
+            <search string="Billetteries">
                 <field name="name"/>
                 <field name="organization_slug"/>
                 <field name="form_type"/>
                 <field name="form_slug"/>
-                <filter string="Sandbox" name="sandbox" domain="[('use_sandbox', '=', True)]"/>
-                <filter string="Production" name="production" domain="[('use_sandbox', '=', False)]"/>
-                <filter string="Billetteries (Event)" name="filter_event" domain="[('form_type', '=ilike', 'event')]"/>
-                <filter string="Autres types (hors Event)" name="filter_non_event" domain="['!', ('form_type', 'ilike', 'event')]"/>
+                <filter string="Essai HelloAsso" name="sandbox" domain="[('use_sandbox', '=', True)]"/>
+                <filter string="Production HelloAsso" name="production" domain="[('use_sandbox', '=', False)]"/>
+                <filter string="Billetteries événements" name="filter_event" domain="[('form_type', '=ilike', 'event')]"/>
+                <filter string="Autres types de campagne" name="filter_non_event" domain="['!', ('form_type', 'ilike', 'event')]"/>
                 <separator/>
-                <filter string="Par form type" name="group_form_type" context="{'group_by': 'form_type'}"/>
+                <filter string="Par type" name="group_form_type" context="{'group_by': 'form_type'}"/>
                 <filter string="Par organisation" name="group_org" context="{'group_by': 'organization_slug'}"/>
             </search>
         </field>

@@ -4,20 +4,19 @@
         <field name="name">dorevia.helloasso.billetterie.sync.wizard.form</field>
         <field name="model">dorevia.helloasso.billetterie.sync.wizard</field>
         <field name="arch" type="xml">
-            <form string="Synchronisation billetterie HelloAsso">
+            <form string="Assistant — billetterie HelloAsso">
                 <sheet>
-                    <group string="Cible actuelle (paramètres serveur)">
+                    <group string="Réglages actuels (paramètres)">
                         <field name="helloasso_sandbox"/>
                         <field name="helloasso_org_slug"/>
                         <field name="helloasso_form_type"/>
                         <field name="helloasso_form_slug"/>
                     </group>
                     <p class="text-muted">
-                        Consultez d’abord le menu <strong>Billetteries</strong> (ou le bouton du même nom en tête de liste Commandes) pour identifier le
-                        <strong>form slug</strong> et le <strong>type</strong> de chaque formulaire.
-                        Une <strong>campagne</strong> HelloAsso peut être adhésion, don, billetterie, etc. : ici ne concernent que les
-                        <strong>billetteries</strong> (billets), en pratique un formulaire <strong>événement</strong> — pas le slug d’une adhésion.
-                        Pour modifier les paramètres par défaut : application <strong>Paramètres</strong> → <strong>Paramètres généraux</strong> → bloc HelloAsso (billetterie).
+                        Ouvrez d’abord le menu <strong>Billetteries</strong> (ou le bouton du même nom en tête de la liste Commandes) pour repérer le
+                        <strong>type</strong> et l’<strong>identifiant HelloAsso</strong> de chaque campagne.
+                        Seules les <strong>billetteries</strong> (billets / événements) sont concernées ici, pas les adhésions.
+                        Pour modifier les valeurs par défaut : <strong>Paramètres</strong> → <strong>Paramètres généraux</strong> → bloc HelloAsso billetterie.
                     </p>
                     <footer>
                         <button
@@ -29,7 +28,7 @@
                         <button
                             name="action_helloasso_billetterie_sync_orders"
                             type="object"
-                            string="Synchroniser la billetterie"
+                            string="Importer les commandes"
                             class="btn-primary"
                         />
                         <button string="Fermer" special="cancel" class="btn-secondary"/>
@@ -40,7 +39,7 @@
     </record>
 
     <record id="action_dorevia_helloasso_billetterie_sync_wizard" model="ir.actions.act_window">
-        <field name="name">Synchronisation billetterie</field>
+        <field name="name">Assistant billetterie</field>
         <field name="res_model">dorevia.helloasso.billetterie.sync.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>

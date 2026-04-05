@@ -14,14 +14,25 @@ class DoreviaHelloassoBilletterieOrder(models.Model):
         store=True,
     )
     helloasso_order_id = fields.Char(
-        string="HelloAsso — id commande",
+        string="Réf. commande HelloAsso",
         required=True,
         index=True,
         copy=False,
     )
-    form_slug = fields.Char(string="Formulaire (slug)", copy=False)
-    form_type = fields.Char(string="Form type", copy=False)
-    state_raw = fields.Char(string="Statut brut API", copy=False)
+    form_slug = fields.Char(
+        string="Identifiant HelloAsso",
+        copy=False,
+        help="Référence de la billetterie sur HelloAsso.",
+    )
+    form_type = fields.Char(
+        string="Type",
+        copy=False,
+        help="Type de campagne côté HelloAsso.",
+    )
+    state_raw = fields.Char(
+        string="Statut HelloAsso",
+        copy=False,
+    )
     amount_total = fields.Float(
         string="Montant total (€)",
         digits=(12, 2),
@@ -42,15 +53,15 @@ class DoreviaHelloassoBilletterieOrder(models.Model):
     )
     sync_status = fields.Selection(
         selection=[
-            ("synced", "Synchronisé"),
+            ("synced", "Importé"),
             ("error", "Erreur"),
         ],
-        string="Statut synchro",
+        string="État d’import",
         default="synced",
         copy=False,
     )
-    last_sync_at = fields.Datetime(string="Dernière synchro", copy=False)
-    sync_message = fields.Char(string="Message synchro", copy=False)
+    last_sync_at = fields.Datetime(string="Dernière mise à jour", copy=False)
+    sync_message = fields.Char(string="Détail import", copy=False)
 
     _sql_constraints = [
         (

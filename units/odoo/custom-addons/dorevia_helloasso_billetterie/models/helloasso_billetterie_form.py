@@ -133,7 +133,7 @@ def run_billetterie_forms_inventory(env, organization_slug, client_id, client_se
 
 def format_inventory_result_message(stats):
     parts = [
-        _("Formulaires lus depuis l’API : %s (pages : %s)")
+        _("Campagnes lues depuis HelloAsso : %s (pages : %s)")
         % (stats.get("total_api_items", 0), stats.get("pages", 0)),
         _("Créations : %s — mises à jour : %s — ignorés (incomplets) : %s")
         % (stats["created"], stats["updated"], stats["skipped"]),
@@ -149,37 +149,42 @@ class DoreviaHelloassoBilletterieForm(models.Model):
     _order = "form_type asc, form_slug asc"
 
     name = fields.Char(
-        string="Libellé",
+        string="Billetterie",
         compute="_compute_name",
         store=True,
     )
     helloasso_title = fields.Char(
-        string="Titre HelloAsso",
-        help="Libellé renvoyé par l’API (liste des formulaires).",
+        string="Titre sur HelloAsso",
+        help="Libellé tel qu’affiché sur HelloAsso pour cette campagne.",
     )
     use_sandbox = fields.Boolean(
-        string="Sandbox",
+        string="Essai HelloAsso",
         required=True,
         default=True,
-        help="Si coché, ce formulaire a été inventorié depuis l’API sandbox.",
+        help="Coché si cette ligne provient du mode test HelloAsso (bac à sable).",
     )
     organization_slug = fields.Char(
-        string="Organisation (slug)",
+        string="Organisation",
         required=True,
         index=True,
+        help="Identifiant d’organisation côté HelloAsso (usage interne si besoin).",
     )
     form_type = fields.Char(
-        string="Form type",
+        string="Type",
         required=True,
         index=True,
-        help="Ex. Event, Membership, Donation… (valeur API).",
+        help="Catégorie de campagne côté HelloAsso (ex. billetterie événement).",
     )
     form_slug = fields.Char(
-        string="Form slug",
+        string="Identifiant HelloAsso",
         required=True,
         index=True,
+        help="Référence technique de la campagne sur HelloAsso.",
     )
-    last_inventory_at = fields.Datetime(string="Dernier inventaire", readonly=True)
+    last_inventory_at = fields.Datetime(
+        string="Dernière mise à jour",
+        readonly=True,
+    )
     comment = fields.Text(string="Commentaire métier")
     order_ids = fields.One2many(
         "dorevia.helloasso.billetterie.order",
@@ -187,7 +192,7 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         string="Commandes (liées)",
     )
     order_count = fields.Integer(
-        string="Nb commandes liées",
+        string="Nombre de commandes",
         compute="_compute_order_count",
     )
 
@@ -219,7 +224,7 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         if not (cid and csec):
             raise UserError(
                 _(
-                    "Identifiants API HelloAsso manquants. "
+                    "Identifiants HelloAsso manquants. "
                     "Renseignez-les dans Paramètres généraux (bloc HelloAsso adhérent)."
                 )
             )
@@ -228,14 +233,14 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         if icp_sb != self.use_sandbox:
             raise UserError(
                 _(
-                    "L’environnement API des paramètres (sandbox / production) doit correspondre "
-                    "à la colonne Sandbox de cette ligne. Actualisez l’inventaire ou les paramètres."
+                    "L’environnement des paramètres (essai ou production HelloAsso) doit correspondre "
+                    "à la colonne « Essai HelloAsso » de cette ligne. Actualisez la liste ou les paramètres."
                 )
             )
         if icp_slug.lower() != (self.organization_slug or "").strip().lower():
             raise UserError(
                 _(
-                    "Le slug organisation des paramètres (%s) ne correspond pas à celui de cette ligne (%s)."
+                    "L’organisation renseignée dans les paramètres (%s) ne correspond pas à celle de cette ligne (%s)."
                 )
                 % (icp_slug or _("(vide)"), self.organization_slug)
             )
@@ -279,7 +284,7 @@ class DoreviaHelloassoBilletterieForm(models.Model):
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
-                "title": _("Synchronisation des commandes"),
+                "title": _("Import des commandes"),
                 "message": "\n\n".join(message_blocks),
                 "type": notif_type,
                 "sticky": True,
@@ -298,12 +303,12 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         if not (cid and csec):
             raise UserError(
                 _(
-                    "Identifiants API HelloAsso manquants. "
+                    "Identifiants HelloAsso manquants. "
                     "Renseignez-les dans Paramètres généraux (bloc HelloAsso adhérent)."
                 )
             )
         if not slug:
-            raise UserError(_("Renseignez le slug organisation HelloAsso dans les paramètres."))
+            raise UserError(_("Renseignez l’organisation HelloAsso dans les paramètres."))
         use_sandbox = icp.get_param("dorevia_helloasso.use_sandbox") == "True"
 
         stats = run_billetterie_forms_inventory(
@@ -321,7 +326,7 @@ class DoreviaHelloassoBilletterieForm(models.Model):
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
-                "title": _("Inventaire des formulaires HelloAsso"),
+                "title": _("Mise à jour des billetteries"),
                 "message": message,
                 "type": notif_type,
                 "sticky": True,

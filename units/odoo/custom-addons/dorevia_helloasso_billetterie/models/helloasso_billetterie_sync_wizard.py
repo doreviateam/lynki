@@ -15,10 +15,13 @@ class DoreviaHelloassoBilletterieSyncWizard(models.TransientModel):
     _name = "dorevia.helloasso.billetterie.sync.wizard"
     _description = "HelloAsso billetterie — synchronisation (assistant)"
 
-    helloasso_org_slug = fields.Char(string="Organisation (slug)", readonly=True)
-    helloasso_form_type = fields.Char(string="Form type billetterie", readonly=True)
-    helloasso_form_slug = fields.Char(string="Form slug billetterie", readonly=True)
-    helloasso_sandbox = fields.Char(string="Environnement API", readonly=True)
+    helloasso_org_slug = fields.Char(string="Organisation", readonly=True)
+    helloasso_form_type = fields.Char(string="Type par défaut", readonly=True)
+    helloasso_form_slug = fields.Char(
+        string="Identifiant ciblé (optionnel)",
+        readonly=True,
+    )
+    helloasso_sandbox = fields.Char(string="Environnement", readonly=True)
 
     @api.model
     def default_get(self, fields_list):

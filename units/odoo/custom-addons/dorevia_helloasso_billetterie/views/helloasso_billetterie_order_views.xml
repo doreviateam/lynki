@@ -4,7 +4,7 @@
         <field name="name">dorevia.helloasso.billetterie.order.tree</field>
         <field name="model">dorevia.helloasso.billetterie.order</field>
         <field name="arch" type="xml">
-            <list string="Commandes billetterie HelloAsso">
+            <list string="Commandes billetterie">
                 <header>
                     <button
                         name="%(dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_form)d"
@@ -16,7 +16,7 @@
                     <button
                         name="%(dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_sync_wizard)d"
                         type="action"
-                        string="Synchronisation"
+                        string="Assistant de synchronisation"
                         class="btn-secondary"
                         display="always"
                     />
@@ -39,7 +39,7 @@
         <field name="name">dorevia.helloasso.billetterie.order.form</field>
         <field name="model">dorevia.helloasso.billetterie.order</field>
         <field name="arch" type="xml">
-            <form string="Commande billetterie HelloAsso">
+            <form string="Commande billetterie">
                 <sheet>
                     <group>
                         <group string="Commande">
@@ -51,7 +51,7 @@
                             <field name="amount_total" readonly="1"/>
                             <field name="date_order" readonly="1"/>
                         </group>
-                        <group string="Synchro">
+                        <group string="Import">
                             <field name="catalog_form_id" readonly="1"/>
                             <field name="payer_partner_id"/>
                             <field name="sync_status" readonly="1"/>

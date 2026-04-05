@@ -8,13 +8,13 @@
             <xpath expr="//block[@name='dorevia_helloasso_settings_block']" position="after">
                 <block title="HelloAsso (billetterie)" name="dorevia_helloasso_billetterie_settings_block">
                     <setting
-                        string="Cible formulaire"
-                        help="Type de formulaire API (souvent Event). Si le slug est vide, le premier formulaire de ce type est choisi."
+                        string="Campagne billetterie par défaut"
+                        help="Type et identifiant HelloAsso utilisés par l’assistant et les actions globales. Laisser l’identifiant vide pour prendre la première campagne du type choisi."
                     >
                         <field name="helloasso_billetterie_form_type"/>
                         <field name="helloasso_billetterie_form_slug" placeholder="ex. ma-soiree (optionnel)"/>
                     </setting>
-                    <setting string="Actions billetterie (MVP)">
+                    <setting string="Actions billetterie">
                         <button
                             name="action_helloasso_billetterie_preview"
                             type="object"
@@ -24,7 +24,7 @@
                         <button
                             name="action_helloasso_billetterie_sync_orders"
                             type="object"
-                            string="Synchroniser la billetterie"
+                            string="Importer les commandes (défauts)"
                             class="btn-secondary"
                         />
                     </setting>

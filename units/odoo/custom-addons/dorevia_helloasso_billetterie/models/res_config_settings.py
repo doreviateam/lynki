@@ -14,15 +14,15 @@ class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
     helloasso_billetterie_form_type = fields.Char(
-        string="Billetterie — formType HelloAsso",
+        string="Type de campagne par défaut",
         config_parameter="dorevia_helloasso_billetterie.form_type",
         default="Event",
-        help="Ex. Event — doit correspondre au type de formulaire côté API v5.",
+        help="Valeur technique côté HelloAsso (ex. billetterie événement). À aligner avec vos campagnes.",
     )
     helloasso_billetterie_form_slug = fields.Char(
-        string="Billetterie — formSlug (optionnel)",
+        string="Identifiant billetterie (optionnel)",
         config_parameter="dorevia_helloasso_billetterie.form_slug",
-        help="Si vide, le premier formulaire du type indiqué est utilisé.",
+        help="Si vide, la première campagne du type indiqué est utilisée pour les actions par défaut.",
     )
 
     def action_helloasso_billetterie_preview(self, *args, **kwargs):
