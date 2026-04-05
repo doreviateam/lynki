@@ -31,10 +31,11 @@ class DoreviaHelloassoBilletterieOrder(models.Model):
         copy=False,
         help="Valeur technique côté HelloAsso.",
     )
-    form_type_display = fields.Char(
+    form_type_label = fields.Char(
         string="Type",
-        compute="_compute_form_type_display",
+        compute="_compute_form_type_label",
         store=True,
+        readonly=True,
     )
     state_raw = fields.Char(
         string="Statut HelloAsso",
@@ -79,9 +80,9 @@ class DoreviaHelloassoBilletterieOrder(models.Model):
     ]
 
     @api.depends("form_type")
-    def _compute_form_type_display(self):
+    def _compute_form_type_label(self):
         for rec in self:
-            rec.form_type_display = form_type_label_for_display(rec.form_type)
+            rec.form_type_label = form_type_label_for_display(rec.form_type)
 
     @api.depends("helloasso_order_id", "form_slug")
     def _compute_name(self):

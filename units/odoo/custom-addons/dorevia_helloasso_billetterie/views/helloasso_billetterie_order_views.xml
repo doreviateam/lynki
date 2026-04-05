@@ -23,7 +23,7 @@
                 </header>
                 <field name="name"/>
                 <field name="helloasso_order_id"/>
-                <field name="form_type_display"/>
+                <field name="form_type_label"/>
                 <field name="form_slug"/>
                 <field name="form_type" optional="hide" readonly="1"/>
                 <field name="catalog_form_id" optional="hide"/>
@@ -46,7 +46,7 @@
                         <group string="Commande">
                             <field name="name" readonly="1"/>
                             <field name="helloasso_order_id" readonly="1"/>
-                            <field name="form_type_display" readonly="1"/>
+                            <field name="form_type_label" readonly="1"/>
                             <field name="form_slug" readonly="1"/>
                             <field name="form_type" readonly="1" groups="base.group_system"/>
                             <field name="state_raw" readonly="1"/>
