@@ -124,11 +124,11 @@ Les intentions détaillées (intention, périmètre, rubriques « Vue d’ensemb
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Icône **HelloAsso** sur l’écran Apps | Menu racine `menu_dorevia_helloasso_root` (`dorevia_helloasso_billetterie`, `helloasso_billetterie_order_views.xml`).                                        |
 | Au clic sur l’app                    | Application **HelloAsso** : sous-menus selon droits. **Lot 1 menu** : Vue d’ensemble, Adhérents, Billetterie → Commandes.                                    |
-| Arborescence livrée                  | **Vue d’ensemble** (`dorevia.helloasso.landing`) → **Adhérents** (`res.partner` filtré Membership + `helloasso_external_id`) → **Billetterie → Commandes** (`dorevia.helloasso.billetterie.order`). Lignes : onglet sur la fiche commande uniquement. |
+| Arborescence livrée                  | **Vue d’ensemble** (`dorevia.helloasso.landing`, action sans menu dédié) → **Adhésion** (`res.partner` filtré Membership + `helloasso_external_id`) → **Billetteries** (`dorevia.helloasso.billetterie.form`) → **Formulaires** (repère `dorevia.helloasso.form.guide`). Commandes : en-tête / actions croisées. Lignes : onglet sur la fiche commande uniquement. |
 | Flux adhérents côté UI               | **Contacts** + onglet HelloAsso sur `res.partner` ; synchro depuis **Paramètres → HelloAsso (adhérents)**.                                                   |
 
 
-**Écart résiduel vs cible opérationnelle :** menus **Synchronisations** et **Formulaires** absents ; **Lignes** billetterie sans entrée dédiée (conforme sobriété MVP). Le paramétrage API reste sous **Paramètres**.
+**Écart résiduel vs cible opérationnelle :** menu **Synchronisations** (journal) non exposé sous l’app HelloAsso pour l’instant ; **Lignes** billetterie sans entrée dédiée (conforme sobriété MVP). **Formulaires** : repère lecture seule livré. Le paramétrage API reste sous **Paramètres**.
 
 ---
 
