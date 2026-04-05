@@ -1,5 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Kanban métier : adhésions HelloAsso (cartes par campagne) -->
+    <record id="view_res_partner_kanban_helloasso_memberships" model="ir.ui.view">
+        <field name="name">res.partner.kanban.helloasso.memberships</field>
+        <field name="model">res.partner</field>
+        <field name="type">kanban</field>
+        <field name="priority" eval="32"/>
+        <field name="arch" type="xml">
+            <kanban
+                default_group_by="helloasso_sync_form_caption"
+                quick_create="false"
+                create="false"
+                class="o_kanban_small_column"
+                decoration-danger="helloasso_sync_status == 'error'"
+                decoration-warning="helloasso_sync_status in ('pending', 'pending_review')"
+                decoration-muted="helloasso_sync_status == 'never'"
+            >
+                <field name="id"/>
+                <field name="display_name"/>
+                <field name="email"/>
+                <field name="helloasso_sync_form_caption"/>
+                <field name="helloasso_payment_amount"/>
+                <field name="helloasso_payment_date"/>
+                <field name="helloasso_last_sync_at"/>
+                <field name="helloasso_sync_status"/>
+                <field name="avatar_128"/>
+                <templates>
+                    <t t-name="card" class="flex-row">
+                        <aside class="o_kanban_aside_full pe-2">
+                            <field
+                                name="avatar_128"
+                                widget="image"
+                                options="{'img_class': 'rounded-circle object-fit-cover', 'size': [64, 64]}"
+                            />
+                        </aside>
+                        <main class="min-w-0 flex-grow-1">
+                            <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                <field name="display_name" class="fw-bold fs-5 text-truncate"/>
+                                <field
+                                    name="helloasso_sync_status"
+                                    widget="badge"
+                                    decoration-danger="helloasso_sync_status == 'error'"
+                                    decoration-warning="helloasso_sync_status in ('pending', 'pending_review')"
+                                    decoration-success="helloasso_sync_status in ('ok', 'synced')"
+                                    decoration-info="helloasso_sync_status == 'never'"
+                                />
+                            </div>
+                            <div t-if="record.email.raw_value" class="text-muted small text-truncate">
+                                <span class="fa fa-envelope-o me-1" title="E-mail"/>
+                                <field name="email"/>
+                            </div>
+                            <div class="d-flex flex-wrap align-items-center gap-2 mt-2 small">
+                                <span t-if="record.helloasso_payment_amount.raw_value" class="badge rounded-pill text-bg-primary">
+                                    <field name="helloasso_payment_amount"/> €
+                                </span>
+                                <span t-if="record.helloasso_payment_date.raw_value" class="text-muted">
+                                    <span class="fa fa-calendar me-1" title="Paiement"/>
+                                    <field name="helloasso_payment_date" widget="datetime"/>
+                                </span>
+                            </div>
+                            <div t-if="record.helloasso_last_sync_at.raw_value" class="text-muted small mt-2">
+                                <span class="fa fa-refresh me-1" title="Dernière synchro"/>
+                                <field name="helloasso_last_sync_at" widget="datetime"/>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <!-- Liste métier : adhésions HelloAsso (Membership), utilisée par l’action applicative -->
     <record id="view_res_partner_tree_helloasso_memberships" model="ir.ui.view">
         <field name="name">res.partner.tree.helloasso.memberships</field>

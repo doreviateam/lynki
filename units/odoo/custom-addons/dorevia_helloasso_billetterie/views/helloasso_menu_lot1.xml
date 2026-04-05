@@ -4,10 +4,13 @@
     <record id="action_helloasso_partner_adherents" model="ir.actions.act_window">
         <field name="name">Adhésion</field>
         <field name="res_model">res.partner</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field
             name="view_ids"
-            eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('dorevia_helloasso_billetterie.view_res_partner_tree_helloasso_memberships')})]"
+            eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'kanban', 'view_id': ref('dorevia_helloasso_billetterie.view_res_partner_kanban_helloasso_memberships')}),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('dorevia_helloasso_billetterie.view_res_partner_tree_helloasso_memberships')}),
+            ]"
         />
         <field name="domain" eval="[('helloasso_external_id', '!=', False), ('helloasso_form_type', '=', 'Membership')]"/>
         <field name="context">{}</field>
