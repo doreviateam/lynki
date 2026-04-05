@@ -6,7 +6,7 @@ import logging
 from odoo import _, fields
 from odoo.exceptions import UserError
 
-from odoo.addons.dorevia_helloasso_adherent.models.helloasso_client import (
+from odoo.addons.dorevia_helloasso_connector.models.helloasso_client import (
     HelloAssoClientError,
     fetch_client_credentials_token,
     fetch_form_orders_page,
@@ -547,7 +547,7 @@ def run_billetterie_orders_sync(
         page += 1
 
     if log_origin:
-        from odoo.addons.dorevia_helloasso_adherent.models.helloasso_sync_log import (
+        from odoo.addons.dorevia_helloasso_connector.models.helloasso_sync_log import (
             helloasso_sync_log_push,
         )
 
@@ -570,7 +570,7 @@ def build_billetterie_preview_report(
     form_slug=None,
 ):
     """Texte multi-lignes pour le wizard de prévisualisation (sans écriture métier)."""
-    from odoo.addons.dorevia_helloasso_adherent.models.helloasso_client import (
+    from odoo.addons.dorevia_helloasso_connector.models.helloasso_client import (
         order_or_payment_trace_ids,
     )
 

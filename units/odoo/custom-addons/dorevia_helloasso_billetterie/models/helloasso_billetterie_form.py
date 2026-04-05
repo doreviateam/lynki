@@ -6,14 +6,14 @@ import logging
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
-from odoo.addons.dorevia_helloasso_adherent.models.helloasso_sync_log import (
+from odoo.addons.dorevia_helloasso_connector.models.helloasso_sync_log import (
     helloasso_sync_log_push,
 )
 from .helloasso_billetterie_sync import (
     format_billetterie_sync_result_message,
     run_billetterie_orders_sync,
 )
-from odoo.addons.dorevia_helloasso_adherent.models.helloasso_client import (
+from odoo.addons.dorevia_helloasso_connector.models.helloasso_client import (
     HelloAssoClientError,
     fetch_client_credentials_token,
     fetch_organization_forms,

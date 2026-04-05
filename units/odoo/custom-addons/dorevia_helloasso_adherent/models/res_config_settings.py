@@ -6,7 +6,7 @@ import logging
 from odoo import _, fields, models
 from odoo.exceptions import UserError
 
-from .helloasso_client import (
+from odoo.addons.dorevia_helloasso_connector.models.helloasso_client import (
     HelloAssoClientError,
     fetch_client_credentials_token,
     fetch_form_payments_page,

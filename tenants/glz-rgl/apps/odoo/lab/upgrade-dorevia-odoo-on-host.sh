@@ -26,11 +26,16 @@ docker exec "$CONTAINER" odoo module install -c "$ODOO_CONF" -d "$DB_NAME" dorev
 # un seul « odoo module upgrade » multi-modules peut charger helloasso avant migration DB.
 docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" \
   dorevia_partner_membership_fields
+
+# Socle HelloAsso (client API + journal) — doit être installé / à jour avant l’adhérent.
+docker exec "$CONTAINER" odoo module install -c "$ODOO_CONF" -d "$DB_NAME" dorevia_helloasso_connector \
+  || docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" dorevia_helloasso_connector
+
 docker exec "$CONTAINER" odoo module upgrade -c "$ODOO_CONF" -d "$DB_NAME" \
   dorevia_helloasso_adherent
 
 # Journal HelloAsso : modèle dorevia.helloasso.logentry + droits via _register_hook (pas de CSV ir.model.access).
-ADH_SYNC_LOG="/mnt/custom-addons/dorevia_helloasso_adherent/models/helloasso_sync_log.py"
+ADH_SYNC_LOG="/mnt/custom-addons/dorevia_helloasso_connector/models/helloasso_sync_log.py"
 if ! docker exec "$CONTAINER" grep -q "dorevia.helloasso.logentry" "$ADH_SYNC_LOG" 2>/dev/null; then
   echo "[upgrade-dorevia] ERREUR: « $ADH_SYNC_LOG » ne contient pas « dorevia.helloasso.logentry » (conteneur)." >&2
   echo "[upgrade-dorevia] git pull sur REPO_ROOT, puis redémarrer le conteneur si le volume est à jour." >&2

@@ -6,7 +6,7 @@ import logging
 from odoo import _, fields
 from odoo.exceptions import UserError
 
-from .helloasso_client import (
+from odoo.addons.dorevia_helloasso_connector.models.helloasso_client import (
     HelloAssoClientError,
     fetch_client_credentials_token,
     fetch_form_payments_page,
@@ -264,7 +264,9 @@ def run_membership_payments_sync(
         page += 1
 
     if log_origin:
-        from .helloasso_sync_log import helloasso_sync_log_push
+        from odoo.addons.dorevia_helloasso_connector.models.helloasso_sync_log import (
+            helloasso_sync_log_push,
+        )
 
         helloasso_sync_log_push(
             env,

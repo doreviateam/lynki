@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Client HTTP HelloAsso (OAuth2 + API v5) — REF_API §2.2, §2.4."""
+"""Client HTTP HelloAsso (OAuth2 + API v5) — socle ``dorevia_helloasso_connector`` (REF_API §2.2, §2.4)."""
 
 import logging
 from urllib.parse import quote
