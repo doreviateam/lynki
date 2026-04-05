@@ -5,8 +5,9 @@
 | **Objet** | Alignement de l’écran de repère de l’app HelloAsso sur la cible UX retenue (pas de fuite technique, page d’orientation métier). |
 | **Références** | [Backlog menu HelloAsso](./backlog_impl_menu_helloasso_odoo.md), [Note d’arborescence](./note_arborescence_fonctionnelle_menu_helloasso.md) |
 | **Module** | `dorevia_helloasso_billetterie` |
-| **Version** | 19.0.1.22.0 |
-| **Commit** | `52bcfca9` |
+| **Version** | 19.0.1.23.0 |
+| **Commit (livraison UX initiale)** | `52bcfca9` |
+| **Correctif client web** | 19.0.1.23.0 — éviter le champ `name` en arch XML / renommer en `page_title` (Owl « field is undefined »). |
 | **Branche** | `web60-w60-103-tresorerie-contour-etat` |
 
 ---
@@ -35,10 +36,10 @@ Le périmètre de cette note couvre la **correction du comportement**, les **aju
 
 Pour éviter toute remontée d’un identifiant interne de type `modèle / NewId` :
 
-* `name` renseigné dans `default_get` ;
+* `page_title` renseigné dans `default_get` (le champ n’est pas nommé `name` : évite un conflit avec la couche web Owl sur certains formulaires) ;
 * `name_get` retourne systématiquement **« Repère HelloAsso »** ;
-* `_rec_name = "name"` comme libellé de référence ;
-* champ `name` **invisible** dans la vue — sert au libellé système et au fil d’Ariane.
+* `_rec_name = "page_title"` comme libellé de référence ;
+* pas de champ technique dans l’arch XML — uniquement le fil d’Ariane / libellé système.
 
 ### 3.2 Maîtrise du formulaire
 

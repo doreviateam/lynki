@@ -7,9 +7,11 @@ from odoo import _, api, fields, models
 class DoreviaHelloassoFormGuide(models.TransientModel):
     _name = "dorevia.helloasso.form.guide"
     _description = "HelloAsso — page repère (transient)"
-    _rec_name = "name"
+    # Ne pas nommer ce champ « name » : le client web Owl peut le traiter comme réservé
+    # et lever « field is undefined » sur les formulaires.
+    _rec_name = "page_title"
 
-    name = fields.Char(string="Titre", readonly=True)
+    page_title = fields.Char(string="Titre", readonly=True)
 
     env_label = fields.Char(string="Environnement", readonly=True)
     org_slug = fields.Char(string="Organisation", readonly=True)
@@ -35,7 +37,7 @@ class DoreviaHelloassoFormGuide(models.TransientModel):
         event_count = Form.search_count([("form_type", "=", "Event")])
         vals.update(
             {
-                "name": _("Repère HelloAsso"),
+                "page_title": _("Repère HelloAsso"),
                 "env_label": _("Bac à sable (test)") if use_sb else _("Production"),
                 "org_slug": slug or _("Non renseignée — à compléter dans les paramètres"),
                 "count_event_forms": event_count,
