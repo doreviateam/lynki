@@ -107,33 +107,59 @@ def _parse_payment_datetime(raw):
         return False
 
 
+def _dateish_value(obj, keys):
+    """Première valeur « date » non vide sur un dict API (None / '' / blanc ignorés)."""
+    if not isinstance(obj, dict):
+        return None
+    for k in keys:
+        if k not in obj:
+            continue
+        v = obj[k]
+        if v is None:
+            continue
+        if isinstance(v, str) and not v.strip():
+            continue
+        return v
+    return None
+
+
 def _payment_raw_datetime(payment, order):
-    """Première valeur date non nulle : doc API (date, orderDate, authorizationDate…) + objet order."""
+    """Extrait la date de paiement depuis la réponse GET …/forms/{type}/{slug}/payments.
+
+    Chaque élément de ``data`` est un **paiement** (modèle public v5). Champs documentés
+    côté HelloAsso (camelCase ou PascalCase selon sérialisation) :
+
+    * sur l’objet **paiement** : ``date``, ``orderDate``, ``authorizationDate`` ;
+    * sinon sur l’objet **order** imbriqué (``order`` / ``Order``) : ``date``, ``orderDate``, ``createdAt``.
+
+    Réf. modèle : *HelloAssoApiV5ModelsPaymentPublicPaymentModel* (doc générée helloasso-node).
+    """
     if not isinstance(payment, dict):
         return None
-    for k in (
-        "date",
-        "Date",
-        "orderDate",
-        "OrderDate",
-        "authorizationDate",
-        "AuthorizationDate",
-    ):
-        if k in payment and payment[k] is not None:
-            return payment[k]
-    if not isinstance(order, dict):
-        return None
-    for k in (
-        "date",
-        "Date",
-        "orderDate",
-        "OrderDate",
-        "createdAt",
-        "CreatedAt",
-    ):
-        if k in order and order[k] is not None:
-            return order[k]
-    return None
+    v = _dateish_value(
+        payment,
+        (
+            "date",
+            "Date",
+            "orderDate",
+            "OrderDate",
+            "authorizationDate",
+            "AuthorizationDate",
+        ),
+    )
+    if v is not None:
+        return v
+    return _dateish_value(
+        order,
+        (
+            "date",
+            "Date",
+            "orderDate",
+            "OrderDate",
+            "createdAt",
+            "CreatedAt",
+        ),
+    )
 
 
 def _payment_trace_vals(payment, form_slug, form_type, form_title=None):

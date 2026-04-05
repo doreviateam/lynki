@@ -84,6 +84,13 @@ class TestHelloassoSyncMvp(TransactionCase):
         vals = _payment_trace_vals(pay, "adhesiontest", "Membership")
         self.assertTrue(vals.get("helloasso_payment_date"))
 
+    def test_payment_trace_vals_skips_empty_string_date(self):
+        pay = dict(_payment_mvp())
+        pay["date"] = ""
+        pay["orderDate"] = "2026-04-02T11:00:00+00:00"
+        vals = _payment_trace_vals(pay, "adhesiontest", "Membership")
+        self.assertTrue(vals.get("helloasso_payment_date"))
+
     def test_scenario_1_nominal_creates_partner(self):
         pay = _payment_mvp(email="s1_create_only@test.dorevia.local")
         self._patch_sync([pay])
