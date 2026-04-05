@@ -13,8 +13,7 @@
                 <field name="member_type_id" optional="hide"/>
                 <field name="helloasso_sync_form_caption" string="Campagne HelloAsso" optional="show"/>
                 <field name="helloasso_source_form" string="Réf. formulaire (HelloAsso)" optional="hide"/>
-                <!-- Cible métier : date paiement HelloAsso ; masquée par défaut tant que la reprise n’est pas validée côté prod (optional → show après validation). -->
-                <field name="helloasso_payment_date" string="Paiement (date)" optional="hide"/>
+                <field name="helloasso_payment_date" string="Paiement (date)" optional="show"/>
                 <field name="helloasso_payment_amount" string="Montant (€)" optional="show"/>
                 <field name="helloasso_payment_mean" string="Moyen de paiement" optional="hide"/>
                 <field name="helloasso_last_sync_at" string="Dernière synchro" optional="show"/>

@@ -23,7 +23,7 @@ def _payment_mvp(
         "id": pid,
         "state": "Registered",
         "amount": amount_cents,
-        "date": "2026-04-03T12:00:00+00:00",
+        "date": "2026-04-03T12:00:00+02:00",
         "payer": {
             "email": email,
             "firstName": "Jean",
@@ -104,6 +104,16 @@ class TestHelloassoSyncMvp(TransactionCase):
         pay["meta"] = {"createdAt": "2026-04-04T14:30:00+00:00"}
         vals = _payment_trace_vals(pay, "adhesiontest", "Membership")
         self.assertTrue(vals.get("helloasso_payment_date"))
+
+    def test_payment_trace_vals_parses_helloasso_iso_date_with_offset(self):
+        """API réelle sandbox : date avec T et +02:00 (non géré par to_datetime(str) seul)."""
+        pay = dict(_payment_mvp())
+        pay["date"] = "2026-04-03T00:00:00+02:00"
+        vals = _payment_trace_vals(pay, "adhesiontest", "Membership")
+        dt = vals.get("helloasso_payment_date")
+        self.assertTrue(dt)
+        # 00:00 Paris = veille 22:00 UTC le 2 avril
+        self.assertIn("2026-04-02", str(dt))
 
     def test_scenario_1_nominal_creates_partner(self):
         pay = _payment_mvp(email="s1_create_only@test.dorevia.local")

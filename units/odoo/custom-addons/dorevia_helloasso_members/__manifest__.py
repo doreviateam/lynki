@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso Members",
-    "version": "19.0.1.5.0",
+    "version": "19.0.1.6.0",
     "category": "Dorevia",
     "summary": "Synchronisation HelloAsso Membership → res.partner (API v5)",
     "description": """

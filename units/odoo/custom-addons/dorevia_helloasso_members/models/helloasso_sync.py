@@ -82,7 +82,12 @@ def _payment_id(payment):
 
 
 def _parse_payment_datetime(raw):
-    """Interprète une date/heure API HelloAsso (souvent ISO 8601 ; parfois date seule ou timestamp)."""
+    """Interprète une date/heure API HelloAsso (ISO 8601 avec T et fuseau, date seule, timestamp).
+
+    HelloAsso renvoie typiquement ``2026-04-03T00:00:00+02:00`` : ``fields.Datetime.to_datetime``
+    (Odoo 19) n’accepte ni le ``T`` ni le décalage ; on parse avec ``fromisoformat`` puis on
+    normalise en UTC naïf attendu par l’ORM.
+    """
     if raw is None:
         return False
     if isinstance(raw, (int, float)):
@@ -91,11 +96,32 @@ def _parse_payment_datetime(raw):
             if sec > 1e12:  # millisecondes
                 sec = sec / 1000.0
             aware = datetime.datetime.fromtimestamp(sec, tz=datetime.timezone.utc)
-            return fields.Datetime.to_datetime(aware)
+            naive_utc = aware.replace(tzinfo=None)
+            return fields.Datetime.to_datetime(naive_utc)
+        except Exception:
+            return False
+    if isinstance(raw, datetime.datetime):
+        dt = raw
+        if dt.tzinfo is not None:
+            dt = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+        try:
+            return fields.Datetime.to_datetime(dt)
         except Exception:
             return False
     if isinstance(raw, str):
         s = raw.strip()
+        if not s:
+            return False
+        # ISO 8601 : …T… avec fuseau (+hh:mm / Z) ou sans (HelloAsso : avec fuseau)
+        if "T" in s and len(s) >= 11 and s[4:5] == "-" and s[7:8] == "-":
+            try:
+                norm = s.replace("Z", "+00:00")
+                parsed = datetime.datetime.fromisoformat(norm)
+                if parsed.tzinfo is not None:
+                    parsed = parsed.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+                return fields.Datetime.to_datetime(parsed)
+            except ValueError:
+                pass
         if len(s) == 10 and s[4:5] == "-" and s[7:8] == "-":
             try:
                 return fields.Datetime.to_datetime("%s 12:00:00" % s)
