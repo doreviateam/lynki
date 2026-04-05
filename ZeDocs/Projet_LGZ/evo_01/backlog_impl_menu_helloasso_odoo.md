@@ -88,6 +88,12 @@
 
 L’écran **Repère** est une **page applicative** : titre métier explicite (« Repère HelloAsso »), pas d’affichage d’enregistrement technique (`NewId`, nom de modèle). L’implémentation peut rester dans `dorevia_helloasso_billetterie` jusqu’à un futur module `dorevia_helloasso_app` si l’on centralise l’habillage de l’app.
 
+### Arbitrage UX (liste Adhésion — date de paiement)
+
+La **date de paiement** fournie par HelloAsso fait partie de la **cible fonctionnelle** du suivi des adhésions. En revanche, une donnée ne doit pas figurer **en standard** dans la vue liste tant que son **import automatique** n’est pas **implémenté, stable et compréhensible** pour l’utilisateur (éviter colonnes vides ou ambiguës).
+
+**Règle retenue :** la colonne reste dans le **modèle et la vue** (activable via le sélecteur de colonnes), mais est **`optional="hide"`** par défaut jusqu’à validation recette / prod de la synchro. Une fois la reprise **fiabilisée** (ex. fallbacks API `date` / `orderDate` / champs `order`, puis resynchronisation), on pourra la repasser en **`optional="show"`** pour l’exposer en lecture standard.
+
 ### Arbitrage UX (liste Billetteries et voisins)
 
 Les vues **métier** de l’app HelloAsso n’affichent pas le vocabulaire brut du connecteur (`slug`, `Form type`, `Event`, `Sync commandes`, etc.) : libellés de champs, filtres, boutons et textes d’aide sont formulés en **langage produit**. **Type** affiche une traduction métier des valeurs API courantes (ex. **Événement**) via le champ stocké `billetterie_type_caption`. **Organisation** peut afficher un **nom lisible** (`billetterie_org_caption`) si le champ facultatif est renseigné dans Paramètres HelloAsso (Members) ; sinon la référence technique. Les suffixes `*_display` et `*_label` sur les noms de champs sont évités côté web (Owl) ; des noms neutres préfixés module sont utilisés. Filtre liste billetteries : **Billetteries**. Champs techniques réservés aux administrateurs sur la fiche si besoin.
