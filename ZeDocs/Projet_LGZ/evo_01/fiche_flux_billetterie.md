@@ -111,8 +111,8 @@ Une commande est **traitée** si :
 
 ## Déclenchement
 
-* **Manuel** : Paramètres → bloc **HelloAsso (billetterie)** → *Synchroniser la billetterie* / *Prévisualiser les commandes*.
-* **Planifié** : action planifiée **« HelloAsso : synchroniser la billetterie (MVP) »** (`dorevia.helloasso.billetterie.cron`) — **inactive par défaut**.
+* **Manuel** : Paramètres → bloc **HelloAsso (billetterie)** → *Synchroniser la billetterie* / *Prévisualiser les commandes* ; app **Billetteries** (menu **Action** / fiche).
+* **Planifié** : action planifiée **« HelloAsso : synchroniser la billetterie (MVP) »** — **active par défaut**, **toutes les heures** (utilisateur root). À chaque passage : **inventaire** des formulaires Event, puis **import des commandes** pour **chaque** ligne d’inventaire de l’organisation (même bac à sable / production que les paramètres) ; si l’inventaire est vide, **repli** sur le couple type + slug des paramètres ICP (comportement historique).
 
 ---
 
