@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso adhérents (shim legacy)",
-    "version": "19.0.2.0.0",
+    "version": "19.0.2.0.1",
     "category": "Dorevia",
     "summary": "Shim : installe HelloAsso Members — à terme remplacé par dorevia_helloasso_app",
     "description": """
