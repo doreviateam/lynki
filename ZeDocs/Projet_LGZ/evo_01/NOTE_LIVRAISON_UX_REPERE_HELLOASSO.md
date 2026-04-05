@@ -7,7 +7,7 @@
 | **Module** | `dorevia_helloasso_billetterie` |
 | **Version** | 19.0.1.23.0 |
 | **Commit (livraison UX initiale)** | `52bcfca9` |
-| **Correctif client web** | 19.0.1.23.0 — éviter le champ `name` en arch XML / renommer en `page_title` (Owl « field is undefined »). |
+| **Correctif client web** | `7358df30` — 19.0.1.23.0 : pas de champ `name` dans l’arch XML ; `_rec_name` sur `page_title` (corrige Owl « field is undefined »). |
 | **Branche** | `web60-w60-103-tresorerie-contour-etat` |
 
 ---
