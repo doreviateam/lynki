@@ -171,9 +171,9 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         index=True,
         help="Identifiant technique d’organisation côté HelloAsso.",
     )
-    organization_label = fields.Char(
+    billetterie_org_caption = fields.Char(
         string="Organisation",
-        compute="_compute_organization_label",
+        compute="_compute_billetterie_org_caption",
         store=True,
         readonly=True,
         help="Nom lisible si renseigné dans les paramètres HelloAsso ; sinon la référence technique.",
@@ -184,9 +184,9 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         index=True,
         help="Valeur technique côté HelloAsso ; la colonne « Type » affiche un libellé métier.",
     )
-    form_type_label = fields.Char(
+    billetterie_type_caption = fields.Char(
         string="Type",
-        compute="_compute_form_type_label",
+        compute="_compute_billetterie_type_caption",
         store=True,
         readonly=True,
     )
@@ -220,27 +220,27 @@ class DoreviaHelloassoBilletterieForm(models.Model):
     ]
 
     @api.depends("organization_slug")
-    def _compute_organization_label(self):
+    def _compute_billetterie_org_caption(self):
         icp = self.env["ir.config_parameter"].sudo()
         label = (icp.get_param("dorevia_helloasso.organization_display_name") or "").strip()
         param_slug = (icp.get_param("dorevia_helloasso.organization_slug") or "").strip().lower()
         for rec in self:
             row_slug = (rec.organization_slug or "").strip().lower()
             if label and param_slug and row_slug == param_slug:
-                rec.organization_label = label
+                rec.billetterie_org_caption = label
             else:
-                rec.organization_label = rec.organization_slug or ""
+                rec.billetterie_org_caption = rec.organization_slug or ""
 
     @api.depends("form_type")
-    def _compute_form_type_label(self):
+    def _compute_billetterie_type_caption(self):
         for rec in self:
-            rec.form_type_label = form_type_label_for_display(rec.form_type)
+            rec.billetterie_type_caption = form_type_label_for_display(rec.form_type)
 
-    @api.depends("helloasso_title", "form_slug", "form_type", "form_type_label")
+    @api.depends("helloasso_title", "form_slug", "form_type", "billetterie_type_caption")
     def _compute_name(self):
         for rec in self:
             t = (rec.helloasso_title or "").strip()
-            type_label = rec.form_type_label or form_type_label_for_display(rec.form_type)
+            type_label = rec.billetterie_type_caption or form_type_label_for_display(rec.form_type)
             rec.name = t or "%s — %s" % (type_label or "?", rec.form_slug or "?")
 
     @api.depends("order_ids")

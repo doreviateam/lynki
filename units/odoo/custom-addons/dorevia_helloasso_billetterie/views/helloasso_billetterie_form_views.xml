@@ -37,8 +37,8 @@
                 />
                 <field name="name"/>
                 <field name="use_sandbox" optional="show" readonly="1"/>
-                <field name="organization_label"/>
-                <field name="form_type_label"/>
+                <field name="billetterie_org_caption"/>
+                <field name="billetterie_type_caption"/>
                 <field name="form_slug"/>
                 <field name="organization_slug" optional="hide" readonly="1"/>
                 <field name="form_type" optional="hide" readonly="1"/>
@@ -76,8 +76,8 @@
                             <field name="name" readonly="1"/>
                             <field name="helloasso_title" readonly="1"/>
                             <field name="use_sandbox" readonly="1"/>
-                            <field name="organization_label" readonly="1"/>
-                            <field name="form_type_label" readonly="1"/>
+                            <field name="billetterie_org_caption" readonly="1"/>
+                            <field name="billetterie_type_caption" readonly="1"/>
                             <field name="form_slug" readonly="1"/>
                             <field name="organization_slug" readonly="1" groups="base.group_system"/>
                             <field name="form_type" readonly="1" groups="base.group_system"/>
@@ -98,15 +98,15 @@
         <field name="arch" type="xml">
             <search string="Billetteries">
                 <field name="name"/>
-                <field name="organization_label"/>
-                <field name="form_type_label"/>
+                <field name="billetterie_org_caption"/>
+                <field name="billetterie_type_caption"/>
                 <field name="form_slug"/>
                 <filter string="Essai HelloAsso" name="sandbox" domain="[('use_sandbox', '=', True)]"/>
                 <filter string="Production HelloAsso" name="production" domain="[('use_sandbox', '=', False)]"/>
                 <filter string="Billetteries" name="filter_event" domain="[('form_type', '=ilike', 'event')]"/>
                 <filter string="Autres campagnes" name="filter_non_event" domain="['!', ('form_type', 'ilike', 'event')]"/>
                 <separator/>
-                <filter string="Par type" name="group_form_type" context="{'group_by': 'form_type_label'}"/>
+                <filter string="Par type" name="group_form_type" context="{'group_by': 'billetterie_type_caption'}"/>
                 <filter string="Par organisation" name="group_org" context="{'group_by': 'organization_slug'}"/>
             </search>
         </field>

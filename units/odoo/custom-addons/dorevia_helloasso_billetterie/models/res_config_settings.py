@@ -19,7 +19,7 @@ class ResConfigSettings(models.TransientModel):
         Form = self.env["dorevia.helloasso.billetterie.form"].sudo()
         forms = Form.search([])
         if forms:
-            forms.invalidate_recordset(["organization_label"])
+            forms.invalidate_recordset(["billetterie_org_caption"])
         return res
 
     helloasso_billetterie_form_type = fields.Char(
