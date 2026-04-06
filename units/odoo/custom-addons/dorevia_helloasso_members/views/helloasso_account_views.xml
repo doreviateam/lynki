@@ -74,10 +74,19 @@
     </record>
 
     <menuitem
+        id="menu_dorevia_technical_root"
+        name="Dorevia"
+        parent="base.menu_technical"
+        sequence="90"
+        groups="base.group_erp_manager,base.group_system"
+    />
+
+    <menuitem
         id="menu_dorevia_helloasso_accounts"
         name="Comptes HelloAsso"
-        parent="base.menu_administration"
+        parent="menu_dorevia_technical_root"
         action="action_dorevia_helloasso_account"
-        sequence="42"
+        sequence="10"
+        groups="base.group_erp_manager,base.group_system"
     />
 </odoo>
