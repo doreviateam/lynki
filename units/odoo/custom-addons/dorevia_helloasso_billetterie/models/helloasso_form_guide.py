@@ -145,7 +145,7 @@ class DoreviaHelloassoFormGuide(models.TransientModel):
         Form = self.env["dorevia.helloasso.billetterie.form"].sudo()
         Partner = self.env["res.partner"].sudo()
         Order = self.env["dorevia.helloasso.billetterie.order"].sudo()
-        form_domain = [("company_id", "=", company.id), ("form_type", "=", "Event")]
+        form_domain = [("company_id", "=", company.id)]
         order_domain = [("company_id", "=", company.id)]
         adherent_domain = self._company_membership_domain(company)
         event_count = Form.search_count(form_domain)

@@ -371,7 +371,7 @@ def _partner_display_name(firstname, lastname, email):
     return name or (email or _("Contact HelloAsso"))
 
 
-def _pick_payer_partner_by_email(Partner, payer_em, payer_fn, payer_ln, stats):
+def _pick_payer_partner_by_email(Partner, payer_em, payer_fn, payer_ln, stats, company=None):
     """
     Partenaire payeur existant pour cet e-mail, ou recordset vide pour en créer un.
 
@@ -379,18 +379,39 @@ def _pick_payer_partner_by_email(Partner, payer_em, payer_fn, payer_ln, stats):
     HelloAsso (prénom/nom contenus dans ``name``), sinon partenaire au plus petit id
     (création la plus ancienne). Évite de bloquer la synchro ; un avertissement est journalisé.
     """
-    by_mail = Partner.search([("email", "=ilike", payer_em)], order="id asc")
+    search_domain = [("email", "=ilike", payer_em)]
+    if company and "company_id" in Partner._fields:
+        search_domain += [
+            "|",
+            ("company_id", "=", False),
+            ("company_id", "=", company.id),
+        ]
+    by_mail = Partner.search(search_domain, order="id asc")
     if not by_mail:
         return Partner.browse()
     if len(by_mail) == 1:
         return by_mail[0]
 
+    candidates = by_mail
+    if company and "company_id" in Partner._fields:
+        company_scoped = by_mail.filtered(lambda p: p.company_id and p.company_id == company)
+        if len(company_scoped) == 1:
+            stats["shared_email_partner_picked"] += 1
+            _logger.info(
+                "HelloAsso billetterie: e-mail %s restreint à la société %s → partenaire id=%s",
+                payer_em,
+                company.display_name,
+                company_scoped.id,
+            )
+            return company_scoped[0]
+        if len(company_scoped) > 1:
+            candidates = company_scoped
+
     fn_norm = _norm_str(payer_fn).lower()
     ln_norm = _norm_str(payer_ln).lower()
-    candidates = by_mail
     if fn_norm or ln_norm:
         narrowed = Partner.browse()
-        for p in by_mail:
+        for p in candidates:
             pname = _norm_str(p.name).lower()
             ok_fn = not fn_norm or fn_norm in pname
             ok_ln = not ln_norm or ln_norm in pname
@@ -669,7 +690,7 @@ def run_billetterie_orders_sync(
                 continue
 
             payer_partner = _pick_payer_partner_by_email(
-                Partner, payer_em, payer_fn, payer_ln, stats
+                Partner, payer_em, payer_fn, payer_ln, stats, company=acc.company_id if acc else env.company
             )
             if not payer_partner:
                 create_p = {

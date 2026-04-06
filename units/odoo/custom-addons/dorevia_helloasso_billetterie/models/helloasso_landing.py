@@ -27,9 +27,22 @@ class DoreviaHelloassoLanding(models.TransientModel):
         ("helloasso_form_type", "=", "Membership"),
     ]
 
+    def _company_membership_domain(self, company):
+        domain = list(self._ADHERENTS_DOMAIN)
+        if not company:
+            return domain
+        return domain + [
+            "|",
+            ("helloasso_account_id.company_id", "=", company.id),
+            "&",
+            ("helloasso_account_id", "=", False),
+            ("company_id", "=", company.id),
+        ]
+
     @api.model
     def default_get(self, fields_list):
         vals = super().default_get(fields_list)
+        company = self.env.company
         params = get_helloasso_connection_params(self.env)
         use_sb = params["use_sandbox"]
         slug = (params["organization_slug"] or "").strip()
@@ -37,8 +50,12 @@ class DoreviaHelloassoLanding(models.TransientModel):
         csec = (params["client_secret"] or "").strip()
         Partner = self.env["res.partner"].sudo()
         Order = self.env["dorevia.helloasso.billetterie.order"].sudo()
-        last_p = Partner.search(self._ADHERENTS_DOMAIN, order="helloasso_last_sync_at desc", limit=1)
-        last_o = Order.search([], order="last_sync_at desc", limit=1)
+        adherent_domain = self._company_membership_domain(company)
+        order_domain = [("company_id", "=", company.id)] if company else []
+        last_p = Partner.search(
+            adherent_domain, order="helloasso_last_sync_at desc", limit=1
+        )
+        last_o = Order.search(order_domain, order="last_sync_at desc", limit=1)
         vals.update(
             {
                 "env_label": _("Sandbox") if use_sb else _("Production"),
@@ -48,8 +65,8 @@ class DoreviaHelloassoLanding(models.TransientModel):
                     if (cid and csec)
                     else _("Non — à renseigner dans Paramètres")
                 ),
-                "count_adherents": Partner.search_count(self._ADHERENTS_DOMAIN),
-                "count_billetterie_orders": Order.search_count([]),
+                "count_adherents": Partner.search_count(adherent_domain),
+                "count_billetterie_orders": Order.search_count(order_domain),
                 "last_adherent_sync_at": last_p.helloasso_last_sync_at or False,
                 "last_billetterie_sync_at": last_o.last_sync_at or False,
                 "help_text": _(

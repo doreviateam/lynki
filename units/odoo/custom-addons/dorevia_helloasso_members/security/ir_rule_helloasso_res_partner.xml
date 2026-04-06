@@ -9,7 +9,7 @@
         <field name="name">Contacts : adhésions HelloAsso — société active</field>
         <field name="model_id" ref="base.model_res_partner"/>
         <field name="domain_force">
-            ['|', '|', ('helloasso_external_id', '=', False), ('helloasso_form_type', 'not in', ('Membership', 'membership')), ('helloasso_account_id.company_id', '=', company_id)]
+            ['|', '|', ('helloasso_external_id', '=', False), ('helloasso_form_type', 'not in', ('Membership', 'membership')), '|', ('helloasso_account_id.company_id', '=', company_id), '&', ('helloasso_account_id', '=', False), ('company_id', '=', company_id)]
         </field>
         <field name="groups" eval="[(4, ref('base.group_user')), (4, ref('base.group_erp_manager')), (4, ref('base.group_system'))]"/>
     </record>

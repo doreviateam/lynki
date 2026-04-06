@@ -289,6 +289,40 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         self.assertEqual(len(rec), 1)
         self.assertEqual(rec.payer_partner_id, p1)
 
+    def test_payer_match_does_not_cross_to_other_company(self):
+        email = "other_company@test.dorevia.local"
+        Partner = self.env["res.partner"].sudo()
+        other_company = self.env["res.company"].sudo().create({"name": "Radio Grand Lieu"})
+        Partner.create(
+            {
+                "name": "Contact RGL",
+                "email": email,
+                "company_id": other_company.id,
+            }
+        )
+        order = _order_mvp(oid=9401, email=email)
+        self._patch_sync([order])
+        acc = self._ticketing_account("org-lgz")
+        stats = run_billetterie_orders_sync(
+            self.env,
+            "org-lgz",
+            "c",
+            "s",
+            True,
+            "Event",
+            None,
+            helloasso_account=acc,
+        )
+        self.assertGreaterEqual(stats["created"], 1)
+        rec = self.env["dorevia.helloasso.billetterie.order"].search(
+            [
+                ("helloasso_order_id", "=", "9401"),
+                ("helloasso_account_id", "=", acc.id),
+            ]
+        )
+        self.assertEqual(len(rec), 1)
+        self.assertEqual(rec.payer_partner_id.company_id, self.env.company)
+
     def test_cron_skips_when_credentials_missing(self):
         icp = self.env["ir.config_parameter"].sudo()
         icp.set_param("dorevia_helloasso.client_id", "")
