@@ -228,9 +228,18 @@
         action="action_dorevia_helloasso_form_guide"
     />
     <menuitem
-        id="menu_helloasso_adherents"
-        name="Adhésion"
+        id="menu_helloasso_contacts"
+        name="Contact"
         parent="menu_dorevia_helloasso_root"
+        sequence="5"
+    />
+    <record id="menu_helloasso_contacts" model="ir.ui.menu">
+        <field name="action" eval="False"/>
+    </record>
+    <menuitem
+        id="menu_helloasso_adherents"
+        name="Adhérents"
+        parent="menu_helloasso_contacts"
         action="action_helloasso_partner_adherents"
         sequence="5"
     />
