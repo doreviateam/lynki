@@ -55,9 +55,24 @@ class DoreviaHelloassoPayment(models.Model):
     payment_method = fields.Char(string="Moyen de paiement")
     payment_method_raw = fields.Char(string="Moyen de paiement brut")
     amount_total = fields.Monetary(string="Montant total", currency_field="currency_id")
+    amount_tariff = fields.Monetary(string="Montant du tarif", currency_field="currency_id")
+    amount_options = fields.Monetary(
+        string="Montant des options", currency_field="currency_id"
+    )
+    amount_extra_donation = fields.Monetary(
+        string="Don supplementaire", currency_field="currency_id"
+    )
+    amount_discount = fields.Monetary(
+        string="Montant de remise", currency_field="currency_id"
+    )
     payer_firstname = fields.Char(string="Prénom payeur")
     payer_lastname = fields.Char(string="Nom payeur")
     payer_email = fields.Char(string="Email payeur")
+    payer_display_name = fields.Char(
+        string="Payeur",
+        compute="_compute_payer_display_name",
+        store=True,
+    )
     source_payload = fields.Text(string="Payload source")
     currency_id = fields.Many2one(
         "res.currency",
@@ -95,3 +110,8 @@ class DoreviaHelloassoPayment(models.Model):
                     )
                 )
 
+    @api.depends("payer_firstname", "payer_lastname", "payer_email")
+    def _compute_payer_display_name(self):
+        for rec in self:
+            parts = [p for p in [rec.payer_firstname, rec.payer_lastname] if p]
+            rec.payer_display_name = " ".join(parts).strip() or (rec.payer_email or "")
