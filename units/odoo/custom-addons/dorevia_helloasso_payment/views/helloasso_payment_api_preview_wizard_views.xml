@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dorevia_helloasso_payment_api_preview_wizard_form" model="ir.ui.view">
+        <field name="name">dorevia.helloasso.payment.api.preview.wizard.form</field>
+        <field name="model">dorevia.helloasso.payment.api.preview.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Observer payload API paiements HelloAsso">
+                <sheet>
+                    <group string="Source API">
+                        <field name="helloasso_account_id"/>
+                        <field name="company_id"/>
+                        <field name="form_type"/>
+                        <field name="form_slug"/>
+                        <field name="page_index"/>
+                        <field name="page_size"/>
+                    </group>
+                    <p class="text-muted">
+                        Cette action sert uniquement à observer un payload brut de paiement issu de l'API HelloAsso.
+                        Elle ne crée ni ne met à jour aucun enregistrement de paiement dans Odoo.
+                    </p>
+                    <group string="Lecture">
+                        <field name="summary_text" readonly="1" nolabel="1"/>
+                        <field name="payload_text" readonly="1" nolabel="1"/>
+                    </group>
+                    <footer>
+                        <button
+                            name="action_fetch_preview"
+                            type="object"
+                            string="Observer le payload"
+                            class="btn-primary"
+                        />
+                        <button string="Fermer" special="cancel" class="btn-secondary"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dorevia_helloasso_payment_api_preview_wizard" model="ir.actions.act_window">
+        <field name="name">Observer payload API</field>
+        <field name="res_model">dorevia.helloasso.payment.api.preview.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

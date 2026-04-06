@@ -25,6 +25,7 @@
         "security/ir_rule_helloasso_payment.xml",
         "views/helloasso_payment_views.xml",
         "views/helloasso_payment_csv_wizard_views.xml",
+        "views/helloasso_payment_api_preview_wizard_views.xml",
     ],
     "installable": True,
     "application": False,

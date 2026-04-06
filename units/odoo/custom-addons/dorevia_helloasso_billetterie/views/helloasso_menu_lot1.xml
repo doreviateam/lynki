@@ -270,4 +270,11 @@
         action="dorevia_helloasso_payment.action_dorevia_helloasso_payment_csv_wizard"
         sequence="15"
     />
+    <menuitem
+        id="menu_helloasso_payments_api_preview"
+        name="Observer payload API"
+        parent="menu_helloasso_payment"
+        action="dorevia_helloasso_payment.action_dorevia_helloasso_payment_api_preview_wizard"
+        sequence="25"
+    />
 </odoo>
