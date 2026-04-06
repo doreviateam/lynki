@@ -92,7 +92,7 @@ class DoreviaHelloassoFormGuide(models.TransientModel):
                 '</div></div>'
             ) % {"num": escape(str(num)), "label": escape(str(label))}
 
-        return Markup('<div class="row g-3 mb-0">%s%s%s</div>') % (
+        return Markup('<div class="row g-3 mb-0">%s%s%s%s</div>') % (
             card(n_adh, _("contacts synchronisés pour cette société")),
             card(n_forms, _("campagnes en base pour cette société")),
             card(n_orders, _("commandes importées pour cette société")),
