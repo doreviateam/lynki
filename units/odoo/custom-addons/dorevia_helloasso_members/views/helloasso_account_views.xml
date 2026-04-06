@@ -76,7 +76,7 @@
     <menuitem
         id="menu_dorevia_technical_root"
         name="Dorevia"
-        parent="base.menu_technical"
+        parent="base.menu_administration"
         sequence="90"
         groups="base.group_erp_manager,base.group_system"
     />
