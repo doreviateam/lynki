@@ -1,51 +1,99 @@
-# Note de livraison — UX page « Aide HelloAsso »
+# Note de livraison — UX landing HelloAsso
 
 | | |
 |---|---|
-| **Objet** | Page d’**orientation** dans l’app HelloAsso : vocabulaire simple, pas de fuite technique, honnêtement présentée comme une **aide** (et non comme une entrée métier autonome). |
-| **Références** | [Backlog menu HelloAsso](./backlog_impl_menu_helloasso_odoo.md), [Note d’arborescence](./note_arborescence_fonctionnelle_menu_helloasso.md) |
+| **Objet** | Landing d’orientation HelloAsso dans Odoo : lecture simple, synthèse par société active, accès rapides vers les objets métier réellement disponibles. |
 | **Module** | `dorevia_helloasso_billetterie` |
-| **Version (indicative)** | ≥ 19.0.1.43.0 (menu **Aide**, contenu FAQ) |
 | **Branche** | `web60-w60-103-tresorerie-contour-etat` |
 
----
+## 1. Intention
 
-## 1. Objet
+La racine de l’app HelloAsso ne doit pas être une fiche technique, mais une page d’orientation lisible pour l’utilisateur courant.
 
-Livrable : une **page d’aide** dans l’application HelloAsso, lisible comme une **surface d’orientation** (où cliquer pour adhésions, billetteries, commandes, paramètres), et non comme une fiche technique Odoo.
+Elle doit répondre rapidement à quatre questions :
 
-Historique : l’entrée de menu **Repère** a été **renommée en Aide** pour refléter la fonction réelle (explication / guidance). Le contenu a été **raccourci** et structuré en **questions fréquentes** plutôt qu’en longs paragraphes.
+- de quelle société parle-t-on ;
+- quel est l’état général de la connexion HelloAsso ;
+- quels flux existent déjà dans Odoo ;
+- où aller ensuite.
 
----
+## 2. Ce que la landing affiche désormais
 
-## 2. Décisions UX
+La landing HelloAsso affiche désormais :
 
-* **Menu** : **HelloAsso → Aide** (remplace **Repère**).
-* **Titres** : action et formulaire **Aide HelloAsso** ; `name_get` / `page_title` alignés sur **Aide HelloAsso**.
-* **Contenu** : texte court ; réponses à des questions concrètes (adhésions, billetteries, commandes importées, réglage de la connexion) ; rappel optionnel (environnement, organisation, nombre de billetteries en base).
-* **Raccourcis** : boutons **Adhésion**, **Billetteries**, **Commandes** (miroir des entrées de menu).
+- la société active ;
+- le statut de connexion ;
+- un aperçu chiffré des flux disponibles ;
+- des accès rapides ;
+- un état de connexion synthétique ;
+- des points à vérifier ;
+- une aide rapide.
 
-**Implémentation** : modèle transient `dorevia.helloasso.form.guide`, vue formulaire verrouillée (`create` / `edit` / `delete` / `duplicate` désactivés). Pas de champ `name` dans l’arch XML (compatibilité Owl) ; `_rec_name = "page_title"`.
+Les flux reflétés dans la page sont maintenant :
 
----
+- contacts adhérents ;
+- billetteries / événements ;
+- commandes ;
+- paiements.
 
-## 3. Périmètre hors de cette note
+## 3. Compteurs et accès rapides
 
-Les **listes Billetteries et Commandes** (hiérarchie des actions, menu **Action**, absence de boutons redondants en tête de liste Commandes) sont documentées dans le **backlog** (arbitrage UX liste Billetteries et voisins). Cette note se concentre sur la page **Aide**.
+Les compteurs exposés sur la landing couvrent désormais :
 
----
+- les contacts synchronisés ;
+- les campagnes en base ;
+- les commandes importées ;
+- les paiements importés.
 
-## 4. Limites
+Les accès rapides pointent vers :
 
-* En **mode développeur**, des informations techniques peuvent encore apparaître ailleurs dans Odoo.
-* La page repose sur le **formulaire standard** Odoo (habillé), pas sur une client action entièrement custom.
+- `Adhérents`
+- `Billetteries`
+- `Commandes`
+- `Paiements`
+- `Paramètres HelloAsso`
 
----
+## 4. Positionnement UX
 
-## 5. Suite possible
+La landing reste :
 
-* Surface **100 % maîtrisée** via `ir.actions.client` et éventuel module **`dorevia_helloasso_app`** (même piste que pour l’ancienne page Repère).
+- sobre ;
+- lisible ;
+- orientée usage ;
+- non technique dans sa formulation.
 
----
+Elle n’a pas vocation à exposer :
 
-*Document aligné sur l’arbitrage produit : « Aide » assume la nature réelle de l’écran.*
+- les détails OAuth ;
+- les objets multi-compte ;
+- les assistants de debug ;
+- les outils d’import avancés.
+
+Ces éléments relèvent d’entrées plus techniques dans l’arborescence.
+
+## 5. État actuel de référence
+
+La landing HelloAsso est maintenant cohérente avec l’arborescence applicative actuelle :
+
+```text
+HelloAsso
+- Contact
+  - Adhérents
+- Billetterie
+  - Billetteries
+  - Commandes
+- Paiement
+  - Paiements
+- Configuration
+  - Paiements
+    - Importer un CSV
+    - Importer via l'API
+    - Observer payload API
+```
+
+## 6. Conclusion
+
+La landing HelloAsso sert désormais de façade d’orientation sur un périmètre plus complet qu’au lot initial.
+
+Elle ne se limite plus à l’adhésion et à la billetterie :
+elle reflète aussi l’existence du flux paiements, tout en gardant une présentation simple et centrée sur la société active.

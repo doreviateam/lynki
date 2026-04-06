@@ -1,143 +1,106 @@
 # Note d’arborescence fonctionnelle — Menu HelloAsso dans Odoo
 
-## Version opérationnelle
+## Objet
 
-### Objet
+Documenter l’arborescence HelloAsso désormais livrée dans Odoo, avec une séparation plus nette entre :
 
-Décrire l’arborescence fonctionnelle **cible** du menu **HelloAsso** dans Odoo sous une forme directement exploitable pour le cadrage produit, l’UX Odoo et l’implémentation technique.
+- la consultation métier ;
+- les flux billetterie ;
+- les paiements ;
+- les outils de configuration et d’import.
 
-### Principe général
+Cette note remplace les anciennes formulations centrées sur `Aide` et `Adhésion` au premier niveau, qui ne correspondent plus à l’état actuel du module.
 
-Le menu **HelloAsso** doit présenter dans Odoo un **miroir interne sobre** des flux HelloAsso utiles à l’association.
+## Principe produit
 
-Il ne s’agit pas de reproduire HelloAsso, mais de structurer dans Odoo les objets réellement consultés et exploités en interne.
+Le menu HelloAsso doit rester un point d’entrée simple pour l’utilisateur courant, tout en assumant que le projet sait maintenant traiter plusieurs objets métier :
 
-Le menu doit donc :
+- les contacts adhérents ;
+- les événements / billetteries ;
+- les commandes ;
+- les paiements.
 
-- refléter les **flux métier existants** ;
-- rester **simple à lire** ;
-- distinguer clairement la **consultation métier** du **paramétrage technique**.
+La navigation doit donc distinguer :
 
----
+- ce que l’on consulte au quotidien ;
+- ce que l’on déclenche de façon plus technique ;
+- ce qui relève du paramétrage.
 
-### Tableau d’arborescence cible
-
-
-| Menu          | Sous-menu                   | Modèle Odoo principal                                                    | Utilisateur visé                                             | Commentaire                                                                                                                                                                                      |
-| ------------- | --------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **HelloAsso** | **Vue d’ensemble**          | vue fonctionnelle dédiée ou action d’accueil                             | Administration, coordination, référent projet                | Point d’entrée de l’application. Lecture rapide de l’état du connecteur, des derniers flux synchronisés et des accès vers les objets principaux. Vue légère, non technique dans sa présentation. |
-| **HelloAsso** | **Adhésion**                | `res.partner` (champs HelloAsso via `dorevia_partner_membership_fields`) | Administration, gestion associative, suivi adhésions         | Libellé menu livré : **Adhésion** (flux Membership). Contacts synchronisés avec traçabilité utile ; vue filtrée.                                                                                    |
-| **HelloAsso** | **Billetterie → Billetteries** | `dorevia.helloasso.billetterie.form`                                  | Administration, coordination événementielle                  | Référentiel des campagnes événements côté HelloAsso (inventaire). Consultation prioritaire ; actions techniques (rechargement API, import commandes, assistant) en **second niveau** (menu **Action** / fiche). |
-| **HelloAsso** | **Billetterie → Commandes** | `dorevia.helloasso.billetterie.order`                                    | Administration, coordination événementielle, gestion interne | Commandes importées : consultation, filtres, fiche. **Pas** de boutons d’en-tête redondants (navigation par menu).                                                                                |
-| **HelloAsso** | **Billetterie / Lignes**    | `dorevia.helloasso.billetterie.line`                                     | Administration, coordination événementielle                  | Vue complémentaire (billet / participant / article). Peut être **masquée** ou secondaire si elle complexifie inutilement le MVP.                                                                 |
-| **HelloAsso** | **Synchronisations**        | modèle technique dédié, journal de synchro, ou vue fonctionnelle dérivée | Administration, référent fonctionnel, technique              | Derniers lancements, résultats, volumes traités / ignorés, erreurs. Plus technique possible, mais lisible.                                                                                       |
-| **HelloAsso** | **Aide**                    | page d’orientation (`dorevia.helloasso.form.guide`, transient)          | Tous profils utilisateurs de l’app                           | Questions courtes (où sont adhésions, billetteries, commandes, paramètres) + raccourcis ; sans identifiants techniques Odoo. Anciennement intitulé **Repère**.                                      |
-
-
----
-
-### Éléments à garder hors menu principal
-
-
-| Emplacement    | Élément                                   | Modèle / zone                                 | Utilisateur visé                 | Commentaire                                                                               |
-| -------------- | ----------------------------------------- | --------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------- |
-| **Paramètres** | **Configuration HelloAsso**               | `res.config.settings` + `ir.config_parameter` | Administrateur                   | Identifiants API, sandbox / production, slugs, types de formulaires, réglages techniques. |
-| **Paramètres** | **Tester la connexion**                   | action de configuration                       | Administrateur                   | Validation d’accès API ; pas une fonction métier courante dans le menu principal.         |
-| **Paramètres** | **Prévisualiser les données / commandes** | action de configuration                       | Administrateur, référent recette | Vérification avant synchro.                                                               |
-| **Paramètres** | **Synchroniser les adhérents**            | action / cron / bouton manuel                 | Administrateur, référent recette | Pilotage technique ; exposition plus « métier » possible plus tard si besoin.             |
-| **Paramètres** | **Synchroniser la billetterie**           | action / cron / bouton manuel                 | Administrateur, référent recette | Même logique : à distinguer de la consultation métier.                                    |
-
-
----
-
-### Lecture par profil
-
-
-| Profil                                | Ce qu’il doit trouver facilement                                          | Ce qu’il ne doit pas subir                |
-| ------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------- |
-| **Utilisateur métier / coordination** | Adhérents, commandes billetterie, données synchronisées en lecture simple | Paramètres API, OAuth, options techniques |
-| **Administrateur fonctionnel**        | Vue d’ensemble, synchronisations, **Aide**, données métier                | Arborescence confuse ou trop éclatée      |
-| **Administrateur technique**          | Paramètres, tests, prévisualisation, déclenchements manuels, journaux     | Séparation floue métier / configuration   |
-
-
----
-
-### Recommandation de mise en œuvre
-
-#### Arborescence recommandée à court terme
-
-**Arborescence livrée dans l’app (synthèse)** :
+## Arborescence cible actuelle
 
 ```text
 HelloAsso
-- Adhésion
+- Contact
+  - Adhérents
 - Billetterie
   - Billetteries
   - Commandes
-- Aide
+- Paiement
+  - Paiements
+- Configuration
+  - Paiements
+    - Importer un CSV
+    - Importer via l'API
+    - Observer payload API
 ```
 
-*Cible plus large (Vue d’ensemble, Synchronisations sous l’app, sous-menu Lignes) : voir tableau ci-dessus et annexe — tout n’est pas encore exposé comme entrée de menu.*
+## Lecture fonctionnelle
 
-```text
-Paramètres
-- Configuration HelloAsso (adhérent / billetterie)
-- Tester la connexion
-- Prévisualiser / synchroniser (actions techniques)
-```
+### 1. Contact
 
-#### Recommandation de sobriété
+- `Adhérents` ouvre la vue métier des contacts synchronisés depuis HelloAsso.
+- Le choix du terme `Contact` en premier niveau permet de mieux refléter la nature réelle de la donnée Odoo affichée.
 
-À court terme, **ne pas créer immédiatement** de menus autonomes pour : payeurs, participants, événements, paiements, exports, CRM dérivé, comptabilité dérivée. Ces dimensions peuvent exister fonctionnellement sans entrée de menu dédiée en MVP.
+### 2. Billetterie
 
----
+- `Billetteries` expose l’inventaire des formulaires / événements HelloAsso connus dans Odoo.
+- `Commandes` expose les commandes importées pour ces formulaires.
 
-### Commentaire d’architecture fonctionnelle
+### 3. Paiement
 
-Cette organisation permet :
+- `Paiements` est la vue de consultation métier des paiements HelloAsso importés dans Odoo.
+- Ce menu correspond à l’objet pivot `dorevia.helloasso.payment`.
 
-- d’aligner le menu avec les **objets réellement présents dans le code** ;
-- de ne pas sur-promettre des capacités non encore implémentées ;
-- de garder une expérience **sobre à la Odoo** ;
-- de préparer les évolutions sans alourdir prématurément l’application.
+### 4. Configuration
 
-Doctrine :
+- `Configuration > Paiements` regroupe les outils techniques ou semi-techniques autour du flux paiement.
+- `Importer un CSV` reste utile pour la recette, le secours et les imports manuels ponctuels.
+- `Importer via l'API` est la voie manuelle nominale pour lancer le flux API MVP.
+- `Observer payload API` est un outil d’observation / debug, sans création de données métier.
 
-**HelloAsso reste maître des flux publics ; Odoo en propose une lecture miroir, structurée pour l’usage interne.**
+## Paramètres hors app HelloAsso
 
-### Conclusion
+L’objet technique `Comptes HelloAsso` n’a plus vocation à apparaître dans le parcours standard.
 
-Cette note constitue la **base opérationnelle de cadrage** du menu HelloAsso dans Odoo. Elle distingue explicitement la **cible fonctionnelle** recherchée et l’**état actuellement livré** dans le dépôt (voir annexe). La règle directrice reste la suivante : **montrer dans Odoo ce qui est utile à l’usage interne, sans chercher à refaire HelloAsso.**
+La doctrine visée est :
 
-Pour la traduction en lots de développement : [backlog d’implémentation — menu HelloAsso](./backlog_impl_menu_helloasso_odoo.md).
+- `Paramètres > HelloAsso` : configuration simple et courante ;
+- `Paramètres > Technique > Dorevia > Comptes HelloAsso` : configuration technique / avancée.
 
----
+Cette séparation évite de confondre :
 
-## Version descriptive (référence)
+- l’écran fonctionnel de configuration courante ;
+- et le support technique multi-compte sous-jacent.
 
-Les intentions détaillées (intention, périmètre, rubriques « Vue d’ensemble » à « Formulaires », justification et ce qui reste hors menu) sont alignées sur la [note de cadrage](./note_cadrage.md) et la [cartographie des flux](./cartographie_flux_helloasso_odoo.md). La **version opérationnelle** ci-dessus en est la traduction directe pour produit / UX / technique.
+## Landing HelloAsso
 
----
+La landing HelloAsso en racine d’application reste le point d’entrée d’orientation.
 
-## Annexe — État actuel du menu dans le dépôt
+Elle doit désormais refléter au minimum les objets réellement disponibles :
 
-*À maintenir à jour lors des évolutions de menu. Ne couvre que l’**arborescence** et les **entrées UI** de l’application HelloAsso, pas l’intégralité du comportement des connecteurs.*
+- contacts adhérents ;
+- billetteries / événements ;
+- commandes ;
+- paiements.
 
+Elle n’a pas vocation à redevenir une fiche technique.
 
-| Élément                              | Implémentation actuelle                                                                                                                                      |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Icône **HelloAsso** sur l’écran Apps | Menu racine `menu_dorevia_helloasso_root` (`dorevia_helloasso_billetterie`, `helloasso_billetterie_order_views.xml`).                                        |
-| Au clic sur l’app                    | **HelloAsso** : **Adhésion**, **Billetterie** (sous-menus **Billetteries**, **Commandes**), **Aide**.                                                                                              |
-| Arborescence livrée                  | **Adhésion** → `res.partner` (Membership + `helloasso_external_id`). **Billetteries** → inventaire `dorevia.helloasso.billetterie.form` (liste consultation ; actions techniques via **Action**). **Commandes** → `dorevia.helloasso.billetterie.order` (liste sans en-tête redondant). **Aide** → `dorevia.helloasso.form.guide` (FAQ). **Synthèse connecteur** : `dorevia.helloasso.landing` existe mais **sans** entrée de menu dédiée. **Lignes** : onglet sur la fiche commande uniquement. |
-| Flux adhérents côté UI               | **Contacts** + onglet HelloAsso sur `res.partner` ; synchro depuis **Paramètres → HelloAsso (adhérents)**.                                                   |
+## Conclusion
 
+L’arborescence HelloAsso est maintenant organisée selon une logique plus stable :
 
-**Écart résiduel vs cible opérationnelle :** menu **Synchronisations** (journal) non exposé sous l’app HelloAsso pour l’instant ; **Lignes** billetterie sans entrée dédiée (conforme sobriété MVP). **Aide** (ex-**Repère**) : page d’orientation livrée (évolution possible vers module `dorevia_helloasso_app`). Le paramétrage API reste sous **Paramètres**.
+- lecture métier en premier ;
+- outils techniques plus bas dans la hiérarchie ;
+- configuration avancée tenue à distance du parcours courant.
 
----
-
-## Références
-
-- [Note de cadrage](./note_cadrage.md)
-- [Cartographie des flux](./cartographie_flux_helloasso_odoo.md)
-- [Backlog d’implémentation — menu HelloAsso](./backlog_impl_menu_helloasso_odoo.md)
+Cette structure constitue désormais la base de navigation de référence pour les évolutions suivantes du périmètre HelloAsso.
