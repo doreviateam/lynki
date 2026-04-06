@@ -61,13 +61,13 @@ class DoreviaHelloassoPaymentApiPreviewWizard(models.TransientModel):
             raise UserError(_("La taille de page doit être supérieure ou égale à 1."))
 
         params = account._to_connection_params()
-        context = HelloAssoConnectionContext.from_primitives(
+        connection_ctx = HelloAssoConnectionContext.from_primitives(
             params.get("client_id"),
             params.get("client_secret"),
             params.get("use_sandbox"),
             params.get("organization_slug"),
         )
-        if not context.organization_slug:
+        if not connection_ctx.organization_slug:
             raise UserError(_("Le slug organisation du compte HelloAsso est manquant."))
         if not (self.form_type or "").strip():
             raise UserError(_("Le formType est obligatoire pour observer le payload API."))
@@ -75,9 +75,9 @@ class DoreviaHelloassoPaymentApiPreviewWizard(models.TransientModel):
             raise UserError(_("Le formSlug est obligatoire pour observer le payload API."))
 
         try:
-            token_payload = fetch_client_credentials_token(context)
+            token_payload = fetch_client_credentials_token(connection_ctx)
             items, total, raw = fetch_form_payments_page(
-                context,
+                connection_ctx,
                 self.form_type,
                 self.form_slug,
                 token_payload["access_token"],
@@ -90,7 +90,7 @@ class DoreviaHelloassoPaymentApiPreviewWizard(models.TransientModel):
         first_item = items[0] if items else {}
         item_keys = sorted(first_item.keys()) if isinstance(first_item, dict) else []
         summary = [
-            _("Organisation : %s") % (context.organization_slug or ""),
+            _("Organisation : %s") % (connection_ctx.organization_slug or ""),
             _("formType : %s") % (self.form_type or ""),
             _("formSlug : %s") % (self.form_slug or ""),
             _("Page : %s") % self.page_index,
