@@ -58,6 +58,10 @@ class DoreviaHelloassoFormGuide(models.TransientModel):
         string="Dernière synchro billetterie",
         readonly=True,
     )
+    last_payment_sync_at = fields.Datetime(
+        string="Dernier import paiements",
+        readonly=True,
+    )
 
     _ADHERENTS_DOMAIN = [
         ("helloasso_external_id", "!=", False),
@@ -76,7 +80,7 @@ class DoreviaHelloassoFormGuide(models.TransientModel):
             ("company_id", "=", company.id),
         ]
 
-    def _landing_stats_markup(self, n_adh, n_forms, n_orders):
+    def _landing_stats_markup(self, n_adh, n_forms, n_orders, n_payments):
         """Bloc HTML lecture seule (compteurs échappés)."""
 
         def card(num, label):
@@ -92,6 +96,7 @@ class DoreviaHelloassoFormGuide(models.TransientModel):
             card(n_adh, _("contacts synchronisés pour cette société")),
             card(n_forms, _("campagnes en base pour cette société")),
             card(n_orders, _("commandes importées pour cette société")),
+            card(n_payments, _("paiements importés pour cette société")),
         )
 
     def _checks_markup(self, company, use_sb, slug, api_ready, last_p, last_o):
@@ -145,16 +150,20 @@ class DoreviaHelloassoFormGuide(models.TransientModel):
         Form = self.env["dorevia.helloasso.billetterie.form"].sudo()
         Partner = self.env["res.partner"].sudo()
         Order = self.env["dorevia.helloasso.billetterie.order"].sudo()
+        Payment = self.env["dorevia.helloasso.payment"].sudo()
         form_domain = [("company_id", "=", company.id)]
         order_domain = [("company_id", "=", company.id)]
+        payment_domain = [("company_id", "=", company.id)]
         adherent_domain = self._company_membership_domain(company)
         event_count = Form.search_count(form_domain)
         n_adh = Partner.search_count(adherent_domain)
         n_orders = Order.search_count(order_domain)
+        n_payments = Payment.search_count(payment_domain)
         last_p = Partner.search(
             adherent_domain, order="helloasso_last_sync_at desc", limit=1
         )
         last_o = Order.search(order_domain, order="last_sync_at desc", limit=1)
+        last_pay = Payment.search(payment_domain, order="write_date desc, id desc", limit=1)
         updates = {
             "page_title": _("HelloAsso"),
             "company_label": company.display_name if company else False,
@@ -173,9 +182,12 @@ class DoreviaHelloassoFormGuide(models.TransientModel):
             "checks_html": self._checks_markup(
                 company, use_sb, slug, api_ready, last_p, last_o
             ),
-            "landing_stats_html": self._landing_stats_markup(n_adh, event_count, n_orders),
+            "landing_stats_html": self._landing_stats_markup(
+                n_adh, event_count, n_orders, n_payments
+            ),
             "last_adherent_sync_at": last_p.helloasso_last_sync_at or False,
             "last_billetterie_sync_at": last_o.last_sync_at or False,
+            "last_payment_sync_at": last_pay.write_date or False,
         }
         if fields_list:
             vals.update({k: v for k, v in updates.items() if k in fields_list})
@@ -199,6 +211,12 @@ class DoreviaHelloassoFormGuide(models.TransientModel):
         self.ensure_one()
         return helloasso_prepare_window_action(
             self.env, "dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_order"
+        )
+
+    def action_helloasso_open_payments(self):
+        self.ensure_one()
+        return helloasso_prepare_window_action(
+            self.env, "dorevia_helloasso_payment.action_dorevia_helloasso_payment"
         )
 
     def action_helloasso_open_settings(self):
