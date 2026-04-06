@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dorevia_helloasso_payment_search" model="ir.ui.view">
+        <field name="name">dorevia.helloasso.payment.search</field>
+        <field name="model">dorevia.helloasso.payment</field>
+        <field name="arch" type="xml">
+            <search string="Paiements HelloAsso">
+                <field name="helloasso_payment_ref"/>
+                <field name="helloasso_order_ref"/>
+                <field name="campaign_name"/>
+                <field name="payer_display_name"/>
+                <field name="payer_email"/>
+                <field name="helloasso_account_id"/>
+                <separator/>
+                <filter
+                    string="Paiements plateforme"
+                    name="filter_platform"
+                    domain="[('is_platform_payment', '=', True)]"
+                />
+                <filter
+                    string="Hors ligne"
+                    name="filter_offline"
+                    domain="[('is_offline_payment', '=', True)]"
+                />
+                <separator/>
+                <filter
+                    string="Par campagne"
+                    name="group_campaign"
+                    context="{'group_by': 'campaign_name'}"
+                />
+                <filter
+                    string="Par compte HelloAsso"
+                    name="group_account"
+                    context="{'group_by': 'helloasso_account_id'}"
+                />
+            </search>
+        </field>
+    </record>
+
+    <record id="view_dorevia_helloasso_payment_tree" model="ir.ui.view">
+        <field name="name">dorevia.helloasso.payment.tree</field>
+        <field name="model">dorevia.helloasso.payment</field>
+        <field name="arch" type="xml">
+            <list string="Paiements HelloAsso" create="false">
+                <field name="helloasso_payment_ref"/>
+                <field name="helloasso_order_ref"/>
+                <field name="company_id"/>
+                <field name="campaign_name"/>
+                <field name="payment_date"/>
+                <field name="payer_display_name" string="Payeur"/>
+                <field name="amount_total"/>
+                <field name="payment_status"/>
+                <field name="payout_status"/>
+                <field name="payout_date"/>
+                <field name="helloasso_account_id" optional="hide"/>
+                <field name="campaign_type" optional="hide"/>
+                <field name="payment_method" optional="hide"/>
+                <field name="is_platform_payment" optional="hide"/>
+                <field name="is_offline_payment" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dorevia_helloasso_payment_form" model="ir.ui.view">
+        <field name="name">dorevia.helloasso.payment.form</field>
+        <field name="model">dorevia.helloasso.payment</field>
+        <field name="arch" type="xml">
+            <form string="Paiement HelloAsso" create="false">
+                <sheet>
+                    <group>
+                        <group string="Paiement">
+                            <field name="helloasso_payment_ref" readonly="1"/>
+                            <field name="helloasso_order_ref" readonly="1"/>
+                            <field name="campaign_name" readonly="1"/>
+                            <field name="campaign_type" readonly="1"/>
+                            <field name="payment_kind" readonly="1"/>
+                            <field name="payment_date" readonly="1"/>
+                            <field name="payment_status" readonly="1"/>
+                            <field name="payout_status" readonly="1"/>
+                            <field name="payout_date" readonly="1"/>
+                            <field name="payment_method" readonly="1"/>
+                        </group>
+                        <group string="Rattachement">
+                            <field name="company_id" readonly="1"/>
+                            <field name="helloasso_account_id" readonly="1"/>
+                            <field name="payer_display_name" readonly="1"/>
+                            <field name="payer_firstname" readonly="1"/>
+                            <field name="payer_lastname" readonly="1"/>
+                            <field name="payer_email" readonly="1"/>
+                            <field name="amount_total" readonly="1"/>
+                            <field name="amount_tariff" readonly="1"/>
+                            <field name="amount_options" readonly="1"/>
+                            <field name="amount_extra_donation" readonly="1"/>
+                            <field name="amount_discount" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Source">
+                        <field name="payment_status_raw" readonly="1"/>
+                        <field name="payout_status_raw" readonly="1"/>
+                        <field name="payment_method_raw" readonly="1"/>
+                        <field name="is_platform_payment" readonly="1"/>
+                        <field name="is_offline_payment" readonly="1"/>
+                        <field name="source_payload" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dorevia_helloasso_payment" model="ir.actions.act_window">
+        <field name="name">Paiements</field>
+        <field name="res_model">dorevia.helloasso.payment</field>
+        <field name="search_view_id" ref="view_dorevia_helloasso_payment_search"/>
+        <field name="view_mode">list,form</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('view_dorevia_helloasso_payment_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_dorevia_helloasso_payment_form')})
+            ]"
+        />
+        <field name="context" eval="{'active_id': False, 'active_ids': False, 'active_model': False}"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucun paiement HelloAsso importé pour l’instant.
+            </p>
+            <p>
+                Utilisez l’assistant <strong>Import CSV paiements HelloAsso</strong> pour charger un export CSV et vérifier le flux MVP.
+            </p>
+        </field>
+    </record>
+</odoo>

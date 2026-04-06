@@ -247,4 +247,11 @@
         action="action_dorevia_helloasso_billetterie_order"
         sequence="15"
     />
+    <menuitem
+        id="menu_helloasso_payments"
+        name="Paiements"
+        parent="menu_dorevia_helloasso_root"
+        action="dorevia_helloasso_payment.action_dorevia_helloasso_payment"
+        sequence="25"
+    />
 </odoo>
