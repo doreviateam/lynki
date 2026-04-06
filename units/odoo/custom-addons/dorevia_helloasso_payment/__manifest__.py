@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Dorevia — HelloAsso Payment",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.1.0",
     "category": "Dorevia",
     "summary": "Objet pivot MVP des paiements HelloAsso dans Odoo",
     "description": """
@@ -22,6 +22,8 @@
     ],
     "data": [
         "security/ir.model.access.csv",
+        "security/ir_rule_helloasso_payment.xml",
+        "views/helloasso_payment_csv_wizard_views.xml",
     ],
     "installable": True,
     "application": False,

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import csv
+from io import StringIO
+
 from odoo import _
 
 from .helloasso_payment_mapper import map_csv_payment_row
@@ -57,3 +60,12 @@ def import_csv_payment_rows_message(stats):
     if stats.get("errors"):
         parts.append(_("Erreurs : %s") % len(stats["errors"]))
     return " | ".join(parts)
+
+
+def parse_payment_csv_content(csv_text):
+    text = (csv_text or "").strip()
+    if not text:
+        return []
+    handle = StringIO(text)
+    reader = csv.DictReader(handle, delimiter=";")
+    return list(reader)
