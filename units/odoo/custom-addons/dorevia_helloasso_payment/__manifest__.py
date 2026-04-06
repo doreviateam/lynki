@@ -21,6 +21,7 @@
         "dorevia_helloasso_members",
     ],
     "data": [
+        "data/ir_cron_data.xml",
         "security/ir.model.access.csv",
         "security/ir_rule_helloasso_payment.xml",
         "views/helloasso_payment_views.xml",
