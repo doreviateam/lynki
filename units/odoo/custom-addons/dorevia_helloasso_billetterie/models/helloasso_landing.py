@@ -2,6 +2,11 @@
 """Synthèse connecteur (admin) : indicateurs + raccourcis vers Adhésions / Commandes billetterie."""
 
 from odoo import _, api, fields, models
+from odoo.addons.dorevia_helloasso_members.models.helloasso_company_params import (
+    get_helloasso_connection_params,
+)
+
+from .helloasso_form_guide import helloasso_prepare_window_action
 
 
 class DoreviaHelloassoLanding(models.TransientModel):
@@ -25,11 +30,11 @@ class DoreviaHelloassoLanding(models.TransientModel):
     @api.model
     def default_get(self, fields_list):
         vals = super().default_get(fields_list)
-        icp = self.env["ir.config_parameter"].sudo()
-        use_sb = icp.get_param("dorevia_helloasso.use_sandbox") == "True"
-        slug = (icp.get_param("dorevia_helloasso.organization_slug") or "").strip()
-        cid = (icp.get_param("dorevia_helloasso.client_id") or "").strip()
-        csec = (icp.get_param("dorevia_helloasso.client_secret") or "").strip()
+        params = get_helloasso_connection_params(self.env)
+        use_sb = params["use_sandbox"]
+        slug = (params["organization_slug"] or "").strip()
+        cid = (params["client_id"] or "").strip()
+        csec = (params["client_secret"] or "").strip()
         Partner = self.env["res.partner"].sudo()
         Order = self.env["dorevia.helloasso.billetterie.order"].sudo()
         last_p = Partner.search(self._ADHERENTS_DOMAIN, order="helloasso_last_sync_at desc", limit=1)
@@ -55,3 +60,21 @@ class DoreviaHelloassoLanding(models.TransientModel):
             }
         )
         return vals
+
+    def action_helloasso_open_adhesion(self):
+        self.ensure_one()
+        return helloasso_prepare_window_action(
+            self.env, "dorevia_helloasso_billetterie.action_helloasso_partner_adherents"
+        )
+
+    def action_helloasso_open_billetteries(self):
+        self.ensure_one()
+        return helloasso_prepare_window_action(
+            self.env, "dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_form"
+        )
+
+    def action_helloasso_open_commandes(self):
+        self.ensure_one()
+        return helloasso_prepare_window_action(
+            self.env, "dorevia_helloasso_billetterie.action_dorevia_helloasso_billetterie_order"
+        )

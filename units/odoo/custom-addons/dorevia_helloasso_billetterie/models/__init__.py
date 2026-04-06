@@ -3,6 +3,7 @@
 # puis ``helloasso_billetterie_form`` puis ``helloasso_billetterie_form_captions`` (extension champs affichage)
 # puis ``helloasso_billetterie_order_catalog`` (Many2one vers l'inventaire).
 
+from . import res_company
 from . import helloasso_ux_labels
 from . import helloasso_billetterie_sync
 from . import helloasso_billetterie_order

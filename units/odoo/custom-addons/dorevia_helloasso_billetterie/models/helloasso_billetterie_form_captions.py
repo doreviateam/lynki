@@ -27,17 +27,16 @@ class DoreviaHelloassoBilletterieFormCaptions(models.Model):
         readonly=True,
     )
 
-    @api.depends("organization_slug")
+    @api.depends(
+        "organization_slug",
+        "helloasso_account_id",
+        "helloasso_account_id.organization_display_name",
+    )
     def _compute_billetterie_org_caption(self):
-        icp = self.env["ir.config_parameter"].sudo()
-        label = (icp.get_param("dorevia_helloasso.organization_display_name") or "").strip()
-        param_slug = (icp.get_param("dorevia_helloasso.organization_slug") or "").strip().lower()
         for rec in self:
-            row_slug = (rec.organization_slug or "").strip().lower()
-            if label and param_slug and row_slug == param_slug:
-                rec.billetterie_org_caption = label
-            else:
-                rec.billetterie_org_caption = rec.organization_slug or ""
+            acc = rec.helloasso_account_id
+            name = (acc.organization_display_name or "").strip() if acc else ""
+            rec.billetterie_org_caption = name or (rec.organization_slug or "")
 
     @api.depends("form_type")
     def _compute_billetterie_type_caption(self):

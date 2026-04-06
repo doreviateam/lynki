@@ -14,8 +14,12 @@ from .helloasso_billetterie_sync import (
     format_billetterie_sync_result_message,
     run_billetterie_orders_sync,
 )
+from odoo.addons.dorevia_helloasso_members.models.helloasso_company_params import (
+    get_helloasso_connection_params,
+)
 from odoo.addons.dorevia_helloasso_connector.models.helloasso_client import (
     HelloAssoClientError,
+    HelloAssoConnectionContext,
     fetch_client_credentials_token,
     fetch_organization_forms,
     form_light_form_type_str,
@@ -29,9 +33,9 @@ _FORMS_PAGE_SIZE = 50
 _MAX_FORM_PAGES = 40
 
 
-def fetch_all_organization_forms(organization_slug, access_token, use_sandbox, form_types=None):
+def fetch_all_organization_forms(context, access_token, form_types=None):
     """Parcourt la pagination GET /organizations/{slug}/forms. Retourne (items, nombre_de_pages_lues)."""
-    slug = (organization_slug or "").strip()
+    slug = (context.organization_slug or "").strip()
     if not slug:
         return [], 0
     out = []
@@ -40,9 +44,8 @@ def fetch_all_organization_forms(organization_slug, access_token, use_sandbox, f
     while page <= _MAX_FORM_PAGES:
         try:
             items, _total = fetch_organization_forms(
-                slug,
+                context,
                 access_token,
-                use_sandbox,
                 form_types=form_types,
                 page_index=page,
                 page_size=_FORMS_PAGE_SIZE,
@@ -60,13 +63,31 @@ def fetch_all_organization_forms(organization_slug, access_token, use_sandbox, f
     return out, pages_read
 
 
-def run_billetterie_forms_inventory(env, organization_slug, client_id, client_secret, use_sandbox):
+def run_billetterie_forms_inventory(
+    env, organization_slug, client_id, client_secret, use_sandbox, helloasso_account=None
+):
     """
     Met à jour ``dorevia.helloasso.billetterie.form`` depuis l’API (``formTypes=Event`` : billetteries).
     Retourne un dict stats pour notification.
+
+    :param helloasso_account: record ``dorevia.helloasso.account`` (obligatoire pour le rattachement).
     """
     Form = env["dorevia.helloasso.billetterie.form"].sudo()
+    account = helloasso_account
+    if not account:
+        params = get_helloasso_connection_params(env)
+        account = params.get("helloasso_account")
+    if not account:
+        raise UserError(
+            _(
+                "Aucun compte HelloAsso actif pour cette société : créez-en un "
+                "(Paramètres → Administration → Comptes HelloAsso) ou complétez les identifiants."
+            )
+        )
     org_slug = (organization_slug or "").strip()
+    connection_ctx = HelloAssoConnectionContext.from_primitives(
+        client_id, client_secret, use_sandbox, org_slug
+    )
     stats = {
         "created": 0,
         "updated": 0,
@@ -77,16 +98,14 @@ def run_billetterie_forms_inventory(env, organization_slug, client_id, client_se
     }
 
     try:
-        token_payload = fetch_client_credentials_token(
-            client_id, client_secret, use_sandbox
-        )
+        token_payload = fetch_client_credentials_token(connection_ctx)
     except HelloAssoClientError as err:
         raise UserError(str(err)) from err
 
     token = token_payload["access_token"]
     try:
         items, pages_read = fetch_all_organization_forms(
-            org_slug, token, use_sandbox, form_types=["Event"]
+            connection_ctx, token, form_types=["Event"]
         )
     except HelloAssoClientError as err:
         stats["errors"].append(str(err))
@@ -108,12 +127,12 @@ def run_billetterie_forms_inventory(env, organization_slug, client_id, client_se
             continue
 
         domain = [
-            ("use_sandbox", "=", use_sandbox),
-            ("organization_slug", "=", org_slug),
+            ("helloasso_account_id", "=", account.id),
             ("form_type", "=", ftype),
             ("form_slug", "=", fslug),
         ]
         vals = {
+            "helloasso_account_id": account.id,
             "use_sandbox": use_sandbox,
             "organization_slug": org_slug,
             "form_type": ftype,
@@ -196,14 +215,27 @@ class DoreviaHelloassoBilletterieForm(models.Model):
         string="Nombre de commandes",
         compute="_compute_order_count",
     )
+    helloasso_account_id = fields.Many2one(
+        "dorevia.helloasso.account",
+        string="Compte HelloAsso",
+        ondelete="restrict",
+        index=True,
+        required=True,
+        help="Rattache cette ligne d’inventaire au compte API (société / environnement).",
+    )
+    company_id = fields.Many2one(
+        "res.company",
+        string="Société",
+        related="helloasso_account_id.company_id",
+        store=True,
+        readonly=True,
+        index=True,
+    )
 
-    _sql_constraints = [
-        (
-            "helloasso_billetterie_form_unique",
-            "unique(use_sandbox, organization_slug, form_type, form_slug)",
-            "Ce formulaire HelloAsso est déjà inventorié pour cet environnement et cette organisation.",
-        ),
-    ]
+    _helloasso_billetterie_form_unique_per_account = models.Constraint(
+        "UNIQUE(helloasso_account_id, form_type, form_slug)",
+        "Ce formulaire HelloAsso est déjà inventorié pour ce compte.",
+    )
 
     @api.depends("helloasso_title", "form_slug", "form_type", "billetterie_type_caption")
     def _compute_name(self):
@@ -220,33 +252,58 @@ class DoreviaHelloassoBilletterieForm(models.Model):
             rec.order_count = len(rec.order_ids)
 
     def _helloasso_api_credentials_aligned(self):
-        """Client ID / secret + cohérence sandbox et slug organisation avec les paramètres."""
+        """Client ID / secret alignés sur le compte HelloAsso de la ligne (ou repli paramètres société)."""
         self.ensure_one()
-        icp = self.env["ir.config_parameter"].sudo()
-        cid = (icp.get_param("dorevia_helloasso.client_id") or "").strip()
-        csec = (icp.get_param("dorevia_helloasso.client_secret") or "").strip()
+        if self.helloasso_account_id:
+            acc = self.helloasso_account_id
+            cid = (acc.client_id or "").strip()
+            csec = (acc.client_secret or "").strip()
+            if not (cid and csec):
+                raise UserError(
+                    _("Complétez le client ID et le secret sur le compte HelloAsso « %s ».")
+                    % acc.display_name
+                )
+            cfg_slug = (acc.organization_slug or "").strip()
+            cfg_sb = acc.environment == "sandbox"
+            if cfg_sb != self.use_sandbox:
+                raise UserError(
+                    _(
+                        "L’environnement du compte HelloAsso doit correspondre à la colonne « Essai HelloAsso »."
+                    )
+                )
+            if cfg_slug.lower() != (self.organization_slug or "").strip().lower():
+                raise UserError(
+                    _(
+                        "Le slug du compte HelloAsso (%s) ne correspond pas à celui de cette ligne (%s)."
+                    )
+                    % (cfg_slug or _("(vide)"), self.organization_slug)
+                )
+            return cid, csec
+        params = get_helloasso_connection_params(self.env)
+        cid = params["client_id"]
+        csec = params["client_secret"]
         if not (cid and csec):
             raise UserError(
                 _(
                     "Identifiants HelloAsso manquants. "
-                    "Renseignez-les dans Paramètres généraux (bloc HelloAsso adhérent)."
+                    "Renseignez un compte HelloAsso ou les paramètres société / adhérent."
                 )
             )
-        icp_slug = (icp.get_param("dorevia_helloasso.organization_slug") or "").strip()
-        icp_sb = icp.get_param("dorevia_helloasso.use_sandbox") == "True"
-        if icp_sb != self.use_sandbox:
+        cfg_slug = (params["organization_slug"] or "").strip()
+        cfg_sb = params["use_sandbox"]
+        if cfg_sb != self.use_sandbox:
             raise UserError(
                 _(
                     "L’environnement des paramètres (essai ou production HelloAsso) doit correspondre "
                     "à la colonne « Essai HelloAsso » de cette ligne. Actualisez la liste ou les paramètres."
                 )
             )
-        if icp_slug.lower() != (self.organization_slug or "").strip().lower():
+        if cfg_slug.lower() != (self.organization_slug or "").strip().lower():
             raise UserError(
                 _(
-                    "L’organisation renseignée dans les paramètres (%s) ne correspond pas à celle de cette ligne (%s)."
+                    "L’organisation renseignée dans les paramètres de la société (%s) ne correspond pas à celle de cette ligne (%s)."
                 )
-                % (icp_slug or _("(vide)"), self.organization_slug)
+                % (cfg_slug or _("(vide)"), self.organization_slug)
             )
         return cid, csec
 
@@ -280,6 +337,7 @@ class DoreviaHelloassoBilletterieForm(models.Model):
                 rec.form_slug,
                 catalog_form_id=rec.id,
                 log_origin="catalog_form",
+                helloasso_account=rec.helloasso_account_id,
             )
             message_blocks.append(
                 _("[%s]\n%s")
@@ -306,23 +364,26 @@ class DoreviaHelloassoBilletterieForm(models.Model):
 
         *args / **kwargs : compatibilité Odoo 19+ (call_button peut passer des arguments).
         """
-        icp = self.env["ir.config_parameter"].sudo()
-        cid = (icp.get_param("dorevia_helloasso.client_id") or "").strip()
-        csec = (icp.get_param("dorevia_helloasso.client_secret") or "").strip()
-        slug = (icp.get_param("dorevia_helloasso.organization_slug") or "").strip()
+        params = get_helloasso_connection_params(self.env)
+        cid = params["client_id"]
+        csec = params["client_secret"]
+        slug = params["organization_slug"]
         if not (cid and csec):
             raise UserError(
                 _(
                     "Identifiants HelloAsso manquants. "
-                    "Renseignez-les dans Paramètres généraux (bloc HelloAsso adhérent)."
+                    "Renseignez-les dans Paramètres généraux (bloc HelloAsso adhérent) pour la société courante."
                 )
             )
         if not slug:
-            raise UserError(_("Renseignez l’organisation HelloAsso dans les paramètres."))
-        use_sandbox = icp.get_param("dorevia_helloasso.use_sandbox") == "True"
+            raise UserError(
+                _("Renseignez l’organisation HelloAsso dans les paramètres de la société courante.")
+            )
+        use_sandbox = params["use_sandbox"]
 
+        account = params.get("helloasso_account")
         stats = run_billetterie_forms_inventory(
-            self.env, slug, cid, csec, use_sandbox
+            self.env, slug, cid, csec, use_sandbox, helloasso_account=account
         )
         helloasso_sync_log_push(
             self.env,

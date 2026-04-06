@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Kanban métier : adhésions HelloAsso (cartes par campagne) -->
+    <!--
+        Kanban métier : adhésions HelloAsso.
+        Sans default_group_by : grille type Contacts (cartes en ligne, retour à la ligne, espacement).
+        Regroupement par campagne : filtre de recherche « Par campagne » (group_by helloasso_source_form).
+    -->
     <record id="view_res_partner_kanban_helloasso_memberships" model="ir.ui.view">
         <field name="name">res.partner.kanban.helloasso.memberships</field>
         <field name="model">res.partner</field>
@@ -8,10 +12,8 @@
         <field name="priority" eval="32"/>
         <field name="arch" type="xml">
             <kanban
-                default_group_by="helloasso_sync_form_caption"
                 quick_create="false"
                 create="false"
-                class="o_kanban_small_column"
                 decoration-danger="helloasso_sync_status == 'error'"
                 decoration-warning="helloasso_sync_status in ('pending', 'pending_review')"
                 decoration-muted="helloasso_sync_status == 'never'"
@@ -27,14 +29,17 @@
                 <field name="avatar_128"/>
                 <templates>
                     <t t-name="card" class="flex-row">
-                        <aside class="o_kanban_aside_full pe-2">
-                            <field
-                                name="avatar_128"
-                                widget="image"
-                                options="{'img_class': 'rounded-circle object-fit-cover', 'size': [64, 64]}"
-                            />
+                        <aside class="o_kanban_aside_full">
+                            <div class="position-relative w-100 m-0">
+                                <field
+                                    name="avatar_128"
+                                    widget="image"
+                                    alt="Avatar"
+                                    options="{'img_class': 'rounded-circle object-fit-cover', 'size': [64, 64]}"
+                                />
+                            </div>
                         </aside>
-                        <main class="min-w-0 flex-grow-1">
+                        <main class="ps-2 min-w-0 flex-grow-1">
                             <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
                                 <field name="display_name" class="fw-bold fs-5 text-truncate"/>
                                 <field
@@ -67,6 +72,22 @@
                     </t>
                 </templates>
             </kanban>
+        </field>
+    </record>
+
+    <!-- Recherche : filtre pour regrouper par campagne (champ stocké helloasso_source_form) -->
+    <record id="view_res_partner_filter_helloasso_memberships" model="ir.ui.view">
+        <field name="name">res.partner.search.helloasso.memberships</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <search position="inside">
+                <filter
+                    string="Par campagne"
+                    name="helloasso_group_campaign"
+                    context="{'group_by': 'helloasso_source_form'}"
+                />
+            </search>
         </field>
     </record>
 

@@ -53,6 +53,19 @@ EVENT_FORM = {"formSlug": "soiree-test", "formType": "Event", "title": "Soirée 
 class TestHelloassoBilletterieSyncMvp(TransactionCase):
     """Synchro billetterie mockée."""
 
+    def _ticketing_account(self, slug):
+        return self.env["dorevia.helloasso.account"].sudo().create(
+            {
+                "name": "Test billetterie",
+                "company_id": self.env.company.id,
+                "environment": "sandbox",
+                "organization_slug": slug,
+                "client_id": "cid",
+                "client_secret": "csecret",
+                "use_for_ticketing": True,
+            }
+        )
+
     def _patch_sync(self, orders_list):
         token_p = patch(
             "odoo.addons.dorevia_helloasso_billetterie.models.helloasso_billetterie_sync.fetch_client_credentials_token",
@@ -136,6 +149,7 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
     def test_nominal_creates_order_and_lines(self):
         order = _order_mvp(email="bil_nominal@test.dorevia.local")
         self._patch_sync([order])
+        acc = self._ticketing_account("org-test")
         stats = run_billetterie_orders_sync(
             self.env,
             "org-test",
@@ -144,10 +158,16 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
             True,
             "Event",
             None,
+            helloasso_account=acc,
         )
         self.assertGreaterEqual(stats["created"], 1)
         Order = self.env["dorevia.helloasso.billetterie.order"]
-        rec = Order.search([("helloasso_order_id", "=", "9001")])
+        rec = Order.search(
+            [
+                ("helloasso_order_id", "=", "9001"),
+                ("helloasso_account_id", "=", acc.id),
+            ]
+        )
         self.assertEqual(len(rec), 1)
         self.assertEqual(rec.amount_total, 25.0)
         self.assertEqual(len(rec.line_ids), 1)
@@ -160,8 +180,10 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         order = _order_mvp(oid=9201, email="bil_catalog@test.dorevia.local")
         self._patch_sync([order])
         Form = self.env["dorevia.helloasso.billetterie.form"]
+        acc = self._ticketing_account("org-test")
         cat = Form.create(
             {
+                "helloasso_account_id": acc.id,
                 "use_sandbox": True,
                 "organization_slug": "org-test",
                 "form_type": "Event",
@@ -181,7 +203,12 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         )
         self.assertGreaterEqual(stats["created"], 1)
         Order = self.env["dorevia.helloasso.billetterie.order"]
-        rec = Order.search([("helloasso_order_id", "=", "9201")])
+        rec = Order.search(
+            [
+                ("helloasso_order_id", "=", "9201"),
+                ("helloasso_account_id", "=", acc.id),
+            ]
+        )
         self.assertEqual(len(rec), 1)
         self.assertEqual(rec.catalog_form_id, cat)
 
@@ -189,20 +216,45 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         email = "bil_replay@test.dorevia.local"
         order = _order_mvp(oid=9101, email=email)
         self._patch_sync([order])
+        acc = self._ticketing_account("org")
         stats1 = run_billetterie_orders_sync(
-            self.env, "org", "c", "s", True, "Event", None
+            self.env,
+            "org",
+            "c",
+            "s",
+            True,
+            "Event",
+            None,
+            helloasso_account=acc,
         )
         self.assertGreaterEqual(stats1["created"], 1)
         Order = self.env["dorevia.helloasso.billetterie.order"]
-        r1 = Order.search([("helloasso_order_id", "=", "9101")])
+        r1 = Order.search(
+            [
+                ("helloasso_order_id", "=", "9101"),
+                ("helloasso_account_id", "=", acc.id),
+            ]
+        )
         self.assertEqual(len(r1), 1)
         rid = r1.id
 
         stats2 = run_billetterie_orders_sync(
-            self.env, "org", "c", "s", True, "Event", None
+            self.env,
+            "org",
+            "c",
+            "s",
+            True,
+            "Event",
+            None,
+            helloasso_account=acc,
         )
         self.assertGreaterEqual(stats2["updated"], 1)
-        r2 = Order.search([("helloasso_order_id", "=", "9101")])
+        r2 = Order.search(
+            [
+                ("helloasso_order_id", "=", "9101"),
+                ("helloasso_account_id", "=", acc.id),
+            ]
+        )
         self.assertEqual(len(r2), 1)
         self.assertEqual(r2.id, rid)
 
@@ -214,14 +266,25 @@ class TestHelloassoBilletterieSyncMvp(TransactionCase):
         Partner.create({"name": "Second doublon", "email": email})
         order = _order_mvp(oid=9301, email=email)
         self._patch_sync([order])
+        acc = self._ticketing_account("org-dup")
         stats = run_billetterie_orders_sync(
-            self.env, "org-dup", "c", "s", True, "Event", None
+            self.env,
+            "org-dup",
+            "c",
+            "s",
+            True,
+            "Event",
+            None,
+            helloasso_account=acc,
         )
         self.assertEqual(stats["shared_email_partner_picked"], 1)
         self.assertEqual(stats["skip_ambiguous_partner"], 0)
         self.assertGreaterEqual(stats["created"], 1)
         rec = self.env["dorevia.helloasso.billetterie.order"].search(
-            [("helloasso_order_id", "=", "9301")]
+            [
+                ("helloasso_order_id", "=", "9301"),
+                ("helloasso_account_id", "=", acc.id),
+            ]
         )
         self.assertEqual(len(rec), 1)
         self.assertEqual(rec.payer_partner_id, p1)

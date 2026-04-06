@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Périmètre société active : 1 compte HelloAsso ↔ 1 res.company.
+        Utiliser « company_id » (société courante), pas « company_ids » : ce dernier liste
+        toutes les sociétés cochées dans le sélecteur multi-sociétés, ce qui exposait
+        encore les billetteries LGZ depuis le contexte « RADIO GRAND LIEU ».
+        Voir odoo.addons.base.models.ir_rule.IrRule._eval_context (company_id / company_ids).
+    -->
+    <record id="dorevia_helloasso_billetterie_form_multi_company_rule" model="ir.rule">
+        <field name="name">Billetteries HelloAsso : multi-sociétés</field>
+        <field name="model_id" ref="model_dorevia_helloasso_billetterie_form"/>
+        <field name="domain_force">[('company_id', '=', company_id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user')), (4, ref('base.group_erp_manager')), (4, ref('base.group_system'))]"/>
+    </record>
+    <record id="dorevia_helloasso_billetterie_order_multi_company_rule" model="ir.rule">
+        <field name="name">Commandes billetterie HelloAsso : multi-sociétés</field>
+        <field name="model_id" ref="model_dorevia_helloasso_billetterie_order"/>
+        <field name="domain_force">[('company_id', '=', company_id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user')), (4, ref('base.group_erp_manager')), (4, ref('base.group_system'))]"/>
+    </record>
+    <record id="dorevia_helloasso_billetterie_line_multi_company_rule" model="ir.rule">
+        <field name="name">Lignes billetterie HelloAsso : multi-sociétés</field>
+        <field name="model_id" ref="model_dorevia_helloasso_billetterie_line"/>
+        <field name="domain_force">[('order_id.company_id', '=', company_id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user')), (4, ref('base.group_erp_manager')), (4, ref('base.group_system'))]"/>
+    </record>
+</odoo>

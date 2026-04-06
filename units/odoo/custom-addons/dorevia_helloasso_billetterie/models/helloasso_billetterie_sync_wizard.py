@@ -4,6 +4,10 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
+from odoo.addons.dorevia_helloasso_members.models.helloasso_company_params import (
+    get_helloasso_connection_params,
+)
+
 from .helloasso_billetterie_sync import (
     build_billetterie_preview_report,
     format_billetterie_sync_result_message,
@@ -26,17 +30,17 @@ class DoreviaHelloassoBilletterieSyncWizard(models.TransientModel):
     @api.model
     def default_get(self, fields_list):
         vals = super().default_get(fields_list)
-        icp = self.env["ir.config_parameter"].sudo()
-        use_sb = icp.get_param("dorevia_helloasso.use_sandbox") == "True"
+        params = get_helloasso_connection_params(self.env)
+        use_sb = params["use_sandbox"]
         vals.update(
             {
-                "helloasso_org_slug": (icp.get_param("dorevia_helloasso.organization_slug") or "").strip()
+                "helloasso_org_slug": (params["organization_slug"] or "").strip()
                 or _("(non renseigné)"),
                 "helloasso_form_type": (
-                    icp.get_param("dorevia_helloasso_billetterie.form_type") or "Event"
+                    params["billetterie_form_type"] or "Event"
                 ).strip(),
                 "helloasso_form_slug": (
-                    icp.get_param("dorevia_helloasso_billetterie.form_slug") or ""
+                    params["billetterie_form_slug"] or ""
                 ).strip()
                 or _("(vide — premier formulaire du type)"),
                 "helloasso_sandbox": _("Sandbox") if use_sb else _("Production"),
@@ -46,27 +50,27 @@ class DoreviaHelloassoBilletterieSyncWizard(models.TransientModel):
 
     def _billetterie_api_params(self):
         self.ensure_one()
-        icp = self.env["ir.config_parameter"].sudo()
-        cid = (icp.get_param("dorevia_helloasso.client_id") or "").strip()
-        csec = (icp.get_param("dorevia_helloasso.client_secret") or "").strip()
-        slug = (icp.get_param("dorevia_helloasso.organization_slug") or "").strip()
+        params = get_helloasso_connection_params(self.env)
+        cid = params["client_id"]
+        csec = params["client_secret"]
+        slug = params["organization_slug"]
         if not (cid and csec):
             raise UserError(
                 _(
                     "Identifiants API HelloAsso manquants. "
-                    "Un administrateur doit les renseigner dans Paramètres généraux (bloc HelloAsso adhérent)."
+                    "Un administrateur doit les renseigner dans Paramètres généraux (bloc HelloAsso adhérent) pour la société courante."
                 )
             )
         if not slug:
             raise UserError(
                 _(
                     "Slug organisation HelloAsso manquant. "
-                    "À renseigner dans Paramètres généraux par un administrateur."
+                    "À renseigner dans Paramètres généraux pour la société courante."
                 )
             )
-        use_sandbox = icp.get_param("dorevia_helloasso.use_sandbox") == "True"
-        ft = (icp.get_param("dorevia_helloasso_billetterie.form_type") or "Event").strip()
-        fs = (icp.get_param("dorevia_helloasso_billetterie.form_slug") or "").strip()
+        use_sandbox = params["use_sandbox"]
+        ft = (params["billetterie_form_type"] or "Event").strip()
+        fs = (params["billetterie_form_slug"] or "").strip()
         return {
             "organization_slug": slug,
             "client_id": cid,
@@ -74,6 +78,7 @@ class DoreviaHelloassoBilletterieSyncWizard(models.TransientModel):
             "use_sandbox": use_sandbox,
             "form_type": ft or "Event",
             "form_slug": fs or None,
+            "helloasso_account": params.get("helloasso_account"),
         }
 
     def action_helloasso_billetterie_preview(self, *args, **kwargs):
@@ -113,6 +118,7 @@ class DoreviaHelloassoBilletterieSyncWizard(models.TransientModel):
             p["form_type"],
             p["form_slug"],
             log_origin="wizard",
+            helloasso_account=p.get("helloasso_account"),
         )
         message = format_billetterie_sync_result_message(stats)
         notif_type = (

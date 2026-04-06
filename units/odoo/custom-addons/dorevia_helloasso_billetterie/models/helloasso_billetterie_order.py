@@ -70,14 +70,28 @@ class DoreviaHelloassoBilletterieOrder(models.Model):
     )
     last_sync_at = fields.Datetime(string="Dernière mise à jour", copy=False)
     sync_message = fields.Char(string="Détail import", copy=False)
+    helloasso_account_id = fields.Many2one(
+        "dorevia.helloasso.account",
+        string="Compte HelloAsso",
+        ondelete="restrict",
+        index=True,
+        copy=False,
+        required=True,
+        help="Origine métier de la commande importée (isole LGZ / RGL, etc.).",
+    )
+    company_id = fields.Many2one(
+        "res.company",
+        string="Société",
+        related="helloasso_account_id.company_id",
+        store=True,
+        readonly=True,
+        index=True,
+    )
 
-    _sql_constraints = [
-        (
-            "helloasso_order_id_unique",
-            "unique(helloasso_order_id)",
-            "Une commande avec cet identifiant HelloAsso existe déjà.",
-        ),
-    ]
+    _helloasso_order_unique_per_account = models.Constraint(
+        "UNIQUE(helloasso_account_id, helloasso_order_id)",
+        "Une commande avec cet identifiant HelloAsso existe déjà pour ce compte.",
+    )
 
     @api.depends("form_type")
     def _compute_billetterie_type_caption(self):

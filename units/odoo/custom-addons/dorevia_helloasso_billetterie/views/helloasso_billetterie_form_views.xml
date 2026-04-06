@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Kanban : grille — regroupement colonnes via filtres recherche (Par libellé organisation, etc.). -->
     <record id="view_dorevia_helloasso_billetterie_form_kanban" model="ir.ui.view">
         <field name="name">dorevia.helloasso.billetterie.form.kanban</field>
         <field name="model">dorevia.helloasso.billetterie.form</field>
         <field name="type">kanban</field>
         <field name="arch" type="xml">
             <kanban
-                default_group_by="billetterie_org_caption"
                 quick_create="false"
                 create="false"
-                class="o_kanban_small_column"
                 decoration-info="use_sandbox == True"
             >
                 <field name="id"/>
@@ -23,10 +22,16 @@
                 <field name="order_count"/>
                 <templates>
                     <t t-name="card" class="flex-row">
-                        <aside class="o_kanban_aside_full pe-2 d-flex align-items-center justify-content-center rounded-3 bg-light" style="min-width: 56px; min-height: 56px;">
-                            <span class="fa fa-ticket fa-2x text-primary" title="Billetterie"/>
+                        <aside class="o_kanban_aside_full">
+                            <div class="d-flex align-items-center justify-content-center rounded-3 bg-light m-0" style="min-width: 56px; min-height: 56px;">
+                                <span class="fa fa-ticket fa-2x text-primary" title="Billetterie"/>
+                            </div>
                         </aside>
-                        <main class="min-w-0 flex-grow-1">
+                        <main class="ps-2 min-w-0 flex-grow-1">
+                            <div t-if="record.billetterie_org_caption.raw_value" class="text-muted small text-truncate mb-1">
+                                <span class="fa fa-building me-1" title="Organisation"/>
+                                <field name="billetterie_org_caption"/>
+                            </div>
                             <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
                                 <field name="name" class="fw-bold fs-5 text-truncate"/>
                                 <span t-if="record.use_sandbox.raw_value" class="badge rounded-pill text-bg-info">Essai</span>
@@ -82,6 +87,8 @@
                 <field name="form_slug"/>
                 <field name="organization_slug" optional="hide" readonly="1"/>
                 <field name="form_type" optional="hide" readonly="1"/>
+                <field name="helloasso_account_id" optional="hide" readonly="1"/>
+                <field name="company_id" optional="hide" readonly="1"/>
                 <field name="last_inventory_at" optional="show"/>
             </list>
         </field>
@@ -121,6 +128,8 @@
                             <field name="form_slug" readonly="1"/>
                             <field name="organization_slug" readonly="1" groups="base.group_system"/>
                             <field name="form_type" readonly="1" groups="base.group_system"/>
+                            <field name="helloasso_account_id" readonly="1"/>
+                            <field name="company_id" readonly="1"/>
                         </group>
                         <group string="Suivi">
                             <field name="last_inventory_at" readonly="1"/>
@@ -143,9 +152,15 @@
                 <field name="form_slug"/>
                 <filter string="Essai HelloAsso" name="sandbox" domain="[('use_sandbox', '=', True)]"/>
                 <filter string="Production HelloAsso" name="production" domain="[('use_sandbox', '=', False)]"/>
-                <filter string="Billetteries" name="filter_event" domain="[('form_type', '=ilike', 'event')]"/>
+                <!-- ilike : tolère « Event », variantes API, sans exclure d’anciennes lignes par erreur. -->
+                <filter string="Billetteries (événements)" name="filter_event" domain="[('form_type', 'ilike', 'event')]"/>
                 <filter string="Autres campagnes" name="filter_non_event" domain="['!', ('form_type', 'ilike', 'event')]"/>
                 <separator/>
+                <filter
+                    string="Par libellé organisation"
+                    name="group_billetterie_org_caption"
+                    context="{'group_by': 'billetterie_org_caption'}"
+                />
                 <filter string="Par type" name="group_form_type" context="{'group_by': 'billetterie_type_caption'}"/>
                 <filter string="Par organisation" name="group_org" context="{'group_by': 'organization_slug'}"/>
             </search>

@@ -8,6 +8,7 @@ from odoo.exceptions import UserError
 
 from odoo.addons.dorevia_helloasso_connector.models.helloasso_client import (
     HelloAssoClientError,
+    HelloAssoConnectionContext,
     fetch_client_credentials_token,
     fetch_form_orders_page,
     fetch_organization_forms,
@@ -17,6 +18,9 @@ from odoo.addons.dorevia_helloasso_connector.models.helloasso_client import (
 )
 from odoo.addons.dorevia_helloasso_connector.models.helloasso_datetime import (
     parse_helloasso_api_datetime,
+)
+from odoo.addons.dorevia_helloasso_members.models.helloasso_company_params import (
+    get_helloasso_connection_params,
 )
 
 _logger = logging.getLogger(__name__)
@@ -427,13 +431,7 @@ def pick_first_form_by_type(forms_list, wanted_type):
     return None
 
 
-def resolve_billetterie_form(
-    organization_slug,
-    access_token,
-    use_sandbox,
-    form_type,
-    form_slug=None,
-):
+def resolve_billetterie_form(context, access_token, form_type, form_slug=None):
     """
     Retourne le dict « form light » HelloAsso pour la billetterie.
 
@@ -441,8 +439,9 @@ def resolve_billetterie_form(
     pour appeler directement l’API (le type doit correspondre au chemin v5).
 
     Sinon : premier formulaire dont le formType correspond (insensible à la casse).
+
+    :param context: ``HelloAssoConnectionContext`` (slug + environnement).
     """
-    slug = (organization_slug or "").strip()
     ft = (form_type or "Event").strip() or "Event"
     fs = (form_slug or "").strip()
 
@@ -456,14 +455,14 @@ def resolve_billetterie_form(
     forms_items = None
     try:
         forms_items, _ = fetch_organization_forms(
-            slug, access_token, use_sandbox, form_types=[ft]
+            context, access_token, form_types=[ft]
         )
     except HelloAssoClientError:
         pass
 
     if not forms_items:
         forms_items, _ = fetch_organization_forms(
-            slug, access_token, use_sandbox, form_types=None
+            context, access_token, form_types=None
         )
 
     return pick_first_form_by_type(forms_items, ft)
@@ -535,6 +534,7 @@ def run_billetterie_orders_sync(
     form_slug=None,
     catalog_form_id=None,
     log_origin=None,
+    helloasso_account=None,
 ):
     """
     Retourne un dict : processed, created, updated, skipped, errors (liste de messages).
@@ -542,12 +542,40 @@ def run_billetterie_orders_sync(
     :param catalog_form_id: id d’un ``dorevia.helloasso.billetterie.form`` (inventaire) pour
         lier les commandes créées / mises à jour à cette ligne.
     :param log_origin: si renseigné, enregistre une ligne dans ``dorevia.helloasso.logentry``.
+    :param helloasso_account: record ``dorevia.helloasso.account`` (unicité commande par compte).
     """
     Order = env["dorevia.helloasso.billetterie.order"]
     Line = env["dorevia.helloasso.billetterie.line"]
     Partner = env["res.partner"]
 
+    acc_id = False
+    acc = False
+    if catalog_form_id:
+        cat = env["dorevia.helloasso.billetterie.form"].sudo().browse(catalog_form_id)
+        if cat.helloasso_account_id:
+            acc_id = cat.helloasso_account_id.id
+            acc = cat.helloasso_account_id
+    if not acc_id and helloasso_account:
+        acc = helloasso_account
+        acc_id = acc.id
+    if not acc_id:
+        params_fb = get_helloasso_connection_params(env)
+        ha = params_fb.get("helloasso_account")
+        if ha:
+            acc_id = ha.id
+            acc = ha
+    if not acc_id:
+        raise UserError(
+            _(
+                "Aucun compte HelloAsso pour rattacher les commandes billetterie. "
+                "Configurez les identifiants dans Paramètres ou liez un inventaire de billetterie."
+            )
+        )
+
     org_slug = (organization_slug or "").strip()
+    connection_ctx = HelloAssoConnectionContext.from_primitives(
+        client_id, client_secret, use_sandbox, org_slug
+    )
     stats = {
         "processed": 0,
         "created": 0,
@@ -568,15 +596,13 @@ def run_billetterie_orders_sync(
     }
 
     try:
-        token_payload = fetch_client_credentials_token(
-            client_id, client_secret, use_sandbox
-        )
+        token_payload = fetch_client_credentials_token(connection_ctx)
     except HelloAssoClientError as err:
         raise UserError(str(err)) from err
 
     token = token_payload["access_token"]
     billet_form = resolve_billetterie_form(
-        org_slug, token, use_sandbox, form_type or "Event", form_slug
+        connection_ctx, token, form_type or "Event", form_slug
     )
     if not billet_form:
         raise UserError(
@@ -599,11 +625,10 @@ def run_billetterie_orders_sync(
     while page <= _MAX_ORDER_PAGES:
         try:
             items, _total, _raw = fetch_form_orders_page(
-                org_slug,
+                connection_ctx,
                 ftype,
                 fslug,
                 token,
-                use_sandbox,
                 page_index=page,
                 page_size=_ORDER_PAGE_SIZE,
             )
@@ -647,12 +672,17 @@ def run_billetterie_orders_sync(
                 Partner, payer_em, payer_fn, payer_ln, stats
             )
             if not payer_partner:
-                payer_partner = Partner.create(
-                    {
-                        "name": _partner_display_name(payer_fn, payer_ln, payer_em),
-                        "email": payer_em,
-                    }
-                )
+                create_p = {
+                    "name": _partner_display_name(payer_fn, payer_ln, payer_em),
+                    "email": payer_em,
+                }
+                if (
+                    acc
+                    and acc.company_id
+                    and "company_id" in Partner._fields
+                ):
+                    create_p["company_id"] = acc.company_id.id
+                payer_partner = Partner.create(create_p)
 
             amt = _order_amount_euros(order)
             dt = parse_helloasso_api_datetime(_order_first_datetime_raw(order))
@@ -672,8 +702,13 @@ def run_billetterie_orders_sync(
             }
             if catalog_form_id:
                 order_vals["catalog_form_id"] = catalog_form_id
+            order_vals["helloasso_account_id"] = acc_id
 
-            existing = Order.search([("helloasso_order_id", "=", oid)])
+            domain_oid = [
+                ("helloasso_order_id", "=", oid),
+                ("helloasso_account_id", "=", acc_id),
+            ]
+            existing = Order.search(domain_oid)
             if len(existing) > 1:
                 stats["skipped"] += 1
                 stats["skip_duplicate_odoo"] += 1
@@ -759,17 +794,20 @@ def build_billetterie_preview_report(
         order_or_payment_trace_ids,
     )
 
-    icp = env["ir.config_parameter"].sudo()
+    params = get_helloasso_connection_params(env)
     if form_type is None:
-        form_type = (icp.get_param("dorevia_helloasso_billetterie.form_type") or "Event").strip()
+        form_type = (params["billetterie_form_type"] or "Event").strip()
     else:
         form_type = (form_type or "Event").strip()
     if form_slug is None:
-        form_slug = (icp.get_param("dorevia_helloasso_billetterie.form_slug") or "").strip()
+        form_slug = (params["billetterie_form_slug"] or "").strip()
     else:
         form_slug = (form_slug or "").strip()
 
     slug = (organization_slug or "").strip()
+    connection_ctx = HelloAssoConnectionContext.from_primitives(
+        client_id, client_secret, use_sandbox, slug
+    )
     lines = [
         _("Aperçu billetterie — lecture seule, aucune écriture Odoo."),
         _("Organisation : %s — formType paramétré : %s") % (slug, form_type),
@@ -778,15 +816,13 @@ def build_billetterie_preview_report(
         lines.append(_("Form slug forcé : %s") % form_slug)
 
     try:
-        token_payload = fetch_client_credentials_token(
-            client_id, client_secret, use_sandbox
-        )
+        token_payload = fetch_client_credentials_token(connection_ctx)
     except HelloAssoClientError as err:
         return "\n".join(lines + [str(err)])
 
     token = token_payload["access_token"]
     billet_form = resolve_billetterie_form(
-        slug, token, use_sandbox, form_type, form_slug or None
+        connection_ctx, token, form_type, form_slug or None
     )
     if not billet_form:
         lines.append(
@@ -807,7 +843,7 @@ def build_billetterie_preview_report(
 
     try:
         ord_items, order_total, _raw = fetch_form_orders_page(
-            slug, ftype, fslug, token, use_sandbox, page_index=1, page_size=5
+            connection_ctx, ftype, fslug, token, page_index=1, page_size=5
         )
     except HelloAssoClientError as err:
         lines.append(_("Commandes : %s") % str(err))
