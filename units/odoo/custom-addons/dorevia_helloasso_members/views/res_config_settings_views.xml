@@ -6,35 +6,30 @@
         <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//div[@id='companies']" position="after">
-                <block title="HelloAsso (Members)" name="dorevia_helloasso_settings_block">
-                    <setting
-                        string="Identifiants API"
-                        help="Client ID et secret depuis HelloAsso : Mon compte → Intégrations et API. Préférer le sandbox pour les tests (REF_API)."
-                    >
-                        <field name="helloasso_use_sandbox"/>
-                        <field name="helloasso_organization_slug" placeholder="ex. mon-association"/>
-                        <field name="helloasso_organization_display_name" placeholder="ex. Association Mon Projet"/>
-                        <field name="helloasso_client_id"/>
-                        <field name="helloasso_client_secret" password="True"/>
+                <block title="HelloAsso" name="dorevia_helloasso_settings_block">
+                    <setting>
+                        <field
+                            name="company_id"
+                            string="Société"
+                            class="w-100"
+                            options="{'no_create': True}"
+                        />
                     </setting>
-                    <setting string="Actions (MVP)">
-                        <button
-                            name="action_helloasso_test_connection"
-                            type="object"
-                            string="Tester la connexion"
-                            class="btn-primary"
+                    <setting help="Client ID : HelloAsso → Mon compte → Intégrations et API.">
+                        <field
+                            name="helloasso_client_id"
+                            string="ID"
+                            class="w-100 text-monospace"
+                            placeholder="Coller l’identifiant client"
                         />
-                        <button
-                            name="action_helloasso_preview_data"
-                            type="object"
-                            string="Prévisualiser les données HelloAsso"
-                            class="btn-secondary"
-                        />
-                        <button
-                            name="action_helloasso_sync_members"
-                            type="object"
-                            string="Synchroniser les adhérents"
-                            class="btn-secondary"
+                    </setting>
+                    <setting help="Secret HelloAsso (Intégrations et API). Affichage masqué : saisir une nouvelle valeur pour la remplacer ; enregistrer sans toucher au champ conserve la clé déjà stockée.">
+                        <field
+                            name="helloasso_oauth_key"
+                            string="Clé"
+                            password="True"
+                            class="w-100 text-monospace"
+                            placeholder="••••••••"
                         />
                     </setting>
                 </block>

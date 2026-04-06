@@ -8,6 +8,7 @@ from odoo.exceptions import UserError
 
 from odoo.addons.dorevia_helloasso_connector.models.helloasso_client import (
     HelloAssoClientError,
+    HelloAssoConnectionContext,
     fetch_client_credentials_token,
     fetch_form_payments_page,
     form_light_form_type_str,
@@ -210,16 +211,32 @@ def _partner_display_name(firstname, lastname, email):
 
 
 def run_membership_payments_sync(
-    env, organization_slug, client_id, client_secret, use_sandbox, log_origin=None
+    env,
+    organization_slug,
+    client_id,
+    client_secret,
+    use_sandbox,
+    log_origin=None,
+    helloasso_account=None,
 ):
     """
     Retourne un dict : processed, created, updated, skipped, errors (list of str messages).
 
     :param log_origin: si renseigné (clé ``origin`` du journal), enregistre une ligne dans
         ``dorevia.helloasso.logentry`` après exécution.
+    :param helloasso_account: record ``dorevia.helloasso.account`` (rattachement contact).
     """
     Partner = env["res.partner"]
+    account = helloasso_account
+    account_id = account.id if account else False
+    company = env.company
+    comp_domain = []
+    if company:
+        comp_domain = ["|", ("company_id", "=", False), ("company_id", "=", company.id)]
     slug = (organization_slug or "").strip()
+    connection_ctx = HelloAssoConnectionContext.from_primitives(
+        client_id, client_secret, use_sandbox, slug
+    )
     stats = {
         "processed": 0,
         "created": 0,
@@ -229,14 +246,12 @@ def run_membership_payments_sync(
     }
 
     try:
-        token_payload = fetch_client_credentials_token(
-            client_id, client_secret, use_sandbox
-        )
+        token_payload = fetch_client_credentials_token(connection_ctx)
     except HelloAssoClientError as err:
         raise UserError(str(err)) from err
 
     token = token_payload["access_token"]
-    membership_form = resolve_membership_form(slug, token, use_sandbox)
+    membership_form = resolve_membership_form(connection_ctx, token)
     if not membership_form:
         raise UserError(
             _("Aucun formulaire « Membership » trouvé pour cette organisation.")
@@ -252,11 +267,10 @@ def run_membership_payments_sync(
     while page <= _MAX_PAYMENT_PAGES:
         try:
             items, _total, _raw = fetch_form_payments_page(
-                slug,
+                connection_ctx,
                 ftype,
                 fslug,
                 token,
-                use_sandbox,
                 page_index=page,
                 page_size=_PAYMENT_PAGE_SIZE,
             )
@@ -289,8 +303,12 @@ def run_membership_payments_sync(
                 continue
 
             trace_vals = _payment_trace_vals(payment, fslug, ftype, form_title)
+            if account_id and "helloasso_account_id" in Partner._fields:
+                trace_vals["helloasso_account_id"] = account_id
 
-            by_ext = Partner.search([("helloasso_external_id", "=", pid)])
+            by_ext = Partner.search(
+                [("helloasso_external_id", "=", pid)] + comp_domain
+            )
             if len(by_ext) > 1:
                 stats["skipped"] += 1
                 _logger.warning(
@@ -302,7 +320,9 @@ def run_membership_payments_sync(
                 partner = by_ext
                 mode = "update"
             else:
-                by_mail = Partner.search([("email", "=ilike", email)])
+                by_mail = Partner.search(
+                    [("email", "=ilike", email)] + comp_domain
+                )
                 if len(by_mail) > 1:
                     stats["skipped"] += 1
                     _logger.warning(
@@ -322,6 +342,10 @@ def run_membership_payments_sync(
                     create_vals["firstname"] = fn
                     create_vals["lastname"] = ln
                 create_vals["name"] = _partner_display_name(fn, ln, email)
+                if company and "company_id" in Partner._fields:
+                    create_vals["company_id"] = company.id
+                if account_id and "helloasso_account_id" in Partner._fields:
+                    create_vals["helloasso_account_id"] = account_id
                 Partner.create(create_vals)
                 stats["created"] += 1
                 _logger.info("HelloAsso sync: création partenaire payment=%s email=%s", pid, email)

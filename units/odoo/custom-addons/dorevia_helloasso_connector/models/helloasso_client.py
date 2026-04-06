@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """Client HTTP HelloAsso (OAuth2 + API v5) — socle ``dorevia_helloasso_connector`` (REF_API §2.2, §2.4)."""
 
+from __future__ import annotations
+
 import logging
+from dataclasses import dataclass
 from urllib.parse import quote
 
 import requests
@@ -12,6 +15,36 @@ SANDBOX_API_ROOT = "https://api.helloasso-sandbox.com"
 PRODUCTION_API_ROOT = "https://api.helloasso.com"
 OAUTH_TOKEN_PATH = "/oauth2/token"
 API_V5_PREFIX = "/v5"
+
+
+@dataclass(frozen=True)
+class HelloAssoConnectionContext:
+    """Paramètres OAuth + organisation pour les appels API v5 (voie explicite Lot 2).
+
+    Les champs ``client_id`` / ``client_secret`` peuvent être vides lorsque seuls
+    ``use_sandbox`` et ``organization_slug`` sont nécessaires (jeton déjà obtenu) ;
+    ``fetch_client_credentials_token`` exige toutefois des identifiants non vides.
+    """
+
+    client_id: str
+    client_secret: str
+    use_sandbox: bool
+    organization_slug: str = ""
+
+    @classmethod
+    def from_primitives(
+        cls,
+        client_id,
+        client_secret,
+        use_sandbox,
+        organization_slug="",
+    ):
+        return cls(
+            client_id=(client_id or "").strip(),
+            client_secret=(client_secret or "").strip(),
+            use_sandbox=bool(use_sandbox),
+            organization_slug=(organization_slug or "").strip(),
+        )
 
 
 class HelloAssoClientError(Exception):
@@ -53,13 +86,18 @@ def _oauth_error_message(payload):
     return None
 
 
-def fetch_client_credentials_token(client_id, client_secret, use_sandbox, timeout=20):
+def fetch_client_credentials_token(context: HelloAssoConnectionContext, timeout=20):
     """
     POST grant_type=client_credentials (usage ponctuel : test connexion ou bootstrap).
 
     Retourne un dict avec au minimum ``access_token`` (et éventuellement
     ``refresh_token``, ``expires_in``, etc.).
+
+    :param context: identifiants et environnement ; voie nominale Lot 2.
     """
+    client_id = context.client_id
+    client_secret = context.client_secret
+    use_sandbox = context.use_sandbox
     if not client_id or not client_secret:
         raise HelloAssoClientError(
             "Identifiants manquants : renseignez le client ID et le client secret."
@@ -115,16 +153,17 @@ def fetch_client_credentials_token(client_id, client_secret, use_sandbox, timeou
     return payload
 
 
-def fetch_form_types_sample(organization_slug, access_token, use_sandbox, timeout=20):
+def fetch_form_types_sample(context: HelloAssoConnectionContext, access_token, timeout=20):
     """
     GET /v5/organizations/{slug}/formTypes — ping lecture (REF_API §2.4).
 
     Retourne (liste ou None, message court pour l'UI).
     """
-    slug = (organization_slug or "").strip()
+    slug = (context.organization_slug or "").strip()
     if not slug:
         return None, ""
 
+    use_sandbox = context.use_sandbox
     url = f"{api_v5_base(use_sandbox)}/organizations/{slug}/formTypes"
     headers = {
         "Authorization": f"Bearer {access_token}",
@@ -255,9 +294,8 @@ def _raise_for_status(path_label, status_code, body):
 
 
 def fetch_organization_forms(
-    organization_slug,
+    context: HelloAssoConnectionContext,
     access_token,
-    use_sandbox,
     form_types=None,
     page_index=1,
     page_size=50,
@@ -269,10 +307,11 @@ def fetch_organization_forms(
     form_types : ex. [\"Membership\"] pour filtrer ; None = pas de filtre type.
     Retourne (items, total_count_optionnel).
     """
-    slug = (organization_slug or "").strip()
+    slug = (context.organization_slug or "").strip()
     if not slug:
         return None, None
 
+    use_sandbox = context.use_sandbox
     base = api_v5_base(use_sandbox)
     url = f"{base}/organizations/{quote(slug, safe='')}/forms"
     params = [("pageIndex", page_index), ("pageSize", page_size)]
@@ -304,11 +343,10 @@ def fetch_organization_forms(
 
 
 def fetch_form_orders_page(
-    organization_slug,
+    context: HelloAssoConnectionContext,
     form_type,
     form_slug,
     access_token,
-    use_sandbox,
     page_index=1,
     page_size=1,
     timeout=25,
@@ -317,12 +355,13 @@ def fetch_form_orders_page(
     GET …/forms/{formType}/{formSlug}/orders — FormAdmin / OrganizationAdmin + AccessTransactions.
     Retourne (items_première_page, total_count_sur_toutes_pages_ou_None, corps_JSON_brut_si_HTTP_200).
     """
-    org = (organization_slug or "").strip()
+    org = (context.organization_slug or "").strip()
     ft = (form_type or "").strip()
     fs = (form_slug or "").strip()
     if not org or not ft or not fs:
         return None, None, None
 
+    use_sandbox = context.use_sandbox
     base = api_v5_base(use_sandbox)
     path = (
         f"/organizations/{quote(org, safe='')}/forms/"
@@ -356,11 +395,10 @@ def fetch_form_orders_page(
 
 
 def fetch_form_payments_page(
-    organization_slug,
+    context: HelloAssoConnectionContext,
     form_type,
     form_slug,
     access_token,
-    use_sandbox,
     page_index=1,
     page_size=1,
     timeout=25,
@@ -369,12 +407,13 @@ def fetch_form_payments_page(
     GET …/forms/{formType}/{formSlug}/payments — mêmes rôles / privilèges que les commandes.
     Retourne (items, total, corps_JSON_brut_si_HTTP_200).
     """
-    org = (organization_slug or "").strip()
+    org = (context.organization_slug or "").strip()
     ft = (form_type or "").strip()
     fs = (form_slug or "").strip()
     if not org or not ft or not fs:
         return None, None, None
 
+    use_sandbox = context.use_sandbox
     base = api_v5_base(use_sandbox)
     path = (
         f"/organizations/{quote(org, safe='')}/forms/"
@@ -444,12 +483,12 @@ def pick_first_membership_form(forms_list):
     return None
 
 
-def resolve_membership_form(organization_slug, access_token, use_sandbox):
+def resolve_membership_form(context: HelloAssoConnectionContext, access_token):
     """
-    Premier formulaire Membership pour l’organisation (même logique que la prévisualisation).
+    Premier formulaire Membership pour l'organisation (même logique que la prévisualisation).
     Retourne le dict « form light » ou None.
     """
-    slug = (organization_slug or "").strip()
+    slug = (context.organization_slug or "").strip()
     if not slug:
         return None
 
@@ -457,7 +496,7 @@ def resolve_membership_form(organization_slug, access_token, use_sandbox):
     membership_filter_nonempty = False
     try:
         forms_items, _ = fetch_organization_forms(
-            slug, access_token, use_sandbox, form_types=["Membership"]
+            context, access_token, form_types=["Membership"]
         )
         if forms_items:
             membership_filter_nonempty = True
@@ -467,7 +506,7 @@ def resolve_membership_form(organization_slug, access_token, use_sandbox):
     if not forms_items:
         try:
             forms_items, _ = fetch_organization_forms(
-                slug, access_token, use_sandbox, form_types=None
+                context, access_token, form_types=None
             )
         except HelloAssoClientError:
             return None
@@ -480,7 +519,7 @@ def resolve_membership_form(organization_slug, access_token, use_sandbox):
     ):
         try:
             alt_items, _ = fetch_organization_forms(
-                slug, access_token, use_sandbox, form_types=None
+                context, access_token, form_types=None
             )
             membership_form = pick_first_membership_form(alt_items or [])
         except HelloAssoClientError:

@@ -221,6 +221,7 @@ class TestHelloassoSyncMvp(TransactionCase):
             self.assertFalse(p.helloasso_external_id)
 
     def test_cron_skips_when_credentials_missing(self):
+        self.env["dorevia.helloasso.account"].sudo().search([]).unlink()
         icp = self.env["ir.config_parameter"].sudo()
         icp.set_param("dorevia_helloasso.client_id", "")
         icp.set_param("dorevia_helloasso.client_secret", "")
@@ -238,6 +239,7 @@ class TestHelloassoSyncMvp(TransactionCase):
             "skipped": 0,
             "errors": [],
         }
+        self.env["dorevia.helloasso.account"].sudo().search([]).unlink()
         icp = self.env["ir.config_parameter"].sudo()
         icp.set_param("dorevia_helloasso.client_id", "cid")
         icp.set_param("dorevia_helloasso.client_secret", "sec")
@@ -251,3 +253,35 @@ class TestHelloassoSyncMvp(TransactionCase):
         self.assertEqual(args[3], "sec")
         self.assertTrue(args[4])
         self.assertEqual(mock_run.call_args.kwargs.get("log_origin"), "cron")
+        acc_kw = mock_run.call_args.kwargs.get("helloasso_account")
+        self.assertFalse(acc_kw)
+
+    @patch(
+        "odoo.addons.dorevia_helloasso_members.models.helloasso_cron.run_membership_payments_sync"
+    )
+    def test_cron_uses_helloasso_account_when_present(self, mock_run):
+        mock_run.return_value = {
+            "processed": 0,
+            "created": 0,
+            "updated": 0,
+            "skipped": 0,
+            "errors": [],
+        }
+        self.env["dorevia.helloasso.account"].sudo().search([]).unlink()
+        company = self.env.company
+        account = self.env["dorevia.helloasso.account"].create(
+            {
+                "name": "Test HA",
+                "company_id": company.id,
+                "environment": "sandbox",
+                "organization_slug": "slug-acc",
+                "client_id": "acc-id",
+                "client_secret": "acc-sec",
+                "use_for_members": True,
+                "use_for_ticketing": False,
+            }
+        )
+        self.env["dorevia.helloasso.cron"].cron_sync_membership_adherents()
+        mock_run.assert_called_once()
+        self.assertEqual(mock_run.call_args.args[1], "slug-acc")
+        self.assertEqual(mock_run.call_args.kwargs.get("helloasso_account"), account)

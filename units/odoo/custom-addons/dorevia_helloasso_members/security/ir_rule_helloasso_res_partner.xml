@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Adhésions HelloAsso (res.partner avec champs membership) : même logique que la billetterie —
+        société active (company_id dans le contexte ir.rule), pas la liste des sociétés cochées.
+        Les contacts sans flux HelloAsso Membership restent visibles (branches 1–2).
+    -->
+    <record id="dorevia_helloasso_partner_membership_multi_company_rule" model="ir.rule">
+        <field name="name">Contacts : adhésions HelloAsso — société active</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="domain_force">
+            ['|', '|', ('helloasso_external_id', '=', False), ('helloasso_form_type', 'not in', ('Membership', 'membership')), ('helloasso_account_id.company_id', '=', company_id)]
+        </field>
+        <field name="groups" eval="[(4, ref('base.group_user')), (4, ref('base.group_erp_manager')), (4, ref('base.group_system'))]"/>
+    </record>
+</odoo>

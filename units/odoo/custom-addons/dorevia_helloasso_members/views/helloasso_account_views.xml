@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dorevia_helloasso_account_tree" model="ir.ui.view">
+        <field name="name">dorevia.helloasso.account.list</field>
+        <field name="model">dorevia.helloasso.account</field>
+        <field name="arch" type="xml">
+            <list string="Comptes HelloAsso">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="environment"/>
+                <field name="organization_slug"/>
+                <field name="use_for_members"/>
+                <field name="use_for_ticketing"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dorevia_helloasso_account_form" model="ir.ui.view">
+        <field name="name">dorevia.helloasso.account.form</field>
+        <field name="model">dorevia.helloasso.account</field>
+        <field name="arch" type="xml">
+            <form string="Compte HelloAsso">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="ex. HelloAsso — LGZ"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Société Odoo">
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="company_id" options="{'no_create': True}"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group string="Environnement HelloAsso">
+                            <field name="environment"/>
+                            <field name="organization_slug"/>
+                            <field name="organization_display_name"/>
+                        </group>
+                    </group>
+                    <group string="Identifiants API (client credentials)">
+                        <field name="client_id"/>
+                        <field name="client_secret" password="True"/>
+                    </group>
+                    <group string="Périmètre des flux">
+                        <field name="use_for_members"/>
+                        <field name="use_for_ticketing"/>
+                    </group>
+                    <group string="Billetterie — valeurs par défaut">
+                        <field name="billetterie_default_form_type"/>
+                        <field name="billetterie_default_form_slug"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dorevia_helloasso_account" model="ir.actions.act_window">
+        <field name="name">Comptes HelloAsso</field>
+        <field name="res_model">dorevia.helloasso.account</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créez un compte HelloAsso par association (société Odoo).
+            </p>
+            <p>
+                Une société Odoo correspond à un seul compte HelloAsso (identifiants, environnement, slug).
+                Les planificateurs adhésion et billetterie utilisent ce compte.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_dorevia_helloasso_accounts"
+        name="Comptes HelloAsso"
+        parent="base.menu_administration"
+        action="action_dorevia_helloasso_account"
+        sequence="42"
+    />
+</odoo>
