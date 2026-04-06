@@ -248,17 +248,26 @@
         sequence="15"
     />
     <menuitem
+        id="menu_helloasso_payment"
+        name="Paiement"
+        parent="menu_dorevia_helloasso_root"
+        sequence="25"
+    />
+    <record id="menu_helloasso_payment" model="ir.ui.menu">
+        <field name="action" eval="False"/>
+    </record>
+    <menuitem
         id="menu_helloasso_payments"
         name="Paiements"
-        parent="menu_dorevia_helloasso_root"
+        parent="menu_helloasso_payment"
         action="dorevia_helloasso_payment.action_dorevia_helloasso_payment"
-        sequence="25"
+        sequence="5"
     />
     <menuitem
         id="menu_helloasso_payments_csv_import"
         name="Importer un CSV"
-        parent="menu_helloasso_payments"
+        parent="menu_helloasso_payment"
         action="dorevia_helloasso_payment.action_dorevia_helloasso_payment_csv_wizard"
-        sequence="5"
+        sequence="15"
     />
 </odoo>
