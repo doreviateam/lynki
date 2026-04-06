@@ -16,11 +16,17 @@ Après un ajout ou une mise à jour de module dans ce dossier sur l’hôte :
 3. Dans l’interface Odoo : **Apps** → **Mettre à jour la liste des Apps**.
 4. Rechercher **dorevia** ou **HelloAsso**, puis **Installer** (ou **Mettre à jour**) le module concerné.
 
-### Modules HelloAsso — `dorevia_helloasso_members` et shim `dorevia_helloasso_adherent`
+### Modules HelloAsso — pile nominale (sans shim)
 
-La **synchro Membership**, le **cron**, la **prévisualisation** et le bloc **Paramètres** HelloAsso sont dans **`dorevia_helloasso_members`** (dépend du socle **`dorevia_helloasso_connector`**). **`dorevia_helloasso_adherent`** est un **shim** (même nom de module pour les bases existantes) qui ne fait que dépendre de `members` et rester **application** dans la liste des Apps.
+La chaîne utile est **trois modules** :
 
-Connecteur MVP HelloAsso → `res.partner` (paramètres API sous **Paramètres**, bloc HelloAsso ; champs techniques sur le partenaire via **`dorevia_partner_membership_fields`**).
+* **`dorevia_helloasso_connector`** — client HTTP / OAuth, journal `dorevia.helloasso.logentry` ;
+* **`dorevia_helloasso_members`** — synchro Membership, cron, prévisualisation, paramètres, comptes HelloAsso ;
+* **`dorevia_helloasso_billetterie`** — inventaire billetterie, commandes, menus associés.
+
+Le module historique **`dorevia_helloasso_adherent`** a été **supprimé du dépôt** : après **Mettre à jour la liste des Apps**, il ne doit plus apparaître dans le catalogue.
+
+Connecteur HelloAsso → `res.partner` (paramètres API sous **Paramètres**, bloc HelloAsso ; champs techniques sur le partenaire via **`dorevia_partner_membership_fields`**).
 
 « Tester la connexion » appelle OAuth2 + optionnellement `formTypes`. « Prévisualiser les données HelloAsso » : rapport **lecture seule** (formTypes, formulaires Membership, totaux commandes/paiements, identifiants candidats) dans une **fenêtre modale** — pas seulement une notification courte ; détail aussi dans les logs serveur. « Synchroniser les adhérents » reste un stub jusqu’au mapping SPEC §6.2.
 
@@ -56,7 +62,7 @@ Le script **`upgrade-dorevia-odoo-on-host.sh`** vérifie la présence de `catalo
 
 Le modèle technique est **`dorevia.helloasso.logentry`** (module **`dorevia_helloasso_connector`**, fichier `helloasso_sync_log.py`). Les droits **`ir.model.access`** sont créés au chargement du registre via **`_register_hook`**.
 
-Ordre recommandé : **`dorevia_helloasso_connector`** → **`dorevia_helloasso_members`** → **`dorevia_helloasso_adherent`** (shim) → **`dorevia_helloasso_billetterie`**.
+Ordre recommandé : **`dorevia_helloasso_connector`** → **`dorevia_helloasso_members`** → **`dorevia_helloasso_billetterie`**.
 
 ### Documents (OCA **dms**) sur Odoo 19
 
@@ -80,15 +86,13 @@ docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_
 docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_res_config_dms_shim \
   || docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_res_config_dms_shim
 
-# Mise à jour des modules Dorevia (ordre : champs partenaire → connector → members → shim adherent → billetterie)
+# Mise à jour des modules Dorevia (ordre : champs partenaire → connector → members → billetterie)
 docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl \
   dorevia_partner_membership_fields
 docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_helloasso_connector \
   || docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_helloasso_connector
 docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_helloasso_members \
   || docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_helloasso_members
-docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl \
-  dorevia_helloasso_adherent
 docker exec odoo_lab_glz-rgl odoo module install -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_helloasso_billetterie \
   || docker exec odoo_lab_glz-rgl odoo module upgrade -c /etc/odoo/odoo.conf -d odoo_lab_glz_rgl dorevia_helloasso_billetterie
 ```
@@ -104,4 +108,4 @@ cd /opt/dorevia-plateform
 bash tenants/glz-rgl/apps/odoo/lab/upgrade-dorevia-odoo-on-host.sh
 ```
 
-Le script enchaîne `git pull`, `odoo module upgrade` (ou install) sur les modules Dorevia **membership_fields**, **helloasso_adherent** et **helloasso_billetterie**, puis `docker restart` du conteneur Odoo. Entre adhérent et billetterie, il vérifie que le code du **journal** (`dorevia.helloasso.logentry`) est bien présent dans le volume, puis que **`catalog_form_id`** est présent côté billetterie. Variables optionnelles : `REPO_ROOT`, `ODOO_CONTAINER`, `ODOO_DB`, `ODOO_CONF`, `GIT_BRANCH`.
+Le script enchaîne `git pull`, `odoo module upgrade` (ou install) sur la chaîne **membership_fields** → **connector** → **members** → **billetterie**, puis `docker restart` du conteneur Odoo. Entre **members** et **billetterie**, il vérifie que le code du **journal** (`dorevia.helloasso.logentry`) est bien présent dans le volume, puis que **`catalog_form_id`** est présent côté billetterie. Variables optionnelles : `REPO_ROOT`, `ODOO_CONTAINER`, `ODOO_DB`, `ODOO_CONF`, `GIT_BRANCH`.
