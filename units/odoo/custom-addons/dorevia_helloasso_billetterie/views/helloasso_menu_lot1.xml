@@ -28,17 +28,17 @@
         </field>
     </record>
 
-    <!-- Synthèse connecteur (admin) — plus en entrée principale de l’app -->
+    <!-- Vue legacy admin : conservée pour compatibilité, non exposée comme entrée principale -->
     <record id="view_dorevia_helloasso_landing_form" model="ir.ui.view">
-        <field name="name">dorevia.helloasso.landing.form</field>
+        <field name="name">dorevia.helloasso.landing.form.legacy</field>
         <field name="model">dorevia.helloasso.landing</field>
         <field name="arch" type="xml">
-            <form string="Synthèse connecteur HelloAsso" edit="false">
+            <form string="Synthèse connecteur HelloAsso (legacy admin)" edit="false">
                 <sheet>
                     <div class="oe_title">
-                        <h1>HelloAsso</h1>
+                        <h1>HelloAsso (legacy admin)</h1>
                         <p class="text-muted">
-                            Indicateurs techniques et raccourcis — la collecte publique reste sur HelloAsso.
+                            Vue conservée pour compatibilité. Utiliser la landing HelloAsso du menu pour le suivi par société active.
                         </p>
                     </div>
                     <group string="Configuration (Paramètres)">
@@ -83,7 +83,7 @@
     </record>
 
     <record id="action_dorevia_helloasso_landing" model="ir.actions.act_window">
-        <field name="name">Synthèse connecteur</field>
+        <field name="name">Synthèse connecteur (legacy admin)</field>
         <field name="res_model">dorevia.helloasso.landing</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>

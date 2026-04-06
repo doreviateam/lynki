@@ -11,7 +11,7 @@ from .helloasso_form_guide import helloasso_prepare_window_action
 
 class DoreviaHelloassoLanding(models.TransientModel):
     _name = "dorevia.helloasso.landing"
-    _description = "HelloAsso — vue d’ensemble"
+    _description = "HelloAsso — synthese legacy admin"
 
     env_label = fields.Char(string="Environnement API", readonly=True)
     org_slug = fields.Char(string="Organisation (slug)", readonly=True)
@@ -70,6 +70,7 @@ class DoreviaHelloassoLanding(models.TransientModel):
                 "last_adherent_sync_at": last_p.helloasso_last_sync_at or False,
                 "last_billetterie_sync_at": last_o.last_sync_at or False,
                 "help_text": _(
+                    "Vue legacy admin : utiliser la landing HelloAsso du menu pour le suivi par société active. "
                     "Menu HelloAsso : « Adhésion » et « Billetteries » uniquement. "
                     "Adhésion à jour : Paramètres → HelloAsso adhérent → Synchroniser (ou cron). "
                     "Billetteries : consultation référentiel Event ; import sur sélection ; rechargement catalogue via Action ; liste Commandes consultation pure ; assistant via Action ou Paramètres généraux."
