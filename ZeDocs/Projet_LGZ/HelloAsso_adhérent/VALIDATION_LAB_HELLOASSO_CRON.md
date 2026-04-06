@@ -1,5 +1,7 @@
 # Module HelloAsso → Odoo — Dorevia (MVP)
 
+> **État nominal (2026)** : la logique métier adhérents (paramètres, synchro, cron utile) vit dans **`dorevia_helloasso_members`** (sur **`dorevia_helloasso_connector`**). Le module **`dorevia_helloasso_adherent`** a été **supprimé du dépôt** ; ce document reste une **archive de spec** — croiser systématiquement avec le code sous `dorevia_helloasso_members` / `dorevia_helloasso_connector`.
+
 Rapport de référence sur le connecteur **`dorevia_helloasso_adherent`** et son périmètre.  
 *(Ce document remplace l’ancienne note courte exclusivement centrée sur le cron ; la **validation lab** du planificateur est résumée en [annexe](#annexe--validation-lab--automatisation-ircron).)*
 
@@ -36,7 +38,7 @@ En résumé : **HelloAsso reste le canal public** ; **Odoo** sert de référenti
 
 ## Ce que le module ne couvre pas tout seul
 
-- Les **champs et l’onglet HelloAsso sur la fiche contact** (montants, identifiants source, statut de synchro, etc.) sont dans **`dorevia_partner_membership_fields`**, dont **`dorevia_helloasso_adherent` dépend** : séparation volontaire pour pouvoir disposer des champs sans forcément installer tout le connecteur API partout.
+- Les **champs et l’onglet HelloAsso sur la fiche contact** (montants, identifiants source, statut de synchro, etc.) sont dans **`dorevia_partner_membership_fields`**, réutilisés par **`dorevia_helloasso_members`** : séparation volontaire pour pouvoir disposer des champs sans forcément installer tout le connecteur API partout.
 
 - **`dorevia_res_config_dms_shim`** est une **dépendance technique** pour la cohérence des écrans Paramètres (champs documents attendus par certaines vues) sur Odoo 19 lorsque **DMS** n’est pas installé.
 
@@ -77,7 +79,7 @@ Le module **configure l’API HelloAsso**, permet de **vérifier** et **prévisu
 
 Le déclenchement automatique de la synchro HelloAsso → Odoo (adhérents) a été **validé sur le lab** via **action planifiée Odoo (`ir.cron`)**.
 
-**Environnement de référence :** lab `glz-rgl` (base `odoo_lab_glz_rgl`), module `dorevia_helloasso_adherent`.
+**Environnement de référence :** lab `glz-rgl` (base `odoo_lab_glz_rgl`) — cron et synchro adhérents portés par **`dorevia_helloasso_members`** (le module historique **`dorevia_helloasso_adherent`** a été **retiré du dépôt**).
 
 ### Résultat de validation lab
 

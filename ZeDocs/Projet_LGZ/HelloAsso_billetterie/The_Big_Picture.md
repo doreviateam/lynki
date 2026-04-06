@@ -25,7 +25,7 @@ Son rôle est de clarifier :
 
 ### Distinction avec le flux « adhérent »
 
-Le projet **adhérents** HelloAsso → Odoo (documentation sous [`HelloAsso_adhérent`](../HelloAsso_adhérent/), module `dorevia_helloasso_adherent`) traite un **autre périmètre métier**. **La billetterie est un flux distinct** : objets API, règles de rapprochement et cibles Odoo ne sont **pas** supposés identiques. Les deux initiatives peuvent coexister ; elles ne doivent pas être amalgamées sans arbitrage explicite (future SPEC / ADR billetterie).
+Le projet **adhérents** HelloAsso → Odoo (documentation sous [`HelloAsso_adhérent`](../HelloAsso_adhérent/), implémentation **`dorevia_helloasso_members`**) traite un **autre périmètre métier**. **La billetterie est un flux distinct** : objets API, règles de rapprochement et cibles Odoo ne sont **pas** supposés identiques. Les deux initiatives peuvent coexister ; elles ne doivent pas être amalgamées sans arbitrage explicite (future SPEC / ADR billetterie).
 
 ---
 

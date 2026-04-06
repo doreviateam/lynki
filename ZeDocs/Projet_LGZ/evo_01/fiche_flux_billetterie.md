@@ -6,6 +6,7 @@
 | **Complément** | Spécification et arbitrages : [SPEC billetterie](../HelloAsso_billetterie/SPEC_DOREVIA_HELLOASSO_BILLETTERIE.md), [ADR billetterie](../HelloAsso_billetterie/ADR_DECISIONS_ARBITRAGE_HELLOASSO_BILLETTERIE.md) |
 | **Note de cadrage** | [note_cadrage.md](./note_cadrage.md) |
 | **Vue d’ensemble** | [Cartographie des flux](./cartographie_flux_helloasso_odoo.md) |
+| **Kanban (listes Billetteries / Commandes)** | [note vues kanban HelloAsso](./note_vues_kanban_helloasso.md) |
 
 ---
 

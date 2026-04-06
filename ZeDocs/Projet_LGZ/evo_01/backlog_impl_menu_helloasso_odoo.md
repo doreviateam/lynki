@@ -106,8 +106,25 @@ Les vues **métier** de l’app HelloAsso n’affichent pas le vocabulaire brut 
 
 ---
 
+## Évolution d’architecture — multi-compte HelloAsso (LGZ / RGL)
+
+**Décision :** l’instance sert **plusieurs associations** (sociétés Odoo), ex. **LGZ** et **RGL**, chacune avec **son compte HelloAsso** (organisation, environnement, identifiants, synchros adhésion + billetterie). Ce n’est **pas** un simple réglage : la cible est un **modèle de compte** dédié, des **flux exécutés par compte**, et un **rattachement systématique** sur les données importées.
+
+**Document de référence (schéma de données exact + règles de synchro) :** [ARCHITECTURE_HELLOASSO_MULTI_COMPTE.md](./ARCHITECTURE_HELLOASSO_MULTI_COMPTE.md)
+
+**Paramètres généraux (bloc HelloAsso, ICP, multi-sociétés) :** [note_parametres_helloasso_res_config.md](./note_parametres_helloasso_res_config.md)
+
+**Lots d’exécution (résumé) :** (1) modèle `dorevia.helloasso.account` + migration, (2) connecteur paramétré par compte, (3) portage adhésion / billetterie / commandes avec `helloasso_account_id` + `company_id`, (4) crons multi-comptes, (5) UI liste/fiche comptes, (6) doc & aide (plus de formulation « connexion unique »).
+
+**Formulation projet :** voir la section « Formulation de référence » dans la note d’architecture.
+
+---
+
 ## Références
 
+* [Note — Paramètres HelloAsso (UI, ICP, multi-sociétés)](./note_parametres_helloasso_res_config.md)
+* [Note — Vues kanban HelloAsso (grille, regroupements)](./note_vues_kanban_helloasso.md)
+* [Architecture multi-compte HelloAsso — schéma & règles de synchro](./ARCHITECTURE_HELLOASSO_MULTI_COMPTE.md)
 * [Note de livraison UX — Aide HelloAsso](./NOTE_LIVRAISON_UX_AIDE_HELLOASSO.md)
 * [Note d’arborescence fonctionnelle](./note_arborescence_fonctionnelle_menu_helloasso.md)
 * [Cartographie des flux](./cartographie_flux_helloasso_odoo.md)

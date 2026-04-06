@@ -1,5 +1,7 @@
 # Refonte HelloAsso — lot 1 (connector) et migration vers `members`
 
+**Suite (2026)** : le shim `dorevia_helloasso_adherent` a été **supprimé du dépôt**. Déploiement nominal : **`dorevia_helloasso_connector`** → **`dorevia_helloasso_members`** → **`dorevia_helloasso_billetterie`**. Ce document conserve la chronologie technique du lot 1.
+
 ## Lot 1 exécuté (dépôt)
 
 - **Nouveau module** `dorevia_helloasso_connector` : `helloasso_client.py`, `helloasso_sync_log.py` (`dorevia.helloasso.logentry`), vues du journal.

@@ -163,6 +163,18 @@ La ligne de cadrage retenue est donc la suivante :
 
 À ce jour, cette orientation est déjà confirmée par un premier flux métier effectivement implémenté : **la synchronisation unidirectionnelle des adhérents depuis HelloAsso vers Odoo**.
 
+## Paramètres et identifiants (société ↔ HelloAsso)
+
+La liaison **une société Odoo ↔ un compte HelloAsso** (identifiants OAuth distincts par association) est décrite au niveau **Paramètres**, **modèle de compte** et **repli ICP multi-sociétés** dans la note dédiée :
+
+* [Note — Paramètres HelloAsso (`res.config.settings`)](./note_parametres_helloasso_res_config.md)
+
+### Vues kanban (grille, regroupements)
+
+* [Note — Vues kanban HelloAsso (alignement type Contacts)](./note_vues_kanban_helloasso.md)
+
+---
+
 ## Références documentaires et techniques
 
 ### Vue d’ensemble des flux
@@ -171,6 +183,7 @@ La ligne de cadrage retenue est donc la suivante :
 * [Note d’arbitrage — consolidation MVP](./note_arbitrage_consolidation_mvp_helloasso.md) *(à compléter après recette terrain)*
 * [Arborescence fonctionnelle — menu HelloAsso](./note_arborescence_fonctionnelle_menu_helloasso.md)
 * [Backlog d’implémentation — menu HelloAsso](./backlog_impl_menu_helloasso_odoo.md)
+* [Vues kanban HelloAsso (grille, filtres de regroupement)](./note_vues_kanban_helloasso.md)
 
 ### Cadrage projet Odoo (LGZ)
 
@@ -198,7 +211,9 @@ La ligne de cadrage retenue est donc la suivante :
 
 Chemins relatifs à la racine du dépôt `dorevia-plateform` :
 
-* `units/odoo/custom-addons/dorevia_helloasso_adherent` — connecteur adhérents (MVP)
+* `units/odoo/custom-addons/dorevia_helloasso_connector` — client API + journal (`dorevia.helloasso.logentry`)
+* `units/odoo/custom-addons/dorevia_helloasso_members` — synchro adhérents Membership, cron, paramètres HelloAsso
 * `units/odoo/custom-addons/dorevia_helloasso_billetterie` — connecteur billetterie (MVP)
+* *Ancien shim* : `dorevia_helloasso_adherent` — **retiré du dépôt** (plus de module Odoo à ce nom dans `custom-addons`).
 * `units/odoo/custom-addons/dorevia_partner_membership_fields` — champs et onglet HelloAsso sur `res.partner`
 * `units/odoo/custom-addons/dorevia_res_config_dms_shim` — champs Paramètres attendus par les vues (shim DMS)

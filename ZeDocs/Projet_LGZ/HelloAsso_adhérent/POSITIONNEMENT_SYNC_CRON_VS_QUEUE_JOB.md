@@ -74,5 +74,5 @@ Donc :
 
 ## Références code
 
-- Synchro actuelle (manuelle) : `dorevia_helloasso_adherent` — `run_membership_payments_sync`, bouton Paramètres.
+- Synchro actuelle (manuelle) : `dorevia_helloasso_members` — `run_membership_payments_sync`, bouton Paramètres.
 - Instance lab : `queue_job` peut être chargé au niveau serveur pour d’**autres** modules ; il n’est **pas** utilisé par le MVP HelloAsso à ce jour.

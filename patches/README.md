@@ -34,4 +34,4 @@ cd sources/oca/dms && git diff dms > ../../patches/dms-odoo19-compat-wip.patch
 ### Notes
 
 - Des avertissements `_sql_constraints` / `auto_join` peuvent apparaître dans les logs : dette technique OCA, hors périmètre immédiat.
-- Le module **`dorevia_helloasso_adherent`** ne duplique plus les champs `documents_*` sur `res.config.settings` : ils sont fournis par **`dms`** une fois installé.
+- Les connecteurs HelloAsso ne dupliquent pas les champs `documents_*` sur `res.config.settings` : ils sont fournis par **`dms`** une fois installé.

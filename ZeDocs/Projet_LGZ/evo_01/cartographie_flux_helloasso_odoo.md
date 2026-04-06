@@ -16,7 +16,7 @@ Réponse rapide à : **« Qu’est-ce qui existe déjà, et qu’est-ce qui rest
 
 | Flux | Source HelloAsso (API / objet) | Ancrage idempotence | Objet Odoo principal | Statut actuel |
 |------|-------------------------------|---------------------|----------------------|---------------|
-| **Adhérents** | Paiements d’un formulaire **Membership** (`…/payments`) | **Id paiement** HelloAsso → `res.partner.helloasso_external_id` | `res.partner` (+ champs traçabilité HelloAsso) | **Implémenté MVP** (`dorevia_helloasso_adherent`) |
+| **Adhérents** | Paiements d’un formulaire **Membership** (`…/payments`) | **Id paiement** HelloAsso → `res.partner.helloasso_external_id` | `res.partner` (+ champs traçabilité HelloAsso) | **Implémenté MVP** (`dorevia_helloasso_connector` + `dorevia_helloasso_members`) |
 | **Billetterie (commandes)** | Commandes d’un formulaire paramétrable (défaut **Event**) (`…/orders`) | **Id commande** → `dorevia.helloasso.billetterie.order.helloasso_order_id` | `dorevia.helloasso.billetterie.order` (+ lignes) | **Implémenté MVP** (`dorevia_helloasso_billetterie`) |
 | **Participants** (hors payeur) | Lignes `items` / blocs personne dans la commande | Pas d’ancre dédiée côté Odoo | Champs texte sur **`dorevia.helloasso.billetterie.line`** uniquement | **Non structurés** en fiches contact |
 | **Payeurs** | Bloc `payer` (commande ou paiement) | Rapprochement par **e-mail** (règles distinctes selon flux) | `res.partner` | **Partiellement structuré** : fiche contact ; traçabilité HelloAsso **complète** surtout sur le flux **adhérent** ; flux **billetterie** sans remplir les champs `helloasso_*` « adhérent » sur le partenaire (éviter conflit) |
@@ -42,6 +42,8 @@ Ensemble, cela forme un **dossier d’architecture fonctionnelle réelle** (inte
 * Billetterie actuelle = **miroir structuré des commandes** exploitable en interne, **pas** une intégration métier profonde type événement Odoo ou vente complète.
 * **App HelloAsso (menu / listes)** : entrée **Aide** (ex-**Repère**) pour l’orientation ; listes **Billetteries** et **Commandes** hiérarchisées pour privilégier la **consultation** et reléguer les actions techniques au **menu Action** ou au menu **Paramètres** — voir [note d’arborescence](./note_arborescence_fonctionnelle_menu_helloasso.md) et [backlog menu](./backlog_impl_menu_helloasso_odoo.md).
 * **Planificateurs** : synchro **adhérents** et **billetterie** via `ir.cron` **actifs par défaut** (fréquence par défaut **toutes les 6 h**, désactivables ou ajustables dans **Paramètres → Technique → Actions planifiées**). La tâche billetterie enchaîne **inventaire** + import **toutes** les billetteries connues pour l’organisation (voir [fiche flux billetterie](./fiche_flux_billetterie.md)).
+* **Identifiants HelloAsso / multi-sociétés** : bloc **Paramètres → HelloAsso** (société, ID, clé) ; bijection **société Odoo ↔ compte** ; repli **ICP** uniquement si la société correspond au même client ID (pas de mélange entre associations) — voir [note Paramètres HelloAsso](./note_parametres_helloasso_res_config.md).
+* **Vues kanban** (Adhésion, Billetteries, Commandes) : grille type **Contacts** ; pas de `default_group_by` imposé ni de colonnes « pipeline » étroites ; regroupements via **filtres** de recherche — voir [note vues kanban HelloAsso](./note_vues_kanban_helloasso.md).
 
 ### Règle d’exploitation — crons (toutes bases, après upgrade)
 
@@ -93,6 +95,9 @@ Ensemble, cela forme un **dossier d’architecture fonctionnelle réelle** (inte
 
 | Module | Chemin (racine dépôt) |
 |--------|------------------------|
-| Adhérents | `units/odoo/custom-addons/dorevia_helloasso_adherent` |
+| Socle API + journal HelloAsso | `units/odoo/custom-addons/dorevia_helloasso_connector` |
+| Adhérents (synchro, cron, paramètres) | `units/odoo/custom-addons/dorevia_helloasso_members` |
 | Billetterie | `units/odoo/custom-addons/dorevia_helloasso_billetterie` |
 | Champs partner HelloAsso | `units/odoo/custom-addons/dorevia_partner_membership_fields` |
+
+Documentation associée : [note Paramètres HelloAsso](./note_parametres_helloasso_res_config.md), [note vues kanban HelloAsso](./note_vues_kanban_helloasso.md).

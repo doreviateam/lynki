@@ -1,5 +1,7 @@
 # Recette lab — MVP HelloAsso → Odoo (`res.partner`)
 
+> **Code actuel** : le module `dorevia_helloasso_adherent` a été **retiré du dépôt**. Utiliser **`dorevia_helloasso_members`** / **`dorevia_helloasso_connector`** pour les commandes d’installation et les chemins de code.
+
 **Version compacte (ticket / PR, une page)** : `RECETTE_MVP_HELLOASSO_COMPACT.md`
 
 ## Décision de validation proposée
@@ -16,7 +18,7 @@ Document utilisable tel quel dans un ticket ou une PR de validation.
 
 **Environnement** : lab (ex. `glz-rgl`), base dédiée, credentials HelloAsso sandbox ou prod selon le périmètre.
 
-**Dernière mise à jour** : avril 2026 — aligné sur les modules `dorevia_helloasso_adherent` et `dorevia_partner_membership_fields` tels que déployés sur le lab (synchro MVP, conversion montants).
+**Dernière mise à jour** : avril 2026 — aligné sur `dorevia_helloasso_members`, `dorevia_helloasso_connector` et `dorevia_partner_membership_fields` (synchro MVP, conversion montants).
 
 ### État de validation (2026-04-03)
 
@@ -247,13 +249,13 @@ Après la recette, noter dans le ticket :
 
 ## Références code / doc
 
-- Modules : `dorevia_helloasso_adherent`, `dorevia_partner_membership_fields`, `dorevia_res_config_dms_shim`.
+- Modules : `dorevia_helloasso_members`, `dorevia_helloasso_connector`, `dorevia_partner_membership_fields`, `dorevia_res_config_dms_shim`.
 - SPEC : `SPEC_DOREVIA_HELLOASSO_ADHERENT.md` — ADR : `ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md`.
-- Logique synchro (rapprochement, skip doublon email) : `dorevia_helloasso_adherent/models/helloasso_sync.py`.
+- Logique synchro (rapprochement, skip doublon email) : `dorevia_helloasso_members/models/helloasso_sync.py`.
 
 ### Tests automatisés (Python)
 
-Le module `dorevia_helloasso_adherent` embarque des tests Odoo (`tests/test_helloasso_sync.py`) qui rejouent les scénarios §1 à §4 avec **mocks** des appels API (pas de sandbox, pas de réseau).
+Le module `dorevia_helloasso_members` embarque des tests Odoo (`tests/test_helloasso_sync.py`) qui rejouent les scénarios §1 à §4 avec **mocks** des appels API (pas de sandbox, pas de réseau).
 
 **Recommandation** : utiliser une **base PostgreSQL dédiée** (ex. `test_helloasso_mvp`) où seuls les modules nécessaires sont installés. Sur une grosse base lab (`odoo_lab_glz_rgl`), le chargement des tests d’**autres** addons peut échouer (ex. `odoo_test_helper` incompatible Odoo 19, dépendances manquantes).
 
@@ -263,18 +265,18 @@ Sur l’hôte Docker du lab (conteneur Odoo, config `ODOO_RC=/etc/odoo/odoo.conf
 # Une fois : créer la base minimale (écrase si déjà présente)
 ODOO_RC=/etc/odoo/odoo.conf odoo db init test_helloasso_mvp --force
 
-# Une fois : installer le connecteur + dépendances
-ODOO_RC=/etc/odoo/odoo.conf odoo module install -d test_helloasso_mvp dorevia_helloasso_adherent
+# Une fois : installer la chaîne (members entraîne connector et dépendances)
+ODOO_RC=/etc/odoo/odoo.conf odoo module install -d test_helloasso_mvp dorevia_helloasso_members
 
 # À chaque exécution des tests (--db-filter pour ne pas être bloqué par dbfilter du lab)
 ODOO_RC=/etc/odoo/odoo.conf odoo server -d test_helloasso_mvp \
   --db-filter='^test_helloasso_mvp$' \
   --test-enable --stop-after-init \
-  --test-tags=/dorevia_helloasso_adherent \
+  --test-tags=/dorevia_helloasso_members \
   --workers=0 --http-port=8070
 ```
 
-Attendu dans les logs : `0 failed` / `post-tests` OK pour `dorevia_helloasso_adherent`.
+Attendu dans les logs : `0 failed` / `post-tests` OK pour `dorevia_helloasso_members`.
 
 La recette **manuelle** reste utile pour valider credentials réels, prévisualisation et comportement UI.
 
@@ -286,7 +288,7 @@ La recette **manuelle** reste utile pour valider credentials réels, prévisuali
 
 **Décision** : MVP **validable** pour fusion / mise en production selon votre processus.
 
-**Couvert** : §1 nominal, §2 rejouabilité, §3 rapprochement email (comportement), §4 doublon d’email ignoré — **lab** et/ou **`tests/test_helloasso_mvp` verts** (`dorevia_helloasso_adherent`).
+**Couvert** : §1 nominal, §2 rejouabilité, §3 rapprochement email (comportement), §4 doublon d’email ignoré — **lab** et/ou **`tests/test_helloasso_mvp` verts** (`dorevia_helloasso_members`).
 
 **Non bloquant** à ce stade : §5 variation de payload ; ouvrir un ticket si un cas métier doit être approfondi.
 
@@ -294,4 +296,4 @@ La recette **manuelle** reste utile pour valider credentials réels, prévisuali
 
 **§3** : la checklist manuelle pas à pas reste une **preuve complémentaire** ; elle n’est pas un prérequis si les tests Python passent.
 
-**Réfs** : `SPEC_DOREVIA_HELLOASSO_ADHERENT.md`, `ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md`, modules `dorevia_helloasso_adherent`, `dorevia_partner_membership_fields`.
+**Réfs** : `SPEC_DOREVIA_HELLOASSO_ADHERENT.md`, `ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md`, modules `dorevia_helloasso_members`, `dorevia_partner_membership_fields`.

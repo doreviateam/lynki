@@ -1,8 +1,10 @@
 # Recette lab — MVP HelloAsso → Odoo (`res.partner`)
 
+> **Code actuel** : le module `dorevia_helloasso_adherent` a été **retiré du dépôt**. La synchro et les tests utiles sont sous **`dorevia_helloasso_members`** et **`dorevia_helloasso_connector`**. Les chemins de fichiers ci-dessous qui mentionnent encore `dorevia_helloasso_adherent/` sont obsolètes — substituer par `dorevia_helloasso_members/`.
+
 **Périmètre** : validation du MVP de synchro HelloAsso → contacts Odoo sur le lab.  
 **Environnement** : lab (`glz-rgl` ou équivalent), base dédiée, credentials HelloAsso sandbox ou prod selon périmètre.  
-**Référence** : avril 2026 — modules `dorevia_helloasso_adherent` et `dorevia_partner_membership_fields`.
+**Référence** : avril 2026 — `dorevia_helloasso_members`, `dorevia_helloasso_connector`, `dorevia_partner_membership_fields`.
 
 ## Décision proposée
 
@@ -127,17 +129,17 @@ Ordre recommandé :
 
 ## Références
 
-- Modules : `dorevia_helloasso_adherent`, `dorevia_partner_membership_fields`, `dorevia_res_config_dms_shim`
+- Modules : `dorevia_helloasso_members`, `dorevia_helloasso_connector`, `dorevia_partner_membership_fields`, `dorevia_res_config_dms_shim`
 - SPEC : `SPEC_DOREVIA_HELLOASSO_ADHERENT.md`
 - ADR : `ADR_DECISIONS_ARBITRAGE_HELLOASSO_ODOO_ADHERENTS.md`
-- Logique synchro : `dorevia_helloasso_adherent/models/helloasso_sync.py`
-- Tests : `dorevia_helloasso_adherent/tests/test_helloasso_sync.py`
+- Logique synchro : `dorevia_helloasso_members/models/helloasso_sync.py`
+- Tests : `dorevia_helloasso_members/tests/test_helloasso_sync.py`
 
 ---
 
 ## Checklist PR (≈ 30 s)
 
-- [ ] Tests `dorevia_helloasso_adherent` verts (`--test-tags=/dorevia_helloasso_adherent`, base dédiée type `test_helloasso_mvp` si besoin).
+- [ ] Tests `dorevia_helloasso_members` verts (`--test-tags=/dorevia_helloasso_members`, base dédiée type `test_helloasso_mvp` si besoin).
 - [ ] Lab : synchro nominale + montants affichés en **euros** (pas centimes bruts).
 - [ ] §5 payload : **non bloquant** à ce stade ; ouvrir un ticket si un cas métier doit être approfondi.
 

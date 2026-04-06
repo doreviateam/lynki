@@ -31,7 +31,7 @@ Livrer un **connecteur Odoo MVP** qui synchronise les **ventes billetterie Hello
 | **Durée de sprint** | **2 semaines** (ajustable : 1 semaine si équipe très petite) |
 | **Cérémonies** | Planif sprint (1 h) · Daily (15 min) · Revue + rétro (1 h 30) |
 | **Artefacts** | Backlog produit (ce document) · Backlog sprint (outil interne) · Incrément potentiellement livrable |
-| **Référence technique** | Module [dorevia_helloasso_adherent](../HelloAsso_adhérent/) — **inspiration uniquement** ; pas de fusion de code sans arbitrage |
+| **Référence technique** | Doc [HelloAsso_adhérent](../HelloAsso_adhérent/) / module **`dorevia_helloasso_members`** — **inspiration uniquement** ; pas de fusion de code sans arbitrage |
 
 Le **Product Owner** aligne priorités avec l’ADR ; le **Scrum Master** (ou lead dev) protège le périmètre MVP.
 
