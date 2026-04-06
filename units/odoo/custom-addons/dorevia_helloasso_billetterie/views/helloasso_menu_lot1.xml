@@ -231,11 +231,4 @@
         action="action_dorevia_helloasso_billetterie_order"
         sequence="15"
     />
-    <menuitem
-        id="menu_helloasso_form_guide"
-        name="Accueil"
-        parent="menu_dorevia_helloasso_root"
-        action="action_dorevia_helloasso_form_guide"
-        sequence="40"
-    />
 </odoo>
