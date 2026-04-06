@@ -254,4 +254,11 @@
         action="dorevia_helloasso_payment.action_dorevia_helloasso_payment"
         sequence="25"
     />
+    <menuitem
+        id="menu_helloasso_payments_csv_import"
+        name="Importer un CSV"
+        parent="menu_helloasso_payments"
+        action="dorevia_helloasso_payment.action_dorevia_helloasso_payment_csv_wizard"
+        sequence="5"
+    />
 </odoo>
