@@ -26,6 +26,7 @@
         "contacts",
         "dorevia_helloasso_connector",
         "dorevia_helloasso_members",
+        "dorevia_helloasso_payment",
         "dorevia_partner_membership_fields",
         "dorevia_res_config_dms_shim",
     ],
