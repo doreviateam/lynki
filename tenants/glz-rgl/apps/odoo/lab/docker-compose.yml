@@ -39,6 +39,7 @@ services:
       ODOO_DVIG_SOURCE: glz-rgl.doreviateam.com
       ODOO_DVIG_TENANT: glz-rgl
       ODOO_DVIG_TOKEN: ${DVIG_TOKEN_GLZ_RGL:-}
+      EXCLUDE_MODULES: dms,dms_auto_classification,dms_field,dms_field_auto_classification,dms_user_role,hr_dms_field,web_editor_media_dialog_dms
     networks:
       - dorevia-network
     volumes:
