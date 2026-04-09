@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16
+    container_name: odoo19_accounting_kit_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: odoo
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  odoo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: odoo19_accounting_kit
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "18079:8069"
+    volumes:
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
+      - ./addons-thirdparty:/mnt/addons-thirdparty
+      - /Users/doreviateam/lynki/units/odoo/addons-o19:/mnt/addons-o19:ro
+      - /Users/doreviateam/lynki/units/odoo/custom-addons:/mnt/custom-addons:ro
+      - odoo_data:/var/lib/odoo
+    command: ["odoo", "-c", "/etc/odoo/odoo.conf"]
+
+volumes:
+  db_data:
+  odoo_data:
