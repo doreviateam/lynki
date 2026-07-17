@@ -8,6 +8,11 @@ services:
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # CK Option B — secret basic_auth préprod (fichier unique, read-only).
+      # Créer le fichier hôte hors Git avant apply Caddy CK :
+      #   ./secrets/ck-preprod-bo-basicauth.caddy
+      # Permissions recommandées (conteneur root) : 0400 root:root ou 0440.
+      - ./secrets/ck-preprod-bo-basicauth.caddy:/etc/caddy/secrets/ck-preprod-bo-basicauth.caddy:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:
