@@ -17,6 +17,7 @@ services:
       - caddy_config:/config
     networks:
       - dorevia-network
+      - odoo19
     # extra_hosts supprimé (plus besoin de host.docker.internal)
 
 volumes:
@@ -26,3 +27,6 @@ volumes:
 networks:
   dorevia-network:
     external: true
+  odoo19:
+    external: true
+    name: odoo-19_default

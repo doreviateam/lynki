@@ -6,7 +6,7 @@
 |---|---|
 | Dépôt | `doreviateam/lynki` |
 | Worktree local | `/Users/doreviateam/Desktop/lynki_gateway_option_b_worktree` |
-| Branche | `feat/ck-option-b-bo-secret-mount` |
+| Branche | `feat/gateway-restore-odoo19-network` (correctif réseaux) · historique Option B : `feat/ck-option-b-bo-secret-mount` |
 | Fichier Compose | `units/gateway/docker-compose.yml` |
 
 ## Montage
@@ -18,9 +18,20 @@ conteneur: /etc/caddy/secrets/ck-preprod-bo-basicauth.caddy
 mode: read-only
 ```
 
+## Réseaux
+
+La gateway mutualisée reste attachée à :
+
+```text
+dorevia-network          (external)
+odoo19 → odoo-19_default (external, name: odoo-19_default)
+```
+
+Le réseau `odoo19` est requis pour préserver l’attachement live historique (ex. stacks demo Odoo 19). Ne pas le retirer lors d’un sync Compose.
+
 ## Impact autres vhosts
 
-Aucun — ajout d’un volume fichier uniquement. Le `Caddyfile` multi-sites reste inchangé par ce commit.
+Aucun sur le Caddyfile — volume secret fichier unique + conservation des deux réseaux externes.
 
 ## Validation gateway (future, hors cette passe)
 
